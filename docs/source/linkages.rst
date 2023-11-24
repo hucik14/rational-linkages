@@ -4,7 +4,7 @@ Mechanism package
 Dual Quaternion
 ---------------
 
-.. automodule:: mechanism.DualQuaternion
+.. automodule:: linkages.DualQuaternion
    :members:
    :undoc-members:
    :show-inheritance:
@@ -12,7 +12,7 @@ Dual Quaternion
 Dual Quaternion Action
 ----------------------
 
-.. automodule:: mechanism.DualQuaternionAction
+.. automodule:: linkages.DualQuaternionAction
    :members:
    :undoc-members:
    :show-inheritance:
@@ -20,7 +20,7 @@ Dual Quaternion Action
 MiniBall
 --------
 
-.. automodule:: mechanism.MiniBall
+.. automodule:: linkages.MiniBall
    :members:
    :undoc-members:
    :show-inheritance:
@@ -28,15 +28,15 @@ MiniBall
 Motion Factorization
 --------------------
 
-.. automodule:: mechanism.MotionFactorization
+.. automodule:: linkages.MotionFactorization
    :members:
    :undoc-members:
-   :show-inheritance: mechanism.RationalCurve
+   :show-inheritance: linkages.RationalCurve
 
 Normalized Line
 ---------------
 
-.. automodule:: mechanism.NormalizedLine
+.. automodule:: linkages.NormalizedLine
    :members:
    :undoc-members:
    :show-inheritance:
@@ -44,7 +44,7 @@ Normalized Line
 Point Homogeneous
 -----------------
 
-.. automodule:: mechanism.PointHomogeneous
+.. automodule:: linkages.PointHomogeneous
    :members:
    :undoc-members:
    :show-inheritance:
@@ -52,7 +52,7 @@ Point Homogeneous
 Quaternion
 ----------
 
-.. automodule:: mechanism.Quaternion
+.. automodule:: linkages.Quaternion
    :members:
    :undoc-members:
    :show-inheritance:
@@ -60,15 +60,15 @@ Quaternion
 Rational Bezier
 ---------------
 
-.. automodule:: mechanism.RationalBezier
+.. automodule:: linkages.RationalBezier
    :members:
    :undoc-members:
-   :show-inheritance: mechanism.RationalCurve
+   :show-inheritance: linkages.RationalCurve
 
 Rational Curve
 --------------
 
-.. automodule:: mechanism.RationalCurve
+.. automodule:: linkages.RationalCurve
    :members:
    :undoc-members:
    :show-inheritance:
@@ -76,15 +76,15 @@ Rational Curve
 Rational Mechanism
 ------------------
 
-.. automodule:: mechanism.RationalMechanism
+.. automodule:: linkages.RationalMechanism
    :members:
    :undoc-members:
-   :show-inheritance: mechanism.RationalCurve
+   :show-inheritance: linkages.RationalCurve
 
 Transf Matrix
 -------------
 
-.. automodule:: mechanism.TransfMatrix
+.. automodule:: linkages.TransfMatrix
    :members:
    :undoc-members:
    :show-inheritance:

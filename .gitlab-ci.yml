@@ -22,7 +22,7 @@ run_tests:
   script:
     - pip install -r requirements.txt
     - pip install coverage
-    - cd python/mechanism
+    - cd python/linkages
     - coverage run --omit="*/test*" -m unittest discover -s ../tests
     - coverage report -m
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
@@ -50,7 +50,7 @@ build_docs:
     - make latexpdf
   artifacts:
     paths:
-      - docs/build/latex/mechanismscollisions.pdf
+      - docs/build/latex/rational_linkages.pdf
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$CI_COMMIT_BRANCH == "develop"'

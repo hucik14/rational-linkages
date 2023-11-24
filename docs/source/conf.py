@@ -16,7 +16,7 @@ import sys
 
 docs_source_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(docs_source_dir, '..', '..'))
-src_dir = os.path.join(project_root, 'python', 'mechanism')
+src_dir = os.path.join(project_root, 'python', 'linkages')
 parent_dir = os.path.join(project_root, 'python')
 
 sys.path.insert(0, parent_dir)
@@ -26,7 +26,7 @@ print(sys.path)
 
 # -- Project information -----------------------------------------------------
 
-project = 'Mechanisms Collisions'
+project = 'Rational Linkages'
 copyright = '2023, Daniel'
 author = 'Daniel'
 
