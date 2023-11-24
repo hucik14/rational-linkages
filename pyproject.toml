@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "mechanism-collisions"
+version = "0.1.0"
+description = "Rational Single-loop Mechanisms Toolbox"
+authors = ["daniel"]
+license = "GPL-3.0-or-later"
+readme = "README.md"
+packages = [{include = "mechanism_collisions"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+scipy = "^1.11"
+numpy = "^1.25"
+sympy = "^1.11"
+matplotlib = "^3.7"
+
+[tool.poetry.group.dev.dependencies]
+coverage = "^7.2"
+flake8 = "^4.0"
+black = "^21.12"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+exclude = "(.git|.idea|maple|docs)/.*"
+
+[tool.isort]
+profile = "black"
+line_length = 88
+skip = [".git", ".idea", "maple", "docs"]
+known_first_party = ["mechanism"]
+force_to_top = ["mechanism"]
+
+[tool.flake8]
+max-line-length = '88'
+ignore = ["E501"]
+exclude = ".git, .idea, maple, docs"
