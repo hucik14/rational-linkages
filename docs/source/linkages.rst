@@ -1,5 +1,5 @@
-Mechanism package
-=================
+Linkages package
+================
 
 Dual Quaternion
 ---------------

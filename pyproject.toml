@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "mechanism-collisions"
+name = "rational-linkages"
 version = "0.1.0"
 description = "Rational Single-loop Mechanisms Toolbox"
 authors = ["daniel"]
 license = "GPL-3.0-or-later"
 readme = "README.md"
-packages = [{include = "mechanism_collisions"}]
+packages = [{include = "rational_linkages"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -32,10 +32,10 @@ exclude = "(.git|.idea|maple|docs)/.*"
 profile = "black"
 line_length = 88
 skip = [".git", ".idea", "maple", "docs"]
-known_first_party = ["mechanism"]
-force_to_top = ["mechanism"]
+known_first_party = ["linkages"]
+force_to_top = ["linkages"]
 
 [tool.flake8]
 max-line-length = '88'
 ignore = ["E501"]
-exclude = ".git, .idea, maple, docs"
+exclude = ".git, .idea, docs"
