@@ -23,6 +23,44 @@ class TransfMatrix:
         # test if the tranformation matrix has proper rotation matrix
         self.is_rotation()
 
+    @classmethod
+    def from_rpy(cls, rpy: list[float], units: str = 'rad') -> np.array:
+        """
+        Create transformation matrix from roll, pitch, yaw angles
+
+        :param list rpy: 3-dimensional list of floats of roll, pitch, yaw angles,
+        in radians or degrees in this order
+        :param str units: 'rad' or 'deg' for radians or degrees
+
+        :return: transformation matrix
+
+        :raises ValueError: if units is not 'rad' or 'deg' or if rpy is not
+        3-dimensional list
+        """
+        if len(rpy) != 3:
+            raise ValueError("Roll, pitch, yaw angles must be 3-dimensional list of floats")
+
+        if units == 'deg':
+            rpy = np.deg2rad(rpy)
+        elif units != 'rad':
+            raise ValueError("Units must be 'rad' or 'deg'")
+
+        rot_x = np.array([[1, 0, 0],
+                         [0, np.cos(rpy[0]), -np.sin(rpy[0])],
+                         [0, np.sin(rpy[0]), np.cos(rpy[0])]])
+
+        rot_y = np.array([[np.cos(rpy[1]), 0, np.sin(rpy[1])],
+                          [0, 1, 0],
+                          [-np.sin(rpy[1]), 0, np.cos(rpy[1])]])
+
+        rot_z = np.array([[np.cos(rpy[2]), -np.sin(rpy[2]), 0],
+                          [np.sin(rpy[2]), np.cos(rpy[2]), 0],
+                          [0, 0, 1]])
+
+        m = np.eye(4)
+        m[1:4, 1:4] = rot_z @ rot_y @ rot_x
+        return cls(m)
+
 
     @property
     def matrix(self):

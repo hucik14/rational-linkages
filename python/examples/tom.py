@@ -7,11 +7,16 @@ from Plotter import Plotter
 
 plt = Plotter()
 
-tf = TransfMatrix()
+# be careful of the convention of the TransfMatrix class (european vs. american)
+
+# create transformation matrix from roll, pitch, yaw angles
+tf = TransfMatrix.from_rpy([0, 0, 180], units='deg')
 # add translation
 tf.t = [3, 1, 2]
 
-origin = DualQuaternion([1, 0, 0, 0, 0, 0, 0, 0])
+tf2dq = DualQuaternion(tf.matrix2dq())
+
+origin = DualQuaternion()
 
 pt1 = PointHomogeneous([1, 1, 0, 0])
 pt2 = PointHomogeneous([1, 0, 1, 1])

@@ -8,6 +8,8 @@
 ## Intallation instuctions
 1. Clone the repository
     (use preferably your client, or clone with the button on top of this page)
+    
+   <code>git clone https://git.uibk.ac.at/geometrie-vermessung/rational-linkages.git </code>
 
 2. Install dependencies listed in [requirements.txt](requirements.txt), globally or in your virtual environment using for example pip with line:
     <code>pip install -r requirements.txt</code>
