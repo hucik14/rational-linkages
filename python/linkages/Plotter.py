@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, TextBox
 
 from functools import wraps
 
@@ -28,6 +29,7 @@ class Plotter:
         self.t_space = np.linspace(interval[0], interval[1], steps)
         self.steps = steps
         self.interactive = interactive
+
 
     def plot(self, object_to_plot, **kwargs):
         """
@@ -59,6 +61,8 @@ class Plotter:
                 self._plot_rational_bezier(object_to_plot, **kwargs)
             case "is_rational_mechanism":
                 self._plot_rational_mechanism(object_to_plot, **kwargs)
+            case "is_interactive":
+                self._plot_interactive(object_to_plot, **kwargs)
 
     def analyze_object(self, object_to_plot):
         """
@@ -71,22 +75,24 @@ class Plotter:
         :return: str - 'is_line', 'is_point', 'is_motion_factorization', 'is_dq' or
         'is_rational_mechanism'
         """
-        if isinstance(object_to_plot, NormalizedLine):
+        if isinstance(object_to_plot, RationalMechanism) and not self.interactive:
+            return "is_rational_mechanism"
+        elif isinstance(object_to_plot, RationalMechanism) and self.interactive:
+            return "is_interactive"
+        elif isinstance(object_to_plot, MotionFactorization) and not self.interactive:
+            return "is_motion_factorization"
+        elif isinstance(object_to_plot, NormalizedLine):
             return "is_line"
         elif isinstance(object_to_plot, PointHomogeneous):
             return "is_point"
-        elif isinstance(object_to_plot, MotionFactorization):
-            return "is_motion_factorization"
-        elif isinstance(object_to_plot, DualQuaternion):
-            return "is_dq"
-        elif isinstance(object_to_plot, TransfMatrix):
-            return "is_transf_matrix"
-        elif isinstance(object_to_plot, RationalMechanism):
-            return "is_rational_mechanism"
         elif isinstance(object_to_plot, RationalBezier):
             return "is_rational_bezier"
         elif isinstance(object_to_plot, RationalCurve):
             return "is_rational_curve"
+        elif isinstance(object_to_plot, DualQuaternion):
+            return "is_dq"
+        elif isinstance(object_to_plot, TransfMatrix):
+            return "is_transf_matrix"
         else:
             raise TypeError(
                 "Other types than NormalizedLine, PointHomogeneous, RationalMechanism, "
@@ -276,6 +282,9 @@ class Plotter:
         x, y, z = zip(*ee_points)
         self.ax.plot(x, y, z, **kwargs)
 
+        self._plot_point_path(mechanism, **kwargs)
+
+    def _plot_point_path(self, mechanism: RationalMechanism, **kwargs):
         # plot end effector path
         t_lin = np.linspace(0, 2 * np.pi, self.steps)
         t = [mechanism.factorizations[0].joint_angle_to_t_param(t_lin[i])
@@ -288,4 +297,94 @@ class Plotter:
 
         x, y, z = zip(*ee_points)
         self.ax.plot(x, y, z, **kwargs)
+
+    def _plot_interactive(self, mechanism: RationalMechanism, **kwargs):
+        """
+        Plot a mechanism in interactive mode
+
+        :param RationalMechanism mechanism: RationalMechanism
+        :param kwargs: matplotlib options
+        """
+        self._plot_point_path(mechanism, **kwargs)
+
+        self.sliders = []
+        self.sliders.append(self._init_slider())
+
+        self.text_box = TextBox(
+            self.fig.add_axes([0.2, 0.06, 0.15, 0.05]),
+            "Set angle [rad]: ",
+            textalignment="center",
+        )
+
+        self.link_plot, = self.ax.plot([], [], [], color="black")
+        self.tool_plot, = self.ax.plot([], [], [], color="red")
+
+        def plot_slider_update(val):
+            # t parametrization for the driving joint
+            t = mechanism.factorizations[0].joint_angle_to_t_param(val)
+
+            # plot links
+            links = (mechanism.factorizations[0].direct_kinematics(t)
+                     + mechanism.factorizations[1].direct_kinematics(t)[::-1])
+
+            x, y, z = zip(*[links[j] for j in range(len(links))])
+            self.link_plot.set_data_3d(x, y, z)
+
+            # plot tool
+            # use last point of each factorization
+            tool_triangle = ([mechanism.factorizations[0].direct_kinematics(t)[-1]]
+                             + [mechanism.factorizations[1].direct_kinematics(t)[-1]])
+            # get tool point
+            tool = mechanism.factorizations[0].direct_kinematics_of_end_effector(
+                t, mechanism.end_effector.dq2point_homogeneous())
+            # add tool point to tool triangle
+            tool_triangle.insert(1, tool)
+
+            x, y, z = zip(*[tool_triangle[j] for j in range(len(tool_triangle))])
+            self.tool_plot.set_data_3d(x, y, z)
+
+            self.fig.canvas.draw_idle()
+            self.fig.canvas.update()
+            self.fig.canvas.flush_events()
+
+        def submit_angle(text):
+            val = float(text)
+            val = val % (2 * np.pi)
+            self.sliders[0].set_val(val)
+
+        self.sliders[0].on_changed(plot_slider_update)
+        self.text_box.on_submit(submit_angle)
+
+    @staticmethod
+    def _init_slider(idx: int = None):
+        """
+        Initialize the slider for interactive plotting
+
+        :param int idx: index of the slider, first one is added automatically as joint
+        angle slider
+
+        :return: matplotlib slider
+        """
+        if idx is None:  # driving joint angle slider
+            slider = Slider(
+                ax=plt.axes([0.2, 0.01, 0.5, 0.05]),
+                label="Joint angle [rad]: ",
+                valmin=0.0,
+                valmax=np.pi * 2,
+                valinit=0.0,
+                valstep=0.01,
+            )
+        else:  # joint connection points sliders
+            slider = Slider(
+                ax=plt.axes([0.3, 0.2, 0.5, 0.05]),
+                label="Driving joint angle in rad",
+                valmin=-2.0,
+                valmax=2.0,
+                valinit=0.0,
+                valstep=0.1,
+            )
+        return slider
+
+
+
 
