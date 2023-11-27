@@ -37,7 +37,7 @@ f2 = MotionFactorization([k1, k2, k3])
 
 m = RationalMechanism([f1, f2])
 
-"""
+
 ax = m.plot(steps=100)
 # Set labels and title for the plot
 ax.set_xlabel("X-axis")
@@ -45,7 +45,7 @@ ax.set_ylabel("Y-axis")
 ax.set_zlabel("Z-axis")
 ax.set_aspect("equal")
 plt.show()
-"""
+
 
 myp = Plotter(interactive=True)
 myp.plot(m)
