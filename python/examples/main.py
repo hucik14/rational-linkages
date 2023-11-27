@@ -3,6 +3,7 @@ from PointHomogeneous import PointHomogeneous
 from MotionFactorization import MotionFactorization
 from RationalMechanism import RationalMechanism
 from AffineMetric import AffineMetric
+from Plotter import Plotter
 
 import matplotlib
 matplotlib.use("Qt5Agg")
@@ -35,23 +36,16 @@ f1 = MotionFactorization([h1, h2, h3])
 f2 = MotionFactorization([k1, k2, k3])
 
 m = RationalMechanism([f1, f2])
-ax = m.plot(steps=100)
 
+"""
+ax = m.plot(steps=100)
 # Set labels and title for the plot
 ax.set_xlabel("X-axis")
 ax.set_ylabel("Y-axis")
 ax.set_zlabel("Z-axis")
 ax.set_aspect("equal")
 plt.show()
+"""
 
-o = PointHomogeneous()
-o_acted = m.factorizations[1].act(o, -0.7)
-print(o_acted)
-
-p0 = PointHomogeneous([1, 0, 1, 0])
-p1 = PointHomogeneous([1, 0, 0, 1])
-p2 = PointHomogeneous([1, 1, 0, 1])
-p3 = PointHomogeneous([1, 0, 1, 1])
-
-m = AffineMetric(m, [p0, p1, p2, p3])
-print(m)
+myp = Plotter(interactive=True)
+myp.plot(m)
