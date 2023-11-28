@@ -49,7 +49,7 @@ class RationalBezier(RationalCurve):
 
         :param control_points:
         :param mapped: bool - True if the curve is mapped to the [-1,1] interval,
-        False keeps [0,1] interval
+            False keeps [0,1] interval
         :return: np.array - coefficients of the parametric equations of the curve
         """
         t = sp.Symbol("t")

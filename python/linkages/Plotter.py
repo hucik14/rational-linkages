@@ -272,8 +272,8 @@ class Plotter:
             self._plot_motion_factorization(factorization, t=t, **kwargs)
 
         # plot end effector triangle
-        pts0 = mechanism.factorizations[0].direct_kinematics_of_end_effector_with_link(t, mechanism.end_effector.array())
-        pts1 = mechanism.factorizations[1].direct_kinematics_of_end_effector_with_link(t, mechanism.end_effector.array())[::-1]
+        pts0 = mechanism.factorizations[0].direct_kinematics_of_tool_with_link(t, mechanism.end_effector.array())
+        pts1 = mechanism.factorizations[1].direct_kinematics_of_tool_with_link(t, mechanism.end_effector.array())[::-1]
         ee_points = np.concatenate((pts0, pts1))
 
         if 'label' not in kwargs:
@@ -290,7 +290,7 @@ class Plotter:
         t = [mechanism.factorizations[0].joint_angle_to_t_param(t_lin[i])
              for i in range(self.steps)]
 
-        ee_points = [mechanism.factorizations[0].direct_kinematics_of_end_effector(
+        ee_points = [mechanism.factorizations[0].direct_kinematics_of_tool(
             t[i], mechanism.end_effector.array()) for i in range(self.steps)]
 
         kwargs['label'] = "motion curve"
@@ -343,7 +343,7 @@ class Plotter:
             tool_triangle = ([mechanism.factorizations[0].direct_kinematics(t)[-1]]
                              + [mechanism.factorizations[1].direct_kinematics(t)[-1]])
             # get tool point
-            tool = mechanism.factorizations[0].direct_kinematics_of_end_effector(
+            tool = mechanism.factorizations[0].direct_kinematics_of_tool(
                 t, mechanism.end_effector.dq2point_homogeneous())
             # add tool point to tool triangle
             tool_triangle.insert(1, tool)

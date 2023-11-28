@@ -180,7 +180,7 @@ class RationalCurve:
         :param t_var: symbolic variable
         :param reparametrization: a function that maps the interval
         :param degree: int - degree of the polynomial, if None (not specified),
-        the degree of the curve is used
+            the degree of the curve is used
 
         :return: list of symbolic expressions
         """
