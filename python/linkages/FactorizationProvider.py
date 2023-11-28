@@ -50,6 +50,7 @@ class FactorizationProvider:
         """
         t = sp.Symbol("t")
 
+        # TODO: it is not rational
         poly = t - bq.BiQuaternion(factorization.axis_rotation[0].array())
         for i in range(1, factorization.number_of_factors):
             poly = poly * (t - bq.BiQuaternion(factorization.axis_rotation[i].array()))
@@ -60,6 +61,9 @@ class FactorizationProvider:
         # the scalar part, since the norm should be purely real anyhow.
         norm_poly = poly.norm()
         norm_poly = bq.Poly(norm_poly.poly.scal, *norm_poly.indets)
+
+        # TODO: right placement?
+        print('Factorization is running...')
 
         # From this we can calculate the irreducible factors, that then determine
         # the different factorizations
