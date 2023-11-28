@@ -21,7 +21,7 @@ class DualQuaternion:
     and interpolations. They consist of a primal quaternion representing rotation and
     translation and a dual quaternion representing infinitesimal transformations.
 
-    :param float, sympy.Number vec8: array or list of 8 Study
+    :param float, sympy.Number study_parameters: array or list of 8 Study
         parameters. If None, an identity DualQuaternion is constructed.
 
     :ivar Quaternion p: primal quaternion - the primal part of the Dual Quaternion,
@@ -57,25 +57,25 @@ class DualQuaternion:
 
     def __init__(
         self,
-        vec8: Optional[Sequence[Union[float, Number]]] = None,
+        study_parameters: Optional[Sequence[Union[float, Number]]] = None,
         is_rotation: bool = False,
     ):
         """
         Dual Quaternion object, assembled from 8-vector (list or np.array) as DQ,
         or two 4-vectors (np.arrays) as two Quaternions (see @classmethod bellow).
-        If vec8 is empty, an identity is constructed.
+        If no Study's parameters are provided, an identity is constructed.
 
-        :param Optional[Sequence[Union[float, Number]]] vec8: array or list of
-        8 parameters. If None, an identity DualQuaternion is constructed. Defaults
-        to None.
+        :param Optional[Sequence[Union[float, Number]]] study_parameters: array or list
+            of 8 Study's parameters. If None, an identity DualQuaternion is constructed.
+            Defaults to None.
         :param bool is_rotation: True if the Dual Quaternion represents a rotation,
         """
-        if vec8 is not None:
-            if len(vec8) != 8:
-                raise ValueError("DualQuaternion: vec8 has to be 8-vector")
-            vec8 = np.asarray(vec8)
-            primal = vec8[:4]
-            dual = vec8[4:]
+        if study_parameters is not None:
+            if len(study_parameters) != 8:
+                raise ValueError("DualQuaternion: input has to be 8-vector")
+            study_parameters = np.asarray(study_parameters)
+            primal = study_parameters[:4]
+            dual = study_parameters[4:]
         else:
             primal = np.array([1, 0, 0, 0])
             dual = np.array([0, 0, 0, 0])
