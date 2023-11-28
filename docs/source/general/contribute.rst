@@ -57,7 +57,8 @@ Example of a docstring:
 
         :example:
         .. code-block:: python
-            :caption: General usage of a function
+            :caption: General usage of a function  # be careful to make an empty line after this line
+
             a = 1
             b = 2.0
             c = example_function(a, b)

@@ -1,5 +1,5 @@
 from warnings import warn
-from typing import Union
+from typing import Union, Optional, Sequence
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -10,19 +10,81 @@ PointHomogeneous = "PointHomogeneous"
 
 
 class NormalizedLine:
-    def __init__(self, unit_screw_axis=None):
+    """
+    Class representing a Normalized Line in Dual Quaternion space.
+
+    The NormalizedLine is defined using Plucker coordinates, representing a Unit Screw
+    axis.
+
+    :param np.ndarray, list[float] unit_screw: Plucker coordinates representing the
+        Unit Screw axis. If None, the line is in the origin along the Z axis.
+
+    :ivar np.ndarray direction: Direction vector of the normalized line.
+    :ivar np.ndarray moment: Moment vector of the normalized line.
+    :ivar np.ndarray screw: Concatenation of the direction and moment vectors.
+    :ivar np.ndarray as_dq_array: Conversion of the NormalizedLine to a Dual Quaternion
+        array.
+
+    :examples:
+
+    .. code-block:: python
+        :caption: Creating a NormalizedLine from a unit screw axis
+
+        from NormalizedLine import NormalizedLine
+        line = NormalizedLine([1, 0, 0, 0, -2, 1])
+
+    .. code-block:: python
+        :caption: Creating a default NormalizedLine at the origin along the Z axis
+
+        from NormalizedLine import NormalizedLine
+        line = NormalizedLine()
+
+    .. code-block:: python
+        :caption: Creating a NormalizedLine from two points
+
+        from NormalizedLine import NormalizedLine
+        from PointHomogeneous import PointHomogeneous
+        point1 = PointHomogeneous([1, 1, 1, 1])
+        point2 = PointHomogeneous([1, 3, 1, 1])
+        line = NormalizedLine.from_two_points(point1, point2)
+
+    .. code-block:: python
+        :caption: Creating a NormalizedLine from a direction and a point
+
+        from NormalizedLine import NormalizedLine
+        line = NormalizedLine.from_direction_and_point([1, 0, 0], [1, 1, 1])
+
+    .. code-block:: python
+        :caption: Creating a NormalizedLine from a direction and a moment
+
+        from NormalizedLine import NormalizedLine
+        line = NormalizedLine.from_direction_and_moment([1, 0, 0], [0, 1, -1])
+
+    .. code-block:: python
+        :caption: Creating a NormalizedLine from a DualQuaternion
+
+        from NormalizedLine import NormalizedLine
+        from DualQuaternion import DualQuaternion
+        dq = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])
+        line = NormalizedLine.from_dual_quaternion(dq)
+    """
+
+    def __init__(self, unit_screw: Optional[Sequence[Union[float, np.ndarray]]] = None):
         """
         Normalized line class in Dual Quaternion space
 
         Given by Plucker coordinates, representing a Unit Screw axis
+
+        :param np.ndarray, list[float] unit_screw: Plucker coordinates representing the
+            Unit Screw axis
         """
-        if unit_screw_axis is None:
-            # in origin alon Z axis
+        if unit_screw is None:
+            # in origin along Z axis
             direction = np.array([0, 0, 1])
             moment = np.array([0, 0, 0])
         else:
-            direction = np.asarray(unit_screw_axis[0:3])
-            moment = np.asarray(unit_screw_axis[3:6])
+            direction = np.asarray(unit_screw[0:3])
+            moment = np.asarray(unit_screw[3:6])
 
         # Check if the direction vector is normalized
         if round(np.linalg.norm(direction), 6) == 1.0:
@@ -44,25 +106,31 @@ class NormalizedLine:
 
     @classmethod
     def from_two_points(cls,
-                        point0: Union['PointHomogeneous', list[float, float, float]],
-                        point1: Union['PointHomogeneous', list[float, float, float]]
+                        pt0: Union['PointHomogeneous', list[float, float, float]],
+                        pt1: Union['PointHomogeneous', list[float, float, float]]
                         ) -> "NormalizedLine":
         """
         Construct NormalizedLine from two points
 
-        :param point0: PointHomogeneous or list or np.array of shape (3,)
-        :param point1: PointHomogeneous or list or np.array of shape (3,)
+        :param np.ndarry, list[float] pt0: PointHomogeneous or list or np.array of
+            shape (3,)
+        :param np.ndarry, list[float] pt1: PointHomogeneous or list or np.array of
+            shape (3,)
 
         :return: NormalizedLine
+        :rtype: NormalizedLine
         """
         from PointHomogeneous import PointHomogeneous
 
-        if isinstance(point0, PointHomogeneous) and isinstance(point1, PointHomogeneous):
-            point0 = point0.normalized_in_3d()
-            point1 = point1.normalized_in_3d()
+        if isinstance(pt0, PointHomogeneous) and isinstance(pt1, PointHomogeneous):
+            pt0 = pt0.normalized_in_3d()
+            pt1 = pt1.normalized_in_3d()
+        else:
+            pt0 = np.asarray(pt0)
+            pt1 = np.asarray(pt1)
 
-        direction = np.asarray(point1 - point0)
-        moment = np.cross(-1 * direction, np.asarray(point0))
+        direction = np.asarray(pt1 - pt0)
+        moment = np.cross(-1 * direction, np.asarray(pt0))
         return cls(np.concatenate((direction, moment)))
 
     @classmethod
@@ -72,8 +140,11 @@ class NormalizedLine:
         """
         Construct NormalizedLine from direction and point
 
-        :param direction: list or np.array of shape (3,)
-        :param point: list or np.array of shape (3,)
+        :param np.ndarry, list[float] direction: list or np.array of shape (3,)
+        :param np.ndarry, list[float] point: list or np.array of shape (3,)
+
+        :return: NormalizedLine
+        :rtype: NormalizedLine
         """
         direction = np.asarray(direction)
         point = np.asarray(point)
@@ -87,8 +158,11 @@ class NormalizedLine:
         """
         Construct NormalizedLine from direction and moment
 
-        :param direction: list or np.array of shape (3,)
-        :param moment: list or np.array of shape (3,)
+        :param np.ndarry, list[float] direction: list or np.array of shape (3,)
+        :param np.ndarry, list[float] moment: list or np.array of shape (3,)
+
+        :return: NormalizedLine
+        :rtype: NormalizedLine
         """
         direction = np.asarray(direction)
         moment = np.asarray(moment)
@@ -99,7 +173,10 @@ class NormalizedLine:
         """
         Construct NormalizedLine from DualQuaternion
 
-        :param dq: DualQuaternion
+        :param DualQuaternion dq: DualQuaternion
+
+        :return: NormalizedLine
+        :rtype: NormalizedLine
         """
         direction = dq[1:4]
         moment = dq[5:8] / np.linalg.norm(direction)
@@ -116,7 +193,8 @@ class NormalizedLine:
         Embed NormalizedLine to array of floats representing the unit screw in
         the form of Dual Quaternion
 
-        :returns: np.array of shape (8,)
+        :return: np.array of shape (8,)
+        :rtype: np.ndarray
         """
         return np.array(
             [
@@ -135,8 +213,10 @@ class NormalizedLine:
         """
         Get principal point on axis
 
-        :param t: float parameter
+        :param float t: t-point parameter
+
         :return: numpy array 3-vector point coordinates
+        :rtype: np.ndarray
         """
         principal_point = np.cross(self.direction, self.moment)
         return principal_point + (t * self.direction)
@@ -145,7 +225,9 @@ class NormalizedLine:
         """
         Get a homogeneous coordinate of a point on Plucker line; choose point with
         the highest value in the first column
+
         :return: numpy array 4-vector point coordinates
+        :rtype: np.ndarray
         """
         pt_quadric = np.array(np.zeros((3, 4)))
         # pt_quadric = [0, self.direction[0], self.direction[1], self.direction[2]]
@@ -158,14 +240,18 @@ class NormalizedLine:
         # return pt_quadric[2, :]
         return pt_quadric[max_index, :]
 
-    def get_point_param(self, point) -> float:
+    def get_point_param(self, point: Union[np.ndarray, list[float, float, float]]) -> (
+            np.ndarray):
         """
         Get a parameter for a given point that lies the line
 
-        :param point: np.array of shape (3,)
-        :return: float parameter for the point on the joint
+        :param np.ndarray, list[float] point: np.array of shape (3,)
+
+        :return: parameter for the point on the joint
+        :rtype: np.ndarray
         """
         # vector between given point and principal point
+        point = np.asarray(point)
         vec = point - self.point_on_line()
 
         # avoid situation if the direction vector is parallel to one of the origin axes
@@ -180,8 +266,10 @@ class NormalizedLine:
         Get the common perpendicular to another Plucker line (two intersection points
         and distance).
 
-        :param other: Plucker line
-        :return: tuple (points, distance, cos_angle)
+        :param NormalizedLine other: other normalized line
+
+        :return: points, distance, cos_angle
+        :rtype: tuple
         """
         # Initialize arrays to store the intersection points
         points = [np.zeros(3), np.zeros(3)]
@@ -224,7 +312,7 @@ class NormalizedLine:
 
         return points, distance, cos_angle
 
-    def contains_point(self, point: Union['PointHomogeneous', list[float, float, float]]) -> bool:
+    def contains_point(self, point: Union['PointHomogeneous', np.ndarray, list[float, float, float]]) -> bool:
         """
         Check if the line contains given point
 
@@ -232,13 +320,17 @@ class NormalizedLine:
         the direction of the line. If they create the same line (moment), the point is
         on the line.
 
-        :param point: PointHomogeneous or list or np.array of shape (3,)
-        :return: bool
+        :param PointHomogeneous, np.ndarray, list[float] point: point of shape (3,)
+
+        :return: True if the point is on the line, False otherwise
+        :rtype: bool
         """
         from PointHomogeneous import PointHomogeneous
 
         if isinstance(point, PointHomogeneous):
             point = point.normalized_in_3d()
+        else:
+            point = np.asarray(point)
 
         return np.allclose(np.cross(point, self.direction), self.moment)
 
@@ -271,7 +363,10 @@ class NormalizedLine:
         """
         Get data for plotting the line in 3D
 
-        :return: np.ndarray of shape (6, 1)
+        :param tuple interval: interval of the parameter t (start, end of the line)
+
+        :return: starting point and vector direction of shape (6, 1)
+        :rtype: np.ndarray
         """
         # points on the line
         p0 = self.point_on_line(interval[0])

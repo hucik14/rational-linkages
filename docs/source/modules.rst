@@ -1,4 +1,4 @@
-Mechanism
+Linkages
 =========
 
 .. toctree::
