@@ -1,10 +1,12 @@
 import biquaternion_py as bq
+import numpy as np
 import sympy as sp
 
 from typing import Union
 
 from RationalCurve import RationalCurve
 from MotionFactorization import MotionFactorization
+from DualQuaternion import DualQuaternion
 
 
 class FactorizationProvider:
@@ -22,8 +24,8 @@ class FactorizationProvider:
         """
         pass
 
-    @staticmethod
-    def factorize_motion_curve(curve: RationalCurve) -> list[MotionFactorization]:
+    def factorize_motion_curve(self, curve: Union[RationalCurve, bq.Poly]) -> (
+            list)[MotionFactorization]:
         """
         Factorizes the given curve into a multiple motion factorizations.
 
@@ -33,11 +35,22 @@ class FactorizationProvider:
         :rtype: list[MotionFactorization]
         """
         t = sp.Symbol("t")
-        pass
 
-    @staticmethod
-    def factorize_for_motion_factorization(factorization: MotionFactorization) -> (
-            list)[MotionFactorization]:
+        if isinstance(curve, RationalCurve):
+            bi_quat = bq.BiQuaternion(curve.extract_expressions())
+            bi_poly = bq.Poly(bi_quat, t)
+        else:
+            bi_poly = curve
+
+        factorizations = self.factorize_polynomial(bi_poly)
+
+        factors1 = [self.factor2rotation_axis(factor) for factor in factorizations[0]]
+        factors2 = [self.factor2rotation_axis(factor) for factor in factorizations[1]]
+
+        return [MotionFactorization(factors1), MotionFactorization(factors2)]
+
+    def factorize_for_motion_factorization(self, factorization: MotionFactorization)\
+            -> list[MotionFactorization]:
         """
         Analyzes the given motion factorization and provides other motion
         factorizations, if possible.
@@ -51,31 +64,68 @@ class FactorizationProvider:
         t = sp.Symbol("t")
 
         # TODO: it is not rational
-        poly = t - bq.BiQuaternion(factorization.axis_rotation[0].array())
+        bi_poly = t - bq.BiQuaternion(factorization.axis_rotation[0].array())
         for i in range(1, factorization.number_of_factors):
-            poly = poly * (t - bq.BiQuaternion(factorization.axis_rotation[i].array()))
+            bi_poly = bi_poly * (t - bq.BiQuaternion(factorization.axis_rotation[i].array()))
 
-        poly = bq.Poly(poly, t)
+        bi_poly = bq.Poly(bi_poly, t)
 
-        # Next we calculate the norm polynomial. To avoid numerical problems, we extract
-        # the scalar part, since the norm should be purely real anyhow.
+        return self.factorize_motion_curve(bi_poly)
+
+    @staticmethod
+    def factorize_polynomial(poly: bq.Poly) -> list[bq.Poly]:
+        """
+        Factorizes the given polynomial into irreducible factors.
+
+        :param bq.Poly poly: The polynomial to factorize.
+
+        :return: The irreducible factors of the polynomial.
+        :rtype: list[bq.Poly]
+        """
+        # Calculate the norm polynomial. To avoid numerical problems, extract
+        # the scalar part, since the norm should be purely real
         norm_poly = poly.norm()
         norm_poly = bq.Poly(norm_poly.poly.scal, *norm_poly.indets)
 
-        # TODO: right placement?
         print('Factorization is running...')
 
-        # From this we can calculate the irreducible factors, that then determine
-        # the different factorizations
+        # Calculate the irreducible factors, that determine the different factorizations
         _, factors = bq.irreducible_factors(norm_poly)
 
         # The different permutations of the irreducible factors then generate
         # the different factorizations of the motion.
 
         factorization1 = bq.factorize_from_list(poly, factors)
-        factorization2 = bq.factorize_from_list(poly,[factors[1], factors[2], factors[0]])
+        factorization2 = bq.factorize_from_list(poly,[factors[2], factors[1], factors[0]])
+
+        print('Factorization ended.')
+
+        # TODO: check if the factorization is correct
 
         return [factorization1, factorization2]
+
+    @staticmethod
+    def factor2rotation_axis(factor: bq.Poly) -> DualQuaternion:
+        """
+        Converts the given factor to a dual quaternion representing the rotation axis
+        of a linkage, excluding the parameter.
+
+        :param bq.Poly factor: The factor to convert.
+
+        :return: The rotation axis of the factor.
+        :rtype: DualQuaternion
+        """
+        t = sp.Symbol("t")
+        t_dq = DualQuaternion([t, 0, 0, 0, 0, 0, 0, 0])
+
+        factor_dq = DualQuaternion(factor.poly.coeffs)
+
+        # subtract the parameter from the factor
+        axis_h = t_dq - factor_dq
+
+        # convert to numpy array as float64
+        axis_h = np.asarray(axis_h.array(), dtype='float64')
+        return DualQuaternion(axis_h, is_rotation=True)
 
 
 

@@ -158,6 +158,7 @@ class Plotter:
 
         self.ax.scatter(*point, **kwargs)
 
+    @_plotting_decorator
     def _plot_dual_quaternion(self, dq: DualQuaternion, **kwargs):
         """
         Plot a dual quaternion as a transformation
@@ -314,8 +315,10 @@ class Plotter:
         # append first slider that is the driving joint angle slider
         self.sliders.append(self._init_slider())
         # set a text box that can be used to set the angle manually
-        self.text_box = TextBox(self.fig.add_axes([0.2, 0.06, 0.15, 0.05]),
-                                "Set angle [rad]: ", textalignment="center")
+        self.text_box_angle = TextBox(self.fig.add_axes([0.2, 0.06, 0.15, 0.05]),
+                                      "Set angle [rad]: ", textalignment="right")
+        self.text_box_param = TextBox(self.fig.add_axes([0.2, 0.12, 0.15, 0.05]),
+                                      "Set param t [-]: ", textalignment="right")
 
         # initialize the linkages plot
         self.link_plot, = self.ax.plot([], [], [], color="black")
@@ -326,10 +329,13 @@ class Plotter:
                            self.ax.quiver([], [], [], [], [], [], color="green"),
                            self.ax.quiver([], [], [], [], [], [], color="blue")]
 
-        def plot_slider_update(val):
+        def plot_slider_update(val: float, t_param: float = None):
             """Event handler for the joint angle slider"""
-            # t parametrization for the driving joint
-            t = mechanism.factorizations[0].joint_angle_to_t_param(val)
+            if t_param is not None:
+                t = t_param
+            else:
+                # t parametrization for the driving joint
+                t = mechanism.factorizations[0].joint_angle_to_t_param(val)
 
             # plot links
             links = (mechanism.factorizations[0].direct_kinematics(t)
@@ -375,9 +381,15 @@ class Plotter:
             val = val % (2 * np.pi)
             self.sliders[0].set_val(val)
 
+        def submit_parameter(text):
+            """Event handler for the text box"""
+            val = float(text)
+            plot_slider_update(val, t_param=val)
+
         # connect the slider and text box to the event handlers
         self.sliders[0].on_changed(plot_slider_update)
-        self.text_box.on_submit(submit_angle)
+        self.text_box_angle.on_submit(submit_angle)
+        self.text_box_param.on_submit(submit_parameter)
 
         # initialize the plot in home configuration
         self.sliders[0].set_val(0.0)

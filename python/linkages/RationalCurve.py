@@ -227,6 +227,16 @@ class RationalCurve:
         """
         return RationalCurve.from_coeffs(self.inverse_coeffs())
 
+    def extract_expressions(self) -> list:
+        """
+        Extract the expressions of the curve
+
+        :return: list of expressions of the curve (avoiding sp.Poly class)
+        :rtype: list
+        """
+        return [self.set_of_polynomials[i].expr
+                for i in range(len(self.set_of_polynomials))]
+
     def evaluate(self, t_param, inverted_part: bool = False) -> np.ndarray:
         """
         Evaluate the curve for given t and return in the form of dual quaternion vector
