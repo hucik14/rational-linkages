@@ -6,7 +6,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from Quaternion import Quaternion
 from TransfMatrix import TransfMatrix
-from sympy import Number
 
 # Forward declarations for class names
 NormalizedLine = "NormalizedLine"
@@ -21,7 +20,7 @@ class DualQuaternion:
     and interpolations. They consist of a primal quaternion representing rotation and
     translation and a dual quaternion representing infinitesimal transformations.
 
-    :param float, sympy.Number study_parameters: array or list of 8 Study
+    :param list[float] study_parameters: array or list of 8 Study
         parameters. If None, an identity DualQuaternion is constructed.
 
     :ivar Quaternion p: primal quaternion - the primal part of the Dual Quaternion,
@@ -55,17 +54,14 @@ class DualQuaternion:
         dq = DualQuaternion.from_two_quaternions(q1, q2)
     """
 
-    def __init__(
-        self,
-        study_parameters: Optional[Sequence[Union[float, Number]]] = None,
-        is_rotation: bool = False,
-    ):
+    def __init__(self, study_parameters: Optional[Sequence[float]] = None,
+                 is_rotation: bool = False):
         """
         Dual Quaternion object, assembled from 8-vector (list or np.array) as DQ,
         or two 4-vectors (np.arrays) as two Quaternions (see @classmethod bellow).
         If no Study's parameters are provided, an identity is constructed.
 
-        :param Optional[Sequence[Union[float, Number]]] study_parameters: array or list
+        :param Optional[Sequence[float]] study_parameters: array or list
             of 8 Study's parameters. If None, an identity DualQuaternion is constructed.
             Defaults to None.
         :param bool is_rotation: True if the Dual Quaternion represents a rotation,
@@ -85,6 +81,7 @@ class DualQuaternion:
         self.dq = self.array()
 
         self.is_rotation = is_rotation
+        self.is_rational = False
 
     @property
     def type(self) -> str:
@@ -141,14 +138,14 @@ class DualQuaternion:
         """
         return f"{self.p.array()} + eps{self.d.array()}"
 
-    def __getitem__(self, idx) -> float:
+    def __getitem__(self, idx) -> np.ndarray:
         """
         Get an element of DualQuaternion
 
         :param int idx: index of the Quaternion element to call 0..7
 
-        :return: float
-        :rtype: float
+        :return: float number of the element
+        :rtype: np.ndarray
         """
         element = self.array()
         element = element[idx]  # or, p.dob = p.dob.__getitem__(idx)

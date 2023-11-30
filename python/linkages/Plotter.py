@@ -315,9 +315,9 @@ class Plotter:
         # append first slider that is the driving joint angle slider
         self.sliders.append(self._init_slider())
         # set a text box that can be used to set the angle manually
-        self.text_box_angle = TextBox(self.fig.add_axes([0.2, 0.06, 0.15, 0.05]),
+        self.text_box_angle = TextBox(self.fig.add_axes([0.3, 0.06, 0.15, 0.05]),
                                       "Set angle [rad]: ", textalignment="right")
-        self.text_box_param = TextBox(self.fig.add_axes([0.2, 0.12, 0.15, 0.05]),
+        self.text_box_param = TextBox(self.fig.add_axes([0.3, 0.12, 0.15, 0.05]),
                                       "Set param t [-]: ", textalignment="right")
 
         # initialize the linkages plot
@@ -367,7 +367,8 @@ class Plotter:
             for pose_arrow in self.pose_frame:
                 pose_arrow.remove()
             # plot new frame
-            self.pose_frame = [self.ax.quiver(*vec, color=color) for vec, color in
+            self.pose_frame = [self.ax.quiver(*vec, color=color, length=0.3) for vec,
+            color in
                                zip([x_vec, y_vec, z_vec], ["red", "green", "blue"])]
 
             # update the plot
@@ -406,7 +407,7 @@ class Plotter:
         """
         if idx is None:  # driving joint angle slider
             slider = Slider(
-                ax=plt.axes([0.2, 0.01, 0.5, 0.05]),
+                ax=plt.axes([0.3, 0.01, 0.5, 0.05]),
                 label="Joint angle [rad]: ",
                 valmin=0.0,
                 valmax=np.pi * 2,
@@ -415,7 +416,7 @@ class Plotter:
             )
         else:  # joint connection points sliders
             slider = Slider(
-                ax=plt.axes([0.3, 0.2, 0.5, 0.05]),
+                ax=plt.axes([0.4, 0.2, 0.5, 0.05]),
                 label="Driving joint angle in rad",
                 valmin=-2.0,
                 valmax=2.0,

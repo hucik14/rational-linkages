@@ -3,6 +3,7 @@ import numpy as np
 import sympy as sp
 
 from typing import Union
+from warnings import warn
 
 from RationalCurve import RationalCurve
 from MotionFactorization import MotionFactorization
@@ -33,6 +34,8 @@ class FactorizationProvider:
 
         :return: The factorizations of the curve.
         :rtype: list[MotionFactorization]
+
+        :raises warning: If the given curve has not only rational numbers as input.
         """
         t = sp.Symbol("t")
 
@@ -42,6 +45,14 @@ class FactorizationProvider:
         else:
             bi_poly = curve
 
+        # check if the given curve has rational numbers as input
+        poly_coeffs = bi_poly.all_coeffs()
+        for i in range(len(poly_coeffs)):
+            for j in range(len(poly_coeffs[i].args)):
+                if not isinstance(poly_coeffs[i].args[j], sp.Rational):
+                    warn('The given curve has not only rational numbers as input. The factorization will be performed with floating point numbers, but may be instable.')
+                    break
+
         factorizations = self.factorize_polynomial(bi_poly)
 
         factors1 = [self.factor2rotation_axis(factor) for factor in factorizations[0]]
@@ -49,7 +60,7 @@ class FactorizationProvider:
 
         return [MotionFactorization(factors1), MotionFactorization(factors2)]
 
-    def factorize_for_motion_factorization(self, factorization: MotionFactorization)\
+    def factorize_for_motion_factorization(self, factorization: MotionFactorization) \
             -> list[MotionFactorization]:
         """
         Analyzes the given motion factorization and provides other motion
@@ -60,10 +71,17 @@ class FactorizationProvider:
 
         :return: The factorizations of the motion factorization.
         :rtype: list[MotionFactorization]
+
+        :raises warning: If the given motion factorization has not only dual
+            quaternions with rational numbers elements as input.
         """
+        # check if the given factorization has input DualQuaternions as rational numbers
+        for i in range(factorization.number_of_factors):
+            if not factorization.axis_rotation[i].is_rational:
+                warn('The given motion factorization has not only rational numbers as input. The factorization will be performed with floating point numbers, but may be instable.')
+
         t = sp.Symbol("t")
 
-        # TODO: it is not rational
         bi_poly = t - bq.BiQuaternion(factorization.axis_rotation[0].array())
         for i in range(1, factorization.number_of_factors):
             bi_poly = bi_poly * (t - bq.BiQuaternion(factorization.axis_rotation[i].array()))
@@ -115,6 +133,8 @@ class FactorizationProvider:
         :return: The rotation axis of the factor.
         :rtype: DualQuaternion
         """
+        from RationalDualQuaternion import RationalDualQuaternion
+
         t = sp.Symbol("t")
         t_dq = DualQuaternion([t, 0, 0, 0, 0, 0, 0, 0])
 
@@ -122,6 +142,9 @@ class FactorizationProvider:
 
         # subtract the parameter from the factor
         axis_h = t_dq - factor_dq
+
+        # TODO: implement return of rational axis
+        rational_dq = RationalDualQuaternion(axis_h.array(), is_rotation=True)
 
         # convert to numpy array as float64
         axis_h = np.asarray(axis_h.array(), dtype='float64')

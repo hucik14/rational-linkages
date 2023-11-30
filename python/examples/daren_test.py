@@ -1,15 +1,16 @@
 import biquaternion_py as bq
-import sympy as sy
+import sympy as sp
 
 from FactorizationProvider import FactorizationProvider
 from DualQuaternion import DualQuaternion
+from RationalDualQuaternion import RationalDualQuaternion
 from MotionFactorization import MotionFactorization
 from RationalMechanism import RationalMechanism
 from Plotter import Plotter
 
 
 # Setting up the symbols
-t = sy.Symbol("t")
+t = sp.Symbol("t")
 
 # Given a Curve as a polynomial in the dual quaternions
 # we first need to find the irreducible factors of the normpolynomial
@@ -52,11 +53,18 @@ factorization2 = bq.factorize_from_list(poly, [factors[2], factors[1], factors[0
 
 # We can now calculate the direct kinematics of the motion
 
-h1 = DualQuaternion([-1 / 4, 13 / 5, -213 / 5, -68 / 15, 0, -52 / 3, -28 / 15, 38 / 5], is_rotation=True)
+rdq = [sp.Rational(-1 / 4), sp.Rational(13 / 5), sp.Rational(-213 / 5), sp.Rational(-68/ 15), 0, sp.Rational(-52 / 3), sp.Rational(-28 / 15), sp.Rational(38 / 5)]
+h1r = RationalDualQuaternion(rdq)
+rdq = [sp.Rational(-3 / 10), sp.Rational(833 / 240), sp.Rational(-451 / 160), sp.Rational(19 / 24), 0, sp.Rational(-427 / 480), sp.Rational(-1609 / 720), sp.Rational(-1217 / 300)]
+h2r = RationalDualQuaternion(rdq)
+rdq = [sp.Rational(9 / 4), sp.Rational(-96 / 385), sp.Rational(-3 / 11), sp.Rational(12 / 121), 0, sp.Rational(-9 / 22), sp.Rational(18 / 77), sp.Rational(-27 / 70)]
+h3r = RationalDualQuaternion(rdq)
+
+h1 = DualQuaternion([-1 / 4, 13 / 5, -213 / 5, -68 / 15, 0, -52 / 3,-28 / 15, 38 / 5], is_rotation=True)
 h2 = DualQuaternion([-3 / 10, 833 / 240, -451 / 160, 19 / 24, 0, -427 / 480, -1609 / 720, -1217 / 300], is_rotation=True)
 h3 = DualQuaternion([9 / 4, -96 / 385, -3 / 11, 12 / 121, 0, -9 / 22, 18 / 77, -27 / 70], is_rotation=True)
 
-my_f = MotionFactorization([h1, h2, h3])
+my_f = MotionFactorization([h1r, h2r, h3r])
 factorizator = FactorizationProvider()
 factorize = factorizator.factorize_for_motion_factorization(my_f)
 
@@ -81,10 +89,10 @@ f12 = MotionFactorization([h12, h22, h32])
 f22 = MotionFactorization([k12, k22, k32])
 
 m2 = RationalMechanism([f12, f22])
-
-plt.plot(m2)
+p2 = Plotter(interactive=True, steps=2000)
+p2.plot(m2)
 
 p = Plotter(interactive=False, steps=200)
 p.plot(f12, t=2)
 p.plot(f22, t=2)
-p.plot(m,t=2)
+p.plot(m, t=2)
