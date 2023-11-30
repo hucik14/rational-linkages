@@ -285,7 +285,12 @@ class RationalCurve:
         Factorize the curve into motion factorizations
 
         :return: list of MotionFactorization objects
+        :rtype: list[MotionFactorization]
         """
+        if type(self) != RationalCurve:
+            raise TypeError("Can factorize only for a rational curve or motion "
+                            "factorization")
+
         from FactorizationProvider import FactorizationProvider
 
         factorization_provider = FactorizationProvider()
