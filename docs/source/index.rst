@@ -11,8 +11,8 @@ Welcome to Rational Linkages's documentation!
    :caption: Contents:
 
    general
-   tutorials
    modules
+   tutorials
    background-math
 
 

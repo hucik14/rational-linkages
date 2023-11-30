@@ -8,10 +8,31 @@ from RationalCurve import RationalCurve
 
 class MotionFactorization(RationalCurve):
     """
-    Class representing rational motion curves given as set of polynomials in dual
-    quaternion space.
+    Class representing Motion Factorization sequence
 
-    You can find more information in the paper by Frischauf et al. [1]_.
+    Inherits from :class:`linkages.RationalCurve` class. Given as set of polynomials in
+    dual quaternion space. You can find more information in the paper by Frischauf et
+    al. [1]_.
+
+    :param list[DualQuaternion] sequence_of_factored_dqs: list of DualQuaternions
+        representing the revolute axes of the rational motion factorization
+
+    :ivar list[DualQuaternion] axis_rotation: list of DualQuaternions representing the
+        revolute axes of the rational motion factorization
+    :ivar list[DualQuaternion] factor_with_parameter: parameterized factors of the curve
+    :ivar int number_of_factors: number of factors of the curve
+
+    :example:
+
+    .. code-block:: python
+        :caption: Motion factorization of a 2R mechanism
+
+        from DualQuaternion import DualQuaternion
+        from MotionFactorization import MotionFactorization
+
+        f1 = MotionFactorization(
+            [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
+             DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)])
 
     .. [1] Frischauf, Johanna et al. (2022). A multi-Bennett 8R mechanism obtained from
         factorization of bivariate motion polynomials. *Mechanisms and Machine Theory*.
@@ -20,7 +41,10 @@ class MotionFactorization(RationalCurve):
 
     def __init__(self, sequence_of_factored_dqs: list[DualQuaternion]):
         """
-        Initializes a RationalMotion object
+        Initialize a MotionFactorization object
+
+        :param list[DualQuaternion] sequence_of_factored_dqs: list of DualQuaternions
+            representing the revolute axes of the rational motion factorization
         """
         curve_polynomials = self.get_polynomials_from_factorization(
             sequence_of_factored_dqs
@@ -38,9 +62,10 @@ class MotionFactorization(RationalCurve):
         Add two MotionFactorization objects - concatenate them. The order of the other
         object IS REVERSED.
 
-        :param other: MotionFactorization to be added
+        :param MotionFactorization other: other MotionFactorization to be added
 
         :return: concatenated MotionFactorization
+        :rtype: MotionFactorization
         """
         return MotionFactorization(self.axis_rotation + other.axis_rotation[::-1])
 
@@ -50,10 +75,11 @@ class MotionFactorization(RationalCurve):
         """
         Construct rational curve from Dual Quaternions equation factors
 
-        :param factors: list of sympy polynomials representing the curve, 1st row
-        is homogeneous coordinate equation
+        :param list[DualQuaternion] factors: list of sympy polynomials representing
+            the curve, 1st row is homogeneous coordinate equation
 
-        :return: RationalCurve
+        :return: motion curve using Sympy polynomials
+        :rtype: RationalCurve
         """
         t = sp.Symbol("t")
 
@@ -62,14 +88,14 @@ class MotionFactorization(RationalCurve):
         for i in range(len(factors)):
             polynomials_dq = polynomials_dq * (polynomial_t - factors[i])
 
-        return [sp.Poly(polynom, t, domain="RR")
-                for i, polynom in enumerate(polynomials_dq.array())]
+        return [sp.Poly(polynom, t, domain="RR") for i, polynom in enumerate(polynomials_dq.array())]
 
     def get_symbolic_factors(self) -> list[DualQuaternion]:
         """
         Get symbolic factors of the curve with parameter t, in a form (t - factor)
 
         :return: list of DualQuaternions representing the curve
+        :rtype: list[DualQuaternion]
         """
         t = sp.Symbol("t")
         polynomial_t = DualQuaternion([t, 0, 0, 0, 0, 0, 0, 0])
@@ -82,7 +108,10 @@ class MotionFactorization(RationalCurve):
         Get numerical factors of the curve with parameter t, in a form
         (t - axis_rotation)
 
-        :return: DualQuaternion
+        :param float t_numerical: parameter of the motion curve
+
+        :return: list of numerical DualQuaternions factors of the curve
+        :rtype: list[DualQuaternion]
         """
         dq = DualQuaternion([t_numerical, 0, 0, 0, 0, 0, 0, 0])
         return [dq - self.axis_rotation[i] for i in range(len(self.axis_rotation))]
@@ -96,12 +125,13 @@ class MotionFactorization(RationalCurve):
         If the indexes of the axes are not specified, the action is performed
         using all sequence of MotionFactorization axes
 
-        :param affected_object: object to act on
-        :param param: float - parameter of the motion curve
-        :param start_idx: int - index of the first axis to act with
-        :param end_idx: int - index of the last axis to act with
+        :param PointHomogeneous, NormalizedLine affected_object: object to act on
+        :param float param: parameter of the motion curve
+        :param int start_idx: index of the first axis to act with
+        :param int end_idx: index of the last axis to act with
 
         :return: object after the action
+        :rtype: PointHomogeneous, NormalizedLine
         """
         from DualQuaternionAction import DualQuaternionAction
 
@@ -117,10 +147,11 @@ class MotionFactorization(RationalCurve):
         """
         Direct kinematics of the rational mechanism
 
-        :param t_numerical: float - parameter of the motion curve
-        :param inverted_part: bool - if True, return the inverted part of the curve
+        :param float t_numerical: parameter of the motion curve
+        :param bool inverted_part: if True, return the inverted part of the curve
 
         :return: list of np.array - points of the curve
+        :rtype: list[np.ndarray]
         """
         linkage_points = [PointHomogeneous.from_3d_point(axis.dq2point_via_line())
                           for axis in self.axis_rotation]
@@ -136,16 +167,19 @@ class MotionFactorization(RationalCurve):
                              for i in range(len(linkage_points))]
         return linkage_points_3d
 
-    def direct_kinematics_of_end_effector(
+    def direct_kinematics_of_tool(
         self, t_numerical: float, end_effector: np.ndarray, inverted_part=False
     ) -> np.ndarray:
         """
         Direct kinematics of the end effector position
 
-        :param t_numerical:
-        :param end_effector:
-        :param inverted_part:
-        :return:
+        :param float t_numerical: parameter of the motion curve
+        :param np.ndarray end_effector: homogeneous coordinates of the end effector,
+            given as np.array([w, x, y, z])
+        :param bool inverted_part: if True, return the inverted part of the curve
+
+        :return: list of np.array - point of the tool position
+        :rtype: np.ndarray
         """
         ee_point = PointHomogeneous(end_effector)
 
@@ -161,18 +195,19 @@ class MotionFactorization(RationalCurve):
         end_effector_point = point_after_action.normalized_in_3d()
         return end_effector_point
 
-    def direct_kinematics_of_end_effector_with_link(self, t_numerical: float,
-                                                    end_effector: np.ndarray,
-                                                    inverted_part=False) -> list:
+    def direct_kinematics_of_tool_with_link(self, t_numerical: float,
+                                            end_effector: np.ndarray,
+                                            inverted_part=False) -> list:
         """
-        Direct kinematics of the end effector position
+        Direct kinematics of the end effector position and the last link point
 
-        :param t_numerical:
-        :param end_effector:
-        :param inverted_part:
-        :return:
+        :param float t_numerical: parameter of the motion curve
+        :param bool inverted_part: if True, return the inverted part of the curve
+
+        :return: list of np.array - tool and link points
+        :rtype: list[np.ndarray]
         """
-        ee_point = self.direct_kinematics_of_end_effector(t_numerical, end_effector, inverted_part=inverted_part)
+        ee_point = self.direct_kinematics_of_tool(t_numerical, end_effector, inverted_part=inverted_part)
         link_point = self.direct_kinematics(t_numerical, inverted_part=inverted_part)[-1]
 
         return [ee_point, link_point]
@@ -189,12 +224,14 @@ class MotionFactorization(RationalCurve):
         from 0 to 2*pi. More information can be found in documentation in `Joint Angle
         to Curve Parameter`_.
 
-        :param joint_angle: float - joint angle in radians
-        :param unit: str - 'rad' or 'deg'
+        :param float joint_angle: joint angle in radians
+        :param str unit: 'rad' or 'deg'
 
-        :return: float - t parameter of the curve, bool - if True, the inverted part
+        :return: t parameter of the curve, bool - if True, the inverted part
+        :rtype: float
 
         :seealso: `Joint Angle to Curve Parameter`_
+
         .. _Joint Angle to Curve Parameter: background-math/joint-angle-to-t.rst
         """
         if unit == 'deg':

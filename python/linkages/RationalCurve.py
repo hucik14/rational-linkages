@@ -29,9 +29,9 @@ class RationalCurve:
         >>> a = 1
         >>> b = 0.5
         >>> t = sp.Symbol('t')
-        >>> eq0 = sp.Poly((1+t**2)**2, t, domain='RR')
-        >>> eq1 = sp.Poly(b*(1-t**2)*(1+t**2) + a*(1-t**2)**2, t, domain='RR')
-        >>> eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t, domain='RR')
+        >>> eq0 = sp.Poly((1+t**2)**2, t, domain='QQ')
+        >>> eq1 = sp.Poly(b*(1-t**2)*(1+t**2) + a*(1-t**2)**2, t, domain='QQ')
+        >>> eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t, domain='QQ')
         >>> curve = RationalCurve([eq0, eq1, eq2, eq0])
 
         or from polynomials:
@@ -93,7 +93,7 @@ class RationalCurve:
                 coefficient * t**j for j, coefficient in enumerate(row_coefficients)
             ]
             symbolic_expressions.append(sum(symbolic_row_coeffs))
-            polynomials.append(sp.Poly(symbolic_expressions[i], t, domain="RR"))
+            polynomials.append(sp.Poly(symbolic_expressions[i], t, domain="QQ"))
 
         return symbolic_expressions, polynomials
 
@@ -180,7 +180,7 @@ class RationalCurve:
         :param t_var: symbolic variable
         :param reparametrization: a function that maps the interval
         :param degree: int - degree of the polynomial, if None (not specified),
-        the degree of the curve is used
+            the degree of the curve is used
 
         :return: list of symbolic expressions
         """
@@ -227,6 +227,16 @@ class RationalCurve:
         """
         return RationalCurve.from_coeffs(self.inverse_coeffs())
 
+    def extract_expressions(self) -> list:
+        """
+        Extract the expressions of the curve
+
+        :return: list of expressions of the curve (avoiding sp.Poly class)
+        :rtype: list
+        """
+        return [self.set_of_polynomials[i].expr
+                for i in range(len(self.set_of_polynomials))]
+
     def evaluate(self, t_param, inverted_part: bool = False) -> np.ndarray:
         """
         Evaluate the curve for given t and return in the form of dual quaternion vector
@@ -268,7 +278,6 @@ class RationalCurve:
         dq = DualQuaternion(self.evaluate(t_param, inverted_part))
         return dq.dq2matrix()
 
-
     def plot(self, interval=(-1, 1), steps=50, ax=None, line_style=None) -> plt.axes:
         """
         Plot the curve in 2D or 3D, based on the dimension of the curve
@@ -291,7 +300,7 @@ class RationalCurve:
             # if in 2D, so later z = 1
             polynoms = deepcopy(self.set_of_polynomials)
             if self.dimension == 2:
-                polynoms.append(sp.Poly(polynoms[0], t, domain="RR"))
+                polynoms.append(sp.Poly(polynoms[0], t, domain="QQ"))
 
             # plot the curve
             t_space = np.linspace(interval[0], interval[1], steps)
@@ -338,7 +347,7 @@ class RationalCurve:
         # to the Z-equation place in the list if in 2D, so later z = 1
         polynoms = deepcopy(self.set_of_polynomials)
         if self.dimension == 2:
-            polynoms.append(sp.Poly(polynoms[0], t, domain="RR"))
+            polynoms.append(sp.Poly(polynoms[0], t, domain="QQ"))
 
         # plot the curve
         curve_points = [PointHomogeneous()] * steps

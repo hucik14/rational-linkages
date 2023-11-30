@@ -33,7 +33,7 @@ class RationalMechanism(RationalCurve):
         Get the Denavit-Hartenberg parameters of the linkage.
 
         :param alpha_form: str - form of the returned alpha parameter, can be
-        "cos_alpha", "deg", or "rad"
+            "cos_alpha", "deg", or "rad"
 
         :return: tuple (d, a, alpha)
         """
@@ -218,7 +218,7 @@ class RationalMechanism(RationalCurve):
             _x, _y, _z = zip(*[_link[j] for j in range(len(_link))])
             link_plot.set_data_3d(_x, _y, _z)
 
-            _ee = self.factorizations[0].direct_kinematics_of_end_effector(
+            _ee = self.factorizations[0].direct_kinematics_of_tool(
                 t, self.end_effector.dq2point_homogeneous()
             )
             _ee_triangle.insert(1, _ee)
@@ -257,7 +257,7 @@ class RationalMechanism(RationalCurve):
             _x, _y, _z = zip(*[_link[j] for j in range(len(_link))])
             link_plot.set_data_3d(_x, _y, _z)
 
-            _ee = self.factorizations[0].direct_kinematics_of_end_effector(
+            _ee = self.factorizations[0].direct_kinematics_of_tool(
                 val, self.end_effector.dq2point_homogeneous(), inverted_part=True
             )
             _ee_triangle.insert(1, _ee)

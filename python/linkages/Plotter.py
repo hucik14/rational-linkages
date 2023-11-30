@@ -158,6 +158,7 @@ class Plotter:
 
         self.ax.scatter(*point, **kwargs)
 
+    @_plotting_decorator
     def _plot_dual_quaternion(self, dq: DualQuaternion, **kwargs):
         """
         Plot a dual quaternion as a transformation
@@ -272,8 +273,8 @@ class Plotter:
             self._plot_motion_factorization(factorization, t=t, **kwargs)
 
         # plot end effector triangle
-        pts0 = mechanism.factorizations[0].direct_kinematics_of_end_effector_with_link(t, mechanism.end_effector.array())
-        pts1 = mechanism.factorizations[1].direct_kinematics_of_end_effector_with_link(t, mechanism.end_effector.array())[::-1]
+        pts0 = mechanism.factorizations[0].direct_kinematics_of_tool_with_link(t, mechanism.end_effector.array())
+        pts1 = mechanism.factorizations[1].direct_kinematics_of_tool_with_link(t, mechanism.end_effector.array())[::-1]
         ee_points = np.concatenate((pts0, pts1))
 
         if 'label' not in kwargs:
@@ -290,7 +291,7 @@ class Plotter:
         t = [mechanism.factorizations[0].joint_angle_to_t_param(t_lin[i])
              for i in range(self.steps)]
 
-        ee_points = [mechanism.factorizations[0].direct_kinematics_of_end_effector(
+        ee_points = [mechanism.factorizations[0].direct_kinematics_of_tool(
             t[i], mechanism.end_effector.array()) for i in range(self.steps)]
 
         kwargs['label'] = "motion curve"
@@ -314,8 +315,10 @@ class Plotter:
         # append first slider that is the driving joint angle slider
         self.sliders.append(self._init_slider())
         # set a text box that can be used to set the angle manually
-        self.text_box = TextBox(self.fig.add_axes([0.2, 0.06, 0.15, 0.05]),
-                                "Set angle [rad]: ", textalignment="center")
+        self.text_box_angle = TextBox(self.fig.add_axes([0.3, 0.06, 0.15, 0.05]),
+                                      "Set angle [rad]: ", textalignment="right")
+        self.text_box_param = TextBox(self.fig.add_axes([0.3, 0.12, 0.15, 0.05]),
+                                      "Set param t [-]: ", textalignment="right")
 
         # initialize the linkages plot
         self.link_plot, = self.ax.plot([], [], [], color="black")
@@ -326,10 +329,13 @@ class Plotter:
                            self.ax.quiver([], [], [], [], [], [], color="green"),
                            self.ax.quiver([], [], [], [], [], [], color="blue")]
 
-        def plot_slider_update(val):
+        def plot_slider_update(val: float, t_param: float = None):
             """Event handler for the joint angle slider"""
-            # t parametrization for the driving joint
-            t = mechanism.factorizations[0].joint_angle_to_t_param(val)
+            if t_param is not None:
+                t = t_param
+            else:
+                # t parametrization for the driving joint
+                t = mechanism.factorizations[0].joint_angle_to_t_param(val)
 
             # plot links
             links = (mechanism.factorizations[0].direct_kinematics(t)
@@ -343,7 +349,7 @@ class Plotter:
             tool_triangle = ([mechanism.factorizations[0].direct_kinematics(t)[-1]]
                              + [mechanism.factorizations[1].direct_kinematics(t)[-1]])
             # get tool point
-            tool = mechanism.factorizations[0].direct_kinematics_of_end_effector(
+            tool = mechanism.factorizations[0].direct_kinematics_of_tool(
                 t, mechanism.end_effector.dq2point_homogeneous())
             # add tool point to tool triangle
             tool_triangle.insert(1, tool)
@@ -361,7 +367,8 @@ class Plotter:
             for pose_arrow in self.pose_frame:
                 pose_arrow.remove()
             # plot new frame
-            self.pose_frame = [self.ax.quiver(*vec, color=color) for vec, color in
+            self.pose_frame = [self.ax.quiver(*vec, color=color, length=0.3) for vec,
+            color in
                                zip([x_vec, y_vec, z_vec], ["red", "green", "blue"])]
 
             # update the plot
@@ -375,9 +382,15 @@ class Plotter:
             val = val % (2 * np.pi)
             self.sliders[0].set_val(val)
 
+        def submit_parameter(text):
+            """Event handler for the text box"""
+            val = float(text)
+            plot_slider_update(val, t_param=val)
+
         # connect the slider and text box to the event handlers
         self.sliders[0].on_changed(plot_slider_update)
-        self.text_box.on_submit(submit_angle)
+        self.text_box_angle.on_submit(submit_angle)
+        self.text_box_param.on_submit(submit_parameter)
 
         # initialize the plot in home configuration
         self.sliders[0].set_val(0.0)
@@ -394,7 +407,7 @@ class Plotter:
         """
         if idx is None:  # driving joint angle slider
             slider = Slider(
-                ax=plt.axes([0.2, 0.01, 0.5, 0.05]),
+                ax=plt.axes([0.3, 0.01, 0.5, 0.05]),
                 label="Joint angle [rad]: ",
                 valmin=0.0,
                 valmax=np.pi * 2,
@@ -403,7 +416,7 @@ class Plotter:
             )
         else:  # joint connection points sliders
             slider = Slider(
-                ax=plt.axes([0.3, 0.2, 0.5, 0.05]),
+                ax=plt.axes([0.4, 0.2, 0.5, 0.05]),
                 label="Driving joint angle in rad",
                 valmin=-2.0,
                 valmax=2.0,

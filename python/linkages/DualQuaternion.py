@@ -6,7 +6,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from Quaternion import Quaternion
 from TransfMatrix import TransfMatrix
-from sympy import Number
 
 # Forward declarations for class names
 NormalizedLine = "NormalizedLine"
@@ -21,7 +20,7 @@ class DualQuaternion:
     and interpolations. They consist of a primal quaternion representing rotation and
     translation and a dual quaternion representing infinitesimal transformations.
 
-    :param float, sympy.Number vec8: array or list of 8 Study
+    :param list[float] study_parameters: array or list of 8 Study
         parameters. If None, an identity DualQuaternion is constructed.
 
     :ivar Quaternion p: primal quaternion - the primal part of the Dual Quaternion,
@@ -55,27 +54,24 @@ class DualQuaternion:
         dq = DualQuaternion.from_two_quaternions(q1, q2)
     """
 
-    def __init__(
-        self,
-        vec8: Optional[Sequence[Union[float, Number]]] = None,
-        is_rotation: bool = False,
-    ):
+    def __init__(self, study_parameters: Optional[Sequence[float]] = None,
+                 is_rotation: bool = False):
         """
         Dual Quaternion object, assembled from 8-vector (list or np.array) as DQ,
         or two 4-vectors (np.arrays) as two Quaternions (see @classmethod bellow).
-        If vec8 is empty, an identity is constructed.
+        If no Study's parameters are provided, an identity is constructed.
 
-        :param Optional[Sequence[Union[float, Number]]] vec8: array or list of
-        8 parameters. If None, an identity DualQuaternion is constructed. Defaults
-        to None.
+        :param Optional[Sequence[float]] study_parameters: array or list
+            of 8 Study's parameters. If None, an identity DualQuaternion is constructed.
+            Defaults to None.
         :param bool is_rotation: True if the Dual Quaternion represents a rotation,
         """
-        if vec8 is not None:
-            if len(vec8) != 8:
-                raise ValueError("DualQuaternion: vec8 has to be 8-vector")
-            vec8 = np.asarray(vec8)
-            primal = vec8[:4]
-            dual = vec8[4:]
+        if study_parameters is not None:
+            if len(study_parameters) != 8:
+                raise ValueError("DualQuaternion: input has to be 8-vector")
+            study_parameters = np.asarray(study_parameters)
+            primal = study_parameters[:4]
+            dual = study_parameters[4:]
         else:
             primal = np.array([1, 0, 0, 0])
             dual = np.array([0, 0, 0, 0])
@@ -85,6 +81,7 @@ class DualQuaternion:
         self.dq = self.array()
 
         self.is_rotation = is_rotation
+        self.is_rational = False
 
     @property
     def type(self) -> str:
@@ -141,14 +138,14 @@ class DualQuaternion:
         """
         return f"{self.p.array()} + eps{self.d.array()}"
 
-    def __getitem__(self, idx) -> float:
+    def __getitem__(self, idx) -> np.ndarray:
         """
         Get an element of DualQuaternion
 
         :param int idx: index of the Quaternion element to call 0..7
 
-        :return: float
-        :rtype: float
+        :return: float number of the element
+        :rtype: np.ndarray
         """
         element = self.array()
         element = element[idx]  # or, p.dob = p.dob.__getitem__(idx)
