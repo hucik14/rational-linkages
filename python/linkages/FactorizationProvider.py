@@ -114,7 +114,7 @@ class FactorizationProvider:
         # the different factorizations of the motion.
 
         factorization1 = bq.factorize_from_list(poly, factors)
-        factorization2 = bq.factorize_from_list(poly,[factors[2], factors[1], factors[0]])
+        factorization2 = bq.factorize_from_list(poly, factors[::-1])
 
         print('Factorization ended.')
 

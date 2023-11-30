@@ -64,6 +64,8 @@ h1 = DualQuaternion([-1 / 4, 13 / 5, -213 / 5, -68 / 15, 0, -52 / 3,-28 / 15, 38
 h2 = DualQuaternion([-3 / 10, 833 / 240, -451 / 160, 19 / 24, 0, -427 / 480, -1609 / 720, -1217 / 300], is_rotation=True)
 h3 = DualQuaternion([9 / 4, -96 / 385, -3 / 11, 12 / 121, 0, -9 / 22, 18 / 77, -27 / 70], is_rotation=True)
 
+from RationalCurve import RationalCurve
+
 my_f = MotionFactorization([h1r, h2r, h3r])
 factorizator = FactorizationProvider()
 factorize = factorizator.factorize_for_motion_factorization(my_f)
