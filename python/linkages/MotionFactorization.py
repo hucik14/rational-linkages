@@ -3,7 +3,7 @@ import sympy as sp
 from typing import Union
 from DualQuaternion import DualQuaternion
 from PointHomogeneous import PointHomogeneous
-from RationalCurve import RationalCurve
+from RationalCurve import RationalCurve, MotionFactorization
 
 
 class MotionFactorization(RationalCurve):
@@ -249,6 +249,18 @@ class MotionFactorization(RationalCurve):
         t = sqrt_p_norm / np.tan(normalized_angle/2) + self.axis_rotation[0].p[0]
 
         return t
+
+    def factorize(self) -> list[MotionFactorization]:
+        """
+        Factorize the motion curve into two motion factorizations
+
+        :return: list of MotionFactorization objects
+        :rtype: list[MotionFactorization]
+        """
+        from FactorizationProvider import FactorizationProvider
+
+        factorization_provider = FactorizationProvider()
+        return factorization_provider.factorize_for_motion_factorization(self)
 
 
 

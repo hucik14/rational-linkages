@@ -154,3 +154,23 @@ class TestMotionFactorization(TestCase):
 
     def test_direct_kinematics_of_end_effector(self):
         pass
+
+    def test_factorize(self):
+        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True)
+        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)
+
+        f = MotionFactorization([h1, h2])
+
+        factorizations = f.factorize()
+
+        self.assertEqual(len(factorizations), 2)
+        self.assertEqual(len(factorizations[0].axis_rotation), 2)
+
+        self.assertTrue(np.allclose(factorizations[1].axis_rotation[0].array(),
+                                    [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1 / 3, 0.0]))
+        self.assertTrue(np.allclose(factorizations[1].axis_rotation[1].array(),
+                                    [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -2 / 3, 0.0]))
+        self.assertTrue(np.allclose(factorizations[0].axis_rotation[0].array(),
+                                    [0, 0, 0, 1, 0, 0, 0, 0]))
+        self.assertTrue(np.allclose(factorizations[0].axis_rotation[1].array(),
+                                    [0, 0, 0, 2, 0, 0, -1, 0]))

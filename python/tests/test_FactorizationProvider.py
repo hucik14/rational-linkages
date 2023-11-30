@@ -36,10 +36,16 @@ class TestFactorizationProvider(TestCase):
 
     def test_factorize_for_motion_factorization(self):
         from MotionFactorization import MotionFactorization
-        from DualQuaternion import DualQuaternion
+        from RationalDualQuaternion import RationalDualQuaternion
 
-        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True)
-        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)
+        h1 = RationalDualQuaternion([sp.Rational(0), sp.Rational(0),
+                                    sp.Rational(0), sp.Rational(1),
+                                    sp.Rational(0), sp.Rational(0),
+                                    sp.Rational(0), sp.Rational(0)], is_rotation=True)
+        h2 = RationalDualQuaternion([sp.Rational(0), sp.Rational(0),
+                                    sp.Rational(0), sp.Rational(2),
+                                    sp.Rational(0), sp.Rational(0),
+                                    sp.Rational(-1), sp.Rational(0)], is_rotation=True)
 
         f = MotionFactorization([h1, h2])
 

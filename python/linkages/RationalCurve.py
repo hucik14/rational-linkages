@@ -6,6 +6,8 @@ from matplotlib import pyplot as plt
 from PointHomogeneous import PointHomogeneous
 
 
+MotionFactorization = "MotionFactorization"
+
 class RationalCurve:
     """
     Class representing rational curves in n-dimensional space, where the first row is
@@ -277,6 +279,17 @@ class RationalCurve:
 
         dq = DualQuaternion(self.evaluate(t_param, inverted_part))
         return dq.dq2matrix()
+
+    def factorize(self) -> list[MotionFactorization]:
+        """
+        Factorize the curve into motion factorizations
+
+        :return: list of MotionFactorization objects
+        """
+        from FactorizationProvider import FactorizationProvider
+
+        factorization_provider = FactorizationProvider()
+        return factorization_provider.factorize_motion_curve(self)
 
     def plot(self, interval=(-1, 1), steps=50, ax=None, line_style=None) -> plt.axes:
         """

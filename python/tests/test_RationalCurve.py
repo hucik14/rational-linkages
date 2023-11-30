@@ -210,6 +210,32 @@ class TestRationalCurve(TestCase):
 
         self.assertTrue(np.allclose(curve.evaluate(2), np.array([6, -2.0])))
 
+    def test_factorize(self):
+        t = sp.Symbol("t")
+        curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t, domain='RR'),
+                               sp.Poly(0.0, t, domain='RR'),
+                               sp.Poly(0.0, t, domain='RR'),
+                               sp.Poly(-3.0 * t, t, domain='RR'),
+                               sp.Poly(0.0, t, domain='RR'),
+                               sp.Poly(1.0, t, domain='RR'),
+                               sp.Poly(1.0 * t, t, domain='RR'),
+                               sp.Poly(0.0, t, domain='RR')])
+
+        factorizations = curve.factorize()
+
+        self.assertEqual(len(factorizations), 2)
+        self.assertEqual(len(factorizations[0].axis_rotation), 2)
+
+        self.assertTrue(np.allclose(factorizations[0].axis_rotation[0].array(),
+                                    [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1 / 3, 0.0]))
+        self.assertTrue(np.allclose(factorizations[0].axis_rotation[1].array(),
+                                    [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -2 / 3, 0.0]))
+        self.assertTrue(np.allclose(factorizations[1].axis_rotation[0].array(),
+                                    [0, 0, 0, 1, 0, 0, 0, 0]))
+        self.assertTrue(np.allclose(factorizations[1].axis_rotation[1].array(),
+                                    [0, 0, 0, 2, 0, 0, -1, 0]))
+
+
     def test_plot(self):
         coeffs = np.array([[1.0, 0.0, 2.0], [0.5, -2.0, 0.0]])
         wrong_cruve_to_plot = RationalCurve.from_coeffs(coeffs)
