@@ -229,6 +229,16 @@ class RationalCurve:
         """
         return RationalCurve.from_coeffs(self.inverse_coeffs())
 
+    def curve(self) -> "RationalCurve":
+        """
+        Get the rational curve (itself) - suitable for subclasses, returns the
+        superclass object
+
+        :return: RationalCurve
+        :rtype: RationalCurve
+        """
+        return RationalCurve(self.set_of_polynomials)
+
     def extract_expressions(self) -> list:
         """
         Extract the expressions of the curve
@@ -358,6 +368,8 @@ class RationalCurve:
 
         :return: tuple of np.ndarray - (x, y, z) coordinates of the curve
         """
+        from DualQuaternion import DualQuaternion
+
         t = sp.Symbol("t")
         t_space = np.linspace(interval[0], interval[1], steps)
 
@@ -371,6 +383,12 @@ class RationalCurve:
         curve_points = [PointHomogeneous()] * steps
         for i in range(steps):
             point = self.evaluate(t_space[i])
+
+            # if it is a pose in SE3, convert it to a point via matrix mapping
+            if self.dimension == 7:
+                point = DualQuaternion(point).dq2point_via_matrix()
+                point = np.concatenate((np.array([1]), point))
+
             curve_points[i] = PointHomogeneous([point[0], point[-3], point[-2], point[-1]])
         x, y, z = zip(*[curve_points[i].normalized_in_3d() for i in range(steps)])
         return x, y, z

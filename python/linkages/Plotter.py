@@ -194,7 +194,7 @@ class Plotter:
         """
         Plot a rational curve
 
-        :param curve: RationalCurve
+        :param RationalCurve curve: RationalCurve
         :param kwargs: interval and matplotlib options
         """
         if 'interval' in kwargs:
@@ -206,7 +206,7 @@ class Plotter:
         x, y, z = curve.get_plot_data(interval, self.steps)
 
         if 'label' not in kwargs:
-            kwargs['label'] = "curve"
+            kwargs['label'] = 'curve'
 
         self.ax.plot(x, y, z, **kwargs)
 
