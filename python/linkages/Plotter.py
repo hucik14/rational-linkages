@@ -3,7 +3,6 @@ import matplotlib
 matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, TextBox
-
 from functools import wraps
 
 from DualQuaternion import DualQuaternion

@@ -50,8 +50,7 @@ class MotionFactorization(RationalCurve):
             representing the revolute axes of the rational motion factorization
         """
         curve_polynomials = self.get_polynomials_from_factorization(
-            sequence_of_factored_dqs
-        )
+            sequence_of_factored_dqs)
         super().__init__(curve_polynomials)
         self.dq_axes = sequence_of_factored_dqs
         self.factors_with_parameter = self.get_symbolic_factors()
@@ -279,8 +278,11 @@ class MotionFactorization(RationalCurve):
         :return: list of JointConnection points
         :rtype: list[JointConnections]
         """
-        return [JointConnections(axis, PointHomogeneous.from_3d_point(axis.dq2point_via_line()))
-                for axis in self.dq_axes]
+        return [
+            JointConnections(axis,
+                             PointHomogeneous.from_3d_point(axis.dq2point_via_line()))
+            for axis in self.dq_axes
+        ]
 
 
 
