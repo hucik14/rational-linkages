@@ -46,3 +46,9 @@ ax.set_zlabel("Z-axis")
 ax.set_aspect("equal")
 plt.show()
 """
+
+p = Plotter()
+c = m.curve()
+p.plot(c, interval=(-1, 1))
+p.plot(c.inverse_curve(), interval=(-1, 1))
+#p.plot(m)

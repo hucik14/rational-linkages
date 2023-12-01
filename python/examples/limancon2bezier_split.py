@@ -8,9 +8,9 @@ t = sp.Symbol("t")
 # Limancon of Pascal
 a = 1
 b = 0.5
-l0 = sp.Poly((1 + t**2) ** 2, t, domain="QQ")
-l1 = sp.Poly(b * (1 - t**2) * (1 + t**2) + a * (1 - t**2) ** 2, t, domain="QQ")
-l2 = sp.Poly(2 * b * t * (1 + t**2) + 2 * a * t * (1 - t**2), t, domain="QQ")
+l0 = sp.Poly((1 + t**2) ** 2, t)
+l1 = sp.Poly(b * (1 - t**2) * (1 + t**2) + a * (1 - t**2) ** 2, t)
+l2 = sp.Poly(2 * b * t * (1 + t**2) + 2 * a * t * (1 - t**2), t)
 
 limancon = RationalCurve([l0, l1, l2, l0])
 

@@ -54,7 +54,6 @@ class TestMotionFactorization(TestCase):
         self.assertEqual(added_f.axis_rotation, expected_f.axis_rotation)
         self.assertEqual(added_f.number_of_factors, 4)
 
-
     def test_get_polynomials_from_factorization(self):
         f1 = [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
               DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)]
@@ -62,14 +61,14 @@ class TestMotionFactorization(TestCase):
         t = sp.Symbol("t")
 
         self.assertEqual(MotionFactorization.get_polynomials_from_factorization(f1),
-                         [sp.Poly(1.0*t**2 - 2.0, t, domain='RR'),
-                          sp.Poly(0.0, t, domain='RR'),
-                          sp.Poly(0.0, t, domain='RR'),
-                          sp.Poly(-3.0*t, t, domain='RR'),
-                          sp.Poly(0.0, t, domain='RR'),
-                          sp.Poly(1.0, t, domain='RR'),
-                          sp.Poly(1.0*t, t, domain='RR'),
-                          sp.Poly(0.0, t, domain='RR')]
+                         [sp.Poly(t**2 - 2, t),
+                          sp.Poly(0, t),
+                          sp.Poly(0, t),
+                          sp.Poly(-3*t, t),
+                          sp.Poly(0, t),
+                          sp.Poly(1, t),
+                          sp.Poly(1*t, t),
+                          sp.Poly(0, t)]
                          )
 
     def test_get_symbolic_factors(self):

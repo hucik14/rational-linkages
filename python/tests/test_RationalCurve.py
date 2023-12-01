@@ -12,13 +12,11 @@ class TestRationalCurve(TestCase):
         a = 1
         b = 0.5
         t = sp.Symbol("t")
-        l0 = sp.Poly((1 + t**2) ** 2, t, domain="QQ")
+        l0 = sp.Poly((1 + t**2) ** 2, t)
         l1 = sp.Poly(
-            b * (1 - t**2) * (1 + t**2) + a * (1 - t**2) ** 2, t, domain="QQ"
-        )
+            b * (1 - t**2) * (1 + t**2) + a * (1 - t**2) ** 2, t)
         l2 = sp.Poly(
-            2 * b * t * (1 + t**2) + 2 * a * t * (1 - t**2), t, domain="QQ"
-        )
+            2 * b * t * (1 + t**2) + 2 * a * t * (1 - t**2), t)
 
         obj = RationalCurve([l0, l1, l2, l0])
         expected_coeffs = np.array(
@@ -212,14 +210,14 @@ class TestRationalCurve(TestCase):
 
     def test_factorize(self):
         t = sp.Symbol("t")
-        curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t, domain='RR'),
-                               sp.Poly(0.0, t, domain='RR'),
-                               sp.Poly(0.0, t, domain='RR'),
-                               sp.Poly(-3.0 * t, t, domain='RR'),
-                               sp.Poly(0.0, t, domain='RR'),
-                               sp.Poly(1.0, t, domain='RR'),
-                               sp.Poly(1.0 * t, t, domain='RR'),
-                               sp.Poly(0.0, t, domain='RR')])
+        curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(-3.0 * t, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(1.0, t),
+                               sp.Poly(1.0 * t, t),
+                               sp.Poly(0.0, t)])
 
         factorizations = curve.factorize()
 

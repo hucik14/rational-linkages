@@ -88,7 +88,7 @@ class MotionFactorization(RationalCurve):
         for i in range(len(factors)):
             polynomials_dq = polynomials_dq * (polynomial_t - factors[i])
 
-        return [sp.Poly(polynom, t, domain="QQ")
+        return [sp.Poly(polynom, t)
                 for i, polynom in enumerate(polynomials_dq.array())]
 
     def get_symbolic_factors(self) -> list[DualQuaternion]:

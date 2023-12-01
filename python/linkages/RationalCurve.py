@@ -31,9 +31,9 @@ class RationalCurve:
         >>> a = 1
         >>> b = 0.5
         >>> t = sp.Symbol('t')
-        >>> eq0 = sp.Poly((1+t**2)**2, t, domain='QQ')
-        >>> eq1 = sp.Poly(b*(1-t**2)*(1+t**2) + a*(1-t**2)**2, t, domain='QQ')
-        >>> eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t, domain='QQ')
+        >>> eq0 = sp.Poly((1+t**2)**2, t)
+        >>> eq1 = sp.Poly(b*(1-t**2)*(1+t**2) + a*(1-t**2)**2, t)
+        >>> eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t)
         >>> curve = RationalCurve([eq0, eq1, eq2, eq0])
 
         or from polynomials:
@@ -95,7 +95,7 @@ class RationalCurve:
                 coefficient * t**j for j, coefficient in enumerate(row_coefficients)
             ]
             symbolic_expressions.append(sum(symbolic_row_coeffs))
-            polynomials.append(sp.Poly(symbolic_expressions[i], t, domain="QQ"))
+            polynomials.append(sp.Poly(symbolic_expressions[i], t))
 
         return symbolic_expressions, polynomials
 
@@ -328,7 +328,7 @@ class RationalCurve:
             # if in 2D, so later z = 1
             polynoms = deepcopy(self.set_of_polynomials)
             if self.dimension == 2:
-                polynoms.append(sp.Poly(polynoms[0], t, domain="QQ"))
+                polynoms.append(sp.Poly(polynoms[0], t))
 
             # plot the curve
             t_space = np.linspace(interval[0], interval[1], steps)
@@ -377,7 +377,7 @@ class RationalCurve:
         # to the Z-equation place in the list if in 2D, so later z = 1
         polynoms = deepcopy(self.set_of_polynomials)
         if self.dimension == 2:
-            polynoms.append(sp.Poly(polynoms[0], t, domain="QQ"))
+            polynoms.append(sp.Poly(polynoms[0], t))
 
         # plot the curve
         curve_points = [PointHomogeneous()] * steps

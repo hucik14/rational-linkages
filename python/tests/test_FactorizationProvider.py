@@ -10,14 +10,14 @@ from FactorizationProvider import FactorizationProvider
 class TestFactorizationProvider(TestCase):
     def test_factorize_motion_curve(self):
         t = sp.Symbol("t")
-        curve = RationalCurve([sp.Poly(1.0*t**2 - 2.0, t, domain='RR'),
-                               sp.Poly(0.0, t, domain='RR'),
-                               sp.Poly(0.0, t, domain='RR'),
-                               sp.Poly(-3.0*t, t, domain='RR'),
-                               sp.Poly(0.0, t, domain='RR'),
-                               sp.Poly(1.0, t, domain='RR'),
-                               sp.Poly(1.0*t, t, domain='RR'),
-                               sp.Poly(0.0, t, domain='RR')])
+        curve = RationalCurve([sp.Poly(1.0*t**2 - 2.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(-3.0*t, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(1.0, t),
+                               sp.Poly(1.0*t, t),
+                               sp.Poly(0.0, t)])
 
         factorization_provider = FactorizationProvider()
         factorizations = factorization_provider.factorize_motion_curve(curve)

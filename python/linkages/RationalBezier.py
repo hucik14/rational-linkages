@@ -66,8 +66,7 @@ class RationalBezier(RationalCurve):
 
         # Convert the Bezier curve to a set of polynomials
         bezier_polynomials = [
-            sp.Poly(bezier_curve[i], t, domain="QQ") for i in range(dimension + 1)
-        ]
+            sp.Poly(bezier_curve[i], t) for i in range(dimension + 1)]
         return bezier_polynomials
 
     def plot(self, interval=(-10, 10), steps=50, ax=None, line_style=None):
