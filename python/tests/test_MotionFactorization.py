@@ -51,7 +51,7 @@ class TestMotionFactorization(TestCase):
             ]
         )
         added_f = f1 + f2
-        self.assertEqual(added_f.axis_rotation, expected_f.axis_rotation)
+        self.assertEqual(added_f.dq_axes, expected_f.dq_axes)
         self.assertEqual(added_f.number_of_factors, 4)
 
     def test_get_polynomials_from_factorization(self):
@@ -163,13 +163,13 @@ class TestMotionFactorization(TestCase):
         factorizations = f.factorize()
 
         self.assertEqual(len(factorizations), 2)
-        self.assertEqual(len(factorizations[0].axis_rotation), 2)
+        self.assertEqual(len(factorizations[0].dq_axes), 2)
 
-        self.assertTrue(np.allclose(factorizations[1].axis_rotation[0].array(),
+        self.assertTrue(np.allclose(factorizations[1].dq_axes[0].array(),
                                     [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1 / 3, 0.0]))
-        self.assertTrue(np.allclose(factorizations[1].axis_rotation[1].array(),
+        self.assertTrue(np.allclose(factorizations[1].dq_axes[1].array(),
                                     [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -2 / 3, 0.0]))
-        self.assertTrue(np.allclose(factorizations[0].axis_rotation[0].array(),
+        self.assertTrue(np.allclose(factorizations[0].dq_axes[0].array(),
                                     [0, 0, 0, 1, 0, 0, 0, 0]))
-        self.assertTrue(np.allclose(factorizations[0].axis_rotation[1].array(),
+        self.assertTrue(np.allclose(factorizations[0].dq_axes[1].array(),
                                     [0, 0, 0, 2, 0, 0, -1, 0]))

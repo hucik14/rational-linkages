@@ -41,8 +41,8 @@ class RationalMechanism(RationalCurve):
         # Combine factorizations to get the linkage
         linkage = self.factorizations[0] + self.factorizations[1]
         # Create NormalizedLine objects for each axis rotation
-        lines = [NormalizedLine(linkage.axis_rotation[i].dq2screw())
-                 for i in range(len(linkage.axis_rotation))]
+        lines = [NormalizedLine(linkage.dq_axes[i].dq2screw())
+                 for i in range(len(linkage.dq_axes))]
 
         d = []
         a = []
@@ -121,7 +121,7 @@ class RationalMechanism(RationalCurve):
         for i, factorization in enumerate(self.factorizations):
             linestyle = "-." if i == 0 else ":"
             for j in range(factorization.number_of_factors):
-                ax = factorization.axis_rotation[j].plot_as_line(
+                ax = factorization.dq_axes[j].plot_as_line(
                     (-0.5, 0.5), ax=ax, line_style=linestyle
                 )
 
