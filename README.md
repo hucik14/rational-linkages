@@ -1,9 +1,10 @@
-# Rational Linkages Toolbox
-
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)]()
 [![build](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/pipeline.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
 [![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=run_tests)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)]()
 
+# Rational Linkages
+
+Python-based toolbox for synthesis and rapid-prototyping of rational linkages.
 
 ## Intallation instuctions
 1. Clone the repository (use preferably your client, or clone with the button on top of this page or using the following line)
