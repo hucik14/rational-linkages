@@ -405,7 +405,7 @@ class Plotter:
         for i in range(self.plotted['mechanism'].factorizations[0].number_of_factors):
             self.plotted['mechanism'].factorizations[0].joints[i].points_params = self.j_slider[i].val
             self.plotted['mechanism'].factorizations[1].joints[i].points_params = (
-                self.j_slider[i + 3].val)
+                self.j_slider[i + self.plotted['mechanism'].factorizations[0].number_of_factors].val)
 
         # update the plot
         self.plot_slider_update(self.sliders[0].val)
