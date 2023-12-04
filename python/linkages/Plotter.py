@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, RangeSlider, TextBox
 from functools import wraps
 
+from ButtonID import ButtonID
+
 from DualQuaternion import DualQuaternion
 from NormalizedLine import NormalizedLine
 from PointHomogeneous import PointHomogeneous
@@ -338,6 +340,15 @@ class Plotter:
             pos = -1 * pos
             self.j_slider.append(slider)
 
+        self.buttons = []
+        # append first button that is the driving joint angle slider
+        for i in range(2 * mechanism.factorizations[0].number_of_factors):
+            self.buttons.append(ButtonID(
+                ax=plt.axes([0.03 + i * 0.03, 0.15 + pos, 0.0225, 0.05]),
+                label="j{}".format(i),
+                button_id=i,
+            ))
+
         # initialize the linkages plot
         self.link_plot, = self.ax.plot([], [], [], color="black")
         # initialize the tool point interactive plot
@@ -366,6 +377,10 @@ class Plotter:
         # joint physical placement sliders
         for i in range(2 * mechanism.factorizations[0].number_of_factors):
             self.j_slider[i].on_changed(self.plot_connecting_points_update)
+
+        # joint connection switch buttons
+        for i in range(2 * mechanism.factorizations[0].number_of_factors):
+            self.buttons[i].on_clicked(self.reverse_link_connecting_points)
 
         # initialize the plot in home configuration
         self.sliders[0].set_val(0.0)
@@ -410,48 +425,63 @@ class Plotter:
         # update the plot
         self.plot_slider_update(self.sliders[0].val)
 
+    def reverse_link_connecting_points(self, event, button_id: int):
+        """Event handler for the joint connection points switch buttons"""
+        f0_num_of_factors = self.plotted['mechanism'].factorizations[0].number_of_factors
+
+        if button_id < f0_num_of_factors:
+            i = button_id
+            self.plotted['mechanism'].factorizations[0].joints[i].points_params = self.j_slider[button_id].val[::-1]
+            self.j_slider[button_id].val = self.j_slider[button_id].val[::-1]
+        else:
+            i = button_id - f0_num_of_factors
+            self.plotted['mechanism'].factorizations[1].joints[i].points_params = self.j_slider[button_id].val[::-1]
+            self.j_slider[button_id].val = self.j_slider[button_id].val[::-1]
+
+        # update the plot
+        self.plot_slider_update(self.sliders[0].val)
 
     def plot_slider_update(self, val: float, t_param: float = None):
-            """Event handler for the joint angle slider"""
-            if t_param is not None:
-                t = t_param
-            else:
-                # t parametrization for the driving joint
-                t = self.plotted['mechanism'].factorizations[0].joint_angle_to_t_param(val)
+        """Event handler for the joint angle slider"""
+        if t_param is not None:
+            t = t_param
+        else:
+            # t parametrization for the driving joint
+            t = self.plotted['mechanism'].factorizations[0].joint_angle_to_t_param(val)
 
-            # plot links
-            links = (self.plotted['mechanism'].factorizations[0].direct_kinematics(t)
-                     + self.plotted['mechanism'].factorizations[1].direct_kinematics(t)[::-1])
+        # plot links
+        links = (self.plotted['mechanism'].factorizations[0].direct_kinematics(t)
+                 + self.plotted['mechanism'].factorizations[1].direct_kinematics(t)[::-1])
 
-            x, y, z = zip(*[links[j] for j in range(len(links))])
-            self.link_plot.set_data_3d(x, y, z)
+        x, y, z = zip(*[links[j] for j in range(len(links))])
+        self.link_plot.set_data_3d(x, y, z)
 
-            # plot tool
-            # use last point of each factorization
-            tool_triangle = ([self.plotted['mechanism'].factorizations[0].direct_kinematics(t)[-1]]
-                             + [self.plotted['mechanism'].factorizations[1].direct_kinematics(t)[-1]])
-            # get tool point
-            tool = self.plotted['mechanism'].factorizations[0].direct_kinematics_of_tool(
-                t, self.plotted['mechanism'].end_effector.dq2point_homogeneous())
-            # add tool point to tool triangle
-            tool_triangle.insert(1, tool)
+        # plot tool
+        # use last point of each factorization
+        tool_triangle = ([self.plotted['mechanism'].factorizations[0].direct_kinematics(t)[-1]]
+                         + [self.plotted['mechanism'].factorizations[1].direct_kinematics(t)[-1]])
+        # get tool point
+        tool = self.plotted['mechanism'].factorizations[0].direct_kinematics_of_tool(
+            t, self.plotted['mechanism'].end_effector.dq2point_homogeneous())
+        # add tool point to tool triangle
+        tool_triangle.insert(1, tool)
 
-            x, y, z = zip(*[tool_triangle[j] for j in range(len(tool_triangle))])
-            self.tool_plot.set_data_3d(x, y, z)
+        x, y, z = zip(*[tool_triangle[j] for j in range(len(tool_triangle))])
+        self.tool_plot.set_data_3d(x, y, z)
 
-            # plot tool frame
-            pose_dq = DualQuaternion(self.plotted['mechanism'].evaluate(t))
-            pose_matrix = TransfMatrix(pose_dq.dq2matrix())
+        # plot tool frame
+        pose_dq = DualQuaternion(self.plotted['mechanism'].evaluate(t))
+        pose_matrix = TransfMatrix(pose_dq.dq2matrix())
 
-            x_vec, y_vec, z_vec = pose_matrix.get_plot_data()
+        x_vec, y_vec, z_vec = pose_matrix.get_plot_data()
 
-            # remove old frame (quiver has no update method)
-            for pose_arrow in self.pose_frame:
-                pose_arrow.remove()
-            # plot new frame
-            self.pose_frame = [self.ax.quiver(*vec, color=color, length=0.3) for vec, color in zip([x_vec, y_vec, z_vec], ["red", "green", "blue"])]
+        # remove old frame (quiver has no update method)
+        for pose_arrow in self.pose_frame:
+            pose_arrow.remove()
+        # plot new frame
+        self.pose_frame = [self.ax.quiver(*vec, color=color, length=0.3) for vec, color in zip([x_vec, y_vec, z_vec], ["red", "green", "blue"])]
 
-            # update the plot
-            self.fig.canvas.draw_idle()
-            self.fig.canvas.update()
-            self.fig.canvas.flush_events()
+        # update the plot
+        self.fig.canvas.draw_idle()
+        self.fig.canvas.update()
+        self.fig.canvas.flush_events()
