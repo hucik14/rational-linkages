@@ -34,7 +34,7 @@ run_tests:
 build_docs:
   stage: build
   image:
-    name: python:3.11-bullseye
+    name: python:3.11
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
   script:
     - pip install -r requirements.txt
