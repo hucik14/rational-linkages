@@ -10,9 +10,9 @@ packages = [{include = "rational_linkages"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 scipy = "^1.11"
-numpy = "^1.25"
 sympy = "^1.11"
 matplotlib = "^3.7"
+biquaternion-py = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.2"
