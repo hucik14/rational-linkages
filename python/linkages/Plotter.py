@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, RangeSlider, TextBox
 from functools import wraps
 
-from ButtonID import ButtonID
-
 from DualQuaternion import DualQuaternion
 from NormalizedLine import NormalizedLine
 from PointHomogeneous import PointHomogeneous
@@ -328,26 +326,17 @@ class Plotter:
         self.j_slider = []
         pos = 0.01
         j_slider_lim = 2.0
-        for i in range(2 * mechanism.factorizations[0].number_of_factors):
-            slider = RangeSlider(
+        for i in range(4 * mechanism.factorizations[0].number_of_factors):
+            slider = Slider(
                 ax=plt.axes([0.03 + i * 0.03, 0.25 + pos, 0.0225, 0.63]),
                 label="j{}".format(i),
                 valmin=-j_slider_lim,
                 valmax=j_slider_lim,
-                valinit=[-0.1, 0.1],
+                valinit=0.0,
                 orientation="vertical",
             )
             pos = -1 * pos
             self.j_slider.append(slider)
-
-        self.buttons = []
-        # append first button that is the driving joint angle slider
-        for i in range(2 * mechanism.factorizations[0].number_of_factors):
-            self.buttons.append(ButtonID(
-                ax=plt.axes([0.03 + i * 0.03, 0.15 + pos, 0.0225, 0.05]),
-                label="j{}".format(i),
-                button_id=i,
-            ))
 
         # initialize the linkages plot
         self.link_plot, = self.ax.plot([], [], [], color="black")
@@ -375,12 +364,8 @@ class Plotter:
         self.text_box_param.on_submit(submit_parameter)
 
         # joint physical placement sliders
-        for i in range(2 * mechanism.factorizations[0].number_of_factors):
+        for i in range(4 * mechanism.factorizations[0].number_of_factors):
             self.j_slider[i].on_changed(self.plot_connecting_points_update)
-
-        # joint connection switch buttons
-        for i in range(2 * mechanism.factorizations[0].number_of_factors):
-            self.buttons[i].on_clicked(self.reverse_link_connecting_points)
 
         # initialize the plot in home configuration
         self.sliders[0].set_val(0.0)
@@ -417,26 +402,15 @@ class Plotter:
 
     def plot_connecting_points_update(self, val: tuple):
         """Event handler for the joint connection points sliders"""
-        for i in range(self.plotted['mechanism'].factorizations[0].number_of_factors):
-            self.plotted['mechanism'].factorizations[0].joints[i].points_params = self.j_slider[i].val
-            self.plotted['mechanism'].factorizations[1].joints[i].points_params = (
-                self.j_slider[i + self.plotted['mechanism'].factorizations[0].number_of_factors].val)
+        num_of_factors = self.plotted['mechanism'].factorizations[0].number_of_factors
 
-        # update the plot
-        self.plot_slider_update(self.sliders[0].val)
+        for i in range(num_of_factors):
+            self.plotted['mechanism'].factorizations[0].joints[i].set_point_by_param(0, self.j_slider[2*i].val)
+            self.plotted['mechanism'].factorizations[0].joints[i].set_point_by_param(1, self.j_slider[1 + 2*i].val)
 
-    def reverse_link_connecting_points(self, event, button_id: int):
-        """Event handler for the joint connection points switch buttons"""
-        f0_num_of_factors = self.plotted['mechanism'].factorizations[0].number_of_factors
-
-        if button_id < f0_num_of_factors:
-            i = button_id
-            self.plotted['mechanism'].factorizations[0].joints[i].points_params = self.j_slider[button_id].val[::-1]
-            self.j_slider[button_id].val = self.j_slider[button_id].val[::-1]
-        else:
-            i = button_id - f0_num_of_factors
-            self.plotted['mechanism'].factorizations[1].joints[i].points_params = self.j_slider[button_id].val[::-1]
-            self.j_slider[button_id].val = self.j_slider[button_id].val[::-1]
+        for i in range(num_of_factors):
+            self.plotted['mechanism'].factorizations[1].joints[i].set_point_by_param(0, self.j_slider[2*num_of_factors + 2*i].val)
+            self.plotted['mechanism'].factorizations[1].joints[i].set_point_by_param(1, self.j_slider[2*num_of_factors + 1 + 2*i].val)
 
         # update the plot
         self.plot_slider_update(self.sliders[0].val)
