@@ -77,7 +77,13 @@ class JointConnections:
         """
         Gets the parameter of the connection point at the given index.
         """
-        return self.normalized_axis.get_point_param(point.normalized_in_3d())
+        if self.normalized_axis.contains_point(point.normalized_in_3d()):
+            return self.normalized_axis.get_point_param(point.normalized_in_3d())
+        else:
+            print("Axis: {}".format(self.normalized_axis))
+            print("Point: {}".format(point))
+            raise ValueError("Point is not on the axis")
+
 
     def _get_point_using_param(self, param: float) -> PointHomogeneous:
         """
