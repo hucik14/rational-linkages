@@ -312,10 +312,8 @@ class Plotter:
         # plot the curve (tool path)
         self._plot_tool_path(mechanism, **kwargs)
 
-        # initialize the sliders
-        self.sliders = []
         # append first slider that is the driving joint angle slider
-        self.sliders.append(self._init_slider())
+        self.move_slider = self._init_slider()
         # set a text box that can be used to set the angle manually
         self.text_box_angle = TextBox(self.fig.add_axes([0.3, 0.06, 0.15, 0.05]),
                                       "Set angle [rad]: ", textalignment="right")
@@ -323,20 +321,11 @@ class Plotter:
                                       "Set param t [-]: ", textalignment="right")
 
         # vertical sliders to control physical joints position (connecting points)
-        self.j_slider = []
-        pos = 0.01
-        j_slider_lim = 2.0
-        for i in range(4 * mechanism.factorizations[0].number_of_factors):
-            slider = Slider(
-                ax=plt.axes([0.03 + i * 0.03, 0.25 + pos, 0.0225, 0.63]),
-                label="j{}".format(i),
-                valmin=-j_slider_lim,
-                valmax=j_slider_lim,
-                valinit=0.0,
-                orientation="vertical",
-            )
-            pos = -1 * pos
-            self.j_slider.append(slider)
+        self.joint_sliders = []
+        for i in range(mechanism.num_joints):
+            slider0, slider1 = self._init_slider(idx=i, j_sliders=self.joint_sliders)
+            self.joint_sliders.append(slider0)
+            self.joint_sliders.append(slider1)
 
         # initialize the linkages plot
         self.link_plot, = self.ax.plot([], [], [], color="black")
@@ -351,7 +340,7 @@ class Plotter:
             """Event handler for the text box"""
             val = float(text)
             val = val % (2 * np.pi)
-            self.sliders[0].set_val(val)
+            self.move_slider.set_val(val)
 
         def submit_parameter(text):
             """Event handler for the text box"""
@@ -359,19 +348,19 @@ class Plotter:
             self.plot_slider_update(val, t_param=val)
 
         # connect the slider and text box to the event handlers
-        self.sliders[0].on_changed(self.plot_slider_update)
+        self.move_slider.on_changed(self.plot_slider_update)
         self.text_box_angle.on_submit(submit_angle)
         self.text_box_param.on_submit(submit_parameter)
 
         # joint physical placement sliders
         for i in range(4 * mechanism.factorizations[0].number_of_factors):
-            self.j_slider[i].on_changed(self.plot_connecting_points_update)
+            self.joint_sliders[i].on_changed(self.plot_connecting_points_update)
 
         # initialize the plot in home configuration
-        self.sliders[0].set_val(0.0)
+        self.move_slider.set_val(0.0)
 
     @staticmethod
-    def _init_slider(idx: int = None):
+    def _init_slider(idx: int = None, j_sliders=None):
         """
         Initialize the slider for interactive plotting
 
@@ -389,31 +378,43 @@ class Plotter:
                 valinit=0.0,
                 valstep=0.01,
             )
+            return slider
+
         else:  # joint connection points sliders
-            slider = Slider(
-                ax=plt.axes([0.4, 0.2, 0.5, 0.05]),
-                label="Driving joint angle in rad",
-                valmin=-2.0,
-                valmax=2.0,
+            i = int(len(j_sliders) / 2)
+            j_slider_lim = 2.0
+            slider0 = Slider(
+                ax=plt.axes([0.03 + i * 0.04, 0.25, 0.0225, 0.63]),
+                label="j{}.0".format(i),
+                valmin=-j_slider_lim,
+                valmax=j_slider_lim,
                 valinit=0.0,
-                valstep=0.1,
+                orientation="vertical",
             )
-        return slider
+            slider1 = Slider(
+                ax=plt.axes([0.045 + i * 0.04, 0.25, 0.0225, 0.63]),
+                label="j{}.1".format(i),
+                valmin=-j_slider_lim,
+                valmax=j_slider_lim,
+                valinit=0.0,
+                orientation="vertical",
+            )
+            return slider0, slider1
 
     def plot_connecting_points_update(self, val: tuple):
         """Event handler for the joint connection points sliders"""
         num_of_factors = self.plotted['mechanism'].factorizations[0].number_of_factors
 
         for i in range(num_of_factors):
-            self.plotted['mechanism'].factorizations[0].joints[i].set_point_by_param(0, self.j_slider[2*i].val)
-            self.plotted['mechanism'].factorizations[0].joints[i].set_point_by_param(1, self.j_slider[1 + 2*i].val)
+            self.plotted['mechanism'].factorizations[0].joints[i].set_point_by_param(0, self.joint_sliders[2 * i].val)
+            self.plotted['mechanism'].factorizations[0].joints[i].set_point_by_param(1, self.joint_sliders[1 + 2 * i].val)
 
         for i in range(num_of_factors):
-            self.plotted['mechanism'].factorizations[1].joints[i].set_point_by_param(0, self.j_slider[2*num_of_factors + 2*i].val)
-            self.plotted['mechanism'].factorizations[1].joints[i].set_point_by_param(1, self.j_slider[2*num_of_factors + 1 + 2*i].val)
+            self.plotted['mechanism'].factorizations[1].joints[i].set_point_by_param(0, self.joint_sliders[2 * num_of_factors + 2 * i].val)
+            self.plotted['mechanism'].factorizations[1].joints[i].set_point_by_param(1, self.joint_sliders[2 * num_of_factors + 1 + 2 * i].val)
 
         # update the plot
-        self.plot_slider_update(self.sliders[0].val)
+        self.plot_slider_update(self.move_slider.val)
 
     def plot_slider_update(self, val: float, t_param: float = None):
         """Event handler for the joint angle slider"""

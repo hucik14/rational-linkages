@@ -37,8 +37,8 @@ class JointConnections:
         # the axis to the origin)
         self._params = [0.0, 0.0]
 
-        self.set_point_by_param(0, -0.02)
-        self.set_point_by_param(1, 0.02)
+        self.set_point_by_param(0, 0.0)
+        self.set_point_by_param(1, 0.0)
 
     @property
     def points_params(self) -> list[float, float]:

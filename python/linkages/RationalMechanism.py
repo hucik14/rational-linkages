@@ -21,6 +21,7 @@ class RationalMechanism(RationalCurve):
         """
         super().__init__(factorizations[0].set_of_polynomials)
         self.factorizations = factorizations
+        self.num_joints = sum([f.number_of_factors for f in factorizations])
 
         self.is_linkage = True if len(self.factorizations) == 2 else False
 
