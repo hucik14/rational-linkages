@@ -278,12 +278,21 @@ class MotionFactorization(RationalCurve):
         :return: list of JointConnection points
         :rtype: list[JointConnections]
         """
-        return [
-            JointConnections(axis,
-                             PointHomogeneous.from_3d_point(axis.dq2point_via_line()))
-            for axis in self.dq_axes
-        ]
+        return [JointConnections(axis, [PointHomogeneous.from_3d_point(axis.dq2point_via_line())])
+                for axis in self.dq_axes]
 
+    def set_joint_connection_points(self, points: list[PointHomogeneous]):
+        """
+        Set JointConnection points of the MotionFactorization
 
+        :param list[JointConnections] points: list of JointConnection points
+        """
+        # pair the input points
+        points_pairs = []
+        for i in range(len(points) // 2):
+            points_pairs.append([points[2 * i], points[2 * i + 1]])
 
+        for i in range(len(points_pairs)):
+            self.joints[i] = JointConnections(self.dq_axes[i], points_pairs[i])
 
+        #self.joints = [JointConnections(self.dq_axes[i], points_pairs[i]) for i in range(len(points_pairs))]

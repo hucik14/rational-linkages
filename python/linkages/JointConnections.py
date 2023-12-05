@@ -4,6 +4,7 @@ Classes in the Module:
     - PointsConnection: Operates the connection points for a given joint.
 """
 import numpy as np
+from typing import Union
 
 from DualQuaternion import DualQuaternion
 from PointHomogeneous import PointHomogeneous
@@ -23,22 +24,30 @@ class JointConnections:
     :ivar PointHomogeneous default_connection_point: The default connection point (
         common perpendicular)
     """
-    def __init__(self, axis: DualQuaternion, connection_point: PointHomogeneous):
+    def __init__(self, axis: DualQuaternion, connection_point: list[PointHomogeneous]):
         """
         :param DualQuaternion axis: The axis of the joint
         :param PointHomogeneous connection_point: The default connection point (
             common perpendicular)
         """
         self.normalized_axis = NormalizedLine.from_direction_and_moment(*axis.dq2line())
-        self.default_connection_point = connection_point
-        self.points = PointsConnection(connection_point)
+
+        if len(connection_point) == 1:
+            self.default_connection_point = [connection_point[0], connection_point[0]]
+            self.points = PointsConnection([connection_point[0], connection_point[0]])
+        elif len(connection_point) == 2:
+            self.default_connection_point = connection_point
+            self.points = PointsConnection(connection_point)
+        else:
+            raise ValueError("Connection points must be a list of 1 or 2 points")
 
         # The parameters of the connection points are 0 by default (nearest point on
-        # the axis to the origin)
+        # the axis to the origin), if not set differently
         self._params = [0.0, 0.0]
-
-        self.set_point_by_param(0, 0.0)
-        self.set_point_by_param(1, 0.0)
+        self.set_point_by_param(
+            0, self._get_point_param_on_line(self.default_connection_point[0]))
+        self.set_point_by_param(
+            1, self._get_point_param_on_line(self.default_connection_point[1]))
 
     @property
     def points_params(self) -> list[float, float]:
@@ -81,7 +90,7 @@ class JointConnections:
         """
         return PointHomogeneous.from_3d_point(self.normalized_axis.point_on_line(param))
 
-    def set_point_by_param(self, idx: int, param: float):
+    def set_point_by_param(self, idx: int, param: Union[float, np.ndarray]):
         """
         Sets the connection point at the given parameter.
         """
@@ -92,6 +101,14 @@ class JointConnections:
         else:
             raise IndexError("Index out of range")
 
+    """
+    def get_params_by_points(self, pts: list[PointHomogeneous]):
+        " ""
+        Sets the parameters of the connection points.
+        " ""
+        self.points_params = [self._get_point_param_on_line(pts[0]),
+                              self._get_point_param_on_line(pts[1])]
+    """
 
 class PointsConnection:
     """
@@ -100,13 +117,13 @@ class PointsConnection:
     :ivar PointHomogeneous _connection_point0: The first connection point
     :ivar PointHomogeneous _connection_point1: The second connection point
     """
-    def __init__(self, connection_point: PointHomogeneous):
+    def __init__(self, connection_point: list[PointHomogeneous]):
         """
-        :param PointHomogeneous connection_point: The default connection point (
-            common perpendicular)
+        :param PointHomogeneous connection_point: The default connection point (common
+            perpendicular)
         """
-        self._connection_point0 = connection_point
-        self._connection_point1 = connection_point
+        self._connection_point0 = connection_point[0]
+        self._connection_point1 = connection_point[1]
 
     def __repr__(self):
         return f"{[self._connection_point0, self._connection_point1]}"

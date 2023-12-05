@@ -32,8 +32,8 @@ k3 = DualQuaternion([-1 / 4, 71409809286507251213549 / 8803698436759977863535, -
 #k2 = DualQuaternion([0, -93/481, 1440/481, 0, 0, 0, 0, -164/481], is_rotation=True)
 #k3 = DualQuaternion([0, 12/13, 5/13, 0, 0, 0, 0, -17/13], is_rotation=True)
 
-f1 = MotionFactorization([h1, h2, h3])
-f2 = MotionFactorization([k1, k2, k3])
+#f1 = MotionFactorization([h1, h2, h3])
+#f2 = MotionFactorization([k1, k2, k3])
 
 m = RationalMechanism([f1, f2])
 
@@ -46,6 +46,11 @@ ax.set_zlabel("Z-axis")
 ax.set_aspect("equal")
 plt.show()
 """
+
+f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0]),
+                                PointHomogeneous([1, 0, 0, 0.5]),
+                                PointHomogeneous([1, -1/3, 0, 0.2]),
+                                PointHomogeneous([1, -1/3, 0, 0.3])])
 
 p = Plotter(interactive=True, steps=2000)
 c = m.curve()

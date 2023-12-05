@@ -327,6 +327,21 @@ class Plotter:
             self.joint_sliders.append(slider0)
             self.joint_sliders.append(slider1)
 
+        # set joint parameters to home configuration
+        for i in range(mechanism.factorizations[0].number_of_factors):
+            self.joint_sliders[2 * i].set_val(
+                mechanism.factorizations[0].joints[i].points_params[0])
+            self.joint_sliders[1 + 2 * i].set_val(
+                mechanism.factorizations[0].joints[i].points_params[1])
+
+        for i in range(mechanism.factorizations[1].number_of_factors):
+            self.joint_sliders[
+                2 * mechanism.factorizations[0].number_of_factors + 2 * i].set_val(
+                mechanism.factorizations[1].joints[i].points_params[0])
+            self.joint_sliders[2 * mechanism.factorizations[
+                0].number_of_factors + 1 + 2 * i].set_val(
+                mechanism.factorizations[1].joints[i].points_params[1])
+
         # initialize the linkages plot
         self.link_plot, = self.ax.plot([], [], [], color="black")
         # initialize the tool point interactive plot
@@ -358,6 +373,8 @@ class Plotter:
 
         # initialize the plot in home configuration
         self.move_slider.set_val(0.0)
+
+
 
     @staticmethod
     def _init_slider(idx: int = None, j_sliders=None):
