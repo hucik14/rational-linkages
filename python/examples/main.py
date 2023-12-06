@@ -1,3 +1,5 @@
+import numpy as np
+
 from DualQuaternion import DualQuaternion
 from PointHomogeneous import PointHomogeneous
 from MotionFactorization import MotionFactorization
@@ -49,11 +51,47 @@ plt.show()
 
 f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0]),
                                 PointHomogeneous([1, 0, 0, 0.5]),
-                                PointHomogeneous([1, -1/3, 0, 0.2]),
-                                PointHomogeneous([1, -1/3, 0, 0.3])])
+                                PointHomogeneous([1, -0.5, 0, 0.2]),
+                                PointHomogeneous([1, -0.5, 0, 0.3])])
 
-p = Plotter(interactive=True, steps=2000)
-c = m.curve()
+#p = Plotter(interactive=True, steps=2000)
+#c = m.curve()
 #p.plot(c, interval=(-1, 1))
 #p.plot(c.inverse_curve(), interval=(-1, 1))
+#p.plot(m)
+
+h1li = np.array([0, 1, 0, 0, 0, 0, 0, 0])
+
+h2li = np.array([0, 0, 1, 0, 0, 1, 0, 1])
+h2li = h2li * (4/5)
+h2li[0] = 1
+
+h3li = np.array([0, 0, 3/5, 4/5, 0, 4/5, 0, 0])
+h3li = h3li * (5/6)
+h3li[0] = 2
+
+k1li = np.array([0, -623/1689, -3496/8445, -7028/8445, 0, -3151184/14263605, 12303452/71318025, 863236/71318025])
+k1li = k1li * (-1)
+
+k2li = np.array([0, -159238240/172002693, -36875632/172002693, -53556485/172002693, 0, 4263140176797785/29584926399252249, 8149138391852807/29584926399252249, -91432397690177392/147924631996261245])
+k2li = k2li * (-4/5)
+k2li[0] = 1
+
+k3li = np.array([0, 13380/101837, -2182923/2545925, 1266764/2545925, 0, -84689025844/51853872845, -611161964208/1296346821125, -494099555856/1296346821125])
+k3li = k3li * (-5/6)
+k3li[0] = 2
+
+h1 = DualQuaternion(h1li, is_rotation=True)
+h2 = DualQuaternion(h2li, is_rotation=True)
+h3 = DualQuaternion(h3li, is_rotation=True)
+k1 = DualQuaternion(k1li, is_rotation=True)
+k2 = DualQuaternion(k2li, is_rotation=True)
+k3 = DualQuaternion(k3li, is_rotation=True)
+
+f1 = MotionFactorization([h1, h2, h3])
+f2 = MotionFactorization([k1, k2, k3])
+
+m = RationalMechanism([f1, f2])
+
+p = Plotter(interactive=True, steps=500)
 p.plot(m)
