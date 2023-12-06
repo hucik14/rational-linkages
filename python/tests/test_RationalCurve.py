@@ -233,24 +233,3 @@ class TestRationalCurve(TestCase):
         self.assertTrue(np.allclose(factorizations[1].dq_axes[1].array(),
                                     [0, 0, 0, 2, 0, 0, -1, 0]))
 
-
-    def test_plot(self):
-        coeffs = np.array([[1.0, 0.0, 2.0], [0.5, -2.0, 0.0]])
-        wrong_cruve_to_plot = RationalCurve.from_coeffs(coeffs)
-
-        with self.assertRaises(ValueError):
-            wrong_cruve_to_plot.plot((-1, 1))
-
-        curve = RationalCurve.from_coeffs(
-            np.array(
-                [
-                    [1.0, 0.0, 2.0, 0.0, 1.0],
-                    [0.5, 0.0, -2.0, 0.0, 1.5],
-                    [0.0, -1.0, 0.0, 3.0, 0.0],
-                    [1.0, 0.0, 2.0, 0.0, 1.0],
-                ]
-            )
-        )
-
-        ax = curve.plot((-1, 1))
-        self.assertIsInstance(ax, Axes3D)

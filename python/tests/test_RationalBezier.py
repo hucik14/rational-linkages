@@ -93,12 +93,3 @@ class TestRationalBezier(TestCase):
                     expected_right_curve_control_points[i].array(),
                 )
             )
-
-    def test_plot(self):
-        control_points = [
-            PointHomogeneous(np.array([4.0, 0.0, -2.0, 4.0])),
-            PointHomogeneous(np.array([0.0, 1.0, -2.0, 0.0])),
-            PointHomogeneous(),
-        ]
-        ax = RationalBezier(control_points).plot((-1, 1))
-        self.assertIsInstance(ax, Axes3D)

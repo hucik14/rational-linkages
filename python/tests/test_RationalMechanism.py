@@ -22,6 +22,3 @@ class TestRationalMechanism(TestCase):
 
     def test_get_dh_params(self):
         pass
-
-    def test_plot(self):
-        pass
