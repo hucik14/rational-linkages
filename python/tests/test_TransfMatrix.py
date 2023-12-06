@@ -102,7 +102,3 @@ class TestTransfMatrix(TestCase):
         transf = TransfMatrix(mat)
 
         self.assertTrue(np.allclose(transf.rpy(), np.array([-np.pi/2, 0, np.pi/2])))
-
-    def test_plot(self):
-        pass
-

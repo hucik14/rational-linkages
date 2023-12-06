@@ -301,14 +301,18 @@ class Plotter:
         self.ax.plot(x, y, z, **kwargs)
 
     @_plotting_decorator
-    def _plot_interactive(self, mechanism: RationalMechanism, **kwargs):
+    def _plot_interactive(self, mechanism: RationalMechanism,
+                          show_tool: bool = True, **kwargs):
         """
         Plot a mechanism in interactive mode
 
         :param RationalMechanism mechanism: RationalMechanism
+        :param bool show_tool: show tool linkage and frame
         :param kwargs: matplotlib options
         """
         self.plotted['mechanism'] = mechanism
+        self.show_tool = show_tool
+
         # plot the curve (tool path)
         self._plot_tool_path(mechanism, **kwargs)
 
@@ -344,12 +348,14 @@ class Plotter:
 
         # initialize the linkages plot
         self.link_plot, = self.ax.plot([], [], [], color="black")
-        # initialize the tool point interactive plot
-        self.tool_plot, = self.ax.plot([], [], [], color="red")
-        # initialize the tool frame
-        self.pose_frame = [self.ax.quiver([], [], [], [], [], [], color="red"),
-                           self.ax.quiver([], [], [], [], [], [], color="green"),
-                           self.ax.quiver([], [], [], [], [], [], color="blue")]
+
+        if self.show_tool:
+            # initialize the tool point interactive plot
+            self.tool_plot, = self.ax.plot([], [], [], color="red")
+            # initialize the tool frame
+            self.pose_frame = [self.ax.quiver([], [], [], [], [], [], color="red"),
+                               self.ax.quiver([], [], [], [], [], [], color="green"),
+                               self.ax.quiver([], [], [], [], [], [], color="blue")]
 
         def submit_angle(text):
             """Event handler for the text box"""
@@ -373,8 +379,6 @@ class Plotter:
 
         # initialize the plot in home configuration
         self.move_slider.set_val(0.0)
-
-
 
     @staticmethod
     def _init_slider(idx: int = None, j_sliders=None):
@@ -444,34 +448,36 @@ class Plotter:
         # plot links
         links = (self.plotted['mechanism'].factorizations[0].direct_kinematics(t)
                  + self.plotted['mechanism'].factorizations[1].direct_kinematics(t)[::-1])
+        links.insert(0, links[-1])
 
         x, y, z = zip(*[links[j] for j in range(len(links))])
         self.link_plot.set_data_3d(x, y, z)
 
-        # plot tool
-        # use last point of each factorization
-        tool_triangle = ([self.plotted['mechanism'].factorizations[0].direct_kinematics(t)[-1]]
-                         + [self.plotted['mechanism'].factorizations[1].direct_kinematics(t)[-1]])
-        # get tool point
-        tool = self.plotted['mechanism'].factorizations[0].direct_kinematics_of_tool(
-            t, self.plotted['mechanism'].end_effector.dq2point_homogeneous())
-        # add tool point to tool triangle
-        tool_triangle.insert(1, tool)
+        if self.show_tool:
+            # plot tool
+            # use last point of each factorization
+            tool_triangle = ([self.plotted['mechanism'].factorizations[0].direct_kinematics(t)[-1]]
+                             + [self.plotted['mechanism'].factorizations[1].direct_kinematics(t)[-1]])
+            # get tool point
+            tool = self.plotted['mechanism'].factorizations[0].direct_kinematics_of_tool(
+                t, self.plotted['mechanism'].end_effector.dq2point_homogeneous())
+            # add tool point to tool triangle
+            tool_triangle.insert(1, tool)
 
-        x, y, z = zip(*[tool_triangle[j] for j in range(len(tool_triangle))])
-        self.tool_plot.set_data_3d(x, y, z)
+            x, y, z = zip(*[tool_triangle[j] for j in range(len(tool_triangle))])
+            self.tool_plot.set_data_3d(x, y, z)
 
-        # plot tool frame
-        pose_dq = DualQuaternion(self.plotted['mechanism'].evaluate(t))
-        pose_matrix = TransfMatrix(pose_dq.dq2matrix())
+            # plot tool frame
+            pose_dq = DualQuaternion(self.plotted['mechanism'].evaluate(t))
+            pose_matrix = TransfMatrix(pose_dq.dq2matrix())
 
-        x_vec, y_vec, z_vec = pose_matrix.get_plot_data()
+            x_vec, y_vec, z_vec = pose_matrix.get_plot_data()
 
-        # remove old frame (quiver has no update method)
-        for pose_arrow in self.pose_frame:
-            pose_arrow.remove()
-        # plot new frame
-        self.pose_frame = [self.ax.quiver(*vec, color=color, length=0.3) for vec, color in zip([x_vec, y_vec, z_vec], ["red", "green", "blue"])]
+            # remove old frame (quiver has no update method)
+            for pose_arrow in self.pose_frame:
+                pose_arrow.remove()
+            # plot new frame
+            self.pose_frame = [self.ax.quiver(*vec, color=color, length=0.3) for vec, color in zip([x_vec, y_vec, z_vec], ["red", "green", "blue"])]
 
         # update the plot
         self.fig.canvas.draw_idle()
