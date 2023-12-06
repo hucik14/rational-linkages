@@ -169,17 +169,6 @@ class TransfMatrix:
 
         return rpy
 
-    def plot(self):
-        """
-        Return three quiver coordinates for plotting
-        :return: 6-dimensional numpy array of point and vector direction
-        """
-        x_vec = np.concatenate((self.t, self.n))
-        y_vec = np.concatenate((self.t, self.o))
-        z_vec = np.concatenate((self.t, self.a))
-
-        return x_vec, y_vec, z_vec
-
     def get_plot_data(self):
         """
         Return three quiver coordinates for plotting

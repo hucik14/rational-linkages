@@ -334,31 +334,6 @@ class NormalizedLine:
 
         return np.allclose(np.cross(point, self.direction), self.moment)
 
-    def plot(self, interval=(0, 1), ax=None, line_style=":") -> plt.axes:
-        """
-        Plot the line in 3D
-
-        :param interval: tuple - interval of the parameter t
-        :param ax: existing matplotlib axis
-        :param line_style: str - line style of the plot
-
-        :return: matplotlib axis
-        """
-        # points on the line
-        p0 = self.point_on_line(interval[0])
-        p1 = self.point_on_line(interval[1])
-        # vector between points
-        vec = p1 - p0
-
-        if ax is None:
-            ax = plt.figure().add_subplot(projection="3d")
-        else:
-            ax = ax
-
-        ax.quiver(p0[0], p0[1], p0[2], vec[0], vec[1], vec[2], linestyle=line_style)
-
-        return ax
-
     def get_plot_data(self, interval) -> np.ndarray:
         """
         Get data for plotting the line in 3D

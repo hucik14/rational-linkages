@@ -54,12 +54,10 @@ f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0]),
                                 PointHomogeneous([1, -0.5, 0, 0.2]),
                                 PointHomogeneous([1, -0.5, 0, 0.3])])
 
-#p = Plotter(interactive=True, steps=2000)
-#c = m.curve()
-#p.plot(c, interval=(-1, 1))
-#p.plot(c.inverse_curve(), interval=(-1, 1))
-#p.plot(m)
-
+m = RationalMechanism([f1, f2])
+p = Plotter(interactive=True, steps=500)
+p.plot(m)
+"""
 h1li = np.array([0, 1, 0, 0, 0, 0, 0, 0])
 
 h2li = np.array([0, 0, 1, 0, 0, 1, 0, 1])
@@ -91,7 +89,4 @@ k3 = DualQuaternion(k3li, is_rotation=True)
 f1 = MotionFactorization([h1, h2, h3])
 f2 = MotionFactorization([k1, k2, k3])
 
-m = RationalMechanism([f1, f2])
-
-p = Plotter(interactive=True, steps=500)
-p.plot(m)
+"""

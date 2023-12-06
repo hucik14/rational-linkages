@@ -306,58 +306,6 @@ class RationalCurve:
         factorization_provider = FactorizationProvider()
         return factorization_provider.factorize_motion_curve(self)
 
-    def plot(self, interval=(-1, 1), steps=50, ax=None, line_style=None) -> plt.axes:
-        """
-        Plot the curve in 2D or 3D, based on the dimension of the curve
-
-        :param interval: tuple - interval of the parameter t
-        :param steps: int - number of steps in the interval
-        :param ax: existing matplotlib axis
-        :param line_style: str - line style of the plot
-
-        :return: matplotlib axis
-        """
-        # check dimension
-        if not (self.dimension == 2 or self.dimension == 3):
-            raise ValueError("Cannot plot curves in more than 3 dimensions")
-        else:
-            t = sp.Symbol("t")
-
-            # make a copy of the polynomials and append the homogeneous coordinate
-            # to the Z-equation place in the list
-            # if in 2D, so later z = 1
-            polynoms = deepcopy(self.set_of_polynomials)
-            if self.dimension == 2:
-                polynoms.append(sp.Poly(polynoms[0], t))
-
-            # plot the curve
-            t_space = np.linspace(interval[0], interval[1], steps)
-            curve_points = [PointHomogeneous()] * steps
-            for i in range(steps):
-                curve_points[i] = PointHomogeneous(
-                    np.array(
-                        [
-                            polynoms[0].subs(t, t_space[i]),
-                            polynoms[1].subs(t, t_space[i]),
-                            polynoms[2].subs(t, t_space[i]),
-                            polynoms[3].subs(t, t_space[i]),
-                        ]
-                    )
-                )
-
-            if ax is None:
-                ax = plt.figure().add_subplot(projection="3d")
-            else:
-                ax = ax
-            x, y, z = zip(*[curve_points[i].normalized_in_3d() for i in range(steps)])
-
-            if line_style is None:
-                ax.plot(x, y, z)
-            else:
-                ax.plot(x, y, z, line_style)
-
-        return ax
-
     def get_plot_data(self, interval: tuple = (0, 1), steps: int = 50) -> (
             tuple)[np.ndarray, np.ndarray, np.ndarray]:
         """
