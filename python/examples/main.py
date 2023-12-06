@@ -111,4 +111,4 @@ f2.set_joint_connection_points([PointHomogeneous([1, -0.67209203533440663286, 1.
 
 m = RationalMechanism([f1, f2])
 p = Plotter(interactive=True, steps=500)
-p.plot(m)
+p.plot(m, show_tool=False)

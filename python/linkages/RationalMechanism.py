@@ -80,3 +80,26 @@ class RationalMechanism(RationalCurve):
                 raise ValueError("alpha_form must be cos_alpha, deg or rad")
 
         return d, a, alpha
+    
+    def collision_check(self):
+        """
+        Perform full-cycle collision check on the line-model linkage between joints and
+        links of the two given factorizations.
+
+        """
+        from NormalizedLine import NormalizedLine
+
+        l0 = NormalizedLine.from_two_points(self.factorizations[0].joints[0].points[1],
+                                            self.factorizations[0].joints[1].points[0])
+        l1 = NormalizedLine.from_two_points(self.factorizations[0].joints[1].points[1],
+                                            self.factorizations[1].joints[1].points[1])
+
+        l0.acted = self.factorizations[0].dq_axes[0].act(l0)
+        pass
+
+    def colliding_lines(self, line0, line1):
+        """
+        Return the lines that are colliding in the linkage.
+        """
+        pass
+
