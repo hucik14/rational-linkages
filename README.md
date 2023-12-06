@@ -1,6 +1,6 @@
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)]()
 [![build](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/pipeline.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
 [![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=run_tests)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)]()
 
 # Rational Linkages
 
