@@ -77,14 +77,14 @@ class FactorizationProvider:
         """
         # check if the given factorization has input DualQuaternions as rational numbers
         for i in range(factorization.number_of_factors):
-            if not factorization.axis_rotation[i].is_rational:
+            if not factorization.dq_axes[i].is_rational:
                 warn('The given motion factorization has not only rational numbers as input. The factorization will be performed with floating point numbers, but may be instable.')
 
         t = sp.Symbol("t")
 
-        bi_poly = t - bq.BiQuaternion(factorization.axis_rotation[0].array())
+        bi_poly = t - bq.BiQuaternion(factorization.dq_axes[0].array())
         for i in range(1, factorization.number_of_factors):
-            bi_poly = bi_poly * (t - bq.BiQuaternion(factorization.axis_rotation[i].array()))
+            bi_poly = bi_poly * (t - bq.BiQuaternion(factorization.dq_axes[i].array()))
 
         bi_poly = bq.Poly(bi_poly, t)
 

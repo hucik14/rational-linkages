@@ -23,15 +23,15 @@ class TestFactorizationProvider(TestCase):
         factorizations = factorization_provider.factorize_motion_curve(curve)
 
         self.assertEqual(len(factorizations), 2)
-        self.assertEqual(len(factorizations[0].axis_rotation), 2)
+        self.assertEqual(len(factorizations[0].dq_axes), 2)
 
-        self.assertTrue(np.allclose(factorizations[0].axis_rotation[0].array(),
+        self.assertTrue(np.allclose(factorizations[0].dq_axes[0].array(),
                                     [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1/3, 0.0]))
-        self.assertTrue(np.allclose(factorizations[0].axis_rotation[1].array(),
+        self.assertTrue(np.allclose(factorizations[0].dq_axes[1].array(),
                                     [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -2/3, 0.0]))
-        self.assertTrue(np.allclose(factorizations[1].axis_rotation[0].array(),
+        self.assertTrue(np.allclose(factorizations[1].dq_axes[0].array(),
                                     [0, 0, 0, 1, 0, 0, 0, 0]))
-        self.assertTrue(np.allclose(factorizations[1].axis_rotation[1].array(),
+        self.assertTrue(np.allclose(factorizations[1].dq_axes[1].array(),
                                     [0, 0, 0, 2, 0, 0, -1, 0]))
 
     def test_factorize_for_motion_factorization(self):
@@ -52,11 +52,11 @@ class TestFactorizationProvider(TestCase):
         factorization_provider = FactorizationProvider()
         factorizations = factorization_provider.factorize_for_motion_factorization(f)
 
-        self.assertTrue(np.allclose(factorizations[1].axis_rotation[0].array(),
+        self.assertTrue(np.allclose(factorizations[1].dq_axes[0].array(),
                                     [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1 / 3, 0.0]))
-        self.assertTrue(np.allclose(factorizations[1].axis_rotation[1].array(),
+        self.assertTrue(np.allclose(factorizations[1].dq_axes[1].array(),
                                     [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -2 / 3, 0.0]))
-        self.assertTrue(np.allclose(factorizations[0].axis_rotation[0].array(),
+        self.assertTrue(np.allclose(factorizations[0].dq_axes[0].array(),
                                     [0, 0, 0, 1, 0, 0, 0, 0]))
-        self.assertTrue(np.allclose(factorizations[0].axis_rotation[1].array(),
+        self.assertTrue(np.allclose(factorizations[0].dq_axes[1].array(),
                                     [0, 0, 0, 2, 0, 0, -1, 0]))
