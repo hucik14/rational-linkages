@@ -1,16 +1,14 @@
-from typing import Optional, Sequence, Union
+from typing import Optional, Sequence
 
 import numpy as np
-from sympy import Number
 
 
 class Quaternion:
-    # TODO: test __methods__
     """
     Quaternion class representing a 4-dimensional quaternion.
 
     Args:
-        vec4 (Optional[Sequence[Union[float, Number]]], optional): A sequence of 4 float
+        vec4 Optional[Sequence[float]]: A sequence of 4 float
         or numeric parameters.
             If None, a default identity Quaternion is constructed. Defaults to None.
 
@@ -22,7 +20,7 @@ class Quaternion:
         >>> quaternion_from_list = Quaternion([0.5, 2, 1, 5])
     """
 
-    def __init__(self, vec4: Optional[Sequence[Union[float, Number]]] = None):
+    def __init__(self, vec4: Optional[Sequence[float]] = None):
         """
         Quaternion class
 

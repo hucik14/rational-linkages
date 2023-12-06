@@ -49,7 +49,7 @@ class RationalBezier(RationalCurve):
 
         :param control_points:
         :param mapped: bool - True if the curve is mapped to the [-1,1] interval,
-        False keeps [0,1] interval
+            False keeps [0,1] interval
         :return: np.array - coefficients of the parametric equations of the curve
         """
         t = sp.Symbol("t")
@@ -66,30 +66,8 @@ class RationalBezier(RationalCurve):
 
         # Convert the Bezier curve to a set of polynomials
         bezier_polynomials = [
-            sp.Poly(bezier_curve[i], t, domain="QQ") for i in range(dimension + 1)
-        ]
+            sp.Poly(bezier_curve[i], t) for i in range(dimension + 1)]
         return bezier_polynomials
-
-    def plot(self, interval=(-10, 10), steps=50, ax=None, line_style=None):
-        """
-        Plot the curve in 2D or 3D, based on the dimension of the curve
-
-        :param interval: tuple - interval of the parameter t
-        :param steps: int - number of discrete steps in the interval to plot the curve
-        :param ax: existing matplotlib.axes - axes to plot the curve on
-        :param line_style: str - line style of the curve
-
-        :return: matplotlib.axes - axes with the plot
-        """
-        # perform supercalss plot (only the curve)
-        ax = super().plot(interval, steps, ax, line_style)
-
-        # plot the control points
-        x, y, z = zip(
-            *[self.control_points[i].normalized_in_3d() for i in range(self.degree + 1)]
-        )
-        ax.plot(x, y, z, "ro:")
-        return ax
 
     def get_plot_data(self, interval: tuple = (0, 1), steps: int = 50) -> tuple:
         """

@@ -17,6 +17,22 @@ Dual Quaternion Action
    :undoc-members:
    :show-inheritance:
 
+Factorization Provider
+----------------------
+
+.. automodule:: linkages.FactorizationProvider
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Joint Connections
+-----------------
+
+.. automodule:: linkages.JointConnections
+   :members: JointConnections, PointsConnection
+   :undoc-members:
+   :show-inheritance:
+
 MiniBall
 --------
 

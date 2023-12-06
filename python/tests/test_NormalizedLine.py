@@ -191,8 +191,3 @@ class TestNormalizedLine(TestCase):
         line = NormalizedLine.from_direction_and_point([1, -1, 1], [1, -2, 4])
         p = line.point_on_line(0.576)
         self.assertTrue(line.contains_point(p))
-
-    def test_plot(self):
-        line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
-        ax = line.plot((-1, 1))
-        self.assertIsInstance(ax, Axes3D)

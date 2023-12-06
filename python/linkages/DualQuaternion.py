@@ -6,7 +6,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from Quaternion import Quaternion
 from TransfMatrix import TransfMatrix
-from sympy import Number
 
 # Forward declarations for class names
 NormalizedLine = "NormalizedLine"
@@ -21,12 +20,15 @@ class DualQuaternion:
     and interpolations. They consist of a primal quaternion representing rotation and
     translation and a dual quaternion representing infinitesimal transformations.
 
-    :param Quaternion p: primal quaternion - the primal part of the Dual Quaternion,
-        representing rotation and translation.  See also :class:`~mechanism.Quaternion`
-    :param Quaternion d: dual quaternion - the dual part of the Dual Quaternion,
-        representing translation. See also :class:`~mechanism.Quaternion`
-    :param np.ndarray dq: 8-vector of study parameters, representing the Dual Quaternion
-    :param bool is_rotation: True if the Dual Quaternion represents a rotation, False
+    :param list[float] study_parameters: array or list of 8 Study
+        parameters. If None, an identity DualQuaternion is constructed.
+
+    :ivar Quaternion p: primal quaternion - the primal part of the Dual Quaternion,
+        representing rotation and translation.  See also :class:`~linkages.Quaternion`
+    :ivar Quaternion d: dual quaternion - the dual part of the Dual Quaternion,
+        representing translation. See also :class:`~linkages.Quaternion`
+    :ivar np.ndarray dq: 8-vector of study parameters, representing the Dual Quaternion
+    :ivar bool is_rotation: True if the Dual Quaternion represents a rotation, False
 
     :examples:
 
@@ -52,26 +54,24 @@ class DualQuaternion:
         dq = DualQuaternion.from_two_quaternions(q1, q2)
     """
 
-    def __init__(
-        self,
-        vec8: Optional[Sequence[Union[float, Number]]] = None,
-        is_rotation: bool = False,
-    ):
+    def __init__(self, study_parameters: Optional[Sequence[float]] = None,
+                 is_rotation: bool = False):
         """
         Dual Quaternion object, assembled from 8-vector (list or np.array) as DQ,
         or two 4-vectors (np.arrays) as two Quaternions (see @classmethod bellow).
-        If vec8 is empty, an identity is constructed.
+        If no Study's parameters are provided, an identity is constructed.
 
-        :param Optional[Sequence[Union[float, Number]]] vec8: array or list of
-        8 parameters. If None, an identity DualQuaternion is constructed. Defaults
-        to None.
+        :param Optional[Sequence[float]] study_parameters: array or list
+            of 8 Study's parameters. If None, an identity DualQuaternion is constructed.
+            Defaults to None.
+        :param bool is_rotation: True if the Dual Quaternion represents a rotation,
         """
-        if vec8 is not None:
-            if len(vec8) != 8:
-                raise ValueError("DualQuaternion: vec8 has to be 8-vector")
-            vec8 = np.asarray(vec8)
-            primal = vec8[:4]
-            dual = vec8[4:]
+        if study_parameters is not None:
+            if len(study_parameters) != 8:
+                raise ValueError("DualQuaternion: input has to be 8-vector")
+            study_parameters = np.asarray(study_parameters)
+            primal = study_parameters[:4]
+            dual = study_parameters[4:]
         else:
             primal = np.array([1, 0, 0, 0])
             dual = np.array([0, 0, 0, 0])
@@ -81,6 +81,7 @@ class DualQuaternion:
         self.dq = self.array()
 
         self.is_rotation = is_rotation
+        self.is_rational = False
 
     @property
     def type(self) -> str:
@@ -88,7 +89,8 @@ class DualQuaternion:
         Test if the DualQuaternion is a special case representing line, plane, or point,
         and fulfills Study's condition
 
-        :return string: string
+        :return: type of the DualQuaternion
+        :rtype: str
         """
         # TODO: not working correctly
         if not isclose(np.dot(self.p.array(), self.d.array()), 0):
@@ -119,10 +121,11 @@ class DualQuaternion:
         """
         Construct DualQuaternion from primal and dual Quaternions.
 
-        :param primal: Quaternion
-        :param dual: Quaternion
+        :param Quaternion primal: primal part
+        :param Quaternion dual: dual part
 
         :return: DualQuaternion
+        :rtype: DualQuaternion
         """
         return cls(np.concatenate((primal.array(), dual.array())))
 
@@ -131,15 +134,18 @@ class DualQuaternion:
         Printing method override
 
         :return: DualQuaterion in readable form
+        :rtype: str
         """
         return f"{self.p.array()} + eps{self.d.array()}"
 
-    def __getitem__(self, idx) -> float:
+    def __getitem__(self, idx) -> np.ndarray:
         """
         Get an element of DualQuaternion
 
-        :param idx: index of the Quaternion element to call 0..7
-        :return: float
+        :param int idx: index of the Quaternion element to call 0..7
+
+        :return: float number of the element
+        :rtype: np.ndarray
         """
         element = self.array()
         element = element[idx]  # or, p.dob = p.dob.__getitem__(idx)
@@ -149,18 +155,22 @@ class DualQuaternion:
         """
         Compare two DualQuaternions if they are equal
 
-        :param other: DualQuaternion
-        :return: bool
+        :param DualQuaternion other: DualQuaternion
+
+        :return: True if two DualQuaternions are equal, False otherwise
+        :rtype: bool
         """
 
         return np.array_equal(self.array(), other.array())
 
     def __add__(self, other) -> "DualQuaternion":
         """
-        Addition of two DualQuaternions, usage: print(DQ + DQ)
+        Addition of two DualQuaternions
 
-        :param other: DualQuaternion
-        :return: DualQuaternion
+        :param DualQuaternion other: other DualQuaternion
+
+        :return: added DualQuaternion
+        :rtype: DualQuaternion
         """
         p = self.p + other.p
         d = self.d + other.d
@@ -168,9 +178,12 @@ class DualQuaternion:
 
     def __sub__(self, other) -> "DualQuaternion":
         """
-        Subtraction of two DualQuaternions, usage: print(DQ - DQ)
-        :param other: DualQuaternion
-        :return: DualQuaternion
+        Subtraction of two DualQuaternions
+
+        :param DualQuaternion other: other DualQuaternion
+
+        :return: subtracted DualQuaternion
+        :rtype: DualQuaternion
         """
         p = self.p - other.p
         d = self.d - other.d
@@ -178,9 +191,12 @@ class DualQuaternion:
 
     def __mul__(self, other) -> "DualQuaternion":
         """
-        Multiplication of two DualQuaternions, usage: print(DQ + DQ)
-        :param other: DualQuaternion
-        :return: DualQuaternion
+        Multiplication of two DualQuaternions
+
+        :param DualQuaternion other: other DualQuaternion
+
+        :return: multiplied DualQuaternion
+        :rtype: DualQuaternion
         """
         p = self.p * other.p
         d = (self.d * other.p) + (self.p * other.d)
@@ -189,33 +205,39 @@ class DualQuaternion:
     def array(self) -> np.ndarray:
         """
         DualQuaternion to numpy array (8-vector of study parameters)
-        :return: numpy array
+
+        :return: DualQuaternion as numpy array
+        :rtype: np.ndarray
         """
         return np.concatenate((self.p.array(), self.d.array()))
 
     def conjugate(self) -> "DualQuaternion":
         """
         Dual Quaternion conjugate
-        :return: DualQuaternion
+
+        :return: conjugated DualQuaternion
+        :rtype: DualQuaternion
         """
         return DualQuaternion.from_two_quaternions(
-            self.p.conjugate(), self.d.conjugate()
-        )
+            self.p.conjugate(), self.d.conjugate())
 
     def eps_conjugate(self) -> "DualQuaternion":
         """
         Dual Quaternion epsilon conjugate
-        :return: DualQuaternion
+
+        :return: epsilon-conjugated DualQuaternion
+        :rtype: DualQuaternion
         """
         dual_part_eps_c = -1 * self.d.array()
         return DualQuaternion(np.concatenate((self.p.array(), dual_part_eps_c)))
 
     def norm(self) -> "DualQuaternion":
         """
-        Dual Quaternion norm as dual number (8-vector of study parameters), primal norm is in the first element,
-        dual norm is in the fifth element
+        Dual Quaternion norm as dual number (8-vector of study parameters), primal norm
+        is in the first element, dual norm is in the fifth element
 
-        :return: DualQuaternion
+        :return: norm of the DualQuaternion
+        :rtype: DualQuaternion
         """
         n = self.p.norm()
         eps_n = 2 * (
@@ -229,7 +251,9 @@ class DualQuaternion:
     def dq2matrix(self):
         """
         Dual Quaternion to SE(3) transformation matrix
-        :return: numpy array
+
+        :return: 4x4 transformation matrix
+        :rtype: np.ndarray
         """
         p0 = self[0]
         p1 = self[1]
@@ -273,7 +297,9 @@ class DualQuaternion:
     def dq2point_via_matrix(self) -> np.ndarray:
         """
         Dual Quaternion to point via SE(3) transformation matrix
+
         :return: array of 3-coordinates of point
+        :rtype: np.ndarray
         """
         mat = self.dq2matrix()
         return mat[1:4, 0]
@@ -281,7 +307,9 @@ class DualQuaternion:
     def dq2point(self) -> np.ndarray:
         """
         Dual Quaternion directly to point
+
         :return: array of 3-coordinates of point
+        :rtype: np.ndarray
         """
         dq = self.array() / self.array()[0]
         return dq[5:8]
@@ -289,7 +317,9 @@ class DualQuaternion:
     def dq2point_homogeneous(self) -> np.ndarray:
         """
         Dual Quaternion directly to point
+
         :return: array of 3-coordinates of point
+        :rtype: np.ndarray
         """
         dq = self.array()
         return np.array([dq[0], dq[5], dq[6], dq[7]])
@@ -297,7 +327,9 @@ class DualQuaternion:
     def dq2line(self) -> tuple:
         """
         Dual Quaternion directly to line coordinates
+
         :return: tuple of 2 numpy arrays, 3-vector coordinates each
+        :rtype: tuple
         """
         direction = self.dq[1:4]
         moment = self.dq[5:8]
@@ -318,7 +350,9 @@ class DualQuaternion:
     def dq2screw(self) -> np.ndarray:
         """
         Dual Quaternion directly to screw coordinates
+
         :return: array of 6-coordinates of screw
+        :rtype: np.ndarray
         """
         direction, moment = self.dq2line()
         return np.concatenate((direction, moment))
@@ -326,7 +360,9 @@ class DualQuaternion:
     def dq2point_via_line(self) -> np.ndarray:
         """
         Dual Quaternion to point via line coordinates
+
         :return: array of 3-coordinates of point
+        :rtype: np.ndarray
         """
         direction, moment = self.dq2line()
         return np.cross(direction, moment)
@@ -342,66 +378,24 @@ class DualQuaternion:
         acted_object is a DualQuaternion (rotation axis DQ), it is converted to
         NormalizedLine and then the action is performed.
 
-        :param affected_object: DualQuaternion, NormalizedLine, or PointHomogeneous
+        :param DualQuaternion, NormalizedLine, or PointHomogeneous affected_object:
+            object to act on (line or point)
 
-        :return: NormalizedLine, or PointHomogeneous
+        :return: line or point
+        :rtype: NormalizedLine, PointHomogeneous
+
+        :examples:
+
+        .. code-block:: python
+            :caption: Act on a line with a Dual Quaternion
+
+            from DualQuaternion import DualQuaternion
+            from NormalizedLine import NormalizedLine
+            dq = DualQuaternion([1, 0, 0, 1, 0, 3, 2, -1])
+            line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
+            line_after_half_turn = dq.act(line)
         """
         from DualQuaternionAction import DualQuaternionAction
 
         action = DualQuaternionAction()
         return action.act(self, affected_object)
-
-    def plot(self):
-        if self.type == "point":
-            # returns 3 coordinates of point
-            x, y, z = self.dq2point()
-        elif self.type == "plane":
-            # returns vector meshes of a plane
-            d = self.array()[4]
-            normal = self.array()[1:4]
-
-            # create x,y
-            x, y = np.meshgrid(range(3), range(3))
-
-            # calculate corresponding z from equation: ax + by + cz + d = 0,
-            # where a,b,c are normal vector components
-            z = (-normal[0] * x - normal[1] * y - d) / normal[2]
-        else:
-            # returns tuple of red, green, blue axis of a coordinate frame
-            x, y, z = TransfMatrix(self.dq2matrix()).plot()
-
-        return x, y, z
-
-    def plot_as_line(self, interval=(0, 1), ax=None, line_style=":") -> plt.axes:
-        """
-        Plot the line in 3D
-
-        :param interval: tuple - interval of the parameter t
-        :param ax: existing matplotlib axis
-        :param line_style: str - line style of the plot
-
-        :return: matplotlib axis
-        """
-        # TODO: unite with NomalizedLine.plot()
-
-        # points on the line
-        direction, moment = self.dq2line()
-        # normalize dir and mom vectors
-        moment = moment / np.linalg.norm(direction)
-        direction = direction / np.linalg.norm(direction)
-
-        pp = np.cross(direction, moment)
-
-        p0 = pp + (interval[0] * direction)
-        p1 = pp + (interval[1] * direction)
-        # vector between points
-        vec = p1 - p0
-
-        if ax is None:
-            ax = plt.figure().add_subplot(projection="3d")
-        else:
-            ax = ax
-
-        ax.quiver(p0[0], p0[1], p0[2], vec[0], vec[1], vec[2], linestyle=line_style)
-
-        return ax

@@ -7,6 +7,7 @@ class TransfMatrix:
         """
         Constructor for Trasformation Matrix class; the matrix itself is stored
         as vectors n, o, a, and t, which can be changed independently
+
         :param *args: empty == create identity matrix, 1 argument of matrix == SE3matrix
         """
         if len(args) == 0:
@@ -29,13 +30,13 @@ class TransfMatrix:
         Create transformation matrix from roll, pitch, yaw angles
 
         :param list rpy: 3-dimensional list of floats of roll, pitch, yaw angles,
-        in radians or degrees in this order
+            in radians or degrees in this order
         :param str units: 'rad' or 'deg' for radians or degrees
 
         :return: transformation matrix
 
         :raises ValueError: if units is not 'rad' or 'deg' or if rpy is not
-        3-dimensional list
+            3-dimensional list
         """
         if len(rpy) != 3:
             raise ValueError("Roll, pitch, yaw angles must be 3-dimensional list of floats")
@@ -167,17 +168,6 @@ class TransfMatrix:
                 rpy[1] = -np.arctan(R[2, 0] * np.cos(rpy[0]) / R[2, 2])
 
         return rpy
-
-    def plot(self):
-        """
-        Return three quiver coordinates for plotting
-        :return: 6-dimensional numpy array of point and vector direction
-        """
-        x_vec = np.concatenate((self.t, self.n))
-        y_vec = np.concatenate((self.t, self.o))
-        z_vec = np.concatenate((self.t, self.a))
-
-        return x_vec, y_vec, z_vec
 
     def get_plot_data(self):
         """

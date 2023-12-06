@@ -51,9 +51,8 @@ class TestMotionFactorization(TestCase):
             ]
         )
         added_f = f1 + f2
-        self.assertEqual(added_f.axis_rotation, expected_f.axis_rotation)
+        self.assertEqual(added_f.dq_axes, expected_f.dq_axes)
         self.assertEqual(added_f.number_of_factors, 4)
-
 
     def test_get_polynomials_from_factorization(self):
         f1 = [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
@@ -62,14 +61,14 @@ class TestMotionFactorization(TestCase):
         t = sp.Symbol("t")
 
         self.assertEqual(MotionFactorization.get_polynomials_from_factorization(f1),
-                         [sp.Poly(1.0*t**2 - 2.0, t, domain='RR'),
-                          sp.Poly(0.0, t, domain='RR'),
-                          sp.Poly(0.0, t, domain='RR'),
-                          sp.Poly(-3.0*t, t, domain='RR'),
-                          sp.Poly(0.0, t, domain='RR'),
-                          sp.Poly(1.0, t, domain='RR'),
-                          sp.Poly(1.0*t, t, domain='RR'),
-                          sp.Poly(0.0, t, domain='RR')]
+                         [sp.Poly(t**2 - 2, t),
+                          sp.Poly(0, t),
+                          sp.Poly(0, t),
+                          sp.Poly(-3*t, t),
+                          sp.Poly(0, t),
+                          sp.Poly(1, t),
+                          sp.Poly(1*t, t),
+                          sp.Poly(0, t)]
                          )
 
     def test_get_symbolic_factors(self):
@@ -154,3 +153,23 @@ class TestMotionFactorization(TestCase):
 
     def test_direct_kinematics_of_end_effector(self):
         pass
+
+    def test_factorize(self):
+        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True)
+        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)
+
+        f = MotionFactorization([h1, h2])
+
+        factorizations = f.factorize()
+
+        self.assertEqual(len(factorizations), 2)
+        self.assertEqual(len(factorizations[0].dq_axes), 2)
+
+        self.assertTrue(np.allclose(factorizations[1].dq_axes[0].array(),
+                                    [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1 / 3, 0.0]))
+        self.assertTrue(np.allclose(factorizations[1].dq_axes[1].array(),
+                                    [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -2 / 3, 0.0]))
+        self.assertTrue(np.allclose(factorizations[0].dq_axes[0].array(),
+                                    [0, 0, 0, 1, 0, 0, 0, 0]))
+        self.assertTrue(np.allclose(factorizations[0].dq_axes[1].array(),
+                                    [0, 0, 0, 2, 0, 0, -1, 0]))
