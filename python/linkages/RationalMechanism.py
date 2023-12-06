@@ -88,14 +88,16 @@ class RationalMechanism(RationalCurve):
 
         """
         from NormalizedLine import NormalizedLine
+        from sympy import Symbol
 
         l0 = NormalizedLine.from_two_points(self.factorizations[0].joints[0].points[1],
                                             self.factorizations[0].joints[1].points[0])
         l1 = NormalizedLine.from_two_points(self.factorizations[0].joints[1].points[1],
                                             self.factorizations[1].joints[1].points[1])
 
-        l0.acted = self.factorizations[0].dq_axes[0].act(l0)
-        pass
+        t = Symbol("t")
+        l0_acted = self.factorizations[0].act(l0, start_idx=0, end_idx=0, param=t)
+        print(l0_acted)
 
     def colliding_lines(self, line0, line1):
         """

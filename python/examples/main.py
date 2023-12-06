@@ -39,26 +39,18 @@ k3 = DualQuaternion([0, 12/13, 5/13, 0, 0, 0, 0, -17/13], is_rotation=True)
 
 m = RationalMechanism([f1, f2])
 
-"""
-ax = m.plot(steps=100)
-# Set labels and title for the plot
-ax.set_xlabel("X-axis")
-ax.set_ylabel("Y-axis")
-ax.set_zlabel("Z-axis")
-ax.set_aspect("equal")
-plt.show()
-"""
-
 f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0]),
                                 PointHomogeneous([1, 0, 0, 0.5]),
                                 PointHomogeneous([1, -0.5, 0, 0.2]),
                                 PointHomogeneous([1, -0.5, 0, 0.3])])
 
 m.collision_check()
-"""
+
 m = RationalMechanism([f1, f2])
 p = Plotter(interactive=True, steps=500)
 p.plot(m)
+
+
 """
 
 h1li = np.array([0, 1, 0, 0, 0, 0, 0, 0])
@@ -109,3 +101,5 @@ f2.set_joint_connection_points([PointHomogeneous([1, -0.67209203533440663286, 1.
 m = RationalMechanism([f1, f2])
 p = Plotter(interactive=True, steps=500)
 p.plot(m, show_tool=False)
+
+"""

@@ -78,25 +78,33 @@ class NormalizedLine:
         :param np.ndarray, list[float] unit_screw: Plucker coordinates representing the
             Unit Screw axis
         """
+        from sympy import Expr
+
         if unit_screw is None:
             # in origin along Z axis
-            direction = np.array([0, 0, 1])
-            moment = np.array([0, 0, 0])
+            self.direction = np.array([0, 0, 1])
+            self.moment = np.array([0, 0, 0])
+
+        elif any(isinstance(element, Expr) for element in unit_screw):
+            # sympy object
+            self.direction = np.asarray(unit_screw[0:3])
+            self.moment = np.asarray(unit_screw[3:6])
+
         else:
             direction = np.asarray(unit_screw[0:3])
             moment = np.asarray(unit_screw[3:6])
 
-        # Check if the direction vector is normalized
-        if round(np.linalg.norm(direction), 6) == 1.0:
-            self.direction = direction
-            self.moment = moment
-        elif round(np.linalg.norm(direction), 6) > 0.0:
-            self.direction = direction / np.linalg.norm(direction)
-            self.moment = moment / np.linalg.norm(direction)
-        else:
-            warn("Direction vector has zero norm!")
-            self.direction = np.asarray(direction)
-            self.moment = np.asarray(moment)
+            # Check if the direction vector is normalized
+            if round(np.linalg.norm(direction), 6) == 1.0:
+                self.direction = direction
+                self.moment = moment
+            elif round(np.linalg.norm(direction), 6) > 0.0:
+                self.direction = direction / np.linalg.norm(direction)
+                self.moment = moment / np.linalg.norm(direction)
+            else:
+                warn("Direction vector has zero norm!")
+                self.direction = np.asarray(direction)
+                self.moment = np.asarray(moment)
 
         self.screw = np.concatenate((self.direction, self.moment))
         self.as_dq_array = self.line2dq_array()
@@ -179,8 +187,7 @@ class NormalizedLine:
         :rtype: NormalizedLine
         """
         direction = dq[1:4]
-        moment = dq[5:8] / np.linalg.norm(direction)
-        direction = direction / np.linalg.norm(direction)
+        moment = dq[5:8]
 
         # a lines maps to dual quaternion with conjugate moment
         # TODO: check if this is correct
