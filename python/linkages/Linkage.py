@@ -1,6 +1,6 @@
 """
 Classes in the Module:
-    - JointConnections: Represents the connection points on a joint.
+    - Linkage: Represents the connection points on a joint.
     - PointsConnection: Operates the connection points for a given joint.
 """
 import numpy as np
@@ -11,7 +11,7 @@ from PointHomogeneous import PointHomogeneous
 from NormalizedLine import NormalizedLine
 
 
-class JointConnections:
+class Linkage:
     """
     Class for storing the connection points on a joint.
 
@@ -21,33 +21,30 @@ class JointConnections:
 
     :ivar NormalizedLine normalized_axis: The axis of the joint
     :ivar PointsConnection points: The connection points
-    :ivar PointHomogeneous default_connection_point: The default connection point (
-        common perpendicular)
+    :ivar list default_connection_point: The default connection point
     """
-    def __init__(self, axis: DualQuaternion, connection_point: list[PointHomogeneous]):
+    def __init__(self, axis: DualQuaternion, connection_points: list[PointHomogeneous]):
         """
         :param DualQuaternion axis: The axis of the joint
-        :param PointHomogeneous connection_point: The default connection point (
+        :param PointHomogeneous connection_points: The default connection point (
             common perpendicular)
         """
         self.normalized_axis = NormalizedLine.from_direction_and_moment(*axis.dq2line())
 
-        if len(connection_point) == 1:
-            self.default_connection_point = [connection_point[0], connection_point[0]]
-            self.points = PointsConnection([connection_point[0], connection_point[0]])
-        elif len(connection_point) == 2:
-            self.default_connection_point = connection_point
-            self.points = PointsConnection(connection_point)
+        if len(connection_points) == 1:
+            self.default_connection_point = [connection_points[0], connection_points[0]]
+        elif len(connection_points) == 2:
+            self.default_connection_point = connection_points
         else:
             raise ValueError("Connection points must be a list of 1 or 2 points")
 
+        self.points = PointsConnection(self.default_connection_point)
+
         # The parameters of the connection points are 0 by default (nearest point on
         # the axis to the origin), if not set differently
-        self._params = [0.0, 0.0]
-        self.set_point_by_param(
-            0, self._get_point_param_on_line(self.default_connection_point[0]))
-        self.set_point_by_param(
-            1, self._get_point_param_on_line(self.default_connection_point[1]))
+        self._params = [0.0, 0.0001]
+        self.set_point_by_param(0, self._get_point_param_on_line(self.default_connection_point[0]))
+        self.set_point_by_param(1, self._get_point_param_on_line(self.default_connection_point[1]))
 
     @property
     def points_params(self) -> list[float, float]:
@@ -67,8 +64,13 @@ class JointConnections:
         :param list[float, float] value: The parameter of the connection points
         """
         self._params = value
-        self.points[0] = self._get_point_using_param(value[0])
-        self.points[1] = self._get_point_using_param(value[1])
+
+        if not self._check_equal_points():
+            self.points[0] = self._get_point_using_param(value[0])
+            self.points[1] = self._get_point_using_param(value[1])
+        else:
+            self.points[0] = self._get_point_using_param(value[0])
+            self.points[1] = self._get_point_using_param(value[1] + 0.0001)
 
     def __repr__(self):
         return f"{self.points}"
@@ -83,7 +85,6 @@ class JointConnections:
             print("Axis: {}".format(self.normalized_axis))
             print("Point: {}".format(point))
             raise ValueError("Point is not on the axis")
-
 
     def _get_point_using_param(self, param: float) -> PointHomogeneous:
         """
@@ -101,20 +102,28 @@ class JointConnections:
         Sets the connection point at the given parameter.
         """
         if idx == 0:
-            self.points_params = [param, self.points_params[1]]
+            if param == self.points_params[1]:
+                self.points_params = [param - 0.0001, self.points_params[1]]
+            else:
+                self.points_params = [param, self.points_params[1]]
         elif idx == 1:
-            self.points_params = [self.points_params[0], param]
+            if param == self.points_params[0]:
+                self.points_params = [self.points_params[0], param + 0.0001]
+            else:
+                self.points_params = [self.points_params[0], param]
         else:
             raise IndexError("Index out of range")
 
-    """
-    def get_params_by_points(self, pts: list[PointHomogeneous]):
-        " ""
-        Sets the parameters of the connection points.
-        " ""
-        self.points_params = [self._get_point_param_on_line(pts[0]),
-                              self._get_point_param_on_line(pts[1])]
-    """
+    def _check_equal_points(self) -> bool:
+        """
+        Checks if the connection points are equal.
+
+        :return: True if the connection points are equal, False otherwise
+        :rtype: bool
+        """
+        return np.allclose(self.points[0].normalized_in_3d(),
+                           self.points[1].normalized_in_3d())
+
 
 class PointsConnection:
     """

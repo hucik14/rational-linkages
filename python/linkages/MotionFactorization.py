@@ -4,7 +4,8 @@ from typing import Union
 from DualQuaternion import DualQuaternion
 from PointHomogeneous import PointHomogeneous
 from RationalCurve import RationalCurve
-from JointConnections import JointConnections
+from Linkage import Linkage
+from NormalizedLine import NormalizedLine
 
 
 class MotionFactorization(RationalCurve):
@@ -23,7 +24,7 @@ class MotionFactorization(RationalCurve):
     :ivar list[DualQuaternion] factors_with_parameter: parameterized factors of the
         curve
     :ivar int number_of_factors: number of factors of the curve
-    :ivar list[JointConnections] joints: list of link-joint connecting points
+    :ivar list[Linkage] linkage: list of link-joint connecting points
 
     :example:
 
@@ -56,7 +57,7 @@ class MotionFactorization(RationalCurve):
         self.factors_with_parameter = self.get_symbolic_factors()
         self.number_of_factors = len(self.dq_axes)
 
-        self.joints = self.get_joint_connection_points()
+        self.linkage = self.get_joint_connection_points()
 
     def __repr__(self):
         return f"MotionFactorization({self.factors_with_parameter})"
@@ -158,7 +159,7 @@ class MotionFactorization(RationalCurve):
         """
         linkage_points = []
         for i in range(self.number_of_factors):
-            linkage_points.append(self.joints[i].points)
+            linkage_points.append(self.linkage[i].points)
 
         for i in range(self.number_of_factors - 1):
             if inverted_part:
@@ -271,21 +272,21 @@ class MotionFactorization(RationalCurve):
         factorization_provider = FactorizationProvider()
         return factorization_provider.factorize_for_motion_factorization(self)
 
-    def get_joint_connection_points(self) -> list[JointConnections]:
+    def get_joint_connection_points(self) -> list[Linkage]:
         """
-        Get JointConnection points of the MotionFactorization
+        Get points of the linkage of the MotionFactorization
 
-        :return: list of JointConnection points
-        :rtype: list[JointConnections]
+        :return: list of points of the linkage
+        :rtype: list[Linkage]
         """
-        return [JointConnections(axis, [PointHomogeneous.from_3d_point(axis.dq2point_via_line())])
+        return [Linkage(axis, [PointHomogeneous.from_3d_point(axis.dq2point_via_line())])
                 for axis in self.dq_axes]
 
     def set_joint_connection_points(self, points: list[PointHomogeneous]):
         """
-        Set JointConnection points of the MotionFactorization
+        Set points of the linkage of the MotionFactorization
 
-        :param list[JointConnections] points: list of JointConnection points
+        :param list[Linkage] points: list of points of the linkage
         """
         # pair the input points
         points_pairs = []
@@ -293,6 +294,58 @@ class MotionFactorization(RationalCurve):
             points_pairs.append([points[2 * i], points[2 * i + 1]])
 
         for i in range(len(points_pairs)):
-            self.joints[i] = JointConnections(self.dq_axes[i], points_pairs[i])
+            self.linkage[i] = Linkage(self.dq_axes[i], points_pairs[i])
 
-        #self.joints = [JointConnections(self.dq_axes[i], points_pairs[i]) for i in range(len(points_pairs))]
+    def joint(self, idx: int) -> NormalizedLine:
+        """
+        Returns the joint at the given index.
+
+        :param int idx: The index of the joint
+
+        :return: The joint as a NormalizedLine
+        :rtype: NormalizedLine
+        """
+        joint = NormalizedLine.from_two_points(self.linkage[idx].points[0],
+                                               self.linkage[idx].points[1])
+        return joint
+
+    def link(self, idx: int) -> NormalizedLine:
+        """
+        Returns the link at the given index.
+
+        :param int idx: The index of the link
+
+        :return: The link as a NormalizedLine
+        :rtype: NormalizedLine
+        """
+        link = NormalizedLine.from_two_points(self.linkage[idx].points[1],
+                                              self.linkage[idx + 1].points[0])
+        return link
+
+    def base_link(self, other_factorization_point: PointHomogeneous) -> NormalizedLine:
+        """
+        Returns the base link.
+
+        :param PointHomogeneous other_factorization_point: The point of the other
+            factorization to construct the base link
+
+        :return: The base link as a NormalizedLine
+        :rtype: NormalizedLine
+        """
+        link = NormalizedLine.from_two_points(self.linkage[0].points[0],
+                                              other_factorization_point)
+        return link
+
+    def tool_link(self, other_factorization_point: PointHomogeneous) -> NormalizedLine:
+        """
+        Returns the tool link.
+
+        :param PointHomogeneous other_factorization_point: The point of the other
+            factorization to construct the tool link
+
+        :return: The tool link as a NormalizedLine
+        :rtype: NormalizedLine
+        """
+        link = NormalizedLine.from_two_points(self.linkage[-1].points[1],
+                                              other_factorization_point)
+        return link

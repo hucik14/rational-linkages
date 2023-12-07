@@ -83,25 +83,95 @@ class RationalMechanism(RationalCurve):
     
     def collision_check(self):
         """
-        Perform full-cycle collision check on the line-model linkage between joints and
+        Perform full-cycle collision check on the line-model linkage between linkage and
         links of the two given factorizations.
 
         """
         from NormalizedLine import NormalizedLine
         from sympy import Symbol
 
-        l0 = NormalizedLine.from_two_points(self.factorizations[0].joints[0].points[1],
-                                            self.factorizations[0].joints[1].points[0])
-        l1 = NormalizedLine.from_two_points(self.factorizations[0].joints[1].points[1],
-                                            self.factorizations[1].joints[1].points[1])
-
         t = Symbol("t")
-        l0_acted = self.factorizations[0].act(l0, start_idx=0, end_idx=0, param=t)
-        print(l0_acted)
 
-    def colliding_lines(self, line0, line1):
+        l0 = NormalizedLine.from_two_points(self.factorizations[0].linkage[0].points[1],
+                                            self.factorizations[0].linkage[1].points[0])
+        l1 = NormalizedLine.from_two_points(self.factorizations[0].linkage[1].points[1],
+                                            self.factorizations[1].linkage[1].points[1])
+
+        l0_acted = self.factorizations[0].act(l0, start_idx=0, end_idx=0, param=t)
+        l1_acted = self.factorizations[0].act(l1, start_idx=0, end_idx=1, param=t)
+
+        l0 = NormalizedLine.from_two_points(self.factorizations[0].linkage[0].points[1],
+                                            self.factorizations[0].linkage[0].points[0])
+        self.colliding_lines(l0, l0_acted)
+
+        lines = []
+        # static lines
+        l00 = self.factorizations[0].base_link(self.factorizations[1].linkage[0].points[0])
+        j00 = self.factorizations[0].joint(0)
+        j10 = self.factorizations[1].joint(0)
+
+        # j00 actuation
+        l01 = self.factorizations[0].link(0)
+        l01 = self.factorizations[0].act(l01, end_idx=0, param=t)
+        j01 = self.factorizations[0].joint(1)
+        j01 = self.factorizations[0].act(j01, end_idx=0, param=t)
+
+        # j10 actuation
+        l11 = self.factorizations[1].link(0)
+        l11 = self.factorizations[1].act(l01, end_idx=0, param=t)
+        j11 = self.factorizations[1].joint(1)
+        j11 = self.factorizations[1].act(j01, end_idx=0, param=t)
+
+        # j01 actuaion is the same as j11 actuation
+        l_t = self.factorizations[0].tool_link(self.factorizations[1].linkage[1].points[1])
+        l_t = self.factorizations[0].act(l_t, start_idx=0, param=t)
+
+        lines.append(l00)
+        lines.append(j00)
+        lines.append(j10)
+        lines.append(l01)
+        lines.append(j01)
+        lines.append(l11)
+        lines.append(j11)
+        lines.append(l_t)
+
+        for i in range(len(lines)):
+            for j in range(i + 1, len(lines)):
+                line0 = lines[i]
+                line1 = lines[j]
+                collision = self.colliding_lines(line0, line1)
+                print(f"Lines {i} and {j} collide: {collision}")
+
+    def colliding_lines(self, l0, l1):
         """
         Return the lines that are colliding in the linkage.
         """
-        pass
+        from sympy import Poly, Symbol
+        t = Symbol("t")
+
+        # lines are colliding if expr == 0
+        expr = np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction)
+
+        # neibouring lines are colliding all the time (expr == 0)
+        if expr == 0:
+            print(" --- neighbouring lines are colliding ---")
+            return []
+
+        expr_coeffs = Poly(expr, t).all_coeffs()
+
+        # convert to numpy polynomial
+        expr_n = np.array(expr_coeffs, dtype="float64")
+        np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1])
+
+        # solve for t
+        colliding_lines_sol = np_poly.roots()
+        # extract real solutions
+        t_real = colliding_lines_sol.real[abs(colliding_lines_sol.imag) < 1e-5]
+
+        print(expr_coeffs)
+        print(t_real)
+
+        return t_real
+
+
 

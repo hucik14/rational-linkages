@@ -41,7 +41,7 @@ k3 = DualQuaternion(k3li, is_rotation=True)
 f1 = MotionFactorization([h1, h2, h3])
 f2 = MotionFactorization([k3, k2, k1])
 
-# Setting connecting points on the joints
+# Setting connecting points on the linkage
 #########################################
 
 f1.set_joint_connection_points([PointHomogeneous([1, -0.72533812018960216974, 0., 0.]),
