@@ -37,7 +37,7 @@ k3 = DualQuaternion([0, 12/13, 5/13, 0, 0, 0, 0, -17/13], is_rotation=True)
 #f1 = MotionFactorization([h1, h2, h3])
 #f2 = MotionFactorization([k1, k2, k3])
 
-f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0]),
+f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0.1]),
                                 PointHomogeneous([1, 0, 0, 0.5]),
                                 PointHomogeneous([1, -0.5, 0, 0.2]),
                                 PointHomogeneous([1, -0.5, 0, 0.3])])
@@ -46,7 +46,7 @@ m = RationalMechanism([f1, f2])
 m.collision_check()
 
 p = Plotter(interactive=True, steps=500)
-p.plot(m)
+p.plot(m, show_tool=False)
 
 
 """
