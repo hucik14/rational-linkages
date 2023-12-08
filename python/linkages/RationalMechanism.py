@@ -91,13 +91,16 @@ class RationalMechanism(RationalCurve):
 
         t = Symbol("t")
 
-        lines = []
+        joints = []
+        links = []
+        base_tool_links = []
         # static lines
         l00 = self.factorizations[0].base_link(self.factorizations[1].linkage[0].points[0])
         j00 = self.factorizations[0].joint(0)
         j10 = self.factorizations[1].joint(0)
 
-        lines.append(l00)
+        base_tool_links.append(l00)
+
         lines.append(j00)
         lines.append(j10)
 
@@ -113,7 +116,7 @@ class RationalMechanism(RationalCurve):
         # tool line
         l_t = self.factorizations[0].tool_link(self.factorizations[1].linkage[1].points[1])
         l_t = self.factorizations[0].act(l_t, end_idx=1, param=t)
-        lines.append(l_t)
+        base_tool_links.append(l_t)
 
         for i in range(len(lines)):
             for j in range(i + 1, len(lines)):
@@ -147,7 +150,31 @@ class RationalMechanism(RationalCurve):
         # extract real solutions
         t_real = colliding_lines_sol.real[abs(colliding_lines_sol.imag) < 1e-5]
 
+
+
         return t_real
 
+    def check_line_segments_collisions(self, l0, l1, t):
+        """
+        Check if the line segments are colliding at the given time.
+        """
+        from sympy import Symbol
+        t = Symbol("t")
 
+        # check if the lines are colliding
+        collision = self.colliding_lines(l0, l1)
+        if len(collision) == 0:
+            return False
+
+        # check if the collision is at the given time
+        if t not in collision:
+            return False
+
+        # check if the collision is between the points of the line segments
+        p0 = l0.get_point_param(t)
+        p1 = l1.get_point_param(t)
+        if p0 < 0 or p0 > 1 or p1 < 0 or p1 > 1:
+            return False
+
+        return True
 
