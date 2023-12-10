@@ -122,25 +122,27 @@ class RationalMechanism(RationalCurve):
         """
         Return the lines that are colliding in the linkage.
         """
-        from sympy import Poly, Symbol, solve, simplify
+        from sympy import Poly, Symbol, solve, simplify, nroots
         t = Symbol("t")
 
         # lines are colliding if expr == 0
-        expr = np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction)
+        expr = simplify(np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction))
 
         # neighbouring lines are colliding all the time (expr == 0)
-        if simplify(expr) == 0:
+        if expr == 0:
             return None, None
 
-        p = Poly(expr, t)
-        r = solve(expr, t)
+        #sp_sol = nroots(expr, n=7)
+        sp_sol = solve(expr, t)
+        real_solutions = [sol for sol in sp_sol if sol.is_real]
+        print(real_solutions)
 
         expr_coeffs = Poly(expr, t).all_coeffs()
 
         # convert to numpy polynomial
         expr_n = np.array(expr_coeffs, dtype="float64")
         # TODO: check the domain
-        np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1], domain=[-100000000000000000000000000, 100000000000000000000000000])
+        np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1], domain=[-1, 1])
 
         # solve for t
         colliding_lines_sol = np_poly.roots()
@@ -168,7 +170,6 @@ class RationalMechanism(RationalCurve):
             intersection_points[i] = PointHomogeneous.from_3d_point(point)
 
         return intersection_points
-
 
     def _get_links_and_joints_acted_equations(self) -> tuple[list, list]:
         from sympy import Symbol
@@ -206,4 +207,5 @@ class RationalMechanism(RationalCurve):
         """
         Check if the line segments are colliding at the given time.
         """
+        pass
 
