@@ -42,20 +42,31 @@ class PointHomogeneous:
         Homogeneous coordinates are stored in the first row of the point array (index 0)
         :param point: array or list of floats
         """
+        from sympy import Expr
+
+        self.is_real = True
+
         if point is None:  # point in the origin in PR3
             self.coordinates = np.array([1, 0, 0, 0])
+        elif any(isinstance(element, Expr) for element in point):
+            self.coordinates = point
+            self.is_real = False
+
         else:
             self.coordinates = np.asarray(point, dtype=float)
 
-        if isclose(self.coordinates[0], 0.0):  # point at infinity
+        if self.is_real and isclose(self.coordinates[0], 0.0):  # point at infinity
             self.is_at_infinity = True
+            self.coordinates_normalized = None
+        elif self.is_real:
+            self.is_at_infinity = False
+            self.coordinates_normalized = self.normalize()
         else:
             self.is_at_infinity = False
+            self.coordinates_normalized = None
 
-        self.coordinates_normalized = self.normalize()
-
-        if len(self.coordinates_normalized) == 4:  # point in PR3
-            self.as_dq_array = self.point2dq_array()
+        #if len(self.coordinates_normalized) == 4:  # point in PR3
+        #    self.as_dq_array = self.point2dq_array()
 
     @classmethod
     def at_origin_in_2d(cls):

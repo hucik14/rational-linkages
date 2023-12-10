@@ -100,11 +100,22 @@ class RationalMechanism(RationalCurve):
             for j in range(len(self.segments)):
                 if i < j:  # avoid redundant checks
                     # check if the lines are colliding
+                    print(
+                        f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}")
                     collisions, points = self.colliding_lines(self.segments[i].equation, self.segments[j].equation)
 
                     if collisions is not None:
                         # check if the collision is between the physical line segments
                         physical_collision = [False] * len(collisions)
+
+
+
+                        for k, t_val in enumerate(collisions):
+                            # get the intersection point
+                            p = points[k]
+                            # check if the intersection point is on the physical line segments
+                            physical_collision[k] = self.segments[i].is_point_in_segment(p, t_val) and self.segments[j].is_point_in_segment(p, t_val)
+
 
                         print(f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}")
 
@@ -172,36 +183,37 @@ class RationalMechanism(RationalCurve):
 
         # base (static) link has index 0 in the list of the 1st factorization
         eq, p0, p1 = self.factorizations[0].base_link(self.factorizations[1].linkage[0].points[0])
-        s = LineSegment(eq, p0, p1, type="b", f_idx=0, idx=0)
+        s = LineSegment(eq, p0, p1, linkage_type="b", f_idx=0, idx=0)
         segments[0].append(s)
 
         # static joints
         segments[0].append(LineSegment(*self.factorizations[0].joint(0),
-                                       type="j", f_idx=0, idx=0))
+                                       linkage_type="j", f_idx=0, idx=0))
         segments[1].append(LineSegment(*self.factorizations[1].joint(0),
-                                       type="j", f_idx=1, idx=0))
+                                       linkage_type="j", f_idx=1, idx=0))
 
         for i in range(2):
-            for j in range(self.factorizations[i].number_of_factors - 1):
-                link, p0, p1 = self.factorizations[i].link(j)
-                link = self.factorizations[i].act(link, end_idx=j, param=t)
-                segments[i].append(LineSegment(link, p0, p1, type="l", f_idx=i, idx=j))
+            for j in range(1, self.factorizations[i].number_of_factors):
+                link, p0, p1 = self.factorizations[i].link(j-1)
+                link = self.factorizations[i].act(link, end_idx=j-1, param=t)
+                p0 = self.factorizations[i].act(p0, end_idx=j-1, param=t)
+                p1 = self.factorizations[i].act(p1, end_idx=j-1, param=t)
+                segments[i].append(LineSegment(link, p0, p1, linkage_type="l", f_idx=i, idx=j-1))
 
                 joint, p0, p1 = self.factorizations[i].joint(j)
-                joint = self.factorizations[i].act(joint, end_idx=j, param=t)
-                segments[i].append(LineSegment(joint, p0, p1, type="j", f_idx=i, idx=j))
+                joint = self.factorizations[i].act(joint, end_idx=j-1, param=t)
+                p0 = self.factorizations[i].act(p0, end_idx=j-1, param=t)
+                p1 = self.factorizations[i].act(p1, end_idx=j-1, param=t)
+                segments[i].append(LineSegment(joint, p0, p1, linkage_type="j", f_idx=i, idx=j))
 
         # tool (moving - acted) link has index -1 in the list of the 2nd factorization
         tool_link, p0, p1 = self.factorizations[0].tool_link(self.factorizations[1].linkage[1].points[1])
-        tool_link = self.factorizations[0].act(tool_link, end_idx=1, param=t)
+        tool_link = self.factorizations[0].act(tool_link, param=t)
+        p0 = self.factorizations[0].act(p0, param=t)
+        p1 = self.factorizations[0].act(p1, param=t)
         tool_idx = self.factorizations[1].number_of_factors - 1
-        segments[0].append(LineSegment(tool_link, p0, p1, type="t", f_idx=1, idx=tool_idx))
+        segments[0].append(LineSegment(tool_link, p0, p1, linkage_type="t", f_idx=1, idx=tool_idx))
 
         return segments[0] + segments[1][::-1]
 
-    def check_line_segments_collisions(self, l0: str, l1: str, t: float) -> bool:
-        """
-        Check if the line segments are colliding at the given time.
-        """
-        pass
 

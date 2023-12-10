@@ -302,7 +302,7 @@ class MotionFactorization(RationalCurve):
 
         :param int idx: The index of the joint
 
-        :return: The joint as an equation and the points of the joint
+        :return: The joint line and the points of the joint segment
         :rtype: tuple
         """
         point0 = self.linkage[idx].points[0]
@@ -316,7 +316,7 @@ class MotionFactorization(RationalCurve):
 
         :param int idx: The index of the link
 
-        :return: The link as an equation and the points of the link
+        :return: The link line and the points of the link segment
         :rtype: tuple
         """
         point0 = self.linkage[idx].points[1]
@@ -331,7 +331,7 @@ class MotionFactorization(RationalCurve):
         :param PointHomogeneous other_factorization_point: The point of the other
             factorization to construct the base link
 
-        :return: The base link equation and the points of the base link
+        :return: The base link line and the points of the base link segment
         :rtype: tuple
         """
         point0 = self.linkage[0].points[0]
@@ -346,7 +346,7 @@ class MotionFactorization(RationalCurve):
         :param PointHomogeneous other_factorization_point: The point of the other
             factorization to construct the tool link
 
-        :return: The tool link equation and the points of the tool link
+        :return: The tool link line and the points of the tool link segment
         :rtype: tuple
         """
         point0 = self.linkage[-1].points[1]

@@ -167,13 +167,51 @@ class PointsConnection:
 
 
 class LineSegment:
-    def __init__(self, eqation, point0, point1, type, f_idx, idx):
+    def __init__(self, eqation, point0, point1, linkage_type, f_idx, idx):
         self.equation = eqation
         self.point0 = point0
         self.point1 = point1
-        self.type = type
+        self.type = linkage_type
         self.factorization_idx = f_idx
         self.idx = idx
 
     def __repr__(self):
         return f"{self.type}_{self.factorization_idx}{self.idx}"
+
+    def is_point_in_segment(self, point: PointHomogeneous, t_val: float) -> bool:
+        """
+        Checks if the colliding point is in the line segment.
+
+        :param PointHomogeneous point: The point
+        :param float t_val: The parameter of collision point
+
+        :return: True if the point is in the line segment, False otherwise
+        :rtype: bool
+        """
+        from sympy import Expr, Symbol
+        t = Symbol("t")
+
+        # evaluate the connections points at the parameter t
+        p0 = [Expr(self.point0[0]).subs(t, t_val), Expr(self.point0[1]).subs(t, t_val), Expr(self.point0[2]).subs(t, t_val)]
+        p0 = [p0[i].args[0] for i in range(len(p0))]
+        p0 = PointHomogeneous.from_3d_point(np.asarray(p0, dtype="float64"))
+
+        p1 = [Expr(self.point1[0]).subs(t, t_val), Expr(self.point1[1]).subs(t, t_val), Expr(self.point1[2]).subs(t, t_val)]
+        p1 = [p1[i].args[0] for i in range(len(p1))]
+        p1 = PointHomogeneous.from_3d_point(np.asarray(p1, dtype="float64"))
+
+        # segment length
+        l = np.linalg.norm(p0.array() - p1.array())
+
+        # distance between the point0 and the collision point
+        d0 = np.linalg.norm(p0.array() - point.array())
+
+        # distance between the point1 and the collision point
+        d1 = np.linalg.norm(p1.array() - point.array())
+
+        if l >= (d0 + d1):
+            return True
+        else:
+            return False
+
+
