@@ -296,56 +296,60 @@ class MotionFactorization(RationalCurve):
         for i in range(len(points_pairs)):
             self.linkage[i] = Linkage(self.dq_axes[i], points_pairs[i])
 
-    def joint(self, idx: int) -> NormalizedLine:
+    def joint(self, idx: int) -> tuple:
         """
         Returns the joint at the given index.
 
         :param int idx: The index of the joint
 
-        :return: The joint as a NormalizedLine
-        :rtype: NormalizedLine
+        :return: The joint as an equation and the points of the joint
+        :rtype: tuple
         """
-        joint = NormalizedLine.from_two_points(self.linkage[idx].points[0],
-                                               self.linkage[idx].points[1])
-        return joint
+        point0 = self.linkage[idx].points[0]
+        point1 = self.linkage[idx].points[1]
+        joint = NormalizedLine.from_two_points(point0, point1)
+        return joint, point0, point1
 
-    def link(self, idx: int) -> NormalizedLine:
+    def link(self, idx: int) -> tuple:
         """
         Returns the link at the given index.
 
         :param int idx: The index of the link
 
-        :return: The link as a NormalizedLine
-        :rtype: NormalizedLine
+        :return: The link as an equation and the points of the link
+        :rtype: tuple
         """
-        link = NormalizedLine.from_two_points(self.linkage[idx].points[1],
-                                              self.linkage[idx + 1].points[0])
-        return link
+        point0 = self.linkage[idx].points[1]
+        point1 = self.linkage[idx + 1].points[0]
+        link = NormalizedLine.from_two_points(point0, point1)
+        return link, point0, point1
 
-    def base_link(self, other_factorization_point: PointHomogeneous) -> NormalizedLine:
+    def base_link(self, other_factorization_point: PointHomogeneous) -> tuple:
         """
         Returns the base link.
 
         :param PointHomogeneous other_factorization_point: The point of the other
             factorization to construct the base link
 
-        :return: The base link as a NormalizedLine
-        :rtype: NormalizedLine
+        :return: The base link equation and the points of the base link
+        :rtype: tuple
         """
-        link = NormalizedLine.from_two_points(self.linkage[0].points[0],
-                                              other_factorization_point)
-        return link
+        point0 = self.linkage[0].points[0]
+        point1 = other_factorization_point
+        link = NormalizedLine.from_two_points(point0, point1)
+        return link, point0, point1
 
-    def tool_link(self, other_factorization_point: PointHomogeneous) -> NormalizedLine:
+    def tool_link(self, other_factorization_point: PointHomogeneous) -> tuple:
         """
         Returns the tool link.
 
         :param PointHomogeneous other_factorization_point: The point of the other
             factorization to construct the tool link
 
-        :return: The tool link as a NormalizedLine
-        :rtype: NormalizedLine
+        :return: The tool link equation and the points of the tool link
+        :rtype: tuple
         """
-        link = NormalizedLine.from_two_points(self.linkage[-1].points[1],
-                                              other_factorization_point)
-        return link
+        point0 = self.linkage[-1].points[1]
+        point1 = other_factorization_point
+        link = NormalizedLine.from_two_points(point0, point1)
+        return link, point0, point1

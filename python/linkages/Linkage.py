@@ -164,3 +164,16 @@ class PointsConnection:
 
     def __len__(self):
         return 2
+
+
+class LineSegment:
+    def __init__(self, eqation, point0, point1, type, f_idx, idx):
+        self.equation = eqation
+        self.point0 = point0
+        self.point1 = point1
+        self.type = type
+        self.factorization_idx = f_idx
+        self.idx = idx
+
+    def __repr__(self):
+        return f"{self.type}_{self.factorization_idx}{self.idx}"

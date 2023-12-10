@@ -33,6 +33,8 @@ class RationalMechanism(RationalCurve):
             DualQuaternion(self.evaluate(0, inverted_part=True))
             if end_effector is None else end_effector)
 
+        self.segments = self._get_line_segments_of_linkage()
+
     def get_dh_params(self, alpha_form: str = "cos_alpha") -> tuple:
         """
         Get the Denavit-Hartenberg parameters of the linkage.
@@ -91,32 +93,21 @@ class RationalMechanism(RationalCurve):
         links of the two given factorizations.
 
         """
-        # get parametric equations of links and joints after acting on them (full cycle)
-        joints, links = self._get_links_and_joints_acted_equations()
+        # update the line segments
+        self.segments = self._get_line_segments_of_linkage()
 
-        # create a dictionary of links and joints
-        lines = {f"link_{i}{j}": links[i][j] for i in range(len(links))
-                 for j in range(len(links[i]))}
-        lines.update({f"joint_{i}{j}": joints[i][j] for i in range(len(joints))
-                      for j in range(len(joints[i]))})
-
-        for key_i, line0 in lines.items():
-            for key_j, line1 in lines.items():
-                if key_i < key_j:  # Avoid redundant checks
+        for i in range(len(self.segments)):
+            for j in range(len(self.segments)):
+                if i < j:  # avoid redundant checks
                     # check if the lines are colliding
-                    collisions, points = self.colliding_lines(line0, line1)
+                    collisions, points = self.colliding_lines(self.segments[i].equation, self.segments[j].equation)
 
                     if collisions is not None:
                         # check if the collision is between the physical line segments
                         physical_collision = [False] * len(collisions)
 
+                        print(f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}")
 
-                        #for i, t in enumerate(collisions):
-                        #    physical_collision[i] = self.check_line_segments_collisions(
-                        #        key_i, key_j, points[i], t)
-
-                        print(f"{key_i} and {key_j} collide: {collisions} and the "
-                              f"collision is physical: {physical_collision}")
 
     def colliding_lines(self, l0, l1) -> tuple[list[float], list[PointHomogeneous]]:
         """
@@ -135,7 +126,7 @@ class RationalMechanism(RationalCurve):
         #sp_sol = nroots(expr, n=7)
         sp_sol = solve(expr, t)
         real_solutions = [sol for sol in sp_sol if sol.is_real]
-        print(real_solutions)
+        #print(real_solutions)
 
         expr_coeffs = Poly(expr, t).all_coeffs()
 
@@ -171,37 +162,42 @@ class RationalMechanism(RationalCurve):
 
         return intersection_points
 
-    def _get_links_and_joints_acted_equations(self) -> tuple[list, list]:
+    def _get_line_segments_of_linkage(self) -> list:
         from sympy import Symbol
+        from Linkage import LineSegment
 
         t = Symbol("t")
 
-        joints = [[], []]
-        links = [[], []]
+        segments = [[], []]
 
         # base (static) link has index 0 in the list of the 1st factorization
-        links[0].append(self.factorizations[0].base_link(
-            self.factorizations[1].linkage[0].points[0]))
+        eq, p0, p1 = self.factorizations[0].base_link(self.factorizations[1].linkage[0].points[0])
+        s = LineSegment(eq, p0, p1, type="b", f_idx=0, idx=0)
+        segments[0].append(s)
 
         # static joints
-        joints[0].append(self.factorizations[0].joint(0))
-        joints[1].append(self.factorizations[1].joint(0))
+        segments[0].append(LineSegment(*self.factorizations[0].joint(0),
+                                       type="j", f_idx=0, idx=0))
+        segments[1].append(LineSegment(*self.factorizations[1].joint(0),
+                                       type="j", f_idx=1, idx=0))
 
         for i in range(2):
             for j in range(self.factorizations[i].number_of_factors - 1):
-                link = self.factorizations[i].link(j)
+                link, p0, p1 = self.factorizations[i].link(j)
                 link = self.factorizations[i].act(link, end_idx=j, param=t)
-                links[i].append(link)
-                joint = self.factorizations[i].joint(j)
+                segments[i].append(LineSegment(link, p0, p1, type="l", f_idx=i, idx=j))
+
+                joint, p0, p1 = self.factorizations[i].joint(j)
                 joint = self.factorizations[i].act(joint, end_idx=j, param=t)
-                joints[i].append(joint)
+                segments[i].append(LineSegment(joint, p0, p1, type="j", f_idx=i, idx=j))
 
         # tool (moving - acted) link has index -1 in the list of the 2nd factorization
-        tool_link = self.factorizations[0].tool_link(self.factorizations[1].linkage[1].points[1])
+        tool_link, p0, p1 = self.factorizations[0].tool_link(self.factorizations[1].linkage[1].points[1])
         tool_link = self.factorizations[0].act(tool_link, end_idx=1, param=t)
-        links[1].append(tool_link)
+        tool_idx = self.factorizations[1].number_of_factors - 1
+        segments[0].append(LineSegment(tool_link, p0, p1, type="t", f_idx=1, idx=tool_idx))
 
-        return joints, links
+        return segments[0] + segments[1][::-1]
 
     def check_line_segments_collisions(self, l0: str, l1: str, t: float) -> bool:
         """
