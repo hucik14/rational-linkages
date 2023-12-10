@@ -1,12 +1,16 @@
 import numpy as np
 from copy import deepcopy
 
+import pylab as p
+
 from RationalCurve import RationalCurve
 from DualQuaternion import DualQuaternion
 from matplotlib import pyplot as plt
 from TransfMatrix import TransfMatrix
 from matplotlib.widgets import Slider
 from MotionFactorization import MotionFactorization
+
+PointHomogeneous = 'PointHomogeneous'
 
 
 class RationalMechanism(RationalCurve):
@@ -88,48 +92,85 @@ class RationalMechanism(RationalCurve):
 
         """
         # get parametric equations of links and joints after acting on them (full cycle)
-        joints, links = self._get_links_and_joints_acted_eqations()
+        joints, links = self._get_links_and_joints_acted_equations()
 
         # create a dictionary of links and joints
-        lines = {f"link_{i}{j}": links[i][j] for i in range(len(links)) for j in range(len(links[i]))}
-        lines.update({f"joint_{i}{j}": joints[i][j] for i in range(len(joints)) for j in range(len(joints[i]))})
+        lines = {f"link_{i}{j}": links[i][j] for i in range(len(links))
+                 for j in range(len(links[i]))}
+        lines.update({f"joint_{i}{j}": joints[i][j] for i in range(len(joints))
+                      for j in range(len(joints[i]))})
 
         for key_i, line0 in lines.items():
             for key_j, line1 in lines.items():
                 if key_i < key_j:  # Avoid redundant checks
-                    collision = self.colliding_lines(line0, line1)
-                    if collision is not None:
-                        print(f"{key_i} and {key_j} collide: {collision}")
+                    # check if the lines are colliding
+                    collisions, points = self.colliding_lines(line0, line1)
+
+                    if collisions is not None:
+                        # check if the collision is between the physical line segments
+                        physical_collision = [False] * len(collisions)
 
 
-    def colliding_lines(self, l0, l1):
+                        #for i, t in enumerate(collisions):
+                        #    physical_collision[i] = self.check_line_segments_collisions(
+                        #        key_i, key_j, points[i], t)
+
+                        print(f"{key_i} and {key_j} collide: {collisions} and the "
+                              f"collision is physical: {physical_collision}")
+
+    def colliding_lines(self, l0, l1) -> tuple[list[float], list[PointHomogeneous]]:
         """
         Return the lines that are colliding in the linkage.
         """
-        from sympy import Poly, Symbol
+        from sympy import Poly, Symbol, solve, simplify
         t = Symbol("t")
 
         # lines are colliding if expr == 0
         expr = np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction)
 
-        # neibouring lines are colliding all the time (expr == 0)
-        if expr == 0:
-            return None
+        # neighbouring lines are colliding all the time (expr == 0)
+        if simplify(expr) == 0:
+            return None, None
+
+        p = Poly(expr, t)
+        r = solve(expr, t)
 
         expr_coeffs = Poly(expr, t).all_coeffs()
 
         # convert to numpy polynomial
         expr_n = np.array(expr_coeffs, dtype="float64")
-        np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1])
+        # TODO: check the domain
+        np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1], domain=[-100000000000000000000000000, 100000000000000000000000000])
 
         # solve for t
         colliding_lines_sol = np_poly.roots()
         # extract real solutions
         t_real = colliding_lines_sol.real[abs(colliding_lines_sol.imag) < 1e-5]
 
-        return t_real
+        intersetion_points = self.get_intersection_points(l0, l1, t_real)
 
-    def _get_links_and_joints_acted_eqations(self) -> tuple[list, list]:
+        return t_real, intersetion_points
+
+    def get_intersection_points(self, l0, l1, t_real: list[float]):
+        from sympy import Symbol, Expr
+        from PointHomogeneous import PointHomogeneous
+        t = Symbol("t")
+
+        intersection_points = [PointHomogeneous()] * len(t_real)
+
+        for i, val in enumerate(t_real):
+            # p0 = Expr(np.dot(l0.direction, l1.moment)).subs(t, t_real[0])
+            point = np.cross(l0.moment, l1.direction)
+            point = [Expr(point[i]).subs(t, val) for i in range(len(point))]
+            point = [point[j].args[0] for j in range(len(point))]
+            point = np.asarray(point, dtype="float64")
+
+            intersection_points[i] = PointHomogeneous.from_3d_point(point)
+
+        return intersection_points
+
+
+    def _get_links_and_joints_acted_equations(self) -> tuple[list, list]:
         from sympy import Symbol
 
         t = Symbol("t")
@@ -161,27 +202,8 @@ class RationalMechanism(RationalCurve):
 
         return joints, links
 
-    def check_line_segments_collisions(self, l0, l1, t):
+    def check_line_segments_collisions(self, l0: str, l1: str, t: float) -> bool:
         """
         Check if the line segments are colliding at the given time.
         """
-        from sympy import Symbol
-        t = Symbol("t")
-
-        # check if the lines are colliding
-        collision = self.colliding_lines(l0, l1)
-        if len(collision) == 0:
-            return False
-
-        # check if the collision is at the given time
-        if t not in collision:
-            return False
-
-        # check if the collision is between the points of the line segments
-        p0 = l0.get_point_param(t)
-        p1 = l1.get_point_param(t)
-        if p0 < 0 or p0 > 1 or p1 < 0 or p1 > 1:
-            return False
-
-        return True
 
