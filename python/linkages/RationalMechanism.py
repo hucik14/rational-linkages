@@ -87,43 +87,20 @@ class RationalMechanism(RationalCurve):
         links of the two given factorizations.
 
         """
-        from sympy import Symbol
+        # get parametric equations of links and joints after acting on them (full cycle)
+        joints, links = self._get_links_and_joints_acted_eqations()
 
-        t = Symbol("t")
+        # create a dictionary of links and joints
+        lines = {f"link_{i}{j}": links[i][j] for i in range(len(links)) for j in range(len(links[i]))}
+        lines.update({f"joint_{i}{j}": joints[i][j] for i in range(len(joints)) for j in range(len(joints[i]))})
 
-        joints = []
-        links = []
-        base_tool_links = []
-        # static lines
-        l00 = self.factorizations[0].base_link(self.factorizations[1].linkage[0].points[0])
-        j00 = self.factorizations[0].joint(0)
-        j10 = self.factorizations[1].joint(0)
+        for key_i, line0 in lines.items():
+            for key_j, line1 in lines.items():
+                if key_i < key_j:  # Avoid redundant checks
+                    collision = self.colliding_lines(line0, line1)
+                    if collision is not None:
+                        print(f"{key_i} and {key_j} collide: {collision}")
 
-        base_tool_links.append(l00)
-
-        lines.append(j00)
-        lines.append(j10)
-
-        for i in range(2):
-            for j in range(self.factorizations[i].number_of_factors - 1):
-                link = self.factorizations[i].link(j)
-                link = self.factorizations[i].act(link, end_idx=j, param=t)
-                lines.append(link)
-                joint = self.factorizations[i].joint(j)
-                joint = self.factorizations[i].act(joint, end_idx=j, param=t)
-                lines.append(joint)
-
-        # tool line
-        l_t = self.factorizations[0].tool_link(self.factorizations[1].linkage[1].points[1])
-        l_t = self.factorizations[0].act(l_t, end_idx=1, param=t)
-        base_tool_links.append(l_t)
-
-        for i in range(len(lines)):
-            for j in range(i + 1, len(lines)):
-                line0 = lines[i]
-                line1 = lines[j]
-                collision = self.colliding_lines(line0, line1)
-                print(f"Lines {i} and {j} collide: {collision}")
 
     def colliding_lines(self, l0, l1):
         """
@@ -137,7 +114,7 @@ class RationalMechanism(RationalCurve):
 
         # neibouring lines are colliding all the time (expr == 0)
         if expr == 0:
-            return []
+            return None
 
         expr_coeffs = Poly(expr, t).all_coeffs()
 
@@ -150,9 +127,39 @@ class RationalMechanism(RationalCurve):
         # extract real solutions
         t_real = colliding_lines_sol.real[abs(colliding_lines_sol.imag) < 1e-5]
 
-
-
         return t_real
+
+    def _get_links_and_joints_acted_eqations(self) -> tuple[list, list]:
+        from sympy import Symbol
+
+        t = Symbol("t")
+
+        joints = [[], []]
+        links = [[], []]
+
+        # base (static) link has index 0 in the list of the 1st factorization
+        links[0].append(self.factorizations[0].base_link(
+            self.factorizations[1].linkage[0].points[0]))
+
+        # static joints
+        joints[0].append(self.factorizations[0].joint(0))
+        joints[1].append(self.factorizations[1].joint(0))
+
+        for i in range(2):
+            for j in range(self.factorizations[i].number_of_factors - 1):
+                link = self.factorizations[i].link(j)
+                link = self.factorizations[i].act(link, end_idx=j, param=t)
+                links[i].append(link)
+                joint = self.factorizations[i].joint(j)
+                joint = self.factorizations[i].act(joint, end_idx=j, param=t)
+                joints[i].append(joint)
+
+        # tool (moving - acted) link has index -1 in the list of the 2nd factorization
+        tool_link = self.factorizations[0].tool_link(self.factorizations[1].linkage[1].points[1])
+        tool_link = self.factorizations[0].act(tool_link, end_idx=1, param=t)
+        links[1].append(tool_link)
+
+        return joints, links
 
     def check_line_segments_collisions(self, l0, l1, t):
         """
