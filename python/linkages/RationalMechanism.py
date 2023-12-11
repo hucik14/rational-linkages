@@ -97,24 +97,24 @@ class RationalMechanism(RationalCurve):
         self.segments = self._get_line_segments_of_linkage()
 
         for i in range(len(self.segments)):
-            for j in range(len(self.segments)):
-                if i < j:  # avoid redundant checks
-                    collisions, points = self.colliding_lines(self.segments[i].equation, self.segments[j].equation)
+            for j in range(i + 2, len(self.segments)):
+                #if i < j:  # avoid redundant checks
+                collisions, points = self.colliding_lines(self.segments[i].equation, self.segments[j].equation)
 
-                    if collisions is not None:
-                        # check if the collision is between the physical line segments
-                        physical_collision = [False] * len(collisions)
+                if collisions is not None:
+                    # check if the collision is between the physical line segments
+                    physical_collision = [False] * len(collisions)
 
-                        for k, t_val in enumerate(collisions):
-                            # get the intersection point
-                            p = points[k]
-                            # check if the intersection point is on the physical line segments
-                            physical_collision[k] = self.segments[i].is_point_in_segment(p, t_val) and self.segments[j].is_point_in_segment(p, t_val)
-                            print(physical_collision[k])
-                            self.segments[i].is_point_in_segment(p, t_val)
-                            self.segments[j].is_point_in_segment(p, t_val)
+                    for k, t_val in enumerate(collisions):
+                        # get the intersection point
+                        p = points[k]
+                        # check if the intersection point is on the physical line segments
+                        physical_collision[k] = self.segments[i].is_point_in_segment(p, t_val) and self.segments[j].is_point_in_segment(p, t_val)
+                        print(physical_collision[k])
+                        self.segments[i].is_point_in_segment(p, t_val)
+                        self.segments[j].is_point_in_segment(p, t_val)
 
-                        print(f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}")
+                    print(f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}")
 
     def colliding_lines(self, l0, l1) -> tuple[list[float], list[PointHomogeneous]]:
         """
@@ -147,22 +147,18 @@ class RationalMechanism(RationalCurve):
         # extract real solutions
         t_real = colliding_lines_sol.real[abs(colliding_lines_sol.imag) < 1e-5]
 
-        intersetion_points = self.get_intersection_points(l0, l1, t_real)
+        intersection_points = self.get_intersection_points(l0, l1, t_real)
 
-        return t_real, intersetion_points
+        return t_real, intersection_points
 
     def get_intersection_points(self, l0, l1, t_real: list[float]):
         from PointHomogeneous import PointHomogeneous
-
         intersection_points = [PointHomogeneous()] * len(t_real)
 
         for i, t_val in enumerate(t_real):
-            # p0 = Expr(np.dot(l0.direction, l1.moment)).subs(t, t_real[0])
-            point = np.cross(l0.moment, l1.direction)
             l0e = l0.evaluate(t_val)
             l1e = l1.evaluate(t_val)
             p, dist, cos_angle = l0e.common_perpendicular_to_other_line(l1e)
-            intersection_points[i] = PointHomogeneous.from_3d_point(point).evaluate(t_val)
             intersection_points[i] = PointHomogeneous.from_3d_point(p[0])
 
         return intersection_points
