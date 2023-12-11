@@ -232,3 +232,21 @@ class PointHomogeneous:
         :return: np.ndarray of shape (3, 1)
         """
         return self.normalized_in_3d()
+
+    def evaluate(self, t_param: float) -> 'PointHomogeneous':
+        """
+        Evaluate the point at the given parameter
+
+        :param float t_param: parameter
+
+        :return: evaluated point with float elements
+        :rtype: PointHomogeneous
+        """
+        from sympy import Expr, Symbol
+
+        t = Symbol("t")
+
+        point = [Expr(self.coordinates[i]).subs(t, t_param)
+                 for i in range(len(self.coordinates))]
+        point = [point[j].args[0] for j in range(len(point))]
+        return PointHomogeneous(np.asarray(point, dtype="float64"))
