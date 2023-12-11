@@ -358,5 +358,22 @@ class NormalizedLine:
 
         return np.concatenate((p0, vec))
 
+    def evaluate(self, t_param: float) -> 'NormalizedLine':
+        """
+        Evaluate the line at the given parameter
+
+        :param float t_param: parameter
+
+        :return: evaluated line with float elements
+        :rtype: NormalizedLine
+        """
+        from sympy import Expr, Symbol
+
+        t = Symbol("t")
+
+        line = [Expr(self.screw[i]).subs(t, t_param) for i in range(len(self.screw))]
+        line = [line[j].args[0] for j in range(len(line))]
+        return NormalizedLine(np.asarray(line, dtype="float64"))
+
 
 

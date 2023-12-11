@@ -41,6 +41,10 @@ f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0.1]),
                                 PointHomogeneous([1, 0, 0, 0.5]),
                                 PointHomogeneous([1, -0.5, 0, 0.2]),
                                 PointHomogeneous([1, -0.5, 0, 0.3])])
+f2.set_joint_connection_points([PointHomogeneous([1, -0.16666667, 0, 0]),
+                                PointHomogeneous([1, -0.16666667, 0, -0.1]),
+                                PointHomogeneous([1, -0.66666667, 0, -0.1]),
+                                PointHomogeneous([1, -0.66666667, 0, 0])])
 
 m = RationalMechanism([f1, f2])
 m.collision_check()

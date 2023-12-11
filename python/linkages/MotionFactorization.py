@@ -319,8 +319,8 @@ class MotionFactorization(RationalCurve):
         :return: The link line and the points of the link segment
         :rtype: tuple
         """
-        point0 = self.linkage[idx].points[1]
-        point1 = self.linkage[idx + 1].points[0]
+        point0 = self.linkage[idx - 1].points[1]
+        point1 = self.linkage[idx].points[0]
         link = NormalizedLine.from_two_points(point0, point1)
         return link, point0, point1
 

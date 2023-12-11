@@ -99,26 +99,22 @@ class RationalMechanism(RationalCurve):
         for i in range(len(self.segments)):
             for j in range(len(self.segments)):
                 if i < j:  # avoid redundant checks
-                    # check if the lines are colliding
-                    #print(
-                    #    f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}")
                     collisions, points = self.colliding_lines(self.segments[i].equation, self.segments[j].equation)
 
                     if collisions is not None:
                         # check if the collision is between the physical line segments
                         physical_collision = [False] * len(collisions)
 
-
-
                         for k, t_val in enumerate(collisions):
                             # get the intersection point
                             p = points[k]
                             # check if the intersection point is on the physical line segments
                             physical_collision[k] = self.segments[i].is_point_in_segment(p, t_val) and self.segments[j].is_point_in_segment(p, t_val)
-
+                            print(physical_collision[k])
+                            self.segments[i].is_point_in_segment(p, t_val)
+                            self.segments[j].is_point_in_segment(p, t_val)
 
                         print(f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}")
-
 
     def colliding_lines(self, l0, l1) -> tuple[list[float], list[PointHomogeneous]]:
         """
@@ -135,8 +131,8 @@ class RationalMechanism(RationalCurve):
             return None, None
 
         #sp_sol = nroots(expr, n=7)
-        sp_sol = solve(expr, t)
-        real_solutions = [sol for sol in sp_sol if sol.is_real]
+        #sp_sol = solve(expr, t)
+        #real_solutions = [sol for sol in sp_sol if sol.is_real]
         #print(real_solutions)
 
         expr_coeffs = Poly(expr, t).all_coeffs()
@@ -156,20 +152,18 @@ class RationalMechanism(RationalCurve):
         return t_real, intersetion_points
 
     def get_intersection_points(self, l0, l1, t_real: list[float]):
-        from sympy import Symbol, Expr
         from PointHomogeneous import PointHomogeneous
-        t = Symbol("t")
 
         intersection_points = [PointHomogeneous()] * len(t_real)
 
-        for i, val in enumerate(t_real):
+        for i, t_val in enumerate(t_real):
             # p0 = Expr(np.dot(l0.direction, l1.moment)).subs(t, t_real[0])
             point = np.cross(l0.moment, l1.direction)
-            point = [Expr(point[i]).subs(t, val) for i in range(len(point))]
-            point = [point[j].args[0] for j in range(len(point))]
-            point = np.asarray(point, dtype="float64")
-
-            intersection_points[i] = PointHomogeneous.from_3d_point(point)
+            l0e = l0.evaluate(t_val)
+            l1e = l1.evaluate(t_val)
+            p, dist, cos_angle = l0e.common_perpendicular_to_other_line(l1e)
+            intersection_points[i] = PointHomogeneous.from_3d_point(point).evaluate(t_val)
+            intersection_points[i] = PointHomogeneous.from_3d_point(p[0])
 
         return intersection_points
 
@@ -193,25 +187,25 @@ class RationalMechanism(RationalCurve):
                                        linkage_type="j", f_idx=1, idx=0))
 
         for i in range(2):
-            for j in range(self.factorizations[i].number_of_factors - 1):
+            for j in range(1, self.factorizations[i].number_of_factors):
                 link, p0, p1 = self.factorizations[i].link(j)
-                link = self.factorizations[i].act(link, end_idx=j, param=t)
-                p0 = self.factorizations[i].act(p0, end_idx=j, param=t)
-                p1 = self.factorizations[i].act(p1, end_idx=j, param=t)
+                link = self.factorizations[i].act(link, end_idx=j-1, param=t)
+                p0 = self.factorizations[i].act(p0, end_idx=j-1, param=t)
+                p1 = self.factorizations[i].act(p1, end_idx=j-1, param=t)
                 segments[i].append(LineSegment(link, p0, p1, linkage_type="l", f_idx=i, idx=j))
 
-                joint, p0, p1 = self.factorizations[i].joint(j+1)
+                joint, p0, p1 = self.factorizations[i].joint(j)
                 joint = self.factorizations[i].act(joint, end_idx=j, param=t)
                 p0 = self.factorizations[i].act(p0, end_idx=j, param=t)
                 p1 = self.factorizations[i].act(p1, end_idx=j, param=t)
-                segments[i].append(LineSegment(joint, p0, p1, linkage_type="j", f_idx=i, idx=j+1))
+                segments[i].append(LineSegment(joint, p0, p1, linkage_type="j", f_idx=i, idx=j))
 
         # tool (moving - acted) link has index -1 in the list of the 2nd factorization
         tool_link, p0, p1 = self.factorizations[0].tool_link(self.factorizations[1].linkage[-1].points[1])
         tool_link = self.factorizations[0].act(tool_link, param=t)
         p0 = self.factorizations[0].act(p0, param=t)
         p1 = self.factorizations[1].act(p1, param=t)
-        tool_idx = self.factorizations[1].number_of_factors - 1
+        tool_idx = self.factorizations[1].number_of_factors
         segments[1].append(LineSegment(tool_link, p0, p1, linkage_type="t", f_idx=1, idx=tool_idx))
 
         return segments[0] + segments[1][::-1]
