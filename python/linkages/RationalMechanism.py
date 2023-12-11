@@ -98,7 +98,6 @@ class RationalMechanism(RationalCurve):
 
         for i in range(len(self.segments)):
             for j in range(i + 2, len(self.segments)):
-                #if i < j:  # avoid redundant checks
                 collisions, points = self.colliding_lines(self.segments[i].equation, self.segments[j].equation)
 
                 if collisions is not None:
@@ -110,7 +109,7 @@ class RationalMechanism(RationalCurve):
                         p = points[k]
                         # check if the intersection point is on the physical line segments
                         physical_collision[k] = self.segments[i].is_point_in_segment(p, t_val) and self.segments[j].is_point_in_segment(p, t_val)
-                        print(physical_collision[k])
+                        #print(physical_collision[k])
                         self.segments[i].is_point_in_segment(p, t_val)
                         self.segments[j].is_point_in_segment(p, t_val)
 
@@ -122,6 +121,7 @@ class RationalMechanism(RationalCurve):
         """
         from sympy import Poly, Symbol, solve, simplify, nroots
         t = Symbol("t")
+        import sympy as sp
 
         # lines are colliding if expr == 0
         expr = simplify(np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction))
@@ -135,6 +135,7 @@ class RationalMechanism(RationalCurve):
         #real_solutions = [sol for sol in sp_sol if sol.is_real]
         #print(real_solutions)
 
+
         expr_coeffs = Poly(expr, t).all_coeffs()
 
         # convert to numpy polynomial
@@ -146,6 +147,11 @@ class RationalMechanism(RationalCurve):
         colliding_lines_sol = np_poly.roots()
         # extract real solutions
         t_real = colliding_lines_sol.real[abs(colliding_lines_sol.imag) < 1e-5]
+
+        if sp.limit(expr, t, sp.oo) == sp.oo:
+            t_real = np.append(t_real, np.inf)
+        elif sp.limit(expr, t, sp.oo) == -sp.oo:
+            t_real = np.append(t_real, -np.inf)
 
         intersection_points = self.get_intersection_points(l0, l1, t_real)
 
