@@ -2,6 +2,7 @@
 Classes in the Module:
     - Linkage: Represents the connection points on a joint.
     - PointsConnection: Operates the connection points for a given joint.
+    - LineSegment: Represents the physical realization of a linkage.
 """
 import numpy as np
 from typing import Union
@@ -167,6 +168,18 @@ class PointsConnection:
 
 
 class LineSegment:
+    """
+    Class for storing the physical realization of a linkage as their motion equations.
+
+    :ivar NormalizedLine equation: The equation of the line segment under the motion
+    :ivar PointHomogeneous point0: The equation of the first point of the line segment
+    :ivar PointHomogeneous point1: The equation of the second point of the line segment
+    :ivar str type: The type of the line segment (b - base, j - joint, l - link,
+        t - tool)
+    :ivar int factorization_idx: The index of the factorization the line segment
+        belongs to
+    :ivar int idx: The index of the line segment in the factorization
+    """
     def __init__(self, eqation, point0, point1, linkage_type, f_idx, idx):
         self.equation = eqation
         self.point0 = point0

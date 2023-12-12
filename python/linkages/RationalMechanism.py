@@ -1,16 +1,13 @@
 import numpy as np
+import sympy as sp
 from copy import deepcopy
-
-import pylab as p
 
 from RationalCurve import RationalCurve
 from DualQuaternion import DualQuaternion
-from matplotlib import pyplot as plt
-from TransfMatrix import TransfMatrix
-from matplotlib.widgets import Slider
 from MotionFactorization import MotionFactorization
 
 PointHomogeneous = 'PointHomogeneous'
+NormalizedLine = 'NormalizedLine'
 
 
 class RationalMechanism(RationalCurve):
@@ -91,96 +88,118 @@ class RationalMechanism(RationalCurve):
         """
         Perform full-cycle collision check on the line-model linkage between linkage and
         links of the two given factorizations.
-
         """
-        # update the line segments
+        # update the line segments (physical realization of the linkage)
         self.segments = self._get_line_segments_of_linkage()
 
         for i in range(len(self.segments)):
+
+            # skip neighbouring lines and avoid redundant checks
             for j in range(i + 2, len(self.segments)):
-                collisions, points = self.colliding_lines(self.segments[i].equation, self.segments[j].equation)
+                # check if two lines are colliding
+                collisions, coll_pts = self.colliding_lines(self.segments[i].equation,
+                                                            self.segments[j].equation)
 
                 if collisions is not None:
                     # check if the collision is between the physical line segments
-                    physical_collision = [False] * len(collisions)
-
-                    for k, t_val in enumerate(collisions):
-                        # get the intersection point
-                        p = points[k]
-                        # check if the intersection point is on the physical line segments
-                        physical_collision[k] = self.segments[i].is_point_in_segment(p, t_val) and self.segments[j].is_point_in_segment(p, t_val)
-                        #print(physical_collision[k])
-                        self.segments[i].is_point_in_segment(p, t_val)
-                        self.segments[j].is_point_in_segment(p, t_val)
+                    physical_collision = [
+                        self.segments[i].is_point_in_segment(coll_pts[k], t_val) and
+                        self.segments[j].is_point_in_segment(coll_pts[k], t_val)
+                        for k, t_val in enumerate(collisions)
+                    ]
 
                     print(f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}")
 
-    def colliding_lines(self, l0, l1) -> tuple[list[float], list[PointHomogeneous]]:
+    def colliding_lines(self, l0: NormalizedLine, l1: NormalizedLine
+                        ) -> tuple[list[float], list[PointHomogeneous]]:
         """
         Return the lines that are colliding in the linkage.
+
+        :param NormalizedLine l0: equation of the first line
+        :param NormalizedLine l1: equation of the second line
+
+        :return: tuple (list of t values, list of intersection points)
+        :rtype: tuple[list[float], list[PointHomogeneous]]
         """
-        from sympy import Poly, Symbol, solve, simplify, nroots
-        t = Symbol("t")
-        import sympy as sp
+        t = sp.Symbol("t")
 
         # lines are colliding if expr == 0
-        expr = simplify(np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction))
+        expr = sp.simplify(np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction))
 
         # neighbouring lines are colliding all the time (expr == 0)
         if expr == 0:
             return None, None
 
-        #sp_sol = nroots(expr, n=7)
-        #sp_sol = solve(expr, t)
-        #real_solutions = [sol for sol in sp_sol if sol.is_real]
-        #print(real_solutions)
-
-
-        expr_coeffs = Poly(expr, t).all_coeffs()
+        expr_coeffs = sp.Poly(expr, t).all_coeffs()
 
         # convert to numpy polynomial
         expr_n = np.array(expr_coeffs, dtype="float64")
-        # TODO: check the domain
-        np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1], domain=[-1, 1])
+        np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1])
 
         # solve for t
         colliding_lines_sol = np_poly.roots()
         # extract real solutions
-        t_real = colliding_lines_sol.real[abs(colliding_lines_sol.imag) < 1e-5]
+        sol_real = colliding_lines_sol.real[np.isclose(colliding_lines_sol.imag,
+                                                       0, atol=1e-5)]
 
+        # TODO: solve this smecko
+        # if the solution is infinity, add it to the list
         if sp.limit(expr, t, sp.oo) == sp.oo:
-            t_real = np.append(t_real, np.inf)
+            sol_real = np.append(sol_real, np.inf)
         elif sp.limit(expr, t, sp.oo) == -sp.oo:
-            t_real = np.append(t_real, -np.inf)
+            sol_real = np.append(sol_real, -np.inf)
 
-        intersection_points = self.get_intersection_points(l0, l1, t_real)
+        intersection_points = self.get_intersection_points(l0, l1, sol_real)
 
-        return t_real, intersection_points
+        return sol_real, intersection_points
 
-    def get_intersection_points(self, l0, l1, t_real: list[float]):
+    def get_intersection_points(self, l0: NormalizedLine, l1: NormalizedLine,
+                                t_params: list[float]):
+        """
+        Return the intersection points of two lines.
+
+        :param NormalizedLine l0: equation of the first line
+        :param NormalizedLine l1: equation of the second line
+        :param list[float] t_params: list of parameter values - points of intersection
+
+        :return: list of intersection points
+        :rtype: list[PointHomogeneous]
+        """
         from PointHomogeneous import PointHomogeneous
-        intersection_points = [PointHomogeneous()] * len(t_real)
+        intersection_points = [PointHomogeneous()] * len(t_params)
 
-        for i, t_val in enumerate(t_real):
+        for i, t_val in enumerate(t_params):
+            # evaluate the lines at the given parameter
             l0e = l0.evaluate(t_val)
             l1e = l1.evaluate(t_val)
-            p, dist, cos_angle = l0e.common_perpendicular_to_other_line(l1e)
-            intersection_points[i] = PointHomogeneous.from_3d_point(p[0])
+
+            # common perpendicular to the two lines - there is none since they
+            # intersect, therefore from the list of two points only 1 is needed
+            inters_points, d, c = l0e.common_perpendicular_to_other_line(l1e)
+            intersection_points[i] = PointHomogeneous.from_3d_point(inters_points[0])
 
         return intersection_points
 
     def _get_line_segments_of_linkage(self) -> list:
-        from sympy import Symbol
+        """
+        Return the line segments of the linkage.
+
+        Line segments are the physical realization of the linkage. This method obtains
+        their motion equations using default connection points of the factorizations
+        (default meaning the static points in the home configuration).
+
+        :return: list of LineSegment objects
+        :rtype: list[LineSegment]
+        """
         from Linkage import LineSegment
 
-        t = Symbol("t")
+        t = sp.Symbol("t")
 
         segments = [[], []]
 
         # base (static) link has index 0 in the list of the 1st factorization
         eq, p0, p1 = self.factorizations[0].base_link(self.factorizations[1].linkage[0].points[0])
-        s = LineSegment(eq, p0, p1, linkage_type="b", f_idx=0, idx=0)
-        segments[0].append(s)
+        segments[0].append(LineSegment(eq, p0, p1, linkage_type="b", f_idx=0, idx=0))
 
         # static joints
         segments[0].append(LineSegment(*self.factorizations[0].joint(0),
@@ -188,6 +207,7 @@ class RationalMechanism(RationalCurve):
         segments[1].append(LineSegment(*self.factorizations[1].joint(0),
                                        linkage_type="j", f_idx=1, idx=0))
 
+        # moving links and joints
         for i in range(2):
             for j in range(1, self.factorizations[i].number_of_factors):
                 link, p0, p1 = self.factorizations[i].link(j)
