@@ -130,24 +130,36 @@ class RationalMechanism(RationalCurve):
         if expr == 0:
             return None, None
 
-        expr_coeffs = sp.Poly(expr, t).all_coeffs()
+        e = sp.Expr(expr).subs(t, (t + 1) / 2)
+
+        expr_poly = sp.Poly(e.args[0], t)
+
+        expr_coeffs = expr_poly.all_coeffs()
 
         # convert to numpy polynomial
         expr_n = np.array(expr_coeffs, dtype="float64")
         np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1])
+        np_poly_inversed = np.polynomial.polynomial.Polynomial(expr_n)
 
         # solve for t
         colliding_lines_sol = np_poly.roots()
+        colliding_lines_sol_inversed = np_poly_inversed.roots()
         # extract real solutions
         sol_real = colliding_lines_sol.real[np.isclose(colliding_lines_sol.imag,
                                                        0, atol=1e-5)]
+        sol_real_inversed = colliding_lines_sol_inversed.real[
+            np.isclose(colliding_lines_sol_inversed.imag, 0, atol=1e-5)]
 
-        # TODO: solve this smecko
-        # if the solution is infinity, add it to the list
-        if sp.limit(expr, t, sp.oo) == sp.oo:
-            sol_real = np.append(sol_real, np.inf)
-        elif sp.limit(expr, t, sp.oo) == -sp.oo:
-            sol_real = np.append(sol_real, -np.inf)
+        sol_real = [((sol + 1)/2) for sol in sol_real]
+        sol_real_inversed = [((sol + 1)/2) for sol in sol_real_inversed]
+
+        for sol in sol_real_inversed:
+            if not np.isclose(sol, 0):
+                sol = 1 / sol
+                sol_real = np.append(sol_real, sol)
+            else:
+                sol = np.inf
+                sol_real = np.append(sol_real, sol)
 
         intersection_points = self.get_intersection_points(l0, l1, sol_real)
 
