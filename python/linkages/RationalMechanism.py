@@ -96,6 +96,8 @@ class RationalMechanism(RationalCurve):
         # update the line segments (physical realization of the linkage)
         self.segments = self._get_line_segments_of_linkage()
 
+        results = []
+
         for i in range(len(self.segments)):
 
             # skip neighbouring lines and avoid redundant checks
@@ -111,14 +113,17 @@ class RationalMechanism(RationalCurve):
                         self.segments[j].is_point_in_segment(coll_pts[k], t_val)
                         for k, t_val in enumerate(collisions)
                     ]
+                else:
+                    physical_collision = [False]
 
-                    if True in physical_collision:
-                        print(f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}")
-                    else:
-                        pass
+                if True in physical_collision:
+                    results.append(f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}")
+                else:
+                    results.append(f"no collision between {self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}")
 
         end_time = time()
         print(f"Collision check finished in {end_time - start_time} seconds.")
+        return results
 
     def colliding_lines(self, l0: NormalizedLine, l1: NormalizedLine
                         ) -> tuple[list[float], list[PointHomogeneous]]:
