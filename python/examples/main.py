@@ -34,9 +34,9 @@ k1 = DualQuaternion([0, 47/37, 23/37, 0, 0, 0, 0, 24/37], is_rotation=True)
 k2 = DualQuaternion([0, -93/481, 1440/481, 0, 0, 0, 0, -164/481], is_rotation=True)
 k3 = DualQuaternion([0, 12/13, 5/13, 0, 0, 0, 0, -17/13], is_rotation=True)
 
-#f1 = MotionFactorization([h1, h2, h3])
-#f2 = MotionFactorization([k1, k2, k3])
-
+f1 = MotionFactorization([h1, h2, h3])
+f2 = MotionFactorization([k1, k2, k3])
+"""
 f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0.1]),
                                 PointHomogeneous([1, 0, 0, 0.5]),
                                 PointHomogeneous([1, -0.5, 0, 0.2]),
@@ -45,7 +45,7 @@ f2.set_joint_connection_points([PointHomogeneous([1, -0.16666667, 0, 0]),
                                 PointHomogeneous([1, -0.16666667, 0, -0.1]),
                                 PointHomogeneous([1, -0.66666667, 0, 0.1]),
                                 PointHomogeneous([1, -0.66666667, 0, 0])])
-
+"""
 m = RationalMechanism([f1, f2])
 m.collision_check()
 

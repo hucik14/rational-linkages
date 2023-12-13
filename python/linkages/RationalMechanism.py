@@ -1,6 +1,7 @@
 import numpy as np
 import sympy as sp
 from copy import deepcopy
+from time import time
 
 from RationalCurve import RationalCurve
 from DualQuaternion import DualQuaternion
@@ -89,6 +90,9 @@ class RationalMechanism(RationalCurve):
         Perform full-cycle collision check on the line-model linkage between linkage and
         links of the two given factorizations.
         """
+        start_time = time()
+        print("Collision check started...")
+
         # update the line segments (physical realization of the linkage)
         self.segments = self._get_line_segments_of_linkage()
 
@@ -108,7 +112,13 @@ class RationalMechanism(RationalCurve):
                         for k, t_val in enumerate(collisions)
                     ]
 
-                    print(f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}")
+                    if True in physical_collision:
+                        print(f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}")
+                    else:
+                        pass
+
+        end_time = time()
+        print(f"Collision check finished in {end_time - start_time} seconds.")
 
     def colliding_lines(self, l0: NormalizedLine, l1: NormalizedLine
                         ) -> tuple[list[float], list[PointHomogeneous]]:
@@ -153,17 +163,20 @@ class RationalMechanism(RationalCurve):
         sol_real = [((sol + 1)/2) for sol in sol_real]
         sol_real_inversed = [((sol + 1)/2) for sol in sol_real_inversed]
 
+        solutions = deepcopy(sol_real)
+
         for sol in sol_real_inversed:
             if not np.isclose(sol, 0):
                 sol = 1 / sol
-                sol_real = np.append(sol_real, sol)
+                solutions = np.append(solutions, sol)
             else:
-                sol = np.inf
-                sol_real = np.append(sol_real, sol)
+                #sol = np.inf
+                sol = 10 ** 20
+                solutions = np.append(solutions, sol)
 
-        intersection_points = self.get_intersection_points(l0, l1, sol_real)
+        intersection_points = self.get_intersection_points(l0, l1, solutions)
 
-        return sol_real, intersection_points
+        return solutions, intersection_points
 
     def get_intersection_points(self, l0: NormalizedLine, l1: NormalizedLine,
                                 t_params: list[float]):
