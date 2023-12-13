@@ -164,7 +164,7 @@ class RationalCurve:
         # Solve the equations
         points_sol = sp.linsolve(equations_coeffs, points_flattened)
         # Convert the solutions to numpy arrays (get points)
-        points_array = np.array(points_sol.args[0]).reshape(
+        points_array = np.array(points_sol.args[0], dtype="float64").reshape(
             self.degree + 1, self.dimension + 1
         )
         points_objects = [PointHomogeneous()] * (self.degree + 1)

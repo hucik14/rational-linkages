@@ -31,7 +31,8 @@ class RationalMechanism(RationalCurve):
             DualQuaternion(self.evaluate(0, inverted_part=True))
             if end_effector is None else end_effector)
 
-        self.segments = self._get_line_segments_of_linkage()
+        if self.is_linkage:
+            self.segments = self._get_line_segments_of_linkage()
 
     def get_dh_params(self, alpha_form: str = "cos_alpha") -> tuple:
         """
@@ -109,6 +110,8 @@ class RationalMechanism(RationalCurve):
         for ii in range(len(self.segments)):
             for jj in range(ii + 2, len(self.segments)):
                 iters.append((ii, jj))
+
+        print(f"Number of tasks to solve: {len(iters)}")
 
         if parallel:
             collision_results = self._collision_check_parallel(iters)
