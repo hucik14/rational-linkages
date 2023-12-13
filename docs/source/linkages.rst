@@ -28,8 +28,8 @@ Factorization Provider
 Joint Connections
 -----------------
 
-.. automodule:: linkages.JointConnections
-   :members: JointConnections, PointsConnection
+.. automodule:: linkages.Linkage
+   :members: Linkage, PointsConnection
    :undoc-members:
    :show-inheritance:
 
