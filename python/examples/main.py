@@ -1,18 +1,12 @@
-import numpy as np
-
 from DualQuaternion import DualQuaternion
 from PointHomogeneous import PointHomogeneous
 from MotionFactorization import MotionFactorization
 from RationalMechanism import RationalMechanism
-from AffineMetric import AffineMetric
 from Plotter import Plotter
 
-import matplotlib
-matplotlib.use("Qt5Agg")
-import matplotlib.pyplot as plt
 
-
-# Daniel's testing code, for examples see 'examples' folder or read the documentation/docstrings of classes
+# Daniel's testing code, for examples see 'examples' folder or read
+# the documentation/docstrings of classes
 
 if __name__ == '__main__':
     f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
