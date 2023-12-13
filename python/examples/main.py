@@ -48,7 +48,9 @@ if __name__ == '__main__':
                                     PointHomogeneous([1, -0.66666667, 0, 0])])
     #"""
     m = RationalMechanism([f1, f2])
-    res = m.collision_check()
+    #res = m.collision_check(parallel=True)
+    res = m.collision_check(parallel=False)
+    print(res)
 
     p = Plotter(interactive=True, steps=500)
     p.plot(m, show_tool=False)

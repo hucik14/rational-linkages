@@ -61,8 +61,11 @@ f2.set_joint_connection_points([PointHomogeneous([1, -0.67209203533440663286, 1.
 # Plotting the mechanism
 ########################
 
-m = RationalMechanism([f1, f2])
-p = Plotter(interactive=True, steps=500)
-p.plot(m, show_tool=False)
-m.collision_check()
+if __name__ == '__main__':
+    m = RationalMechanism([f1, f2])
+    p = Plotter(interactive=True, steps=500)
+    p.plot(m, show_tool=False)
+    #res = m.collision_check(parallel=True)
+    res = m.collision_check(parallel=False)
+    print(res)
 

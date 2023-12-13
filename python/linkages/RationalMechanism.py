@@ -85,7 +85,7 @@ class RationalMechanism(RationalCurve):
 
         return d, a, alpha
     
-    def collision_check(self):
+    def collision_check(self, parallel: bool = False):
         """
         Perform full-cycle collision check on the line-model linkage between linkage and
         links of the two given factorizations.
@@ -96,34 +96,58 @@ class RationalMechanism(RationalCurve):
         # update the line segments (physical realization of the linkage)
         self.segments = self._get_line_segments_of_linkage()
 
-        results = []
+        iters = []
+        for ii in range(len(self.segments)):
+            for jj in range(ii + 2, len(self.segments)):
+                iters.append((ii, jj))
 
-        for i in range(len(self.segments)):
-
-            # skip neighbouring lines and avoid redundant checks
-            for j in range(i + 2, len(self.segments)):
-                # check if two lines are colliding
-                collisions, coll_pts = self.colliding_lines(self.segments[i].equation,
-                                                            self.segments[j].equation)
-
-                if collisions is not None:
-                    # check if the collision is between the physical line segments
-                    physical_collision = [
-                        self.segments[i].is_point_in_segment(coll_pts[k], t_val) and
-                        self.segments[j].is_point_in_segment(coll_pts[k], t_val)
-                        for k, t_val in enumerate(collisions)
-                    ]
-                else:
-                    physical_collision = [False]
-
-                if True in physical_collision:
-                    results.append(f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}")
-                else:
-                    results.append(f"no collision between {self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}")
+        if parallel:
+            collision_results = self._collision_check_parallel(iters)
+        else:
+            collision_results = self._collision_check_nonparallel(iters)
 
         end_time = time()
         print(f"Collision check finished in {end_time - start_time} seconds.")
+
+        return collision_results
+
+    def _collision_check_parallel(self, iters: list[tuple[int, int]]):
+        print("--- running in parallel ---")
+        import concurrent.futures
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            results = executor.map(self._check_given_pair, iters)
+
+        return list(results)
+
+    def _collision_check_nonparallel(self, iters: list[tuple[int, int]]):
+        results = []
+        for val in iters:
+            results.append(self._check_given_pair(val))
         return results
+
+    def _check_given_pair(self, iters: tuple[int, int]):
+        i = iters[0]
+        j = iters[1]
+        # check if two lines are colliding
+        collisions, coll_pts = self.colliding_lines(self.segments[i].equation,
+                                                    self.segments[j].equation)
+
+        if collisions is not None:
+            # check if the collision is between the physical line segments
+            physical_collision = [
+                self.segments[i].is_point_in_segment(coll_pts[k], t_val) and
+                self.segments[j].is_point_in_segment(coll_pts[k], t_val)
+                for k, t_val in enumerate(collisions)
+            ]
+        else:
+            physical_collision = [False]
+
+        if True in physical_collision:
+            result = f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}"
+        else:
+            result = f"no collision between {self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}"
+
+        return result
 
     def colliding_lines(self, l0: NormalizedLine, l1: NormalizedLine
                         ) -> tuple[list[float], list[PointHomogeneous]]:
