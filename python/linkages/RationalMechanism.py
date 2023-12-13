@@ -87,8 +87,17 @@ class RationalMechanism(RationalCurve):
     
     def collision_check(self, parallel: bool = False):
         """
-        Perform full-cycle collision check on the line-model linkage between linkage and
-        links of the two given factorizations.
+        Perform full-cycle collision check on the line-model linkage.
+
+        By default, the collision check is performed in non-parallel mode. This is
+        faster for 4-bar linkages and 6-bar lingakes with a "simpler" motion curve,
+        but slower for 6-bar linkages with "complex" motions.
+
+        :param bool parallel: if True, perform collision check in parallel using
+            multiprocessing
+
+        :return: list of collision check results
+        :rtype: list[str]
         """
         start_time = time()
         print("Collision check started...")
@@ -106,26 +115,61 @@ class RationalMechanism(RationalCurve):
         else:
             collision_results = self._collision_check_nonparallel(iters)
 
+        results = [r for r in collision_results if r is not None]
+        if len(results) == 0:
+            results = ["Linkage is without collisions!"]
+
         end_time = time()
         print(f"Collision check finished in {end_time - start_time} seconds.")
 
-        return collision_results
+        return results
 
     def _collision_check_parallel(self, iters: list[tuple[int, int]]):
+        """
+        Perform collision check in parallel using multiprocessing.
+
+        Slower for 4-bar linkages and 6-bar lingakes with a "simpler" motion curve,
+        faster for 6-bar linkages with "complex" motions.
+
+        :param list iters: list of tuples of indices of the line segments to be checked
+
+        :return: list of collision check results
+        :rtype: list[str]
+        """
         print("--- running in parallel ---")
         import concurrent.futures
+
         with concurrent.futures.ProcessPoolExecutor() as executor:
             results = executor.map(self._check_given_pair, iters)
 
         return list(results)
 
     def _collision_check_nonparallel(self, iters: list[tuple[int, int]]):
+        """
+        Perform collision check in non-parallel mode.
+
+        Default option. Faster for 4-bar linkages and 6-bar lingakes with a "simpler"
+        motion curve, slower for 6-bar linkages with "complex" motions.
+
+        :param list iters: list of tuples of indices of the line segments to be checked
+
+        :return: list of collision check results
+        :rtype: list[str]
+        """
         results = []
         for val in iters:
             results.append(self._check_given_pair(val))
         return results
 
     def _check_given_pair(self, iters: tuple[int, int]):
+        """
+        Perform collision check for a given pair of line segments and evaluate it.
+
+        :param tuple iters: tuple of indices of the line segments to be checked
+
+        :return: collision check result
+        :rtype: str
+        """
         i = iters[0]
         j = iters[1]
         # check if two lines are colliding
@@ -143,9 +187,10 @@ class RationalMechanism(RationalCurve):
             physical_collision = [False]
 
         if True in physical_collision:
-            result = f"{self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}: {collisions}, physical: {physical_collision}"
+            result = f"{physical_collision} at parameters: {collisions} for linkage pair: {self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}"
         else:
-            result = f"no collision between {self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}"
+            #result = f"no collision between {self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}"
+            result = None
 
         return result
 

@@ -65,7 +65,7 @@ if __name__ == '__main__':
     m = RationalMechanism([f1, f2])
     p = Plotter(interactive=True, steps=500)
     p.plot(m, show_tool=False)
-    #res = m.collision_check(parallel=True)
-    res = m.collision_check(parallel=False)
+    res = m.collision_check(parallel=True)
+    #res = m.collision_check(parallel=False)
     print(res)
 
