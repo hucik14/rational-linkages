@@ -13,6 +13,7 @@ scipy = "^1.11"
 sympy = "^1.11"
 matplotlib = "^3.7"
 biquaternion-py = "^1.0.0"
+PyQt5 = "^5.15.10"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.2"
