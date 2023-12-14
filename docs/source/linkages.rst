@@ -25,11 +25,11 @@ Factorization Provider
    :undoc-members:
    :show-inheritance:
 
-Joint Connections
------------------
+Linkage
+-------
 
 .. automodule:: linkages.Linkage
-   :members: Linkage, PointsConnection
+   :members: Linkage, PointsConnection, LineSegment
    :undoc-members:
    :show-inheritance:
 
