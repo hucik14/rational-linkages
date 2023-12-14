@@ -1,4 +1,5 @@
 [![build](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/pipeline.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
+[![Documentation Status](https://readthedocs.org/projects/rational-linkages/badge/?version=latest)](https://rational-linkages.readthedocs.io/?badge=latest)
 [![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=run_tests)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)]()
 
