@@ -2,7 +2,13 @@
 name = "rational-linkages"
 version = "0.1.0"
 description = "Rational Linkages Toolbox"
-authors = ["daniel"]
+authors = [
+    {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
+]
+maintainers = [
+    {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
+]
+
 license = {"file"= "LICENSE"}
 readme = "README.md"
 
