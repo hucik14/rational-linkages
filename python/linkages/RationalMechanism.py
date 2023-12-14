@@ -34,12 +34,13 @@ class RationalMechanism(RationalCurve):
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
 
-    def get_dh_params(self, alpha_form: str = "cos_alpha") -> tuple:
+    def get_dh_params(self, unit: str = "cos_alpha", scale: float = None) -> tuple:
         """
         Get the Denavit-Hartenberg parameters of the linkage.
 
-        :param alpha_form: str - form of the returned alpha parameter, can be
+        :param unit: str - form of the returned alpha parameter, can be
             "cos_alpha", "deg", or "rad"
+        :param scale: float - scale of length parameters of the linkage
 
         :return: tuple (d, a, alpha)
         """
@@ -58,12 +59,19 @@ class RationalMechanism(RationalCurve):
         pts_prev = lines[-1].common_perpendicular_to_other_line(lines[0])[0]
         for i in range(len(lines) - 1):
             pts, a_i, al_i = lines[i].common_perpendicular_to_other_line(lines[i+1])
+            #print(lines[i].get_point_param(pts[0]))
+            print(scale * np.linalg.norm(linkage.linkage[i].points_params[0] - linkage.linkage[i].points_params[1]))
+
+            #print(lines[i+1].contains_point(pts[1]))
             d_i = lines[i].get_point_param(pts_prev[1]) - lines[i].get_point_param(pts[0])
             pts_prev = deepcopy(pts)
 
             d.append(d_i)
             a.append(a_i)
             alpha.append(al_i)
+
+        print(scale * np.linalg.norm(
+            linkage.linkage[i + 1].points_params[0] - linkage.linkage[i + 1].points_params[1]))
 
         # Calculate Denavit-Hartenberg parameters for the last pair
         pts, a_i, al_i = lines[-1].common_perpendicular_to_other_line(lines[0])
@@ -73,8 +81,12 @@ class RationalMechanism(RationalCurve):
         a.append(a_i)
         alpha.append(al_i)
 
+        if scale is not None:
+            d = [d_i * scale for d_i in d]
+            a = [a_i * scale for a_i in a]
+
         # Convert alpha to the specified form
-        match alpha_form:
+        match unit:
             case "cos_alpha":
                 pass
             case "deg":
@@ -82,7 +94,7 @@ class RationalMechanism(RationalCurve):
             case "rad":
                 alpha = [np.arccos(alpha_i) for alpha_i in alpha]
             case _:
-                raise ValueError("alpha_form must be cos_alpha, deg or rad")
+                raise ValueError("unit must be cos_alpha, deg or rad")
 
         return d, a, alpha
     

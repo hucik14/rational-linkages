@@ -72,7 +72,17 @@ class MotionFactorization(RationalCurve):
         :return: concatenated MotionFactorization
         :rtype: MotionFactorization
         """
-        return MotionFactorization(self.dq_axes + other.dq_axes[::-1])
+        from copy import deepcopy
+
+        self_copy = deepcopy(self)
+
+        for i in reversed(range(other.number_of_factors)):
+            self_copy.dq_axes.append(other.dq_axes[i])
+            self_copy.linkage.append(other.linkage[i])
+            self_copy.factors_with_parameter = self_copy.get_symbolic_factors()
+            self_copy.number_of_factors += 1
+
+        return self_copy
 
     @staticmethod
     def get_polynomials_from_factorization(factors: list[DualQuaternion]) -> (

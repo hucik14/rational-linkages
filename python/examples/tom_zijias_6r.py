@@ -58,6 +58,20 @@ f2.set_joint_connection_points([PointHomogeneous([1, -0.67209203533440663286, 1.
                                 PointHomogeneous([1, -0.1404563036, -0.1904506672, 0.1508073794]),
                                 PointHomogeneous([1, -0.1135709493, -0.1602769278, 0.2114655719])])
 
+f1.set_joint_connection_points([PointHomogeneous([1, -0.77834683, 0., 0.]),
+                                PointHomogeneous([1, -1.26264938, 0., 0.]),
+                                PointHomogeneous([1, -1., 0.70846198, 1.000000000]),
+                                PointHomogeneous([1, -1., 0.18541523, 1.000000000]),
+                                PointHomogeneous([1, 0.0, -0.08416113,  1.2211185]),
+                                PointHomogeneous([1, 0.0, -0.45610548,  0.72519269])])
+
+f2.set_joint_connection_points([PointHomogeneous([1, -0.66655205,  1.44890418,  1.06400818]),
+                                PointHomogeneous([1, -0.72063822,  1.80186662,  0.85918185]),
+                                PointHomogeneous([1, -1.03302235,  0.42842552, -0.04990683]),
+                                PointHomogeneous([1, -0.53982406,  0.54263802,  0.1159702]),
+                                PointHomogeneous([1, -0.20593148, -0.26393421,  0.0030836]),
+                                PointHomogeneous([1, -0.03086572, -0.0674559,   0.39806344])])
+
 # Plotting the mechanism
 ########################
 
@@ -65,7 +79,10 @@ if __name__ == '__main__':
     m = RationalMechanism([f1, f2])
     p = Plotter(interactive=True, steps=500)
     p.plot(m, show_tool=False)
-    res = m.collision_check(parallel=True)
+    #res = m.collision_check(parallel=True)
     #res = m.collision_check(parallel=False)
-    print(res)
+    #print(res)
+
+    d = m.get_dh_params(unit='deg', scale=200)
+    print(d)
 
