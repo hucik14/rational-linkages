@@ -8,17 +8,18 @@ authors = [
 maintainers = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
 ]
-
 license = {"file"= "LICENSE"}
 readme = "README.md"
 
-[project.dependencies]
-python = "^3.11"
-scipy = "^1.11"
-sympy = "^1.11"
-matplotlib = "^3.7"
-biquaternion-py = "^1.0.0"
-PyQt5 = "^5.15.10"
+dependencies = [
+    "python >= 3.11",
+    "scipy >= 1.1.0",
+    "sympy >= 1.1.0",
+    "matplotlib >= 3.1.0",
+    "biquaternion-py >= 1.0.0",
+    "PyQt5 >= 5.15.10"
+]
+
 
 [project.optional-dependencies]
 doc = [
