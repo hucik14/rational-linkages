@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, RangeSlider, TextBox
+from matplotlib.widgets import Slider, TextBox
 from functools import wraps
 
 from DualQuaternion import DualQuaternion
@@ -324,7 +324,7 @@ class Plotter:
         self.text_box_param = TextBox(self.fig.add_axes([0.3, 0.12, 0.15, 0.05]),
                                       "Set param t [-]: ", textalignment="right")
 
-        # vertical sliders to control physical joints position (connecting points)
+        # vertical sliders to control physical linkage position (connecting points)
         self.joint_sliders = []
         for i in range(mechanism.num_joints):
             slider0, slider1 = self._init_slider(idx=i, j_sliders=self.joint_sliders)
@@ -334,17 +334,17 @@ class Plotter:
         # set joint parameters to home configuration
         for i in range(mechanism.factorizations[0].number_of_factors):
             self.joint_sliders[2 * i].set_val(
-                mechanism.factorizations[0].joints[i].points_params[0])
+                mechanism.factorizations[0].linkage[i].points_params[0])
             self.joint_sliders[1 + 2 * i].set_val(
-                mechanism.factorizations[0].joints[i].points_params[1])
+                mechanism.factorizations[0].linkage[i].points_params[1])
 
         for i in range(mechanism.factorizations[1].number_of_factors):
             self.joint_sliders[
                 2 * mechanism.factorizations[0].number_of_factors + 2 * i].set_val(
-                mechanism.factorizations[1].joints[i].points_params[0])
+                mechanism.factorizations[1].linkage[i].points_params[0])
             self.joint_sliders[2 * mechanism.factorizations[
                 0].number_of_factors + 1 + 2 * i].set_val(
-                mechanism.factorizations[1].joints[i].points_params[1])
+                mechanism.factorizations[1].linkage[i].points_params[1])
 
         # initialize the linkages plot
         self.link_plot, = self.ax.plot([], [], [], color="black")
@@ -427,12 +427,12 @@ class Plotter:
         num_of_factors = self.plotted['mechanism'].factorizations[0].number_of_factors
 
         for i in range(num_of_factors):
-            self.plotted['mechanism'].factorizations[0].joints[i].set_point_by_param(0, self.joint_sliders[2 * i].val)
-            self.plotted['mechanism'].factorizations[0].joints[i].set_point_by_param(1, self.joint_sliders[1 + 2 * i].val)
+            self.plotted['mechanism'].factorizations[0].linkage[i].set_point_by_param(0, self.joint_sliders[2 * i].val)
+            self.plotted['mechanism'].factorizations[0].linkage[i].set_point_by_param(1, self.joint_sliders[1 + 2 * i].val)
 
         for i in range(num_of_factors):
-            self.plotted['mechanism'].factorizations[1].joints[i].set_point_by_param(0, self.joint_sliders[2 * num_of_factors + 2 * i].val)
-            self.plotted['mechanism'].factorizations[1].joints[i].set_point_by_param(1, self.joint_sliders[2 * num_of_factors + 1 + 2 * i].val)
+            self.plotted['mechanism'].factorizations[1].linkage[i].set_point_by_param(0, self.joint_sliders[2 * num_of_factors + 2 * i].val)
+            self.plotted['mechanism'].factorizations[1].linkage[i].set_point_by_param(1, self.joint_sliders[2 * num_of_factors + 1 + 2 * i].val)
 
         # update the plot
         self.plot_slider_update(self.move_slider.val)
@@ -483,3 +483,10 @@ class Plotter:
         self.fig.canvas.draw_idle()
         self.fig.canvas.update()
         self.fig.canvas.flush_events()
+
+    def show(self):
+        """
+        Show the plot
+        """
+        plt.show()
+

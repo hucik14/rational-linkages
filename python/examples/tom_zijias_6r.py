@@ -41,7 +41,7 @@ k3 = DualQuaternion(k3li, is_rotation=True)
 f1 = MotionFactorization([h1, h2, h3])
 f2 = MotionFactorization([k3, k2, k1])
 
-# Setting connecting points on the joints
+# Setting connecting points on the linkage
 #########################################
 
 f1.set_joint_connection_points([PointHomogeneous([1, -0.72533812018960216974, 0., 0.]),
@@ -61,6 +61,11 @@ f2.set_joint_connection_points([PointHomogeneous([1, -0.67209203533440663286, 1.
 # Plotting the mechanism
 ########################
 
-m = RationalMechanism([f1, f2])
-p = Plotter(interactive=True, steps=500)
-p.plot(m, show_tool=False)
+if __name__ == '__main__':
+    m = RationalMechanism([f1, f2])
+    p = Plotter(interactive=True, steps=500)
+    p.plot(m, show_tool=False)
+    res = m.collision_check(parallel=True)
+    #res = m.collision_check(parallel=False)
+    print(res)
+

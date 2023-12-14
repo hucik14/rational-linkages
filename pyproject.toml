@@ -1,27 +1,35 @@
-[tool.poetry]
+[project]
 name = "rational-linkages"
 version = "0.1.0"
-description = "Rational Single-loop Mechanisms Toolbox"
+description = "Rational Linkages Toolbox"
 authors = ["daniel"]
 license = "GPL-3.0-or-later"
 readme = "README.md"
-packages = [{include = "rational_linkages"}]
 
-[tool.poetry.dependencies]
+[project.dependencies]
 python = "^3.11"
 scipy = "^1.11"
 sympy = "^1.11"
 matplotlib = "^3.7"
 biquaternion-py = "^1.0.0"
+PyQt5 = "^5.15.10"
 
-[tool.poetry.group.dev.dependencies]
-coverage = "^7.2"
-flake8 = "^4.0"
-black = "^21.12"
+[project.optional-dependencies]
+doc = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "nbsphinx"
+]
+
+dev = [
+    "coverage",
+    "flake8",
+    "black"
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 88
@@ -31,7 +39,7 @@ exclude = "(.git|.idea|maple|docs)/.*"
 [tool.isort]
 profile = "black"
 line_length = 88
-skip = [".git", ".idea", "maple", "docs"]
+skip = [".git", ".idea", "docs"]
 known_first_party = ["linkages"]
 force_to_top = ["linkages"]
 
