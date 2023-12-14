@@ -62,11 +62,11 @@ f1.set_joint_connection_points([PointHomogeneous([1, -0.77834683, 0., 0.]),
                                 PointHomogeneous([1, -1.26264938, 0., 0.]),
                                 PointHomogeneous([1, -1., 0.70846198, 1.000000000]),
                                 PointHomogeneous([1, -1., 0.18541523, 1.000000000]),
-                                PointHomogeneous([1, 0.0, -0.08416113,  1.2211185]),
-                                PointHomogeneous([1, 0.0, -0.45610548,  0.72519269])])
+                                PointHomogeneous([1, 0.0, -0.15390069,  1.12813241]),
+                                PointHomogeneous([1, 0.0, -0.47063456,  0.70582059])])
 
 f2.set_joint_connection_points([PointHomogeneous([1, -0.66655205,  1.44890418,  1.06400818]),
-                                PointHomogeneous([1, -0.72063822,  1.80186662,  0.85918185]),
+                                PointHomogeneous([1, -0.73463699,  1.8932216,   0.80616798]),
                                 PointHomogeneous([1, -1.03302235,  0.42842552, -0.04990683]),
                                 PointHomogeneous([1, -0.53982406,  0.54263802,  0.1159702]),
                                 PointHomogeneous([1, -0.20593148, -0.26393421,  0.0030836]),
@@ -83,6 +83,6 @@ if __name__ == '__main__':
     #res = m.collision_check(parallel=False)
     #print(res)
 
-    d = m.get_dh_params(unit='deg', scale=200)
+    d = m.get_dh_params(unit='deg', scale=130)
     print(d)
 
