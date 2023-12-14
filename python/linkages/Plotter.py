@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, RangeSlider, TextBox
+from matplotlib.widgets import Slider, TextBox
 from functools import wraps
 
 from DualQuaternion import DualQuaternion
@@ -483,3 +483,10 @@ class Plotter:
         self.fig.canvas.draw_idle()
         self.fig.canvas.update()
         self.fig.canvas.flush_events()
+
+    def show(self):
+        """
+        Show the plot
+        """
+        plt.show()
+
