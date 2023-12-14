@@ -5,6 +5,10 @@
 
 Rational Linkages Toolbox Documentation
 =======================================
+.. image:: https://img.shields.io/badge/GitLab-Repo-brightgreen.svg
+   :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
+   :alt: GitLab Repository
+
 .. image:: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/pipeline.svg?job=run_tests
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs
    :alt: Build Status
@@ -22,7 +26,7 @@ Rational Linkages Toolbox Documentation
 
 Welcome to the Rational Linkages Toolbox Documentation, which serves as a reference for the toolbox. The toolbox is a collection of functions for the analysis of rational linkages and their rapid prototyping. It is written in Python and uses the Numpy and SymPy libraries for computations, and Matplotlib for plotting. The toolbox is developed at the Unit of Geometry and Surveying, University of Innsbruck, Austria.
 
-The source code is available at https://git.uibk.ac.at/geometrie-vermessung/rational-linkages.
+The source code is available at https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
 
 .. toctree::
    :maxdepth: 2
@@ -32,6 +36,7 @@ The source code is available at https://git.uibk.ac.at/geometrie-vermessung/rati
    modules
    tutorials
    background-math
+   `Repository homepage <https://git.uibk.ac.at/geometrie-vermessung/rational-linkages>`
 
 
 Indices and tables
