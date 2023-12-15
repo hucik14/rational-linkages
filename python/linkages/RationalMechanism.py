@@ -34,15 +34,18 @@ class RationalMechanism(RationalCurve):
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
 
-    def get_dh_params(self, unit: str = "cos_alpha", scale: float = None) -> tuple:
+    def get_dh_params(self, unit: str = "cos_alpha",
+                      scale: float = 1.0, joint_length: float = None) -> tuple:
         """
         Get the Denavit-Hartenberg parameters of the linkage.
 
-        :param unit: str - form of the returned alpha parameter, can be
+        :param str unit: - form of the returned alpha parameter, can be
             "cos_alpha", "deg", or "rad"
-        :param scale: float - scale of length parameters of the linkage
+        :param float scale: scale of length parameters of the linkage
+        :param float joint_length: length of the joint segment
 
         :return: tuple (d, a, alpha)
+        :rtype: tuple
         """
         from NormalizedLine import NormalizedLine
         # Combine factorizations to get the linkage
@@ -54,24 +57,22 @@ class RationalMechanism(RationalCurve):
         d = []
         a = []
         alpha = []
+        middle_points = []
+
+        if joint_length is not None:
+            joint_segment = joint_length / scale
+        else:
+            joint_segment = 1.0
 
         # Calculate Denavit-Hartenberg parameters for each pair of axis rotations
         pts_prev = lines[-1].common_perpendicular_to_other_line(lines[0])[0]
         for i in range(len(lines) - 1):
             pts, a_i, al_i = lines[i].common_perpendicular_to_other_line(lines[i+1])
-            #print(lines[i].get_point_param(pts[0]))
-            print(scale * np.linalg.norm(linkage.linkage[i].points_params[0] - linkage.linkage[i].points_params[1]))
-
-            #print(lines[i+1].contains_point(pts[1]))
-            d_i = lines[i].get_point_param(pts_prev[1]) - lines[i].get_point_param(pts[0])
+            d_i = lines[i].get_point_param(pts[0]) - lines[i].get_point_param(pts_prev[1])
             pts_prev = deepcopy(pts)
-
             d.append(d_i)
             a.append(a_i)
             alpha.append(al_i)
-
-        print(scale * np.linalg.norm(
-            linkage.linkage[i + 1].points_params[0] - linkage.linkage[i + 1].points_params[1]))
 
         # Calculate Denavit-Hartenberg parameters for the last pair
         pts, a_i, al_i = lines[-1].common_perpendicular_to_other_line(lines[0])
@@ -81,9 +82,16 @@ class RationalMechanism(RationalCurve):
         a.append(a_i)
         alpha.append(al_i)
 
-        if scale is not None:
-            d = [d_i * scale for d_i in d]
-            a = [a_i * scale for a_i in a]
+        for i in range(len(lines)):
+            middle_pts = self._map_joint_segment(d[i],
+                                                 joint_segment,
+                                                 linkage.linkage[i].points_params,
+                                                 scale=scale,)
+            print(np.linalg.norm(middle_pts[0] - middle_pts[1]))
+            middle_points.append(middle_pts)
+
+        d = [d_i * scale for d_i in d]
+        a = [a_i * scale for a_i in a]
 
         # Convert alpha to the specified form
         match unit:
@@ -96,7 +104,53 @@ class RationalMechanism(RationalCurve):
             case _:
                 raise ValueError("unit must be cos_alpha, deg or rad")
 
-        return d, a, alpha
+        return d, a, alpha, middle_points
+
+
+
+    def _map_joint_segment(self, dh_d, joint_segment: float,
+                           points_params: np.ndarray, scale: float = 1.0):
+        """
+        Map the joint segment to the scale of the linkage.
+
+        :param float joint_segment: length of the joint segment
+        :param float d_param: length of the dh parameter d
+        :param np.ndarray points_params: list of connection points parameters of the
+            joint
+        :param float scale: scale of the linkage
+
+        :return: mapped joint segment
+        :rtype: np.ndarray
+        """
+
+        def map_interval(input_interval, max_length):
+            middle_point = (input_interval[0] + input_interval[1]) / 2
+
+            if input_interval[0] < input_interval[1]:
+                mapped_interval = [middle_point - max_length/2, middle_point + max_length/2]
+            else:
+                mapped_interval = [middle_point + max_length/2, middle_point - max_length/2]
+            return mapped_interval
+
+        points_params = np.asarray(points_params)
+
+        points_params_len = np.linalg.norm(points_params[0] - points_params[1])
+
+        if points_params_len > joint_segment:
+            new_points_params = map_interval(points_params, (joint_segment + 2/scale))
+        else:
+            raise ValueError("Joint segment is longer than the designed linkage.")
+
+
+        # Calculate midpoints
+        midpoint1 = new_points_params[0] + (new_points_params[1] - new_points_params[0]) / 4
+        midpoint2 = new_points_params[0] + 3 * (new_points_params[1] - new_points_params[0]) / 4
+
+        # Subtract the d_param from the joint segment
+        midpoint1 = midpoint1 - dh_d
+        midpoint2 = midpoint2 - dh_d
+
+        return np.array([midpoint1, midpoint2]) * scale
     
     def collision_check(self, parallel: bool = False):
         """

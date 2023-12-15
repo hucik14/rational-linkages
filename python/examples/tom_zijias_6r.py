@@ -83,6 +83,5 @@ if __name__ == '__main__':
     #res = m.collision_check(parallel=False)
     #print(res)
 
-    d = m.get_dh_params(unit='deg', scale=130)
-    print(d)
+    dh = m.get_dh_params(unit='deg', scale=100, joint_length=40)
 
