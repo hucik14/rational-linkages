@@ -83,9 +83,14 @@ class RationalMechanism(RationalCurve):
         alpha.append(al_i)
 
         for i in range(len(lines)):
+            if i < 3:
+                params = linkage.linkage[i].points_params
+            else:
+                params = linkage.linkage[i].points_params[::-1]
+
             middle_pts = self._map_joint_segment(d[i],
                                                  joint_segment,
-                                                 linkage.linkage[i].points_params,
+                                                 params,
                                                  scale=scale,)
             print(np.linalg.norm(middle_pts[0] - middle_pts[1]))
             middle_points.append(middle_pts)
