@@ -73,12 +73,13 @@ class MotionFactorization(RationalCurve):
         :rtype: MotionFactorization
         """
         from copy import deepcopy
+        from Linkage import Linkage
 
         self_copy = deepcopy(self)
 
         for i in reversed(range(other.number_of_factors)):
             self_copy.dq_axes.append(other.dq_axes[i])
-            self_copy.linkage.append(other.linkage[i])
+            self_copy.linkage.append(Linkage(other.dq_axes[i], [other.linkage[i].points[1], other.linkage[i].points[0]]))
             self_copy.factors_with_parameter = self_copy.get_symbolic_factors()
             self_copy.number_of_factors += 1
 

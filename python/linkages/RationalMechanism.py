@@ -83,10 +83,7 @@ class RationalMechanism(RationalCurve):
         alpha.append(al_i)
 
         for i in range(len(lines)):
-            if i < 3:
-                params = linkage.linkage[i].points_params
-            else:
-                params = linkage.linkage[i].points_params[::-1]
+            params = linkage.linkage[i].points_params
 
             middle_pts = self._map_joint_segment(d[i],
                                                  joint_segment,
@@ -141,10 +138,10 @@ class RationalMechanism(RationalCurve):
 
         points_params_len = np.linalg.norm(points_params[0] - points_params[1])
 
-        if points_params_len > joint_segment:
-            new_points_params = map_interval(points_params, (joint_segment + 2/scale))
-        else:
-            raise ValueError("Joint segment is longer than the designed linkage.")
+        #if points_params_len > joint_segment:
+        new_points_params = map_interval(points_params, (joint_segment + 2/scale))
+        #else:
+        #    raise ValueError("Joint segment is longer than the designed linkage.")
 
 
         # Calculate midpoints
@@ -152,8 +149,8 @@ class RationalMechanism(RationalCurve):
         midpoint2 = new_points_params[0] + 3 * (new_points_params[1] - new_points_params[0]) / 4
 
         # Subtract the d_param from the joint segment
-        midpoint1 = midpoint1 - dh_d
-        midpoint2 = midpoint2 - dh_d
+        midpoint1 = midpoint1
+        midpoint2 = midpoint2
 
         return np.array([midpoint1, midpoint2]) * scale
     

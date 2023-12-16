@@ -58,19 +58,19 @@ f2.set_joint_connection_points([PointHomogeneous([1, -0.67209203533440663286, 1.
                                 PointHomogeneous([1, -0.1404563036, -0.1904506672, 0.1508073794]),
                                 PointHomogeneous([1, -0.1135709493, -0.1602769278, 0.2114655719])])
 
-f1.set_joint_connection_points([PointHomogeneous([1, -0.77834683, 0., 0.]),
-                                PointHomogeneous([1, -1.26264938, 0., 0.]),
-                                PointHomogeneous([1, -1., 0.70846198, 1.000000000]),
-                                PointHomogeneous([1, -1., 0.18541523, 1.000000000]),
-                                PointHomogeneous([1, 0.0, -0.15390069,  1.12813241]),
-                                PointHomogeneous([1, 0.0, -0.47063456,  0.70582059])])
+f1.set_joint_connection_points([PointHomogeneous([1, -0.91549811, 0., 0.]),
+                                PointHomogeneous([1, -1.12549811, 0., 0.]),
+                                PointHomogeneous([1, -1., 0.55193861, 1.000000000]),
+                                PointHomogeneous([1, -1., 0.34193861, 1.000000000]),
+                                PointHomogeneous([1, 0.0, -0.24926762,  1.0009765]),
+                                PointHomogeneous([1, 0.0, -0.37526762,  0.8329765])])
 
-f2.set_joint_connection_points([PointHomogeneous([1, -0.66655205,  1.44890418,  1.06400818]),
-                                PointHomogeneous([1, -0.73463699,  1.8932216,   0.80616798]),
-                                PointHomogeneous([1, -1.03302235,  0.42842552, -0.04990683]),
-                                PointHomogeneous([1, -0.53982406,  0.54263802,  0.1159702]),
-                                PointHomogeneous([1, -0.20593148, -0.26393421,  0.0030836]),
-                                PointHomogeneous([1, -0.03086572, -0.0674559,   0.39806344])])
+f2.set_joint_connection_points([PointHomogeneous([1, -0.68679894,  1.58103396,  0.98733244]),
+                                PointHomogeneous([1, -0.71439009,  1.76109183,  0.88284372]),
+                                PointHomogeneous([1, -8.83631074e-01,  4.63020833e-01,  3.37829691e-04]),
+                                PointHomogeneous([1, -0.68921534,  0.5080427,   0.06572554]),
+                                PointHomogeneous([1, -0.15712862, -0.2091622,   0.11319164]),
+                                PointHomogeneous([1, -0.07966858, -0.12222792,  0.2879554])])
 
 # Plotting the mechanism
 ########################
