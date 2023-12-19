@@ -3,9 +3,7 @@ from typing import Optional, Sequence, Union
 from warnings import warn
 
 import numpy as np
-from matplotlib import pyplot as plt
 from Quaternion import Quaternion
-from TransfMatrix import TransfMatrix
 
 # Forward declarations for class names
 NormalizedLine = "NormalizedLine"
@@ -81,7 +79,13 @@ class DualQuaternion:
         self.dq = self.array()
 
         self.is_rotation = is_rotation
-        self.is_rational = False
+
+        # check if all entries of the DQ are rational numbers
+        from sympy import Rational
+        if all(isinstance(x, Rational) for x in self.array()):
+            self.is_rational = True
+        else:
+            self.is_rational = False
 
     @property
     def type(self) -> str:
@@ -128,6 +132,28 @@ class DualQuaternion:
         :rtype: DualQuaternion
         """
         return cls(np.concatenate((primal.array(), dual.array())))
+
+    @classmethod
+    def as_rational(cls, study_parameters: list = None,
+                    is_rotation: bool = False):
+        """
+        Assembly of DualQuaternion from Sympy's rational numbers
+
+        :param list study_parameters: list of 8 numbers
+        :param bool is_rotation: True if the Dual Quaternion represents a rotation,
+
+        :return: DualQuaternion with rational elements
+        :rtype: DualQuaternion
+        """
+        from sympy import Rational
+
+        if study_parameters is not None:
+            rational_numbers = [Rational(x) for x in study_parameters]
+        else:
+            rational_numbers = [Rational(1), Rational(0), Rational(0), Rational(0),
+                                Rational(0), Rational(0), Rational(0), Rational(0)]
+
+        return cls(rational_numbers, is_rotation)
 
     def __repr__(self):
         """
