@@ -6,6 +6,7 @@ from RationalCurve import RationalCurve
 import sympy as sp
 from Plotter import Plotter
 from FactorizationProvider import FactorizationProvider
+from RationalMechanism import RationalMechanism
 
 
 x = sp.symbols("x:4")
@@ -126,18 +127,18 @@ Q_poly = [sp.Poly(element, t) for element in Q]
 
 c = RationalCurve(Q_poly)
 
-p = Plotter(interactive=False, steps=500)
+p = Plotter(interactive=True, steps=1000)
 #p.plot(c, interval=[-10, 10])
 f = FactorizationProvider()
 
 f_res = f.factorize_motion_curve(c)
 
-f_res = f.factorize_for_motion_factorization(f_res[0])
+#f_res = f.factorize_for_motion_factorization(f_res[0])
 
-rational_dq = DualQuaternion.as_rational([1, 5, 2, 3, 0, 1, 0, 0])
+#rational_dq = DualQuaternion.as_rational([1, 5, 2, 3, 0, 1, 0, 0])
 
-print(f_res)
+m = RationalMechanism(f_res)
+p.plot(m, show_tool=True)
 
-#p.plot(f_res[0])
-
-matrix = TransfMatrix.from_rpy_xyz([0, 0, 90], [1, -80, 20], units="deg")
+for pose in [P1, P2, P3, P4]:
+    p.plot(pose)
