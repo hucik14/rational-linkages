@@ -134,21 +134,21 @@ class DualQuaternion:
         return cls(np.concatenate((primal.array(), dual.array())))
 
     @classmethod
-    def as_rational(cls, study_parameters: list = None,
+    def as_rational(cls, study_parameters: Union[list, np.ndarray] = None,
                     is_rotation: bool = False):
         """
         Assembly of DualQuaternion from Sympy's rational numbers
 
-        :param list study_parameters: list of 8 numbers
+        :param Union[list, np.ndarray] study_parameters: list of 8 numbers
         :param bool is_rotation: True if the Dual Quaternion represents a rotation,
 
         :return: DualQuaternion with rational elements
         :rtype: DualQuaternion
         """
-        from sympy import Rational
+        from sympy import Rational, nsimplify
 
         if study_parameters is not None:
-            rational_numbers = [Rational(x) for x in study_parameters]
+            rational_numbers = [nsimplify(x, tolerance=1*(-10)) for x in study_parameters]
         else:
             rational_numbers = [Rational(1), Rational(0), Rational(0), Rational(0),
                                 Rational(0), Rational(0), Rational(0), Rational(0)]
