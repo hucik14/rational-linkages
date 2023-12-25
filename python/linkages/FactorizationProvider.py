@@ -17,7 +17,7 @@ class FactorizationProvider:
     It connetion to the project BiQuaternions_py made by Daren Thimm, University of
     Innbruck, Austria. Git repository: `BiQuaternions_py`_.
 
-    .. _BiQuaternions_py: https://doi.org/10.1016/j.mechmachtheory.2022.105143
+    .. _BiQuaternions_py: https://git.uibk.ac.at/geometrie-vermessung/biquaternion_py
     """
     def __init__(self):
         """
