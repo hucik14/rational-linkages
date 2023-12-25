@@ -452,6 +452,18 @@ class Plotter:
 
         x, y, z = zip(*[links[j] for j in range(len(links))])
         self.link_plot.set_data_3d(x, y, z)
+        """
+        xyz_coordinates = [(100 * xi, 100 * yi, 100 * zi) for xi, yi, zi in zip(x, y, z)]
+
+        # Save XYZ coordinates to a CSV file
+        pts_file_path = "xyz.pts"
+
+        # Write the XYZ coordinates to the .pts file
+        with open(pts_file_path, 'w') as pts_file:
+            for point in xyz_coordinates:
+                x, y, z = point
+                pts_file.write(f"{x} {y} {z}\n")
+        """
 
         if self.show_tool:
             # plot tool

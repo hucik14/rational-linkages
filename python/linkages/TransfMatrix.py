@@ -62,6 +62,31 @@ class TransfMatrix:
         m[1:4, 1:4] = rot_z @ rot_y @ rot_x
         return cls(m)
 
+    @classmethod
+    def from_rpy_xyz(cls, rpy: list[float], xyz: list[float], units: str = 'rad'):
+        """
+        Create transformation matrix from roll, pitch, yaw angles and translation
+
+        :param list rpy: 3-dimensional list of floats of roll, pitch, yaw angles,
+            in radians or degrees in this order
+        :param list xyz: 3-dimensional list of floats of translation
+        :param str units: 'rad' or 'deg' for radians or degrees
+
+        :return: transformation matrix
+
+        :raises ValueError: if units is not 'rad' or 'deg' or if rpy is not
+            3-dimensional list
+        """
+        if len(rpy) != 3 or len(xyz) != 3:
+            raise ValueError("Roll, pitch, yaw angles or XYZ valuse must "
+                             "be 3-dimensional list of floats")
+
+        mat_applied_rotation = cls.from_rpy(rpy, units)
+
+        # update translation
+        mat_applied_rotation.t = xyz
+
+        return cls(mat_applied_rotation.matrix)
 
     @property
     def matrix(self):

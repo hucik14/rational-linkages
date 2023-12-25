@@ -5,9 +5,9 @@
 
 Rational Linkages Toolbox Documentation
 =======================================
-.. image:: https://img.shields.io/badge/GitLab-Repo-brightgreen.svg
-   :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
-   :alt: GitLab Repository
+.. image:: https://img.shields.io/gitlab/v/release/21918?gitlab_url=https%3A%2F%2Fgit.uibk.ac.at%2F&style=social&logo=gitlab&label=repository
+   :target: :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
+   :alt: GitLab (self-managed)
 
 .. image:: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/pipeline.svg?job=run_tests
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs
@@ -18,11 +18,8 @@ Rational Linkages Toolbox Documentation
    :alt: Coverage Status
 
 .. image:: https://img.shields.io/badge/python-3.11-blue.svg
+   :target: https://www.python.org/downloads/release/python-3117/
    :alt: Python 3.11
-
-.. image:: https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat
-   :target: https://rational-linkages.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
 
 Welcome to the Rational Linkages Toolbox Documentation, which serves as a reference for the toolbox. The toolbox is a collection of functions for the analysis of rational linkages and their rapid prototyping. It is written in Python and uses the Numpy and SymPy libraries for computations, and Matplotlib for plotting. The toolbox is developed at the Unit of Geometry and Surveying, University of Innsbruck, Austria.
 
