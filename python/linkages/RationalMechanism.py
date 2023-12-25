@@ -5,10 +5,11 @@ from time import time
 
 from RationalCurve import RationalCurve
 from DualQuaternion import DualQuaternion
+from NormalizedLine import NormalizedLine
 from MotionFactorization import MotionFactorization
 
 PointHomogeneous = 'PointHomogeneous'
-NormalizedLine = 'NormalizedLine'
+TransfMatrix = 'TransfMatrix'
 
 
 class RationalMechanism(RationalCurve):
@@ -33,6 +34,91 @@ class RationalMechanism(RationalCurve):
 
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
+
+    def get_dh(self):
+        """
+        Get the Denavit-Hartenberg parameters of the linkage.
+        """
+        frames = self.get_frames()
+
+        # closed-loop mechanism - add 1st joint at the end of the list
+        frames.append(frames[1])
+
+        dh = []
+        for i in range(self.num_joints + 1):
+            th, d, a, al = frames[i].dh_to_other_frame(frames[i+1])
+            dh.append(np.array([th, d, a, al]))
+
+        print(dh)
+
+        return dh   
+
+
+
+    def get_frames(self) -> list[TransfMatrix]:
+        """
+        Get the frames of the linkage that follow Denaivt-Hartenberg convention.
+
+        :return: list of TransfMatrix objects
+        :rtype: list[TransfMatrix]
+        """
+        from TransfMatrix import TransfMatrix
+
+        frames = [TransfMatrix()] * (self.num_joints + 1)
+
+        screws = self.get_screw_axes()
+
+        # insert origin as the base line
+        screws.insert(0, NormalizedLine())
+
+        for i, line in enumerate(screws[1:]):
+            pts, dist, cos_angle = line.common_perpendicular_to_other_line(screws[i-1])
+            vec = pts[1] - pts[0]
+
+            if not np.isclose(dist, 0.0):  # if the lines are skew or parallel
+                # normalize vec - future X axis
+                vec_x = vec / np.linalg.norm(vec)
+
+                # from w (future Z axis) and o create an SE3 object
+                frames[i+1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[1])
+
+            else:  # Z axes are intersecting or coincident
+                if np.isclose(np.dot(frames[i].a, line.direction), 1):
+                    # Z axes are coincident, therefore the frames are the same
+                    frames[i+1] = deepcopy(frames[i])
+
+                elif np.isclose(np.dot(frames[i].a, line.direction), -1):
+                    # Z axes are coincident, but differ in orientation
+                    rot_x_pi = TransfMatrix.from_rpy([np.pi, 0, 0])
+                    frames[i + 1] = TransfMatrix(frames[i].matrix @ rot_x_pi.matrix)
+
+                else:  # Z axis intersect with an angle
+                    # future X axis as cross product of previous Z axis and new Z axis
+                    vec_x = np.cross(frames[i].a, line.direction)
+
+                    frames[i + 1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[1])
+
+        return frames
+
+    def get_screw_axes(self) -> list[NormalizedLine]:
+        """
+        Get the normalized lines (screw axes, Plucker coordinates) of the linkage.
+
+        The lines are in home configuration. They consist of two factorizations, and
+        the second factorization axes must be reversed.
+
+        :return: list of NormalizedLine objects
+        :rtype: list[NormalizedLine]
+        """
+        screws = []
+        for axis in self.factorizations[0].dq_axes:
+            screws.append(NormalizedLine(axis.dq2screw()))
+
+        branch2 = []
+        for axis in self.factorizations[1].dq_axes:
+            branch2.append(NormalizedLine(axis.dq2screw()))
+
+        return screws + branch2[::-1]
 
     def get_dh_params(self, unit: str = "cos_alpha",
                       scale: float = 1.0, joint_length: float = None) -> tuple:
