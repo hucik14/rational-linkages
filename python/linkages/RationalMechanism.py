@@ -35,7 +35,7 @@ class RationalMechanism(RationalCurve):
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
 
-    def get_dh(self):
+    def get_dh(self, unit: str = 'rad', scale: float = 1.0):
         """
         Get the Denavit-Hartenberg parameters of the linkage.
         """
@@ -47,13 +47,18 @@ class RationalMechanism(RationalCurve):
         dh = []
         for i in range(self.num_joints + 1):
             th, d, a, al = frames[i].dh_to_other_frame(frames[i+1])
-            dh.append(np.array([th, d, a, al]))
+
+            if unit == 'deg':
+                th = np.rad2deg(th)
+                al = np.rad2deg(al)
+            elif unit != 'rad':
+                raise ValueError("unit must be deg or rad")
+
+            dh.append(np.array([th, scale * d, scale * a, al]))
 
         print(dh)
 
         return dh   
-
-
 
     def get_frames(self) -> list[TransfMatrix]:
         """
@@ -72,14 +77,14 @@ class RationalMechanism(RationalCurve):
         screws.insert(0, NormalizedLine())
 
         for i, line in enumerate(screws[1:]):
-            pts, dist, cos_angle = line.common_perpendicular_to_other_line(screws[i-1])
+            pts, dist, cos_angle = line.common_perpendicular_to_other_line(screws[i])
             vec = pts[1] - pts[0]
 
             if not np.isclose(dist, 0.0):  # if the lines are skew or parallel
                 # normalize vec - future X axis
                 vec_x = vec / np.linalg.norm(vec)
 
-                # from w (future Z axis) and o create an SE3 object
+                # from line.dir (future Z axis) and x create an SE3 object
                 frames[i+1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[1])
 
             else:  # Z axes are intersecting or coincident
