@@ -50,7 +50,7 @@ class RationalMechanism(RationalCurve):
         :return: theta, d, a, alpha array of Denavit-Hartenberg parameters
         :rtype: np.ndarray
 
-        .. _[2] D. Huczala, T. Kot, J. Mlotek, J. Suder and M. Pfurner, "An Automated
+        .. [2] D. Huczala, T. Kot, J. Mlotek, J. Suder and M. Pfurner, "An Automated
             Conversion Between Selected Robot Kinematic Representations," 2022 10th
             International Conference on Control, Mechatronics and Automation (ICCMA),
             Belval, Luxembourg, 2022, pp. 47-52, DOI: 10.1109/ICCMA56665.2022.10011595
