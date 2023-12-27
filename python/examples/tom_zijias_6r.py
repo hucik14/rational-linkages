@@ -83,8 +83,8 @@ if __name__ == '__main__':
     #res = m.collision_check(parallel=False)
     #print(res)
 
-    dh = m.get_dh_params(unit='deg', scale=100, joint_length=40)
-    dhn = m.get_dh(unit='deg', scale=100)
+    dh = m._get_dh_OLD(unit='deg', scale=100, joint_length=40)
+    dhn = m.get_dh_params(unit='deg', scale=100)
 
     fr = m.get_frames()
     for f in fr:

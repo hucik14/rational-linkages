@@ -35,16 +35,25 @@ class RationalMechanism(RationalCurve):
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
 
-    def get_dh(self, unit: str = 'rad', scale: float = 1.0):
+    def get_dh_params(self, unit: str = 'rad', scale: float = 1.0) -> np.ndarray:
         """
-        Get the Denavit-Hartenberg parameters of the linkage.
+        Get the standard Denavit-Hartenberg parameters of the linkage.
+
+        The parameters are in the order: theta, d, a, alpha. It follows the standard
+        convention. The first row is are the parameters of the base frame.
+
+        :param str unit: desired unit of the angle parameters, can be 'deg' or 'rad'
+        :param float scale: scale of the length parameters of the linkage
+
+        :return: theta, d, a, alpha array of Denavit-Hartenberg parameters
+        :rtype: np.ndarray
         """
         frames = self.get_frames()
 
         # closed-loop mechanism - add 1st joint at the end of the list
         frames.append(frames[1])
 
-        dh = []
+        dh = np.zeros((self.num_joints + 1, 4))
         for i in range(self.num_joints + 1):
             th, d, a, al = frames[i].dh_to_other_frame(frames[i+1])
 
@@ -54,12 +63,16 @@ class RationalMechanism(RationalCurve):
             elif unit != 'rad':
                 raise ValueError("unit must be deg or rad")
 
-            dh.append(np.array([th, scale * d, scale * a, al]))
+            dh[i, :] = [th, scale * d, scale * a, al]
         return dh
 
     def get_frames(self) -> list[TransfMatrix]:
         """
-        Get the frames of the linkage that follow Denaivt-Hartenberg convention.
+        Get the frames of a linkage that follow standard Denaivt-Hartenberg convention.
+
+        It renurns n+2 frames, where n is the number of joints. The first frame is the
+        base frame, and the last frame is an updated frame of the first joint that
+        follows the DH convention in respect to the last joint's frame.
 
         :return: list of TransfMatrix objects
         :rtype: list[TransfMatrix]
@@ -77,6 +90,7 @@ class RationalMechanism(RationalCurve):
         screws.insert(0, NormalizedLine())
 
         for i, line in enumerate(screws[1:]):
+            # obtain the connection points and the distance to the previous line
             pts, dist, cos_angle = line.common_perpendicular_to_other_line(screws[i])
             vec = pts[0] - pts[1]
 
@@ -125,7 +139,7 @@ class RationalMechanism(RationalCurve):
 
         return screws + branch2[::-1]
 
-    def get_dh_params(self, unit: str = "cos_alpha",
+    def _get_dh_OLD(self, unit: str = "cos_alpha",
                       scale: float = 1.0, joint_length: float = None) -> tuple:
         """
         Get the Denavit-Hartenberg parameters of the linkage.
@@ -198,8 +212,6 @@ class RationalMechanism(RationalCurve):
                 raise ValueError("unit must be cos_alpha, deg or rad")
 
         return d, a, alpha, middle_points
-
-
 
     def _map_joint_segment(self, dh_d, joint_segment: float,
                            points_params: np.ndarray, scale: float = 1.0):
