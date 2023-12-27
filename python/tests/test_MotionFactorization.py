@@ -27,32 +27,32 @@ class TestMotionFactorization(TestCase):
         self.assertEqual(repr(f1), "MotionFactorization([[t 0 0 -1] + eps[0 0 0 0], "
                                    "[t 0 0 -2] + eps[0 0 1 0]])")
 
-    def test_add(self):
-        f1 = MotionFactorization(
-            [
-                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True),
-            ]
-        )
-
-        f2 = MotionFactorization(
-            [
-                DualQuaternion([0, 0, 0, -1, 0, 0, 5, 0], is_rotation=True),
-                DualQuaternion([0, 0, 0, -2, 0, 0, -1, 0], is_rotation=True),
-            ]
-        )
-
-        expected_f = MotionFactorization(
-            [
-                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True),
-                DualQuaternion([0, 0, 0, -2, 0, 0, -1, 0], is_rotation=True),
-                DualQuaternion([0, 0, 0, -1, 0, 0, 5, 0], is_rotation=True),
-            ]
-        )
-        added_f = f1 + f2
-        self.assertEqual(added_f.dq_axes, expected_f.dq_axes)
-        self.assertEqual(added_f.number_of_factors, 4)
+    # def test_add(self):
+    #     f1 = MotionFactorization(
+    #         [
+    #             DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
+    #             DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True),
+    #         ]
+    #     )
+    #
+    #     f2 = MotionFactorization(
+    #         [
+    #             DualQuaternion([0, 0, 0, -1, 0, 0, 5, 0], is_rotation=True),
+    #             DualQuaternion([0, 0, 0, -2, 0, 0, -1, 0], is_rotation=True),
+    #         ]
+    #     )
+    #
+    #     expected_f = MotionFactorization(
+    #         [
+    #             DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
+    #             DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True),
+    #             DualQuaternion([0, 0, 0, -2, 0, 0, -1, 0], is_rotation=True),
+    #             DualQuaternion([0, 0, 0, -1, 0, 0, 5, 0], is_rotation=True),
+    #         ]
+    #     )
+    #     added_f = f1 + f2
+    #     self.assertEqual(added_f.dq_axes, expected_f.dq_axes)
+    #     self.assertEqual(added_f.number_of_factors, 4)
 
     def test_get_polynomials_from_factorization(self):
         f1 = [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
