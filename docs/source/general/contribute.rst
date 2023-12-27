@@ -43,7 +43,8 @@ Example of a docstring:
         One-line summary of the function.
 
         Multiline description of the function. For example, this function takes two
-        parameters and returns their sum.
+        parameters and returns their sum. See more in a paper by
+        Authorsurname [#authorsurname2023]_.
 
         :param int a: description of parameter a
         :param float b: description of parameter b
@@ -67,6 +68,10 @@ Example of a docstring:
 
         :see also: :func:`example_function2`
         :references: https://www.python.org/
+
+        # citations
+        .. [#authorsurname2023] Authors, Title of the Source, *Journal Name*, Year,
+            DOI: *number* (https://doi.org/*number*))
 
         """
         from warnings import warn
