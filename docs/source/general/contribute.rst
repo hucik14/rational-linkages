@@ -67,12 +67,9 @@ Example of a docstring:
         :note: additional notes
 
         :see also: :func:`example_function2`
-        :references: https://www.python.org/
 
-        # citations
         .. [#authorsurname2023] Authors, Title of the Source, *Journal Name*, Year,
             DOI: *number* (https://doi.org/*number*))
-
         """
         from warnings import warn
 
