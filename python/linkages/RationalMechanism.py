@@ -5,10 +5,11 @@ from time import time
 
 from RationalCurve import RationalCurve
 from DualQuaternion import DualQuaternion
+from NormalizedLine import NormalizedLine
 from MotionFactorization import MotionFactorization
 
 PointHomogeneous = 'PointHomogeneous'
-NormalizedLine = 'NormalizedLine'
+TransfMatrix = 'TransfMatrix'
 
 
 class RationalMechanism(RationalCurve):
@@ -34,7 +35,119 @@ class RationalMechanism(RationalCurve):
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
 
-    def get_dh_params(self, unit: str = "cos_alpha",
+    def get_dh_params(self, unit: str = 'rad', scale: float = 1.0) -> np.ndarray:
+        """
+        Get the standard Denavit-Hartenberg parameters of the linkage.
+
+        The parameters are in the order: theta, d, a, alpha. It follows the standard
+        convention. The first row is are the parameters of the base frame.
+
+        See more in the paper by Huczala et al. [1]_.
+
+        :param str unit: desired unit of the angle parameters, can be 'deg' or 'rad'
+        :param float scale: scale of the length parameters of the linkage
+
+        :return: theta, d, a, alpha array of Denavit-Hartenberg parameters
+        :rtype: np.ndarray
+
+        .. [1] D. Huczala, T. Kot, J. Mlotek, J. Suder and M. Pfurner, "An Automated
+        Conversion Between Selected Robot Kinematic Representations," 2022 10th
+        International Conference on Control, Mechatronics and Automation (ICCMA),
+        Belval, Luxembourg, 2022, pp. 47-52, DOI: 10.1109/ICCMA56665.2022.10011595
+        (https://doi.org/10.1109/ICCMA56665.2022.10011595).
+        """
+        frames = self.get_frames()
+
+        # closed-loop mechanism - add 1st joint at the end of the list
+        frames.append(frames[1])
+
+        dh = np.zeros((self.num_joints + 1, 4))
+        for i in range(self.num_joints + 1):
+            th, d, a, al = frames[i].dh_to_other_frame(frames[i+1])
+
+            if unit == 'deg':
+                th = np.rad2deg(th)
+                al = np.rad2deg(al)
+            elif unit != 'rad':
+                raise ValueError("unit must be deg or rad")
+
+            dh[i, :] = [th, scale * d, scale * a, al]
+        return dh
+
+    def get_frames(self) -> list[TransfMatrix]:
+        """
+        Get the frames of a linkage that follow standard Denaivt-Hartenberg convention.
+
+        It renurns n+2 frames, where n is the number of joints. The first frame is the
+        base frame, and the last frame is an updated frame of the first joint that
+        follows the DH convention in respect to the last joint's frame.
+
+        :return: list of TransfMatrix objects
+        :rtype: list[TransfMatrix]
+        """
+        from TransfMatrix import TransfMatrix
+
+        frames = [TransfMatrix()] * (self.num_joints + 2)
+
+        screws = self.get_screw_axes()
+
+        # add the first screw to the end of the list
+        screws.append(screws[0])
+
+        # insert origin as the base line
+        screws.insert(0, NormalizedLine())
+
+        for i, line in enumerate(screws[1:]):
+            # obtain the connection points and the distance to the previous line
+            pts, dist, cos_angle = line.common_perpendicular_to_other_line(screws[i])
+            vec = pts[0] - pts[1]
+
+            if not np.isclose(dist, 0.0):  # if the lines are skew or parallel
+                # normalize vec - future X axis
+                vec_x = vec / np.linalg.norm(vec)
+
+                # from line.dir (future Z axis) and x create an SE3 object
+                frames[i+1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[0])
+
+            else:  # Z axes are intersecting or coincident
+                if np.isclose(np.dot(frames[i].a, line.direction), 1):
+                    # Z axes are coincident, therefore the frames are the same
+                    frames[i+1] = deepcopy(frames[i])
+
+                elif np.isclose(np.dot(frames[i].a, line.direction), -1):
+                    # Z axes are coincident, but differ in orientation
+                    rot_x_pi = TransfMatrix.from_rpy([np.pi, 0, 0])
+                    frames[i + 1] = TransfMatrix(frames[i].matrix @ rot_x_pi.matrix)
+
+                else:  # Z axis intersect with an angle
+                    # future X axis as cross product of previous Z axis and new Z axis
+                    vec_x = np.cross(frames[i].a, line.direction)
+
+                    frames[i + 1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[0])
+
+        return frames
+
+    def get_screw_axes(self) -> list[NormalizedLine]:
+        """
+        Get the normalized lines (screw axes, Plucker coordinates) of the linkage.
+
+        The lines are in home configuration. They consist of two factorizations, and
+        the second factorization axes must be reversed.
+
+        :return: list of NormalizedLine objects
+        :rtype: list[NormalizedLine]
+        """
+        screws = []
+        for axis in self.factorizations[0].dq_axes:
+            screws.append(NormalizedLine(axis.dq2screw()))
+
+        branch2 = []
+        for axis in self.factorizations[1].dq_axes:
+            branch2.append(NormalizedLine(axis.dq2screw()))
+
+        return screws + branch2[::-1]
+
+    def _get_dh_OLD(self, unit: str = "cos_alpha",
                       scale: float = 1.0, joint_length: float = None) -> tuple:
         """
         Get the Denavit-Hartenberg parameters of the linkage.
@@ -89,7 +202,7 @@ class RationalMechanism(RationalCurve):
                                                  joint_segment,
                                                  params,
                                                  scale=scale,)
-            print(np.linalg.norm(middle_pts[0] - middle_pts[1]))
+            #print(np.linalg.norm(middle_pts[0] - middle_pts[1]))
             middle_points.append(middle_pts)
 
         d = [d_i * scale for d_i in d]
@@ -107,8 +220,6 @@ class RationalMechanism(RationalCurve):
                 raise ValueError("unit must be cos_alpha, deg or rad")
 
         return d, a, alpha, middle_points
-
-
 
     def _map_joint_segment(self, dh_d, joint_segment: float,
                            points_params: np.ndarray, scale: float = 1.0):

@@ -1,5 +1,6 @@
 import numpy as np
 from warnings import warn
+from typing import Union
 
 
 class TransfMatrix:
@@ -24,6 +25,23 @@ class TransfMatrix:
         # test if the tranformation matrix has proper rotation matrix
         self.is_rotation()
 
+    @property
+    def matrix(self):
+        """
+        If matrix is called, return 4x4 matrix
+        :return: 4x4 np array
+        """
+        m = np.eye(4)
+        m[1:4, 1] = self.n
+        m[1:4, 2] = self.o
+        m[1:4, 3] = self.a
+
+        m[1:4, 0] = self.t
+        return m
+
+    def __repr__(self):
+        return f"{self.matrix}"
+
     @classmethod
     def from_rpy(cls, rpy: list[float], units: str = 'rad') -> np.array:
         """
@@ -34,6 +52,7 @@ class TransfMatrix:
         :param str units: 'rad' or 'deg' for radians or degrees
 
         :return: transformation matrix
+        :rtype: TransfMatrix
 
         :raises ValueError: if units is not 'rad' or 'deg' or if rpy is not
             3-dimensional list
@@ -73,6 +92,7 @@ class TransfMatrix:
         :param str units: 'rad' or 'deg' for radians or degrees
 
         :return: transformation matrix
+        :rtype: TransfMatrix
 
         :raises ValueError: if units is not 'rad' or 'deg' or if rpy is not
             3-dimensional list
@@ -88,22 +108,88 @@ class TransfMatrix:
 
         return cls(mat_applied_rotation.matrix)
 
-    @property
-    def matrix(self):
+    @classmethod
+    def from_vectors(cls,
+                     normal_x: list[Union[float, np.ndarray]],
+                     approach_z: list[Union[float, np.ndarray]],
+                     origin: list[Union[float, np.ndarray]] = [0, 0, 0]):
         """
-        If matrix is called, return 4x4 matrix
-        :return: 4x4 np array
+        Create transf. matrix from normal and approach vectors, translation is optional
+
+        :param list normal_x: 3-dimensional list of floats of normal (x-axis) vector
+        :param list approach_z: 3-dimensional list of floats of approach (z-axis) vector
+        :param list origin: 3-dimensional list of floats of translation vector
+
+        :return: transformation matrix
+        :rtype: TransfMatrix
+
+        :raises ValueError: if normal_x, approach_z or origin is not 3-dimensional list
+        :warns: if normal_x or approach_z is not normalized
         """
-        m = np.eye(4)
-        m[1:4, 1] = self.n
-        m[1:4, 2] = self.o
-        m[1:4, 3] = self.a
+        normal_x = np.asarray(normal_x)
+        approach_z = np.asarray(approach_z)
+        origin = np.asarray(origin)
 
-        m[1:4, 0] = self.t
-        return m
+        # check if vectors are normalized
+        if not np.isclose(np.linalg.norm(normal_x), 1):
+            warn("Normal vector is not normalized, normalizing...")
+            normal_x = normal_x / np.linalg.norm(normal_x)
+        if not np.isclose(np.linalg.norm(approach_z), 1):
+            warn("Approach vector is not normalized, normalizing...")
+            approach_z = approach_z / np.linalg.norm(approach_z)
 
-    def __repr__(self):
-        return f"{self.matrix}"
+        # check if vectors are of dimension 3
+        if normal_x.shape != (3,):
+            raise ValueError("Normal vector must be 3-dimensional list of floats")
+        if approach_z.shape != (3,):
+            raise ValueError("Approach vector must be 3-dimensional list of floats")
+        if origin.shape != (3,):
+            raise ValueError("Origin vector must be 3-dimensional list of floats")
+
+        orthogonal_y = np.cross(approach_z, normal_x)
+
+        mat = np.eye(4)
+        mat[1:4, 0] = origin
+        mat[1:4, 1] = normal_x
+        mat[1:4, 2] = orthogonal_y
+        mat[1:4, 3] = approach_z
+
+        return cls(mat)
+
+    @classmethod
+    def from_dh_parameters(cls, theta: float, d: float, a: float, alpha: float,
+                           units: str = 'rad'):
+        """
+        Create transformation matrix from Denavit-Hartenberg parameters
+
+        It follows the standard DH convention. The transformation matrix is created as:
+        rotation around z-axis by theta, translation along z-axis by d, translation
+        along x-axis by a, rotation around x-axis by alpha.
+
+        :param float theta: rotation around z-axis
+        :param float d: translation along z-axis
+        :param float a: translation along x-axis
+        :param float alpha: rotation around x-axis
+        :param str units: 'rad' or 'deg' for radians or degrees
+
+        :return: transformation matrix
+        :rtype: TransfMatrix
+
+        :raises ValueError: if units is not 'rad' or 'deg'
+        """
+        if units == 'deg':
+            theta = np.deg2rad(theta)
+            alpha = np.deg2rad(alpha)
+        elif units != 'rad':
+            raise ValueError("Units must be 'rad' or 'deg'")
+
+        mat = np.eye(4)
+        mat[1:4, 0] = [a * np.cos(theta), a * np.sin(theta), d]
+        mat[1, 1:4] = [np.cos(theta), -np.sin(theta) * np.cos(alpha), np.sin(theta) * np.sin(alpha)]
+        mat[2, 1:4] = [np.sin(theta), np.cos(theta) * np.cos(alpha), -np.cos(theta) * np.sin(alpha)]
+        mat[3, 1:4] = [0, np.sin(alpha), np.cos(alpha)]
+
+        return cls(mat)
 
     def is_rotation(self):
         """
@@ -193,6 +279,62 @@ class TransfMatrix:
                 rpy[1] = -np.arctan(R[2, 0] * np.cos(rpy[0]) / R[2, 2])
 
         return rpy
+
+    def dh_to_other_frame(self, other: 'TransfMatrix') -> list[float]:
+        """
+        Return Denavit-Hartenberg parameters from one frame to another
+
+        :param TransfMatrix other: transformation matrix of the other frame
+
+        :return: DH parameters [theta, d, a, alpha]
+        :rtype: list[float]
+
+        :warns: if the two frames do not fulfill the DH convention
+        """
+        from NormalizedLine import NormalizedLine
+
+        # theta
+        th = np.arctan2(np.linalg.norm(np.cross(self.n, other.n)),
+                        np.dot(self.n, other.n))
+        # using right-hand rule, if a dot product of Xi axis is in negative
+        theta = -th if np.dot(self.o, other.n) < 0 else th
+
+        # d, using normal vectors (x-axis) of the frames
+        line0 = NormalizedLine.from_direction_and_point(self.n, self.t)
+        line1 = NormalizedLine.from_direction_and_point(other.n, other.t)
+
+        _, dist, __ = line0.common_perpendicular_to_other_line(line1)
+
+        # using right-hand rule, if the dot product of vectors between two links and
+        # z-axis is less than 0 it has to be different direction
+        d = -dist if np.dot(other.t - self.t, self.a) < 0 else dist
+
+        # a, using approach vectors (z-axis) of the frames
+        line0 = NormalizedLine.from_direction_and_point(self.a, self.t)
+        line1 = NormalizedLine.from_direction_and_point(other.a, other.t)
+
+        _, dist, __ = line0.common_perpendicular_to_other_line(line1)
+
+        # using right-hand rule, if the dot product of vectors between two links and
+        # x-axis is less than 0 it has to be different direction
+        a = -dist if np.dot(other.t - self.t, other.n) < 0 else dist
+
+        # alpha
+        al = np.arctan2(np.linalg.norm(np.cross(self.a, other.a)),
+                        np.dot(self.a, other.a))
+
+        # using right-hand rule, if a dot product of Zi-1 axis is in negative direction
+        # of Yi axis, the angle has to be negative
+        alpha = -al if np.dot(other.o, self.a) < 0 else al
+
+        # check if the two frames fulfill the DH convention
+        test_frame = TransfMatrix.from_dh_parameters(theta, d, a, alpha)
+        if not np.allclose(self.matrix @ test_frame.matrix, other.matrix):
+            warn("Frames do not fulfill the DH convention")
+            return [0., 0., 0., 0.]
+        else:
+            return [theta, d, a, alpha]
+
 
     def get_plot_data(self):
         """
