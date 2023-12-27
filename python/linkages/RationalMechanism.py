@@ -42,7 +42,7 @@ class RationalMechanism(RationalCurve):
         The parameters are in the order: theta, d, a, alpha. It follows the standard
         convention. The first row is are the parameters of the base frame.
 
-        See more in the paper by Huczala et al. [1]_.
+        See more in the paper by Huczala et al. [2]_.
 
         :param str unit: desired unit of the angle parameters, can be 'deg' or 'rad'
         :param float scale: scale of the length parameters of the linkage
@@ -50,7 +50,7 @@ class RationalMechanism(RationalCurve):
         :return: theta, d, a, alpha array of Denavit-Hartenberg parameters
         :rtype: np.ndarray
 
-        .. _[1] D. Huczala, T. Kot, J. Mlotek, J. Suder and M. Pfurner, "An Automated
+        .. _[2] D. Huczala, T. Kot, J. Mlotek, J. Suder and M. Pfurner, "An Automated
             Conversion Between Selected Robot Kinematic Representations," 2022 10th
             International Conference on Control, Mechatronics and Automation (ICCMA),
             Belval, Luxembourg, 2022, pp. 47-52, DOI: 10.1109/ICCMA56665.2022.10011595

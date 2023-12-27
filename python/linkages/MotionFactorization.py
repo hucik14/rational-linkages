@@ -38,7 +38,7 @@ class MotionFactorization(RationalCurve):
             [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)])
 
-    .. [1] Frischauf, Johanna et al. (2022). A multi-Bennett 8R mechanism obtained from
+    .. _[1] Frischauf, Johanna et al. (2022). A multi-Bennett 8R mechanism obtained from
         factorization of bivariate motion polynomials. *Mechanisms and Machine Theory*.
         DOI: 10.1016/j.mechmachtheory.2022.105143 (https://doi.org/10.1016/j.mechmachtheory.2022.105143).
     """
