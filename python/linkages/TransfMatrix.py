@@ -329,10 +329,11 @@ class TransfMatrix:
 
         # check if the two frames fulfill the DH convention
         test_frame = TransfMatrix.from_dh_parameters(theta, d, a, alpha)
-        if not np.allclose(test_frame.matrix, other.matrix):
+        if not np.allclose(self.matrix @ test_frame.matrix, other.matrix):
             warn("Frames do not fulfill the DH convention")
-
-        return [theta, d, a, alpha]
+            return [0., 0., 0., 0.]
+        else:
+            return [theta, d, a, alpha]
 
 
     def get_plot_data(self):

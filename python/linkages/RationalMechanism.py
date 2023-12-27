@@ -55,10 +55,7 @@ class RationalMechanism(RationalCurve):
                 raise ValueError("unit must be deg or rad")
 
             dh.append(np.array([th, scale * d, scale * a, al]))
-
-        print(dh)
-
-        return dh   
+        return dh
 
     def get_frames(self) -> list[TransfMatrix]:
         """
@@ -69,23 +66,26 @@ class RationalMechanism(RationalCurve):
         """
         from TransfMatrix import TransfMatrix
 
-        frames = [TransfMatrix()] * (self.num_joints + 1)
+        frames = [TransfMatrix()] * (self.num_joints + 2)
 
         screws = self.get_screw_axes()
+
+        # add the first screw to the end of the list
+        screws.append(screws[0])
 
         # insert origin as the base line
         screws.insert(0, NormalizedLine())
 
         for i, line in enumerate(screws[1:]):
             pts, dist, cos_angle = line.common_perpendicular_to_other_line(screws[i])
-            vec = pts[1] - pts[0]
+            vec = pts[0] - pts[1]
 
             if not np.isclose(dist, 0.0):  # if the lines are skew or parallel
                 # normalize vec - future X axis
                 vec_x = vec / np.linalg.norm(vec)
 
                 # from line.dir (future Z axis) and x create an SE3 object
-                frames[i+1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[1])
+                frames[i+1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[0])
 
             else:  # Z axes are intersecting or coincident
                 if np.isclose(np.dot(frames[i].a, line.direction), 1):
@@ -101,7 +101,7 @@ class RationalMechanism(RationalCurve):
                     # future X axis as cross product of previous Z axis and new Z axis
                     vec_x = np.cross(frames[i].a, line.direction)
 
-                    frames[i + 1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[1])
+                    frames[i + 1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[0])
 
         return frames
 
@@ -180,7 +180,7 @@ class RationalMechanism(RationalCurve):
                                                  joint_segment,
                                                  params,
                                                  scale=scale,)
-            print(np.linalg.norm(middle_pts[0] - middle_pts[1]))
+            #print(np.linalg.norm(middle_pts[0] - middle_pts[1]))
             middle_points.append(middle_pts)
 
         d = [d_i * scale for d_i in d]
