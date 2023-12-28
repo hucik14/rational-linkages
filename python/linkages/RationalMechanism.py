@@ -35,6 +35,61 @@ class RationalMechanism(RationalCurve):
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
 
+    def get_design_params(self, unit: str = 'rad', scale: float = 1.0,
+                          pretty_print: bool = True):
+        """
+        Get the design parameters of the linkage for the CAD model.
+
+        The parameters are in the order: d, a, alpha, connection0,
+        connection1, for every link.
+
+        :param str unit: desired unit of the angle parameters, can be 'deg' or 'rad'
+        :param float scale: scale of the length parameters of the linkage
+        :param bool pretty_print: if True, print the parameters in a readable form,
+            otherwise return a numpy array
+
+        :return: design parameters of the linkage
+        :rtype: np.ndarray
+        """
+        screws = self.get_screw_axes()
+        screws.append(screws[0])
+        frames = self.get_frames()[1:]
+
+        connection_params = self.get_segment_connections()
+        connection_params = np.vstack((connection_params, connection_params[0, :]))
+
+        design_params = np.zeros((self.num_joints, 2))
+
+        for i in range(self.num_joints):
+            design_params[i, 0] = connection_params[i, 1] - screws[i].get_point_param(frames[i].t)
+            design_params[i, 1] = connection_params[i+1, 0] - screws[i+1].get_point_param(frames[i+1].t)
+
+        dh = self.get_dh_params(unit=unit, scale=scale)
+        if pretty_print:
+            for i in range(self.num_joints):
+                #print(f"Link {i}: d = {dh[i, 1]:.4f}, a = {dh[i, 2]:.4f}, alpha = {dh[i, 3]:.4f}")
+                print(f"cp_0 = {design_params[i, 0] * scale:.4f}, cp_1 = {design_params[i, 1] * scale:.4f}")
+
+        return design_params * scale
+
+    def get_segment_connections(self, scale: float = 1.0) -> np.ndarray:
+        """
+        Get the connection parameters of the linkage, suitable for CAD model.
+
+        :param float scale: scale of the length parameters of the linkage
+
+        :return: connection points of the linkage
+        :rtype: np.ndarray
+        """
+        connection_params = np.zeros((self.num_joints, 2))
+        for i in range(len(self.factorizations[0].linkage)):
+            connection_params[i, :] = self.factorizations[0].linkage[i].points_params
+
+        for i in range(len(self.factorizations[1].linkage)):
+            connection_params[-1-i, :] = self.factorizations[1].linkage[i].points_params[::-1]
+
+        return connection_params
+
     def get_dh_params(self, unit: str = 'rad', scale: float = 1.0) -> np.ndarray:
         """
         Get the standard Denavit-Hartenberg parameters of the linkage.
