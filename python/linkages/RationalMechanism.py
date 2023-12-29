@@ -64,19 +64,20 @@ class RationalMechanism(RationalCurve):
             design_params[i, 0] = connection_params[i, 1] - screws[i].get_point_param(frames[i].t)
             design_params[i, 1] = connection_params[i+1, 0] - screws[i+1].get_point_param(frames[i+1].t)
 
-        dh = self.get_dh_params(unit=unit, scale=scale)
+        design_params = design_params * scale
+        dh = self.get_dh_params(unit=unit, scale=scale)[1:]
+
         if pretty_print:
             for i in range(self.num_joints):
-                #print(f"Link {i}: d = {dh[i, 1]:.4f}, a = {dh[i, 2]:.4f}, alpha = {dh[i, 3]:.4f}")
-                print(f"cp_0 = {design_params[i, 0] * scale:.4f}, cp_1 = {design_params[i, 1] * scale:.4f}")
+                print("---")
+                print(f"Link {i}: d = {dh[i, 1]:.6f}, a = {dh[i, 2]:.6f}, alpha = {dh[i, 3]:.6f}")
+                print(f"cp_0 = {design_params[i, 0]:.6f}, cp_1 = {design_params[i, 1]:.6f}")
 
-        return design_params * scale
+        return dh, design_params
 
-    def get_segment_connections(self, scale: float = 1.0) -> np.ndarray:
+    def get_segment_connections(self) -> np.ndarray:
         """
-        Get the connection parameters of the linkage, suitable for CAD model.
-
-        :param float scale: scale of the length parameters of the linkage
+        Get the connection parameters of the linkage.
 
         :return: connection points of the linkage
         :rtype: np.ndarray
