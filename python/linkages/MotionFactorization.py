@@ -62,29 +62,6 @@ class MotionFactorization(RationalCurve):
     def __repr__(self):
         return f"MotionFactorization({self.factors_with_parameter})"
 
-    # def __add__(self, other):
-    #     """
-    #     Add two MotionFactorization objects - concatenate them. The order of the other
-    #     object IS REVERSED.
-    #
-    #     :param MotionFactorization other: other MotionFactorization to be added
-    #
-    #     :return: concatenated MotionFactorization
-    #     :rtype: MotionFactorization
-    #     """
-    #     from copy import deepcopy
-    #     from Linkage import Linkage
-    #
-    #     self_copy = deepcopy(self)
-    #
-    #     for i in reversed(range(other.number_of_factors)):
-    #         self_copy.dq_axes.append(other.dq_axes[i])
-    #         self_copy.linkage.append(Linkage(other.dq_axes[i], [other.linkage[i].points[1], other.linkage[i].points[0]]))
-    #         self_copy.factors_with_parameter = self_copy.get_symbolic_factors()
-    #         self_copy.number_of_factors += 1
-    #
-    #     return self_copy
-
     @staticmethod
     def get_polynomials_from_factorization(factors: list[DualQuaternion]) -> (
             list)[sp.Poly]:
