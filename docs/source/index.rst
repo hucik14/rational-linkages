@@ -21,9 +21,14 @@ Rational Linkages Toolbox Documentation
    :target: https://www.python.org/downloads/release/python-3117/
    :alt: Python 3.11
 
-Welcome to the Rational Linkages Toolbox Documentation, which serves as a reference for the toolbox. The toolbox is a collection of functions for the analysis of rational linkages and their rapid prototyping. It is written in Python and uses the Numpy and SymPy libraries for computations, and Matplotlib for plotting. The toolbox is developed at the Unit of Geometry and Surveying, University of Innsbruck, Austria.
+Welcome to the Rational Linkages Toolbox Documentation, which serves as a reference for
+the toolbox. The toolbox is a collection of functions for the analysis of rational
+linkages and their rapid prototyping. It is written in Python and uses the Numpy and
+SymPy libraries for computations, and Matplotlib for plotting. The toolbox is developed
+at the Unit of Geometry and Surveying, University of Innsbruck, Austria.
 
-The source code is available as `Gitlab repository`_ hosted by UIBK.
+The source code is available as `Gitlab repository`_ hosted by UIBK. The installation
+instructions can be found in the `installation instructions`_.
 
 .. toctree::
    :maxdepth: 2
@@ -35,6 +40,7 @@ The source code is available as `Gitlab repository`_ hosted by UIBK.
    background-math
 
 .. _Gitlab repository: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
+.. _installation instructions: general/installation.rst
 
 Indices and tables
 ==================

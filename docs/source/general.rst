@@ -5,6 +5,6 @@ General information
    :maxdepth: 4
    :caption: Contents:
 
-   general/overview
    general/installation
+   general/overview
    general/contribute
