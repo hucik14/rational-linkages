@@ -375,6 +375,7 @@ class Plotter:
             """Event handler for the text box"""
             val = float(text)
             self.plot_slider_update(val, t_param=val)
+            self.move_slider.set_val(mechanism.factorizations[0].t_param_to_joint_angle(val))
 
         # connect the slider and text box to the event handlers
         self.move_slider.on_changed(self.plot_slider_update)

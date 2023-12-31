@@ -248,6 +248,32 @@ class MotionFactorization(RationalCurve):
 
         return t
 
+    def t_param_to_joint_angle(self, t_param: float) -> float:
+        """
+        Convert t parameter of the curve to joint angle
+
+        This is an inverse function of
+        :meth:`.MotionFactorization.joint_angle_to_t_param` method. See more
+        information in documentation in `Joint Angle to Curve Parameter`_.
+
+        :param float t_param: t parameter of the curve
+
+        :return: joint angle in radians
+        :rtype: float
+        """
+        t_param_joint0 = t_param - self.dq_axes[0].p[0]
+
+        if t_param_joint0 == 0.0:
+            t_param_joint0 = 0.000000000000000001
+
+        angle = 2 * np.arctan(np.sqrt(self.dq_axes[0].p.norm()) / t_param_joint0)
+
+        # normalize angle to [0, 2*pi]
+        if angle < 0:
+            angle += 2 * np.pi
+
+        return angle
+
     def factorize(self) -> list['MotionFactorization']:
         """
         Factorize the motion curve into motion factorizations
