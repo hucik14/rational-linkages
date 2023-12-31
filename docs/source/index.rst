@@ -6,7 +6,7 @@
 Rational Linkages Toolbox Documentation
 =======================================
 .. image:: https://img.shields.io/gitlab/v/release/21918?gitlab_url=https%3A%2F%2Fgit.uibk.ac.at%2F&style=social&logo=gitlab&label=repository
-   :target: :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
+   :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
    :alt: GitLab (self-managed)
 
 .. image:: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/pipeline.svg?job=run_tests
