@@ -4,6 +4,7 @@ matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, TextBox
 from functools import wraps
+from itertools import cycle
 
 from DualQuaternion import DualQuaternion
 from NormalizedLine import NormalizedLine
@@ -347,7 +348,14 @@ class Plotter:
                 mechanism.factorizations[1].linkage[i].points_params[1])
 
         # initialize the linkages plot
-        self.link_plot, = self.ax.plot([], [], [], color="black")
+        linestyles = cycle(['solid', 'dashdot'])
+        self.lines = []
+        for i in range(mechanism.num_joints * 2):
+            # alter between solid (links) and dashdot (joints)
+            linestyle = next(linestyles)
+            line, = self.ax.plot([], [], [], linestyle=linestyle,
+                                 color='black', marker='.')
+            self.lines.append(line)
 
         if self.show_tool:
             # initialize the tool point interactive plot
@@ -451,7 +459,10 @@ class Plotter:
         links.insert(0, links[-1])
 
         x, y, z = zip(*[links[j] for j in range(len(links))])
-        self.link_plot.set_data_3d(x, y, z)
+
+        for i, line in enumerate(self.lines):
+            line.set_data_3d([x[i], x[i+1]], [y[i], y[i+1]], [z[i], z[i+1]])
+
         """
         xyz_coordinates = [(100 * xi, 100 * yi, 100 * zi) for xi, yi, zi in zip(x, y, z)]
 
