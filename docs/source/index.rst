@@ -27,8 +27,8 @@ linkages and their rapid prototyping. It is written in Python and uses the Numpy
 SymPy libraries for computations, and Matplotlib for plotting. The toolbox is developed
 at the Unit of Geometry and Surveying, University of Innsbruck, Austria.
 
-The source code is available as `Gitlab repository`_ hosted by UIBK. The installation
-instructions can be found in the `installation instructions`_.
+The source code is available as `Gitlab repository`_ hosted by UIBK. The *installation
+instructions* can be found in the `installation manual`_.
 
 .. toctree::
    :maxdepth: 2
@@ -40,7 +40,7 @@ instructions can be found in the `installation instructions`_.
    background-math
 
 .. _Gitlab repository: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
-.. _installation instructions: general/installation.rst
+.. _installation manual: general/installation.rst
 
 Indices and tables
 ==================
