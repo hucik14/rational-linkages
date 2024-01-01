@@ -322,8 +322,12 @@ class Plotter:
         # set a text box that can be used to set the angle manually
         self.text_box_angle = TextBox(self.fig.add_axes([0.3, 0.06, 0.15, 0.05]),
                                       "Set angle [rad]: ", textalignment="right")
+        # set a text box that can be used to set the t param manually
         self.text_box_param = TextBox(self.fig.add_axes([0.3, 0.12, 0.15, 0.05]),
                                       "Set param t [-]: ", textalignment="right")
+        # text box to save files
+        self.text_box_save = TextBox(self.fig.add_axes([0.3, 0.18, 0.15, 0.05]),
+                                     "Save with filename: ", textalignment="right")
 
         # vertical sliders to control physical linkage position (connecting points)
         self.joint_sliders = []
@@ -359,7 +363,7 @@ class Plotter:
 
         if self.show_tool:
             # initialize the tool point interactive plot
-            self.tool_plot, = self.ax.plot([], [], [], color="red")
+            self.tool_plot, = self.ax.plot([], [], [], color="black")
             # initialize the tool frame
             self.pose_frame = [self.ax.quiver([], [], [], [], [], [], color="red"),
                                self.ax.quiver([], [], [], [], [], [], color="green"),
@@ -377,10 +381,16 @@ class Plotter:
             self.plot_slider_update(val, t_param=val)
             self.move_slider.set_val(mechanism.factorizations[0].t_param_to_joint_angle(val))
 
+        def submit_save(text):
+            """Event handler for the text box"""
+            val = text
+            mechanism.save(filename=val)
+
         # connect the slider and text box to the event handlers
         self.move_slider.on_changed(self.plot_slider_update)
         self.text_box_angle.on_submit(submit_angle)
         self.text_box_param.on_submit(submit_parameter)
+        self.text_box_save.on_submit(submit_save)
 
         # joint physical placement sliders
         for i in range(4 * mechanism.factorizations[0].number_of_factors):
@@ -501,7 +511,7 @@ class Plotter:
             for pose_arrow in self.pose_frame:
                 pose_arrow.remove()
             # plot new frame
-            self.pose_frame = [self.ax.quiver(*vec, color=color, length=0.3) for vec, color in zip([x_vec, y_vec, z_vec], ["red", "green", "blue"])]
+            self.pose_frame = [self.ax.quiver(*vec, color=color, length=0.05) for vec, color in zip([x_vec, y_vec, z_vec], ["red", "green", "blue"])]
 
         # update the plot
         self.fig.canvas.draw_idle()

@@ -2,6 +2,7 @@ import numpy as np
 import sympy as sp
 from copy import deepcopy
 from time import time
+import pickle
 
 from RationalCurve import RationalCurve
 from DualQuaternion import DualQuaternion
@@ -34,6 +35,42 @@ class RationalMechanism(RationalCurve):
 
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
+
+    @classmethod
+    def from_saved_file(cls, filename: str):
+        """
+        Load a linkage object from a file.
+
+        :param str filename: name of the file to load the linkage object from
+
+        :return: linkage object
+        :rtype: RationalMechanism
+        """
+        # check if the filename has the .pkl extension
+        if filename[-4:] != '.pkl':
+            filename = filename + '.pkl'
+
+        try:
+            with open(filename, 'rb') as file:
+                mechanism = pickle.load(file)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File {filename} not found.")
+
+        return mechanism
+
+    def save(self, filename: str = None):
+        """
+        Save the linkage object to a file.
+
+        :param str filename: name of the file to save the linkage object to
+        """
+        if filename is None:
+            filename = 'saved_mechanism.pkl'
+        else:
+            filename = filename + '.pkl'
+
+        with open(filename, 'wb') as file:
+            pickle.dump(self, file)
 
     def get_design(self, unit: str = 'rad',
                    scale: float = 1.0,
