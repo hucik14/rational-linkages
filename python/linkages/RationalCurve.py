@@ -1,8 +1,6 @@
 from copy import deepcopy
-
 import numpy as np
 import sympy as sp
-from matplotlib import pyplot as plt
 from PointHomogeneous import PointHomogeneous
 
 
@@ -36,7 +34,7 @@ class RationalCurve:
         >>> eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t)
         >>> curve = RationalCurve([eq0, eq1, eq2, eq0])
 
-        or from polynomials:
+        or from coefficients:
         >>> obj = RationalCurve.from_coeffs(np.array([[1., 0., 2., 0., 1.], [0.5, 0., -2., 0., 1.5], [0., -1., 0., 3., 0.], [1., 0., 2., 0., 1.]]))
     """
 

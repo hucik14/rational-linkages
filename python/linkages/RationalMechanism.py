@@ -35,11 +35,11 @@ class RationalMechanism(RationalCurve):
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
 
-    def get_design_params(self, unit: str = 'rad',
-                          scale: float = 1.0,
-                          joint_length: float = 40.0,
-                          washer_length: float = 1.0,
-                          pretty_print: bool = True):
+    def get_design(self, unit: str = 'rad',
+                   scale: float = 1.0,
+                   joint_length: float = 40.0,
+                   washer_length: float = 1.0,
+                   pretty_print: bool = True):
         """
         Get the design parameters of the linkage for the CAD model.
 
@@ -348,6 +348,9 @@ class RationalMechanism(RationalCurve):
         :return: list of collision check results
         :rtype: list[str]
         """
+        print("--- running in non-parallel mode, set collision_check(parallel=True) to"
+              " run in parallel ---")
+
         results = []
         for val in iters:
             results.append(self._check_given_pair(val))

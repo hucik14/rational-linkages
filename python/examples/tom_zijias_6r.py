@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
     #dhn = m.get_dh_params(unit='deg', scale=100)
 
-    design = m.get_design_params(unit='deg', scale=100)
+    design = m.get_design(unit='deg', scale=100)
 
 
 

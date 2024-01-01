@@ -3,21 +3,21 @@ Installation
 
 There are three ways to install the Python package:
 
-a) using pip:
+A) using pip:
 
 .. code-block:: bash
 
     pip install rational-linkages
 
 
-b) using conda:
+B) using conda:
 
 .. code-block:: bash
 
     conda install -c conda-forge rational-linkages
 
 
-c) from source:
+C) from source:
 
 .. code-block:: bash
 

@@ -99,6 +99,8 @@ class FactorizationProvider:
 
         :return: The irreducible factors of the polynomial.
         :rtype: list[bq.Poly]
+
+        :raises: If the factorization failed.
         """
         # Calculate the norm polynomial. To avoid numerical problems, extract
         # the scalar part, since the norm should be purely real
@@ -113,12 +115,13 @@ class FactorizationProvider:
         # The different permutations of the irreducible factors then generate
         # the different factorizations of the motion.
 
+        if len(factors) <= 1:
+            raise ValueError('The factorization failed for the given input.')
+
         factorization1 = bq.factorize_from_list(poly, factors)
         factorization2 = bq.factorize_from_list(poly, factors[::-1])
 
         print('Factorization ended.')
-
-        # TODO: check if the factorization is correct
 
         return [factorization1, factorization2]
 
