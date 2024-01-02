@@ -38,23 +38,14 @@ if __name__ == '__main__':
     #h1 = DualQuaternion.as_rational([0, 0, 0, 1, 0, 0, 0.5, 0], is_rotation=True)
     #h2 = DualQuaternion.as_rational([0.2, 0, -0.6, 0.8, 0, 0, -0.8, -0.6], is_rotation=True)
 
-    f = MotionFactorization([h1, h2])
-    fs = FactorizationProvider().factorize_for_motion_factorization(f)
-    fs = FactorizationProvider().factorize_motion_curve(c)
-    m = RationalMechanism(fs)
+    #f = MotionFactorization([h1, h2])
+    #fs = FactorizationProvider().factorize_for_motion_factorization(f)
+    #fs = FactorizationProvider().factorize_motion_curve(c)
+    #m = RationalMechanism(fs)
+
+    m = RationalMechanism.from_saved_file('bennett')
 
     p = Plotter(interactive=True, steps=500)
     p.plot(m, show_tool=True)
     p.show()
-
-"""
-m.factorizations[0].linkage[0].points_params
-Out[6]: [-0.3354329386075423, -0.16746451667086637]
-m.factorizations[0].linkage[1].points_params
-Out[7]: [0.08112874779541412, 0.0005039052658095677]
-m.factorizations[1].linkage[0].points_params
-Out[8]: [0.20878474846728778, 0.07570207570207588]
-m.factorizations[1].linkage[1].points_params
-Out[9]: [-0.10699588477366317, 0.0005039052658095677]
-"""
 
