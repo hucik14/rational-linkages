@@ -107,6 +107,7 @@ class FactorizationProvider:
         norm_poly = poly.norm()
         norm_poly = bq.Poly(norm_poly.poly.scal, *norm_poly.indets)
 
+        print("")
         print('Factorization is running...')
 
         # Calculate the irreducible factors, that determine the different factorizations

@@ -26,6 +26,14 @@ class Plotter:
         self.ax.set_zlabel("Z-axis")
         self.ax.set_aspect("equal")
 
+        plt.subplots_adjust(
+            top=1.0,
+            bottom=0.16,
+            left=0.32,
+            right=0.935,
+            hspace=0.2,
+            wspace=0.2)
+
         self.t_space = np.linspace(interval[0], interval[1], steps)
         self.steps = steps
         self.interactive = interactive
@@ -320,13 +328,13 @@ class Plotter:
         # append first slider that is the driving joint angle slider
         self.move_slider = self._init_slider()
         # set a text box that can be used to set the angle manually
-        self.text_box_angle = TextBox(self.fig.add_axes([0.3, 0.06, 0.15, 0.05]),
+        self.text_box_angle = TextBox(self.fig.add_axes([0.3, 0.055, 0.15, 0.05]),
                                       "Set angle [rad]: ", textalignment="right")
         # set a text box that can be used to set the t param manually
-        self.text_box_param = TextBox(self.fig.add_axes([0.3, 0.12, 0.15, 0.05]),
+        self.text_box_param = TextBox(self.fig.add_axes([0.3, 0.11, 0.15, 0.05]),
                                       "Set param t [-]: ", textalignment="right")
         # text box to save files
-        self.text_box_save = TextBox(self.fig.add_axes([0.3, 0.18, 0.15, 0.05]),
+        self.text_box_save = TextBox(self.fig.add_axes([0.3, 0.165, 0.15, 0.05]),
                                      "Save with filename: ", textalignment="right")
 
         # vertical sliders to control physical linkage position (connecting points)
@@ -425,7 +433,8 @@ class Plotter:
             j_slider_lim = 2.0
             slider0 = Slider(
                 ax=plt.axes([0.03 + i * 0.04, 0.25, 0.0225, 0.63]),
-                label="j{}.0".format(i),
+                #label="j{}.0".format(i),
+                label="j{}".format(i),
                 valmin=-j_slider_lim,
                 valmax=j_slider_lim,
                 valinit=0.0,
@@ -433,7 +442,8 @@ class Plotter:
             )
             slider1 = Slider(
                 ax=plt.axes([0.045 + i * 0.04, 0.25, 0.0225, 0.63]),
-                label="j{}.1".format(i),
+                #label="j{}.1".format(i),
+                label="",
                 valmin=-j_slider_lim,
                 valmax=j_slider_lim,
                 valinit=0.0,

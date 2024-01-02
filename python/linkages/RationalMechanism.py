@@ -312,7 +312,7 @@ class RationalMechanism(RationalCurve):
 
         return new_params
     
-    def collision_check(self, parallel: bool = False):
+    def collision_check(self, parallel: bool = False, pretty_print: bool = True):
         """
         Perform full-cycle collision check on the line-model linkage.
 
@@ -322,11 +322,13 @@ class RationalMechanism(RationalCurve):
 
         :param bool parallel: if True, perform collision check in parallel using
             multiprocessing
+        :param bool pretty_print: if True, print the results in a readable form
 
-        :return: list of collision check results
-        :rtype: list[str]
+        :return: list of collision check colliding parameter values
+        :rtype: list[float]
         """
         start_time = time()
+        print("")
         print("Collision check started...")
 
         # update the line segments (physical realization of the linkage)
@@ -337,7 +339,7 @@ class RationalMechanism(RationalCurve):
             for jj in range(ii + 2, len(self.segments)):
                 iters.append((ii, jj))
 
-        print(f"Number of tasks to solve: {len(iters)}")
+        print(f"--- number of tasks to solve: {len(iters)} ---")
 
         if parallel:
             collision_results = self._collision_check_parallel(iters)
@@ -345,13 +347,23 @@ class RationalMechanism(RationalCurve):
             collision_results = self._collision_check_nonparallel(iters)
 
         results = [r for r in collision_results if r is not None]
+        flattened_results = [item for sublist in results for item in sublist]
         if len(results) == 0:
-            results = ["Linkage is without collisions!"]
+            flattened_results = None
 
         end_time = time()
         print(f"Collision check finished in {end_time - start_time} seconds.")
 
-        return results
+        if pretty_print:
+            if flattened_results is None:
+                print("The linkage is without collisions!")
+            else:
+                print(f"The linkage is colliding {len(flattened_results)} times at the "
+                      f"following parameter values:")
+                for res in flattened_results:
+                    print(res)
+
+        return flattened_results
 
     def _collision_check_parallel(self, iters: list[tuple[int, int]]):
         """
@@ -418,8 +430,12 @@ class RationalMechanism(RationalCurve):
         else:
             physical_collision = [False]
 
+        result = []
         if True in physical_collision:
-            result = f"{physical_collision} at parameters: {collisions} for linkage pair: {self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}"
+            for i, res in enumerate(physical_collision):
+                if res:
+                    result.append(collisions[i])
+            #result = f"{physical_collision} at parameters: {collisions} for linkage pair: {self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}"
         else:
             #result = f"no collision between {self.segments[i].type}_{self.segments[i].factorization_idx}{self.segments[i].idx} X {self.segments[j].type}_{self.segments[j].factorization_idx}{self.segments[j].idx}"
             result = None
