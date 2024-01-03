@@ -1,0 +1,66 @@
+ARK 2024 paper - extended information
+=====================================
+
+This page contains the extended information for the paper submitted to conference ARK
+2024, Lublijana, Slovenia, under the title: **Rational Linkages: from poses to
+3D-printed Prototypes**
+
+Bennett mechanism example
+-------------------------
+
+A Bennett mechanism was synthesized by Brunnthaler et al. [#brunnthaler2005new]_.
+It perform the motion :math:`C(t)` given byt the following equation
+
+.. math::
+   C(t) =
+    \begin{bmatrix}
+        0  \\
+        22134 + 39870 t + 4440 t^2 \\
+        -42966+9927t+16428 t^2 \\
+        -115878-73843t-37296 t^2 \\
+        0 \\
+        -7812-14586t-1332 t^2 \\
+        6510-1473t-2664 t^2 \\
+        -3906-1881t-1332 t^2 \\
+    \end{bmatrix}
+    :label: eq:ct
+
+This equation serves as the input for the following script.
+
+.. code-block:: python
+        :caption: Bennett mechanism example
+
+        from RationalCurve import RationalCurve
+        from RationalMechanism import RationalMechanism
+        from Plotter import Plotter
+        import numpy as np
+
+
+        coeffs = np.array([[0, 0, 0],
+                       [4440, 39870, 22134],
+                       [16428, 9927, -42966],
+                       [-37296,-73843,-115878],
+                       [0, 0, 0],
+                       [-1332, -14586, -7812],
+                       [-2664, -1473, 6510],
+                       [-1332, -1881, -3906]])
+
+        # define a rational curve object
+        c = RationalCurve.from_coeffs(coeffs)
+
+        # define a mechanism from the rational curve
+        # WRONG m = RationalMechanism.from_saved_file('bennett')
+
+        # define a plotter object,
+        p = Plotter(interactive=True, steps=500)
+        p.plot(m, show_tool=True)
+        p.show()
+
+This follows
+
+
+.. [#brunnthaler2005new] Katrin Brunnthaler, Hans-Peter Schroecker, and Manfred Husty.
+    A new method for the synthesis of bennett mechanisms. *International Workshop on
+    Computational Kinematics, 2005.*
+    (https://geometrie.uibk.ac.at/cms/datastore/husty/BennettSynthesis-CK53-final.pdf)
+

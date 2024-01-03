@@ -6,5 +6,6 @@ Tutorials
    :caption: Contents:
 
    tutorials/getting_started
+   tutorials/ark2024
    tutorials/test
 
