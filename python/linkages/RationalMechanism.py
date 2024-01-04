@@ -356,7 +356,7 @@ class RationalMechanism(RationalCurve):
 
         if pretty_print:
             if flattened_results is None:
-                print("The linkage is without collisions!")
+                print("No collisions found.")
             else:
                 print(f"The linkage is colliding {len(flattened_results)} times at the "
                       f"following parameter values:")

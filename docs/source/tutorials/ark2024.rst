@@ -9,7 +9,7 @@ Bennett mechanism example
 -------------------------
 
 A Bennett mechanism was synthesized by Brunnthaler et al. [#brunnthaler2005new]_.
-It perform the motion :math:`C(t)` given byt the following equation
+It performs the motion :math:`C(t)` given byt the following equation
 
 .. math::
    C(t) =
@@ -143,6 +143,11 @@ pressing Enter button on the keyboard. Eventually, it is possible to save the me
 using the method :meth:`.RationalMechanism.save` in Python console. Then, the mechanism
 can be loaded and checked for collisions using the script below.
 
+If there are no collisions, the output in the console will write "No collisions found."
+If there are collisions, it will return list of parameter :math:`t` values, where the
+collisions happen. This value can be passed to the plotting window at the textbox
+:code:`Set param t [-]`.
+
 .. code-block:: python
         :caption: Loading a mechanism, collision checking, and design generation
 
@@ -187,7 +192,7 @@ for 3D-printing. The unspecified arguments using line :code:`dh, cp = m.get_desi
 would have output in radians and without scaling, for example:
 
 .. code-block:: text
-        :caption: Design generation output
+        :caption: Exemple of default output
 
         Link 0: d = 0.322901, a = 0.242590, alpha = -2.525128
         cp_0 = 10.457928, cp_1 = 10.541352
