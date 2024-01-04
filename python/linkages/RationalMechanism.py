@@ -74,7 +74,7 @@ class RationalMechanism(RationalCurve):
 
     def get_design(self, unit: str = 'rad',
                    scale: float = 1.0,
-                   joint_length: float = 40.0,
+                   joint_length: float = 20.0,
                    washer_length: float = 1.0,
                    pretty_print: bool = True):
         """
@@ -85,9 +85,10 @@ class RationalMechanism(RationalCurve):
 
         :param str unit: desired unit of the angle parameters, can be 'deg' or 'rad'
         :param float scale: scale of the length parameters of the linkage
-        :param float joint_length: length of the joint segment in mm; default is 40 mm
+        :param float joint_length: length of the joint segment in mm; default is 20 mm
             which corresponds to the CAD model that connects two 20 mm joint parts and
-            has 1 mm thick washer between (with a scale of 100)
+            has 1 mm thick washer between. Total length of the joint is 41 mm. It is
+            used to calculate a midpoint distance between the two links that connect.
         :param float washer_length: length of the washer in mm; default is 1 mm
         :param bool pretty_print: if True, print the parameters in a readable form,
             otherwise return a numpy array
@@ -100,7 +101,7 @@ class RationalMechanism(RationalCurve):
         frames = self.get_frames()[1:]
 
         connection_params = self.get_segment_connections()
-        midpts_dist = (joint_length / 2 + washer_length) / scale
+        midpts_dist = (joint_length + washer_length) / scale
         connection_params = self.map_connection_params(connection_params, midpts_dist)
         connection_params = np.vstack((connection_params, connection_params[0, :]))
 

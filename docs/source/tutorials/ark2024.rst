@@ -198,8 +198,23 @@ would have output in radians and without scaling, for example:
         cp_0 = 10.457928, cp_1 = 10.541352
 
 The method :meth:`.RationalMechanism.get_design` has additional optional arguments,
-which are by default set :code:`joint_length=40` and :code:`washer_length=1`. This are
-dimensions in milimeters that are used in the pre-prepared CAD model.
+which are by default set :code:`joint_length=20` and :code:`washer_length=1`. These are
+dimensions in milimeters that are used in the pre-prepared CAD model. The drawing of
+the default joint is shown in the figure below.
+
+.. figure:: figures/drawing_joint.png
+    :width: 500 px
+    :align: center
+    :alt: Default joint model
+
+The balloons correspond to this list:
+1) Link i
+2) Link i+1
+3) Stop nut ISO 7040, size M5
+4) Screw ISO 7379, size D6-40mm M5
+5) Bearings 626 (6x19x6 mm), used 4x
+6) Washers DIN 988, inner diameter 6 mm, width 1 mm, used 2x
+
 
 **References**
 
