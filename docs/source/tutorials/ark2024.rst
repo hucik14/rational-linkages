@@ -121,11 +121,80 @@ The resulting mechanism is plotted unsing the Plotter class. The resulting plot 
 shown in the figure below.
 
 .. figure:: figures/ark_bennett_home.svg
-    :scale: 50 %
+    :width: 500 px
     :align: center
     :alt: Visualization of the synthesized Bennett mechanism
 
+**Physical modelling of Bennett mechanism**
 
+Since the default line model cannot be directly used for 3D printing, because the joint
+segments are too small. Therefore, the sliders on the left side of the plotter window
+can be used to control the placement of the physical conneting points on a joint-axis.
+An example is shown in Figure below.
+
+.. figure:: figures/ark_bennett_physical.svg
+    :width: 500 px
+    :align: center
+    :alt: Bennett mechanism with adjusted physical connecting points
+
+When a user is satisfied with the placement of the connecting points, the mechanism can
+be saved to a file using the "Save with filename:" textbox, filling the filename and
+pressing Enter button on the keyboard. Eventually, it is possible to save the mechanism
+using the method :meth:`.RationalMechanism.save` in Python console. Then, the mechanism
+can be loaded and checked for collisions using the script below.
+
+.. code-block:: python
+        :caption: Loading a mechanism, collision checking, and design generation
+
+        from RationalMechanism import RationalMechanism
+
+
+        # on Windows, the script has to be run inside the if __name__ == '__main__'
+        # so the parallel processing can be used
+        if __name__ == '__main__':
+            # load the mechanism
+            m = RationalMechanism.from_saved_file('bennett.pkl')
+
+            # check for collisions
+            m.check_collisions(parallel=True)
+
+            # generate the design
+            dh, cp = m.get_design(unit='deg', scale=200)
+
+This last line of the script generates the design of the mechanism with the following
+output:
+
+.. code-block:: text
+        :caption: Design generation output
+
+        Link 0: d = 64.580219, a = 48.517961, alpha = -144.679172
+        cp_0 = 2.085621, cp_1 = 18.770367
+        ---
+        Link 1: d = -0.000000, a = 83.708761, alpha = -94.053746
+        cp_0 = -2.229633, cp_1 = -0.650840
+        ---
+        Link 2: d = -0.000000, a = 48.517961, alpha = -144.679172
+        cp_0 = -21.650840, cp_1 = 38.167707
+        ---
+        Link 3: d = -0.000000, a = 83.708761, alpha = -94.053746
+        cp_0 = 59.167707, cp_1 = -83.494598
+
+The argument :code:`unit='deg'` specifies, that :math:`\alpha_i` angle is given in
+degrees. The argument :code:`scale=200` specifies the length parameters :math:`d_i`,
+:math:`a_i` and connection point parameters :math:`cp_{0i}, cp_{1i}` will be scaled by
+200, which assures that the mechanism has dimensions as shown in milimeters, suitable
+for 3D-printing. The unspecified arguments using line :code:`dh, cp = m.get_design()`
+would have output in radians and without scaling, for example:
+
+.. code-block:: text
+        :caption: Design generation output
+
+        Link 0: d = 0.322901, a = 0.242590, alpha = -2.525128
+        cp_0 = 10.457928, cp_1 = 10.541352
+
+The method :meth:`.RationalMechanism.get_design` has additional optional arguments,
+which are by default set :code:`joint_length=40` and :code:`washer_length=1`. This are
+dimensions in milimeters that are used in the pre-prepared CAD model.
 
 **References**
 

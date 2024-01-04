@@ -41,7 +41,7 @@ if __name__ == '__main__':
     # define a mechanism object
     m = RationalMechanism(factors)
 
-    #m = RationalMechanism.from_saved_file('bennett')
+    m = RationalMechanism.from_saved_file('bennett')
 
     p = Plotter(interactive=True, steps=500)
     p.plot(m, show_tool=True)
