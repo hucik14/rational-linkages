@@ -202,7 +202,7 @@ which are by default set :code:`joint_length=20` and :code:`washer_length=1`. Th
 dimensions in milimeters that are used in the pre-prepared CAD model. The drawing of
 the default joint is shown in the figure below.
 
-.. figure:: figures/drawing_joint.png
+.. figure:: figures/drawing-joint.png
     :width: 500 px
     :align: center
     :alt: Default joint model
