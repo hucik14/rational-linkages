@@ -208,12 +208,13 @@ the default joint is shown in the figure below.
     :alt: Default joint model
 
 The balloons correspond to this list:
-1. Link i
-2. Link i+1
-3. Stop nut ISO 7040, size M5
-4. Screw ISO 7379, size D6-40mm M5
-5. Bearings 626 (6x19x6 mm), used 4x
-6. Washers DIN 988, inner diameter 6 mm, width 1 mm, used 2x
+
+    1. Link i
+    2. Link i+1
+    3. Stop nut ISO 7040, size M5
+    4. Screw ISO 7379, size D6-40mm M5
+    5. Bearings 626 (6x19x6 mm), used 4x
+    6. Washers DIN 988, inner diameter 6 mm and width 1 mm, used 2x
 
 
 **References**
