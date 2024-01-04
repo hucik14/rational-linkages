@@ -32,18 +32,16 @@ if __name__ == '__main__':
                        [-2664, -1473, 6510],
                        [-1332, -1881, -3906]])
 
+    # define a rational curve object
     c = RationalCurve.from_coeffs(coeffs)
 
+    # factorize the curve
+    factors = FactorizationProvider().factorize_motion_curve(c)
 
-    #h1 = DualQuaternion.as_rational([0, 0, 0, 1, 0, 0, 0.5, 0], is_rotation=True)
-    #h2 = DualQuaternion.as_rational([0.2, 0, -0.6, 0.8, 0, 0, -0.8, -0.6], is_rotation=True)
+    # define a mechanism object
+    m = RationalMechanism(factors)
 
-    #f = MotionFactorization([h1, h2])
-    #fs = FactorizationProvider().factorize_for_motion_factorization(f)
-    #fs = FactorizationProvider().factorize_motion_curve(c)
-    #m = RationalMechanism(fs)
-
-    m = RationalMechanism.from_saved_file('bennett')
+    #m = RationalMechanism.from_saved_file('bennett')
 
     p = Plotter(interactive=True, steps=500)
     p.plot(m, show_tool=True)
