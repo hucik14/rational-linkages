@@ -209,12 +209,23 @@ the default joint is shown in the figure below.
 
 The balloons correspond to this list:
 
-    1. Link i
-    2. Link i+1
+    1. Link :math:`i`
+    2. Link :math:`i+1`
     3. Stop nut ISO 7040, size M5
     4. Screw ISO 7379, size D6-40mm M5
     5. Bearings 626 (6x19x6 mm), used 4x
     6. Washers DIN 988, inner diameter 6 mm and width 1 mm, used 2x
+
+
+Links to the Bennett CAD models are available on Onshape, a cloud-based CAD software,
+where they can be viewed, exported, and downloaded:
+
+    * **Assembly:** https://cad.onshape.com/documents/5f75155fed80647eaafd88a7/w/3241929bd4f562af39728512/e/d7c5a5901bca93e09e0343ed
+    * link0: https://cad.onshape.com/documents/b11a23adebf5c90d5fc39c93/w/d4838bec6fdac9d34ecc6e9d/e/d95a88ff126fc64262ad9eb7
+    * link1: https://cad.onshape.com/documents/52d41f9f7095713853e32d51/w/4627cc38143db535625106b7/e/be17ec1bb14ec47a006cb0a8
+    * link2: https://cad.onshape.com/documents/62f222602d8ec4869987a979/w/accbe18fa04b21a223ff36b7/e/487ac189d26dbc73b2be82de
+    * link3: https://cad.onshape.com/documents/506cfc6c8c855458b05cf7bf/w/9684caf53f6a7519df3fe806/e/f95cb90348488cb4c58cd964
+
 
 
 **References**
