@@ -226,7 +226,7 @@ multiple formats including STL):
     * link2: https://cad.onshape.com/documents/62f222602d8ec4869987a979/w/accbe18fa04b21a223ff36b7/e/487ac189d26dbc73b2be82de
     * link3: https://cad.onshape.com/documents/506cfc6c8c855458b05cf7bf/w/9684caf53f6a7519df3fe806/e/f95cb90348488cb4c58cd964
 
-The models are opened for copying and editing for Onshape users (use free account or
+The models are opened for copying and editing for Onshape users. Use free account or
 free education plan for academia: https://www.onshape.com/en/education/
 
 Any link can be edited with newly calculated parameters. Use *"Variable Studio 1"* tab
@@ -234,12 +234,28 @@ in the model as show via **red arrow** in the figure below. I might happen that 
 curve is not suitable for the new parameters (it has a unnaturally curved shape or not
 renders at all). In that case, adjust two curve points by editing their coordinates
 by double clink on the features *"spline_pt0-edits_link_shape"* and
-*"spline_pt1-edits_link_shape"* as shown via **orange** arrows in the figure below.
+*"spline_pt1-edits_link_shape"* as shown via **orange arrows** in the figure below.
 
 .. figure:: figures/ark-onshape-editing.png
-    :width: 500 px
-    :align: center
+    :width: 800 px
+    :align: left
     :alt: Onshape editing
+
+Editing in Variable studio:
+
+.. figure:: figures/ark-onshape-editing2.png
+    :width: 800 px
+    :align: left
+    :alt: Onshape editing Variable studio
+
+Editing so-called Mate Connectors which determine the shape of the link-curve:
+
+.. figure:: figures/ark-onshape-editing3.png
+    :width: 800 px
+    :align: left
+    :alt: Onshape editing Mate connector
+
+
 
 **References**
 
