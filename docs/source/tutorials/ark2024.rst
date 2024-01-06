@@ -216,9 +216,9 @@ The balloons correspond to this list:
     5. Bearings 626 (6x19x6 mm), used 4x
     6. Washers DIN 988, inner diameter 6 mm and width 1 mm, used 2x
 
-
-Links to the Bennett CAD models are available on Onshape, a cloud-based CAD software,
-where they can be viewed, exported, and downloaded:
+The model parts of the Bennett CAD models are available on Onshape, a cloud-based CAD
+software freely available, where they can be viewed, exported, and downloaded (in
+multiple formats including STL):
 
     * **Assembly:** https://cad.onshape.com/documents/5f75155fed80647eaafd88a7/w/3241929bd4f562af39728512/e/d7c5a5901bca93e09e0343ed
     * link0: https://cad.onshape.com/documents/b11a23adebf5c90d5fc39c93/w/d4838bec6fdac9d34ecc6e9d/e/d95a88ff126fc64262ad9eb7
@@ -226,7 +226,20 @@ where they can be viewed, exported, and downloaded:
     * link2: https://cad.onshape.com/documents/62f222602d8ec4869987a979/w/accbe18fa04b21a223ff36b7/e/487ac189d26dbc73b2be82de
     * link3: https://cad.onshape.com/documents/506cfc6c8c855458b05cf7bf/w/9684caf53f6a7519df3fe806/e/f95cb90348488cb4c58cd964
 
+The models are opened for copying and editing for Onshape users (use free account or
+free education plan for academia: https://www.onshape.com/en/education/
 
+Any link can be edited with newly calculated parameters. Use *"Variable Studio 1"* tab
+in the model as show via **red arrow** in the figure below. I might happen that the link
+curve is not suitable for the new parameters (it has a unnaturally curved shape or not
+renders at all). In that case, adjust two curve points by editing their coordinates
+by double clink on the features *"spline_pt0-edits_link_shape"* and
+*"spline_pt1-edits_link_shape"* as shown via **orange** arrows in the figure below.
+
+.. figure:: figures/ark-onshape-editing.png
+    :width: 500 px
+    :align: center
+    :alt: Onshape editing
 
 **References**
 
