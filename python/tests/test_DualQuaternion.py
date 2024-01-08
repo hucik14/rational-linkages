@@ -19,6 +19,20 @@ class TestDualQuaternion(unittest.TestCase):
             ValueError, DualQuaternion.__init__, self, np.array([1, 2, 3, 4, 5, 6])
         )
 
+    def test_as_rational(self):
+        dq = DualQuaternion.as_rational()
+        self.assertTrue(dq.is_rational)
+
+        dq = DualQuaternion.as_rational([1, 2.0, 3, 4, 0.5, 0, 0.0, 8])
+        self.assertTrue(dq.is_rational)
+
+        from sympy import Rational
+        expected_dq = np.array([Rational(1), Rational(2), Rational(3), Rational(4),
+                                Rational(1/2), Rational(0), Rational(0), Rational(8)])
+
+        for i, val in enumerate(dq.array()):
+            self.assertEqual(val, expected_dq[i])
+
     def test_getitem(self):
         dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
         self.assertEqual(dq[0], 1)

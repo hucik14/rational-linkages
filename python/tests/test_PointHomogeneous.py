@@ -5,6 +5,23 @@ from PointHomogeneous import PointHomogeneous
 
 
 class TestPointHomogeneous(TestCase):
+    def test_init(self):
+        obj = PointHomogeneous(np.array([1, 2, 3, 4]))
+
+        self.assertIsInstance(obj, PointHomogeneous)
+        self.assertTrue(np.allclose(obj.coordinates, np.array([1, 2, 3, 4])))
+
+        from sympy import Symbol
+        t = Symbol('t')
+
+        pt = PointHomogeneous([1, t ** 2, 1 - t, 0])
+
+        evaluated_pt = pt.evaluate(2)
+        self.assertTrue(
+            np.allclose(evaluated_pt.coordinates, np.array([1, 4, -1, 0])))
+        self.assertFalse(pt.is_at_infinity)
+        self.assertTrue(pt.coordinates_normalized is None)
+
     def test_at_origin_in_2d(self):
         obj = PointHomogeneous.at_origin_in_2d()
 
@@ -92,6 +109,9 @@ class TestPointHomogeneous(TestCase):
 
         self.assertTrue(np.allclose(obj.point2matrix(), expected_matrix))
 
+        pt = PointHomogeneous([1, 2, 3, 4, 5, 6])
+        self.assertRaises(ValueError, pt.point2matrix)
+
     def point2dq_array(self):
         obj = PointHomogeneous(np.array([4, 1, 2, 3]))
 
@@ -122,3 +142,8 @@ class TestPointHomogeneous(TestCase):
         self.assertTrue(
             np.allclose(point2.linear_interpolation(point1).coordinates, expected_point)
         )
+
+    def test_get_plot_data(self):
+        obj = PointHomogeneous(np.array([4, 1, 2, 3]))
+        expected_plot_data = np.array([0.25, 0.5, 0.75])
+        self.assertTrue(np.allclose(obj.get_plot_data(), expected_plot_data))

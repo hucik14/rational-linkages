@@ -2,7 +2,7 @@ from warnings import warn
 from typing import Union, Optional, Sequence
 
 import numpy as np
-from matplotlib import pyplot as plt
+from sympy import Expr
 
 # Forward declarations for class names
 DualQuaternion = "DualQuaternion"
@@ -69,17 +69,16 @@ class NormalizedLine:
         line = NormalizedLine.from_dual_quaternion(dq)
     """
 
-    def __init__(self, unit_screw: Optional[Sequence[Union[float, np.ndarray]]] = None):
+    def __init__(self,
+                 unit_screw: Optional[Sequence[Union[float, np.ndarray]]] = None):
         """
         Normalized line class in Dual Quaternion space
 
         Given by Plucker coordinates, representing a Unit Screw axis
 
-        :param np.ndarray, list[float] unit_screw: Plucker coordinates representing the
-            Unit Screw axis
+        :param np.ndarray, list[float] unit_screw: Plucker coordinates
+            representing the Unit Screw axis
         """
-        from sympy import Expr
-
         if unit_screw is None:
             # in origin along Z axis
             self.direction = np.array([0, 0, 1])
@@ -341,7 +340,7 @@ class NormalizedLine:
 
         return np.allclose(np.cross(point, self.direction), self.moment)
 
-    def get_plot_data(self, interval) -> np.ndarray:
+    def get_plot_data(self, interval: tuple) -> np.ndarray:
         """
         Get data for plotting the line in 3D
 

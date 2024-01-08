@@ -138,11 +138,11 @@ class TestMotionFactorization(TestCase):
         self.assertEqual(len(factorizations), 2)
         self.assertEqual(len(factorizations[0].dq_axes), 2)
 
-        self.assertTrue(np.allclose(factorizations[1].dq_axes[0].array(),
-                                    [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1 / 3, 0.0]))
-        self.assertTrue(np.allclose(factorizations[1].dq_axes[1].array(),
-                                    [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -2 / 3, 0.0]))
         self.assertTrue(np.allclose(factorizations[0].dq_axes[0].array(),
-                                    [0, 0, 0, 1, 0, 0, 0, 0]))
+                                    [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1 / 3, 0.0]))
         self.assertTrue(np.allclose(factorizations[0].dq_axes[1].array(),
+                                    [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -2 / 3, 0.0]))
+        self.assertTrue(np.allclose(factorizations[1].dq_axes[0].array(),
+                                    [0, 0, 0, 1, 0, 0, 0, 0]))
+        self.assertTrue(np.allclose(factorizations[1].dq_axes[1].array(),
                                     [0, 0, 0, 2, 0, 0, -1, 0]))
