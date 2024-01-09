@@ -205,8 +205,10 @@ class MotionFactorization(RationalCurve):
         :return: list of np.array - tool and link points
         :rtype: list[np.ndarray]
         """
-        ee_point = self.direct_kinematics_of_tool(t_numerical, end_effector, inverted_part=inverted_part)
-        link_point = self.direct_kinematics(t_numerical, inverted_part=inverted_part)[-1]
+        ee_point = self.direct_kinematics_of_tool(t_numerical, end_effector,
+                                                  inverted_part=inverted_part)
+        link_point = self.direct_kinematics(t_numerical,
+                                            inverted_part=inverted_part)[-1]
 
         return [ee_point, link_point]
 
