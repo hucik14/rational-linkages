@@ -233,3 +233,26 @@ class TestRationalCurve(TestCase):
         self.assertTrue(np.allclose(factorizations[1].dq_axes[1].array(),
                                     [0, 0, 0, 2, 0, 0, -1, 0]))
 
+        from RationalMechanism import RationalMechanism
+        m = RationalMechanism(factorizations)
+        self.assertRaises(TypeError, m.factorize)
+
+    def test_curve(self):
+        t = sp.Symbol("t")
+        curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(-3.0 * t, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(1.0, t),
+                               sp.Poly(1.0 * t, t),
+                               sp.Poly(0.0, t)])
+
+        self.assertEqual(curve.curve().set_of_polynomials, curve.set_of_polynomials)
+
+
+
+
+
+
+

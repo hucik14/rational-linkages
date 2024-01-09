@@ -44,6 +44,16 @@ class TestNormalizedLine(TestCase):
         self.assertTrue(np.allclose(line.direction, np.array([0, 0, 1])))
         self.assertTrue(np.allclose(line.moment, np.array([0, 0, 0])))
 
+        # test with sympy input
+        from sympy import Symbol
+        t = Symbol('t')
+
+        line = NormalizedLine([0, 0, 1, t**2, 1-t, t])
+
+        evaluated_line = line.evaluate(2)
+        self.assertTrue(np.allclose(evaluated_line.screw, np.array([0, 0, 1, 4, -1, 2])))
+
+
     def test_from_two_points(self):
         point1 = np.array([1, 1, 1])
         point2 = np.array([3, 1, 1])
@@ -191,3 +201,14 @@ class TestNormalizedLine(TestCase):
         line = NormalizedLine.from_direction_and_point([1, -1, 1], [1, -2, 4])
         p = line.point_on_line(0.576)
         self.assertTrue(line.contains_point(p))
+
+    def test_get_plot_data(self):
+        line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        data = line.get_plot_data((0, 1))
+
+        self.assertTrue(np.allclose(data, np.array([0, 0, 0, 0, 0, 1])))
+
+        line = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0])
+        data = line.get_plot_data((0, 2))
+
+        self.assertTrue(np.allclose(data, np.array([1, 0, 0, 0, 0, 2])))

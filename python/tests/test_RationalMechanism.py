@@ -21,6 +21,14 @@ class TestRationalMechanism(TestCase):
         self.assertEqual(motion.end_effector, DualQuaternion())
         self.assertTrue(not motion.is_linkage)
 
+    def test_from_saved_file(self):
+        m = RationalMechanism.from_saved_file("../examples/bennett.pkl")
+        self.assertTrue(isinstance(m, RationalMechanism))
+
+        self.assertRaises(FileNotFoundError, RationalMechanism.from_saved_file,
+                          "nonexistent_file.pkl")
+
+
     def test__map_joint_segment(self):
         # Test case 1
         points_params = np.array([0, 1])

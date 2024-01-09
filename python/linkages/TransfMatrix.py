@@ -58,7 +58,8 @@ class TransfMatrix:
             3-dimensional list
         """
         if len(rpy) != 3:
-            raise ValueError("Roll, pitch, yaw angles must be 3-dimensional list of floats")
+            raise ValueError("Roll, pitch, yaw angles must be 3-dimensional list of "
+                             "floats")
 
         if units == 'deg':
             rpy = np.deg2rad(rpy)
@@ -185,8 +186,12 @@ class TransfMatrix:
 
         mat = np.eye(4)
         mat[1:4, 0] = [a * np.cos(theta), a * np.sin(theta), d]
-        mat[1, 1:4] = [np.cos(theta), -np.sin(theta) * np.cos(alpha), np.sin(theta) * np.sin(alpha)]
-        mat[2, 1:4] = [np.sin(theta), np.cos(theta) * np.cos(alpha), -np.cos(theta) * np.sin(alpha)]
+        mat[1, 1:4] = [np.cos(theta),
+                       -np.sin(theta) * np.cos(alpha),
+                       np.sin(theta) * np.sin(alpha)]
+        mat[2, 1:4] = [np.sin(theta),
+                       np.cos(theta) * np.cos(alpha),
+                       -np.cos(theta) * np.sin(alpha)]
         mat[3, 1:4] = [0, np.sin(alpha), np.cos(alpha)]
 
         return cls(mat)
@@ -334,7 +339,6 @@ class TransfMatrix:
             return [0., 0., 0., 0.]
         else:
             return [theta, d, a, alpha]
-
 
     def get_plot_data(self):
         """
