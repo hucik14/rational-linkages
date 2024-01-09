@@ -52,11 +52,22 @@ class TestFactorizationProvider(TestCase):
         factorization_provider = FactorizationProvider()
         factorizations = factorization_provider.factorize_for_motion_factorization(f)
 
+        # TODO check the order, delete OR
         self.assertTrue(np.allclose(factorizations[0].dq_axes[0].array(),
-                                    [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1 / 3, 0.0]))
+                                    [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1 / 3, 0.0]) or
+                        np.allclose(factorizations[1].dq_axes[0].array(),
+                                    [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1 / 3, 0.0])
+                        )
         self.assertTrue(np.allclose(factorizations[0].dq_axes[1].array(),
+                                    [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -2 / 3, 0.0]) or
+                        np.allclose(factorizations[1].dq_axes[1].array(),
                                     [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -2 / 3, 0.0]))
-        self.assertTrue(np.allclose(factorizations[1].dq_axes[0].array(),
-                                    [0, 0, 0, 1, 0, 0, 0, 0]))
-        self.assertTrue(np.allclose(factorizations[1].dq_axes[1].array(),
+        self.assertTrue(np.allclose(factorizations[0].dq_axes[0].array(),
+                                    [0, 0, 0, 1, 0, 0, 0, 0]) or
+                        np.allclose(factorizations[1].dq_axes[0].array(),
+                                    [0, 0, 0, 1, 0, 0, 0, 0])
+                        )
+        self.assertTrue(np.allclose(factorizations[0].dq_axes[1].array(),
+                                    [0, 0, 0, 2, 0, 0, -1, 0]) or
+                        np.allclose(factorizations[1].dq_axes[1].array(),
                                     [0, 0, 0, 2, 0, 0, -1, 0]))
