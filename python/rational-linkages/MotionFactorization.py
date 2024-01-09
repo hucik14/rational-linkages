@@ -12,7 +12,7 @@ class MotionFactorization(RationalCurve):
     """
     Class representing Motion Factorization sequence
 
-    Inherits from :class:`linkages.RationalCurve` class. Given as set of polynomials in
+    Inherits from :class:`rational-linkages.RationalCurve` class. Given as set of polynomials in
     dual quaternion space. You can find more information in the paper by Frischauf et
     al. [#frischauf2022]_.
 

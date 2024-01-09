@@ -1,10 +1,10 @@
-Linkages package
-================
+Rational Linkages package
+=========================
 
 Dual Quaternion
 ---------------
 
-.. automodule:: linkages.DualQuaternion
+.. automodule:: rational-rational-linkages.DualQuaternion
    :members:
    :undoc-members:
    :show-inheritance:
@@ -12,7 +12,7 @@ Dual Quaternion
 Dual Quaternion Action
 ----------------------
 
-.. automodule:: linkages.DualQuaternionAction
+.. automodule:: rational-linkages.DualQuaternionAction
    :members:
    :undoc-members:
    :show-inheritance:
@@ -20,7 +20,7 @@ Dual Quaternion Action
 Factorization Provider
 ----------------------
 
-.. automodule:: linkages.FactorizationProvider
+.. automodule:: rational-linkages.FactorizationProvider
    :members:
    :undoc-members:
    :show-inheritance:
@@ -28,7 +28,7 @@ Factorization Provider
 Linkage
 -------
 
-.. automodule:: linkages.Linkage
+.. automodule:: rational-linkages.Linkage
    :members: Linkage, PointsConnection, LineSegment
    :undoc-members:
    :show-inheritance:
@@ -36,7 +36,7 @@ Linkage
 MiniBall
 --------
 
-.. automodule:: linkages.MiniBall
+.. automodule:: rational-linkages.MiniBall
    :members:
    :undoc-members:
    :show-inheritance:
@@ -44,15 +44,15 @@ MiniBall
 Motion Factorization
 --------------------
 
-.. automodule:: linkages.MotionFactorization
+.. automodule:: rational-linkages.MotionFactorization
    :members:
    :undoc-members:
-   :show-inheritance: linkages.RationalCurve
+   :show-inheritance: rational-linkages.RationalCurve
 
 Normalized Line
 ---------------
 
-.. automodule:: linkages.NormalizedLine
+.. automodule:: rational-linkages.NormalizedLine
    :members:
    :undoc-members:
    :show-inheritance:
@@ -60,7 +60,7 @@ Normalized Line
 Point Homogeneous
 -----------------
 
-.. automodule:: linkages.PointHomogeneous
+.. automodule:: rational-linkages.PointHomogeneous
    :members:
    :undoc-members:
    :show-inheritance:
@@ -68,7 +68,7 @@ Point Homogeneous
 Quaternion
 ----------
 
-.. automodule:: linkages.Quaternion
+.. automodule:: rational-linkages.Quaternion
    :members:
    :undoc-members:
    :show-inheritance:
@@ -76,15 +76,15 @@ Quaternion
 Rational Bezier
 ---------------
 
-.. automodule:: linkages.RationalBezier
+.. automodule:: rational-linkages.RationalBezier
    :members:
    :undoc-members:
-   :show-inheritance: linkages.RationalCurve
+   :show-inheritance: rational-linkages.RationalCurve
 
 Rational Curve
 --------------
 
-.. automodule:: linkages.RationalCurve
+.. automodule:: rational-linkages.RationalCurve
    :members:
    :undoc-members:
    :show-inheritance:
@@ -92,15 +92,15 @@ Rational Curve
 Rational Mechanism
 ------------------
 
-.. automodule:: linkages.RationalMechanism
+.. automodule:: rational-linkages.RationalMechanism
    :members:
    :undoc-members:
-   :show-inheritance: linkages.RationalCurve
+   :show-inheritance: rational-linkages.RationalCurve
 
 Transf Matrix
 -------------
 
-.. automodule:: linkages.TransfMatrix
+.. automodule:: rational-linkages.TransfMatrix
    :members:
    :undoc-members:
    :show-inheritance:

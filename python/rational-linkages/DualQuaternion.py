@@ -22,9 +22,9 @@ class DualQuaternion:
         parameters. If None, an identity DualQuaternion is constructed.
 
     :ivar Quaternion p: primal quaternion - the primal part of the Dual Quaternion,
-        representing rotation and translation.  See also :class:`~linkages.Quaternion`
+        representing rotation and translation.  See also :class:`~rational-linkages.Quaternion`
     :ivar Quaternion d: dual quaternion - the dual part of the Dual Quaternion,
-        representing translation. See also :class:`~linkages.Quaternion`
+        representing translation. See also :class:`~rational-linkages.Quaternion`
     :ivar np.ndarray dq: 8-vector of study parameters, representing the Dual Quaternion
     :ivar bool is_rotation: True if the Dual Quaternion represents a rotation, False
 

@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "rational-linkages"
-version = "0.1.0"
+version = "0.9.0"
 description = "Rational Linkages Toolbox"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -19,23 +23,21 @@ dependencies = [
     "PyQt5 >= 5.15.10"
 ]
 
-
 [project.optional-dependencies]
 doc = [
     "sphinx",
     "sphinx-rtd-theme",
     "nbsphinx"
 ]
-
 dev = [
     "coverage",
     "flake8",
     "black"
 ]
 
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+[project.urls]
+Documentation = "http://rational-linkages.readthedocs.io/"
+Source  = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"
 
 [tool.black]
 line-length = 88
