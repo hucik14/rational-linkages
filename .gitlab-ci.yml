@@ -23,7 +23,7 @@ run_tests:
     - pip install coverage
     - pip install .
     - cd python/rational_linkages
-    - coverage run --omit="*/test*" -m unittest discover -s ../tests
+    - coverage run --omit="*/test*,*Plotter.py,*ButtonID.py,*__init__.py" -m unittest discover -s ../tests
     - coverage report -m
 
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
