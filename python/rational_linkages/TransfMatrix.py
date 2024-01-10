@@ -296,7 +296,7 @@ class TransfMatrix:
 
         :warns: if the two frames do not fulfill the DH convention
         """
-        from NormalizedLine import NormalizedLine
+        from .NormalizedLine import NormalizedLine
 
         # theta
         th = np.arctan2(np.linalg.norm(np.cross(self.n, other.n)),

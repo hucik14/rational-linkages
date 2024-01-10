@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "0.9.10"
+version = "0.9.11"
 description = "Rational Linkages Toolbox"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -65,3 +65,12 @@ force_to_top = ["linkages"]
 max-line-length = '88'
 ignore = ["E501"]
 exclude = ".git, .idea, docs"
+
+[tool.coverage.run]
+command_line = "-m unittest discover -s python/tests"
+omit = [
+    "*/test*",
+    "*__init__.py",
+    "*Plotter.py",
+    "*ButtonID.py",
+    ]

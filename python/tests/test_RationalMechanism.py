@@ -22,7 +22,7 @@ class TestRationalMechanism(TestCase):
         self.assertTrue(not motion.is_linkage)
 
     def test_from_saved_file(self):
-        m = RationalMechanism.from_saved_file("../examples/bennett.pkl")
+        m = RationalMechanism.from_saved_file("python/tests/bennett.pkl")
         self.assertTrue(isinstance(m, RationalMechanism))
 
         self.assertRaises(FileNotFoundError, RationalMechanism.from_saved_file,
