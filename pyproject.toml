@@ -68,9 +68,13 @@ exclude = ".git, .idea, docs"
 
 [tool.coverage.run]
 command_line = "-m unittest discover -s python/tests"
+data_file = "python/.coverage"
 omit = [
     "*/test*",
     "*__init__.py",
     "*Plotter.py",
     "*ButtonID.py",
     ]
+
+[tool.coverage.report]
+command_line = "-m --cov-report=xml:coverage.xml"
