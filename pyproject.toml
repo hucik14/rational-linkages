@@ -68,6 +68,8 @@ exclude = ".git, .idea, docs"
 
 [tool.coverage.run]
 command_line = "-m unittest discover -s python/tests"
+parallel = true
+branch = true
 omit = [
     "*/test*",
     "*__init__.py",
