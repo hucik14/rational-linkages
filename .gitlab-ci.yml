@@ -37,9 +37,9 @@ run_python_versions:
         name: $IMAGE
         entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
-        - RUN apt-get update && apt-get install libgl1 -y
-        - pip install .
+        - pip install opencv-python-headless
         - pip install coverage
+        - pip install .
         - cd python/rational_linkages
         - python -m unittest discover -s ../tests
     parallel:
