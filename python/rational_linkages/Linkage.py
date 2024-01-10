@@ -7,9 +7,9 @@ Classes in the Module:
 import numpy as np
 from typing import Union
 
-from DualQuaternion import DualQuaternion
-from PointHomogeneous import PointHomogeneous
-from NormalizedLine import NormalizedLine
+from .DualQuaternion import DualQuaternion
+from .PointHomogeneous import PointHomogeneous
+from .NormalizedLine import NormalizedLine
 
 
 class Linkage:

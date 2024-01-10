@@ -5,9 +5,9 @@ import sympy as sp
 from typing import Union
 from warnings import warn
 
-from RationalCurve import RationalCurve
-from MotionFactorization import MotionFactorization
-from DualQuaternion import DualQuaternion
+from .RationalCurve import RationalCurve
+from .MotionFactorization import MotionFactorization
+from .DualQuaternion import DualQuaternion
 
 
 class FactorizationProvider:
@@ -137,7 +137,7 @@ class FactorizationProvider:
         :return: The rotation axis of the factor.
         :rtype: DualQuaternion
         """
-        from RationalDualQuaternion import RationalDualQuaternion
+        from .RationalDualQuaternion import RationalDualQuaternion
 
         t = sp.Symbol("t")
         t_dq = DualQuaternion([t, 0, 0, 0, 0, 0, 0, 0])

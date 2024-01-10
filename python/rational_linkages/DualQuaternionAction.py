@@ -1,8 +1,8 @@
 from typing import Union
 
-from DualQuaternion import DualQuaternion
-from NormalizedLine import NormalizedLine
-from PointHomogeneous import PointHomogeneous
+from .DualQuaternion import DualQuaternion
+from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
 
 
 class DualQuaternionAction:

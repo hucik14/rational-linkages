@@ -1,15 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "rational-linkages"
-version = "0.1.0"
+version = "0.9.10"
 description = "Rational Linkages Toolbox"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
 ]
-maintainers = [
-    {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
-]
+requires-python = ">=3.10"
 license = {"file"= "LICENSE"}
 readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+]
 
 dependencies = [
     "scipy >= 1.1.0",
@@ -19,28 +26,33 @@ dependencies = [
     "PyQt5 >= 5.15.10"
 ]
 
-
 [project.optional-dependencies]
 doc = [
     "sphinx",
     "sphinx-rtd-theme",
     "nbsphinx"
 ]
-
 dev = [
     "coverage",
     "flake8",
-    "black"
+    "black",
+    "twine"
 ]
 
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+[tool.setuptools.packages.find]
+where = ["python"]  # list of folders that contain the packages (["."] by default)
+include = ["rational_linkages*"]  # package names should match these glob patterns (["*"] by default)
+
+[project.urls]
+Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"
+Documentation = "http://rational-linkages.readthedocs.io/"
+Issues = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/issues"
+
 
 [tool.black]
 line-length = 88
 target-version = ["py311"]
-exclude = "(.git|.idea|maple|docs)/.*"
+exclude = "(.git|.idea|docs)/.*"
 
 [tool.isort]
 profile = "black"

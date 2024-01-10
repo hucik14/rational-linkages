@@ -1,7 +1,7 @@
 from unittest import TestCase
 import sympy as sp
 
-from RationalDualQuaternion import RationalDualQuaternion
+from rational_linkages.RationalDualQuaternion import RationalDualQuaternion
 
 class Test(TestCase):
     def test_rational_dual_quaternion(self):

@@ -1,10 +1,10 @@
 from copy import deepcopy
-
 import numpy as np
 import sympy as sp
-from MiniBall import MiniBall
-from PointHomogeneous import PointHomogeneous
-from RationalCurve import RationalCurve
+
+from .MiniBall import MiniBall
+from .PointHomogeneous import PointHomogeneous
+from .RationalCurve import RationalCurve
 
 
 class RationalBezier(RationalCurve):

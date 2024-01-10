@@ -1,7 +1,8 @@
 from copy import deepcopy
 import numpy as np
 import sympy as sp
-from PointHomogeneous import PointHomogeneous
+
+from .PointHomogeneous import PointHomogeneous
 
 
 MotionFactorization = "MotionFactorization"
@@ -299,7 +300,7 @@ class RationalCurve:
             raise TypeError("Can factorize only for a rational curve or motion "
                             "factorization")
 
-        from FactorizationProvider import FactorizationProvider
+        from .FactorizationProvider import FactorizationProvider
 
         factorization_provider = FactorizationProvider()
         return factorization_provider.factorize_motion_curve(self)

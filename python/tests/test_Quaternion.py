@@ -1,7 +1,7 @@
 from unittest import TestCase
-
 import numpy as np
-from Quaternion import Quaternion
+
+from rational_linkages.Quaternion import Quaternion
 
 
 class TestQuaternion(TestCase):

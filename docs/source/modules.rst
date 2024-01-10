@@ -4,4 +4,4 @@ Linkages
 .. toctree::
    :maxdepth: 4
 
-   linkages
+   rational-linkages

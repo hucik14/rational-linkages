@@ -127,7 +127,7 @@ class NormalizedLine:
         :return: NormalizedLine
         :rtype: NormalizedLine
         """
-        from PointHomogeneous import PointHomogeneous
+        from .PointHomogeneous import PointHomogeneous
 
         if isinstance(pt0, PointHomogeneous) and isinstance(pt1, PointHomogeneous):
             pt0 = pt0.normalized_in_3d()
@@ -331,7 +331,7 @@ class NormalizedLine:
         :return: True if the point is on the line, False otherwise
         :rtype: bool
         """
-        from PointHomogeneous import PointHomogeneous
+        from .PointHomogeneous import PointHomogeneous
 
         if isinstance(point, PointHomogeneous):
             point = point.normalized_in_3d()

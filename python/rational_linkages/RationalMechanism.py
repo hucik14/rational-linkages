@@ -4,10 +4,10 @@ from copy import deepcopy
 from time import time
 import pickle
 
-from RationalCurve import RationalCurve
-from DualQuaternion import DualQuaternion
-from NormalizedLine import NormalizedLine
-from MotionFactorization import MotionFactorization
+from .RationalCurve import RationalCurve
+from .DualQuaternion import DualQuaternion
+from .NormalizedLine import NormalizedLine
+from .MotionFactorization import MotionFactorization
 
 PointHomogeneous = 'PointHomogeneous'
 TransfMatrix = 'TransfMatrix'
@@ -539,7 +539,7 @@ class RationalMechanism(RationalCurve):
         :return: list of LineSegment objects
         :rtype: list[LineSegment]
         """
-        from Linkage import LineSegment
+        from .Linkage import LineSegment
 
         t = sp.Symbol("t")
 

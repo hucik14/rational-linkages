@@ -1,18 +1,19 @@
 import numpy as np
 import sympy as sp
 from typing import Union
-from DualQuaternion import DualQuaternion
-from PointHomogeneous import PointHomogeneous
-from RationalCurve import RationalCurve
-from Linkage import Linkage
-from NormalizedLine import NormalizedLine
+
+from .DualQuaternion import DualQuaternion
+from .PointHomogeneous import PointHomogeneous
+from .RationalCurve import RationalCurve
+from .Linkage import Linkage
+from .NormalizedLine import NormalizedLine
 
 
 class MotionFactorization(RationalCurve):
     """
     Class representing Motion Factorization sequence
 
-    Inherits from :class:`linkages.RationalCurve` class. Given as set of polynomials in
+    Inherits from :class:`rational_linkages.RationalCurve` class. Given as set of polynomials in
     dual quaternion space. You can find more information in the paper by Frischauf et
     al. [#frischauf2022]_.
 
@@ -125,7 +126,7 @@ class MotionFactorization(RationalCurve):
         :return: object after the action
         :rtype: PointHomogeneous, NormalizedLine
         """
-        from DualQuaternionAction import DualQuaternionAction
+        from .DualQuaternionAction import DualQuaternionAction
 
         start_idx = 0 if start_idx is None else start_idx
         end_idx = self.number_of_factors - 1 if end_idx is None else end_idx
@@ -283,7 +284,7 @@ class MotionFactorization(RationalCurve):
         :return: list of MotionFactorization objects
         :rtype: list[MotionFactorization]
         """
-        from FactorizationProvider import FactorizationProvider
+        from .FactorizationProvider import FactorizationProvider
 
         factorization_provider = FactorizationProvider()
         return factorization_provider.factorize_for_motion_factorization(self)

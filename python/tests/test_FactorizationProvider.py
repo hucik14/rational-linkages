@@ -3,8 +3,10 @@ from unittest import TestCase
 import numpy as np
 import sympy as sp
 
-from RationalCurve import RationalCurve
-from FactorizationProvider import FactorizationProvider
+from rational_linkages.RationalCurve import RationalCurve
+from rational_linkages.FactorizationProvider import FactorizationProvider
+from rational_linkages.MotionFactorization import MotionFactorization
+from rational_linkages.RationalDualQuaternion import RationalDualQuaternion
 
 
 class TestFactorizationProvider(TestCase):
@@ -35,9 +37,6 @@ class TestFactorizationProvider(TestCase):
                                     [0, 0, 0, 2, 0, 0, -1, 0]))
 
     def test_factorize_for_motion_factorization(self):
-        from MotionFactorization import MotionFactorization
-        from RationalDualQuaternion import RationalDualQuaternion
-
         h1 = RationalDualQuaternion([sp.Rational(0), sp.Rational(0),
                                     sp.Rational(0), sp.Rational(1),
                                     sp.Rational(0), sp.Rational(0),

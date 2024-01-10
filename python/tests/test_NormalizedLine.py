@@ -1,8 +1,8 @@
 from unittest import TestCase
-
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
-from NormalizedLine import NormalizedLine
+
+from rational_linkages.NormalizedLine import NormalizedLine
+from rational_linkages.PointHomogeneous import PointHomogeneous
 
 
 class TestNormalizedLine(TestCase):
@@ -67,7 +67,6 @@ class TestNormalizedLine(TestCase):
             np.allclose(nl.screw, np.concatenate((expected_direction, expected_moment)))
         )
 
-        from PointHomogeneous import PointHomogeneous
         point1 = PointHomogeneous([1, 1, 1, 1])
         point2 = PointHomogeneous([1, 3, 1, 1])
         nl = NormalizedLine.from_two_points(point1, point2)
@@ -188,8 +187,6 @@ class TestNormalizedLine(TestCase):
         self.assertTrue(np.allclose(cos_angle, 0.7071067811865476))
 
     def test_contains_point(self):
-        from PointHomogeneous import PointHomogeneous
-
         p = PointHomogeneous([1, 1, 0, 0])
         line = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0])
 

@@ -1,23 +1,24 @@
 import numpy as np
 import matplotlib
-matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, TextBox
 from functools import wraps
 from itertools import cycle
 
-from DualQuaternion import DualQuaternion
-from NormalizedLine import NormalizedLine
-from PointHomogeneous import PointHomogeneous
-from MotionFactorization import MotionFactorization
-from RationalMechanism import RationalMechanism
-from TransfMatrix import TransfMatrix
-from RationalCurve import RationalCurve
-from RationalBezier import RationalBezier
+from .DualQuaternion import DualQuaternion
+from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
+from .MotionFactorization import MotionFactorization
+from .RationalMechanism import RationalMechanism
+from .TransfMatrix import TransfMatrix
+from .RationalCurve import RationalCurve
+from .RationalBezier import RationalBezier
 
 
 class Plotter:
     def __init__(self, interval=(-1, 1), steps=50, interactive: bool = False):
+        matplotlib.use("Qt5Agg")
+
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(projection="3d")
 
