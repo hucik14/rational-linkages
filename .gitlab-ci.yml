@@ -23,6 +23,11 @@ run_tests:
     - pip install coverage
     - pip install .
     - coverage run
+    - cd python
+    - ls
+    - cd rational_linkages
+    - ls
+    - cd ../tests
     - ls
     - coverage report
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
