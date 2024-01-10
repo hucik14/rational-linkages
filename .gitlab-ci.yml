@@ -37,6 +37,7 @@ run_python_versions:
         name: $IMAGE
         entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
+        - RUN apt-get update && apt-get install libgl1 -y
         - pip install .
         - pip install coverage
         - cd python/rational_linkages
