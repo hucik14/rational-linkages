@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,11 +9,14 @@ description = "Rational Linkages Toolbox"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
 ]
-maintainers = [
-    {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
-]
+requires-python = ">=3.9"
 license = {"file"= "LICENSE"}
 readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+]
 
 dependencies = [
     "scipy >= 1.1.0",
@@ -32,12 +35,14 @@ doc = [
 dev = [
     "coverage",
     "flake8",
-    "black"
+    "black",
+    "twine"
 ]
 
 [project.urls]
+Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"
 Documentation = "http://rational-linkages.readthedocs.io/"
-Source  = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"
+Issues = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/issues"
 
 [tool.black]
 line-length = 88

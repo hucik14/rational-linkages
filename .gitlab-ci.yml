@@ -7,7 +7,7 @@
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
 - test
-#- build
+- test_python_versions
 
 sast:
   stage: test
@@ -30,3 +30,21 @@ run_tests:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "develop"'
     - if: '$CI_COMMIT_BRANCH == "main"'
+
+run_python_versions:
+    stage: test_python_versions
+    image:
+        name: $IMAGE
+        entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
+    script:
+        - pip install -r requirements.txt
+        - pip install coverage
+        - cd python/rational-linkages
+        - python -m unittest discover -s ../tests
+    parallel:
+      matrix:
+        - IMAGE: [python:3.12-bullseye, python:3.10-bullseye, python:3.9-bullseye, python:3.8-bullseye]
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        - if: '$CI_COMMIT_BRANCH == "build_project"'
+        - if: '$CI_COMMIT_BRANCH == "main"'
