@@ -1,8 +1,11 @@
 from unittest import TestCase
 import sympy as sp
 import numpy as np
-from MotionFactorization import MotionFactorization
-from DualQuaternion import DualQuaternion
+
+from rational_linkages.MotionFactorization import MotionFactorization
+from rational_linkages.DualQuaternion import DualQuaternion
+from rational_linkages.NormalizedLine import NormalizedLine
+from rational_linkages.PointHomogeneous import PointHomogeneous
 
 
 class TestMotionFactorization(TestCase):
@@ -71,9 +74,6 @@ class TestMotionFactorization(TestCase):
                           DualQuaternion([0.5, 0, 0, -2.0, 0, 0, 1, 0], is_rotation=True)])
 
     def test_act(self):
-        from NormalizedLine import NormalizedLine
-        from PointHomogeneous import PointHomogeneous
-
         f1 = MotionFactorization(
             [
                 DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),

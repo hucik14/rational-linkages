@@ -1,9 +1,9 @@
 import sympy as sp
 from typing import Union
 
-from DualQuaternion import DualQuaternion
-from TransfMatrix import TransfMatrix
-from RationalCurve import RationalCurve
+from .DualQuaternion import DualQuaternion
+from .TransfMatrix import TransfMatrix
+from .RationalCurve import RationalCurve
 
 
 class MotionInterpolation:

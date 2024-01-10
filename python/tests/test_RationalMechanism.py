@@ -1,9 +1,9 @@
 from unittest import TestCase
 import numpy as np
 
-from MotionFactorization import MotionFactorization
-from DualQuaternion import DualQuaternion
-from RationalMechanism import RationalMechanism
+from rational_linkages.MotionFactorization import MotionFactorization
+from rational_linkages.DualQuaternion import DualQuaternion
+from rational_linkages.RationalMechanism import RationalMechanism
 
 
 class TestRationalMechanism(TestCase):

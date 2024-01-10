@@ -1,7 +1,7 @@
-from DualQuaternion import DualQuaternion
-
 import numpy as np
 import sympy as sp
+
+from .DualQuaternion import DualQuaternion
 
 # Forward declarations for class names
 NormalizedLine = "NormalizedLine"

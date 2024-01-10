@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rational_linkages"
-version = "0.9.4"
+name = "rational-linkages"
+version = "0.9.8"
 description = "Rational Linkages Toolbox"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -39,14 +39,9 @@ dev = [
     "twine"
 ]
 
-#[tool.setuptools]
-#packages = ["rational-linkages"]
-
 [tool.setuptools.packages.find]
 where = ["python"]  # list of folders that contain the packages (["."] by default)
 include = ["rational_linkages*"]  # package names should match these glob patterns (["*"] by default)
-# exclude = ["my_package.tests*"]  # exclude packages matching these glob patterns (empty by default)
-# namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
 
 [project.urls]
 Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"

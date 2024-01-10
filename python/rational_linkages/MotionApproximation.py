@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.optimize import minimize
-from DualQuaternion import DualQuaternion
+
+from .DualQuaternion import DualQuaternion
 
 
 class MotionApproximation:

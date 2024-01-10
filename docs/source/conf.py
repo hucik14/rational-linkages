@@ -16,7 +16,7 @@ import sys
 
 docs_source_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(docs_source_dir, '..', '..'))
-src_dir = os.path.join(project_root, 'python', 'rational-linkages')
+src_dir = os.path.join(project_root, 'python', 'rational_linkages')
 parent_dir = os.path.join(project_root, 'python')
 
 sys.path.insert(0, parent_dir)

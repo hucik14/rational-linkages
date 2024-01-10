@@ -1,7 +1,7 @@
 from math import isclose
-
 import numpy as np
-from TransfMatrix import TransfMatrix
+
+from .TransfMatrix import TransfMatrix
 
 # Forward declarations for class names
 DualQuaternion = "DualQuaternion"

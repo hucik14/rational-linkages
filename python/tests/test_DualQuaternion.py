@@ -1,8 +1,10 @@
 import unittest
 
 import numpy as np
-from DualQuaternion import DualQuaternion
-from Quaternion import Quaternion
+from rational_linkages.DualQuaternion import DualQuaternion
+from rational_linkages.Quaternion import Quaternion
+from rational_linkages.PointHomogeneous import PointHomogeneous
+from rational_linkages.NormalizedLine import NormalizedLine
 
 
 class TestDualQuaternion(unittest.TestCase):
@@ -218,9 +220,6 @@ class TestDualQuaternion(unittest.TestCase):
         self.assertTrue(np.allclose(dq.dq2point_via_line(), expected_point))
 
     def test_act(self):
-        from PointHomogeneous import PointHomogeneous
-        from NormalizedLine import NormalizedLine
-
         dq = DualQuaternion([0, 0, 0, 1, 0, 0, 2, 0], is_rotation=True)
 
         acted_point0 = PointHomogeneous([1, 7, 0, 0])

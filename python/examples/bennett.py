@@ -1,10 +1,9 @@
-from RationalMechanism import RationalMechanism
-from MotionFactorization import MotionFactorization
-from FactorizationProvider import FactorizationProvider
-from DualQuaternion import DualQuaternion
-from NormalizedLine import NormalizedLine
-from RationalCurve import RationalCurve
-from Plotter import Plotter
+from rational_linkages import RationalMechanism
+from rational_linkages import FactorizationProvider
+from rational_linkages import DualQuaternion
+from rational_linkages import NormalizedLine
+from rational_linkages import RationalCurve
+from rational_linkages import Plotter
 
 import numpy as np
 
@@ -41,7 +40,7 @@ if __name__ == '__main__':
     # define a mechanism object
     m = RationalMechanism(factors)
 
-    m = RationalMechanism.from_saved_file('bennett')
+    #m = RationalMechanism.from_saved_file('bennett')
 
     p = Plotter(interactive=True, steps=500)
     p.plot(m, show_tool=True)

@@ -6,14 +6,14 @@ from matplotlib.widgets import Slider, TextBox
 from functools import wraps
 from itertools import cycle
 
-from DualQuaternion import DualQuaternion
-from NormalizedLine import NormalizedLine
-from PointHomogeneous import PointHomogeneous
-from MotionFactorization import MotionFactorization
-from RationalMechanism import RationalMechanism
-from TransfMatrix import TransfMatrix
-from RationalCurve import RationalCurve
-from RationalBezier import RationalBezier
+from .DualQuaternion import DualQuaternion
+from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
+from .MotionFactorization import MotionFactorization
+from .RationalMechanism import RationalMechanism
+from .TransfMatrix import TransfMatrix
+from .RationalCurve import RationalCurve
+from .RationalBezier import RationalBezier
 
 
 class Plotter:

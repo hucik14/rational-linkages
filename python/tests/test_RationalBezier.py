@@ -1,9 +1,8 @@
 from unittest import TestCase
-
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
-from PointHomogeneous import PointHomogeneous
-from RationalBezier import RationalBezier
+
+from rational_linkages.PointHomogeneous import PointHomogeneous
+from rational_linkages.RationalBezier import RationalBezier
 
 
 class TestRationalBezier(TestCase):
