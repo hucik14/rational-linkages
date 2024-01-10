@@ -37,7 +37,7 @@ run_python_versions:
         name: $IMAGE
         entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
-        - pip install -r requirements.txt
+        - pip install .
         - pip install coverage
         - cd python/rational_linkages
         - python -m unittest discover -s ../tests
