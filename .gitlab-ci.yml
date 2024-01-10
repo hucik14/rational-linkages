@@ -20,7 +20,7 @@ run_tests:
     name: python:3.11-bullseye
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
   script:
-    - pip install -r requirements.txt
+    - pip install .
     - pip install coverage
     - cd python/rational_linkages
     - coverage run --omit="*/test*" -m unittest discover -s ../tests
@@ -37,7 +37,6 @@ run_python_versions:
         name: $IMAGE
         entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
-        - pip install coverage
         - pip install .
         - cd python/rational_linkages
         - python -m unittest discover -s ../tests
@@ -46,5 +45,5 @@ run_python_versions:
         - IMAGE: [python:3.12-bullseye, python:3.10-bullseye]
     rules:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-        - if: '$CI_COMMIT_BRANCH == "build_project"'
+        - if: '$CI_COMMIT_BRANCH == "develop"'
         - if: '$CI_COMMIT_BRANCH == "main"'
