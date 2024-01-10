@@ -20,14 +20,10 @@ run_tests:
     name: python:3.11-bullseye
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
   script:
-    - pip install coverage
+    - pip install coverage[toml]
     - pip install .
     - coverage run
     - cd python
-    - ls
-    - cd rational_linkages
-    - ls
-    - cd ../tests
     - ls
     - coverage report
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'

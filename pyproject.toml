@@ -48,7 +48,6 @@ Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"
 Documentation = "http://rational-linkages.readthedocs.io/"
 Issues = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/issues"
 
-
 [tool.black]
 line-length = 88
 target-version = ["py311"]
@@ -68,13 +67,10 @@ exclude = ".git, .idea, docs"
 
 [tool.coverage.run]
 command_line = "-m unittest discover -s python/tests"
-data_file = "python/.coverage/"
+data_file = "python/.coverage"
 omit = [
     "*/test*",
     "*__init__.py",
     "*Plotter.py",
     "*ButtonID.py",
     ]
-
-[tool.coverage.report]
-command_line = "-m --cov-report=xml:coverage.xml"
