@@ -43,7 +43,7 @@ run_python_versions:
         - python -m unittest discover -s ../tests
     parallel:
       matrix:
-        - IMAGE: [python:3.12-bullseye, python:3.10-bullseye, python:3.9-bullseye, python:3.8-bullseye]
+        - IMAGE: [python:3.12-bullseye, python:3.10-bullseye]
     rules:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
         - if: '$CI_COMMIT_BRANCH == "build_project"'

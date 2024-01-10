@@ -9,7 +9,7 @@ description = "Rational Linkages Toolbox"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {"file"= "LICENSE"}
 readme = "README.md"
 classifiers = [
@@ -47,7 +47,7 @@ Issues = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/issues
 [tool.black]
 line-length = 88
 target-version = ["py311"]
-exclude = "(.git|.idea|maple|docs)/.*"
+exclude = "(.git|.idea|docs)/.*"
 
 [tool.isort]
 profile = "black"
