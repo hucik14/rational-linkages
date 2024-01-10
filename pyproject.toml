@@ -68,7 +68,7 @@ exclude = ".git, .idea, docs"
 
 [tool.coverage.run]
 command_line = "-m unittest discover -s python/tests"
-data_file = "python/.coverage"
+data_file = "python/.coverage/"
 omit = [
     "*/test*",
     "*__init__.py",
