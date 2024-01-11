@@ -4,6 +4,7 @@ import numpy as np
 from rational_linkages import MotionFactorization
 from rational_linkages import DualQuaternion
 from rational_linkages import RationalMechanism
+from rational_linkages.models import bennett_ark24 as bennett
 
 
 class TestRationalMechanism(TestCase):
@@ -22,8 +23,8 @@ class TestRationalMechanism(TestCase):
         self.assertTrue(not motion.is_linkage)
 
     def test_from_saved_file(self):
-        #m = RationalMechanism.from_saved_file("/python/tests/bennett.pkl")
-        #self.assertTrue(isinstance(m, RationalMechanism))
+        m = bennett()
+        self.assertTrue(isinstance(m, RationalMechanism))
 
         self.assertRaises(FileNotFoundError, RationalMechanism.from_saved_file,
                           "nonexistent_file.pkl")

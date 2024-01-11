@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "0.9.11"
+version = "0.9.14"
 description = "Rational Linkages Toolbox"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -40,8 +40,11 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["python"]  # list of folders that contain the packages (["."] by default)
-include = ["rational_linkages*"]  # package names should match these glob patterns (["*"] by default)
+where = ["python"]
+include = ["rational_linkages*"]
+
+[tool.setuptools.package-data]
+"rational_linkages.data" = ["*.pkl"]
 
 [project.urls]
 Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"

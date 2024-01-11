@@ -4,6 +4,7 @@ from rational_linkages import DualQuaternion
 from rational_linkages import NormalizedLine
 from rational_linkages import RationalCurve
 from rational_linkages import Plotter
+from rational_linkages.models import bennett_ark24 as bennett
 
 import numpy as np
 
@@ -35,12 +36,12 @@ if __name__ == '__main__':
     c = RationalCurve.from_coeffs(coeffs)
 
     # factorize the curve
-    factors = FactorizationProvider().factorize_motion_curve(c)
+    #factors = FactorizationProvider().factorize_motion_curve(c)
 
     # define a mechanism object
-    m = RationalMechanism(factors)
+    #m = RationalMechanism(factors)
 
-    #m = RationalMechanism.from_saved_file('bennett')
+    m = bennett()
 
     p = Plotter(interactive=True, steps=500)
     p.plot(m, show_tool=True)
