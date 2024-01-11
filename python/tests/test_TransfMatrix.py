@@ -1,7 +1,7 @@
 from unittest import TestCase
 import numpy as np
 
-from rational_linkages.TransfMatrix import TransfMatrix
+from rational_linkages import TransfMatrix
 
 
 class TestTransfMatrix(TestCase):

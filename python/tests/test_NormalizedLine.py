@@ -1,8 +1,8 @@
 from unittest import TestCase
 import numpy as np
 
-from rational_linkages.NormalizedLine import NormalizedLine
-from rational_linkages.PointHomogeneous import PointHomogeneous
+from rational_linkages import NormalizedLine
+from rational_linkages import PointHomogeneous
 
 
 class TestNormalizedLine(TestCase):

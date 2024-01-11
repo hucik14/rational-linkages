@@ -1,7 +1,7 @@
 from unittest import TestCase
 import numpy as np
 
-from rational_linkages.PointHomogeneous import PointHomogeneous
+from rational_linkages import PointHomogeneous
 
 
 class TestPointHomogeneous(TestCase):

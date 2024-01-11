@@ -3,10 +3,10 @@ from unittest import TestCase
 import numpy as np
 import sympy as sp
 
-from rational_linkages.RationalCurve import RationalCurve
-from rational_linkages.FactorizationProvider import FactorizationProvider
-from rational_linkages.MotionFactorization import MotionFactorization
-from rational_linkages.RationalDualQuaternion import RationalDualQuaternion
+from rational_linkages import RationalCurve
+from rational_linkages import FactorizationProvider
+from rational_linkages import MotionFactorization
+from rational_linkages import RationalDualQuaternion
 
 
 class TestFactorizationProvider(TestCase):

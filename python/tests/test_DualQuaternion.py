@@ -1,10 +1,10 @@
 import unittest
 
 import numpy as np
-from rational_linkages.DualQuaternion import DualQuaternion
-from rational_linkages.Quaternion import Quaternion
-from rational_linkages.PointHomogeneous import PointHomogeneous
-from rational_linkages.NormalizedLine import NormalizedLine
+from rational_linkages import DualQuaternion
+from rational_linkages import Quaternion
+from rational_linkages import PointHomogeneous
+from rational_linkages import NormalizedLine
 
 
 class TestDualQuaternion(unittest.TestCase):
