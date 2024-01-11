@@ -5,9 +5,9 @@ import sympy as sp
 from typing import Union
 from warnings import warn
 
-from RationalCurve import RationalCurve
-from MotionFactorization import MotionFactorization
-from DualQuaternion import DualQuaternion
+from .RationalCurve import RationalCurve
+from .MotionFactorization import MotionFactorization
+from .DualQuaternion import DualQuaternion
 
 
 class FactorizationProvider:
@@ -17,7 +17,7 @@ class FactorizationProvider:
     It connetion to the project BiQuaternions_py made by Daren Thimm, University of
     Innbruck, Austria. Git repository: `BiQuaternions_py`_.
 
-    .. _BiQuaternions_py: https://doi.org/10.1016/j.mechmachtheory.2022.105143
+    .. _BiQuaternions_py: https://git.uibk.ac.at/geometrie-vermessung/biquaternion_py
     """
     def __init__(self):
         """
@@ -99,12 +99,15 @@ class FactorizationProvider:
 
         :return: The irreducible factors of the polynomial.
         :rtype: list[bq.Poly]
+
+        :raises: If the factorization failed.
         """
         # Calculate the norm polynomial. To avoid numerical problems, extract
         # the scalar part, since the norm should be purely real
         norm_poly = poly.norm()
         norm_poly = bq.Poly(norm_poly.poly.scal, *norm_poly.indets)
 
+        print("")
         print('Factorization is running...')
 
         # Calculate the irreducible factors, that determine the different factorizations
@@ -113,12 +116,13 @@ class FactorizationProvider:
         # The different permutations of the irreducible factors then generate
         # the different factorizations of the motion.
 
+        if len(factors) <= 1:
+            raise ValueError('The factorization failed for the given input.')
+
         factorization1 = bq.factorize_from_list(poly, factors)
         factorization2 = bq.factorize_from_list(poly, factors[::-1])
 
         print('Factorization ended.')
-
-        # TODO: check if the factorization is correct
 
         return [factorization1, factorization2]
 
@@ -133,7 +137,7 @@ class FactorizationProvider:
         :return: The rotation axis of the factor.
         :rtype: DualQuaternion
         """
-        from RationalDualQuaternion import RationalDualQuaternion
+        from .RationalDualQuaternion import RationalDualQuaternion
 
         t = sp.Symbol("t")
         t_dq = DualQuaternion([t, 0, 0, 0, 0, 0, 0, 0])

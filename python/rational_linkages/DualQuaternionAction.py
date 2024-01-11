@@ -1,8 +1,8 @@
 from typing import Union
 
-from DualQuaternion import DualQuaternion
-from NormalizedLine import NormalizedLine
-from PointHomogeneous import PointHomogeneous
+from .DualQuaternion import DualQuaternion
+from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
 
 
 class DualQuaternionAction:
@@ -33,8 +33,8 @@ class DualQuaternionAction:
         .. code-block:: python
             :caption: Act on line with a Dual Quaternion
 
-            from DualQuaternion import DualQuaternion
-            from NormalizedLine import NormalizedLine
+            from rational_linkages import DualQuaternion
+            from rational_linkages import NormalizedLine
             dq = DualQuaternion([1, 2, 3, 4, 0.1, 0.2, 0.3, 0.4])
             line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
             line_after_half_turn = dq.act(line)

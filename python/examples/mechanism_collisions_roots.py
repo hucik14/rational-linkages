@@ -1,7 +1,7 @@
 from datetime import timedelta
 from timeit import default_timer as timer
 
-from DualQuaternion import DualQuaternion
+from rational_linkages import DualQuaternion
 from python.legacy_classes.MechanismCollisions import MechanismCollisions
 
 # Solve mechanism collisions using numpy solver for roots of polynomials

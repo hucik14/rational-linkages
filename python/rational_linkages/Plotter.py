@@ -1,22 +1,34 @@
 import numpy as np
 import matplotlib
-matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, TextBox
 from functools import wraps
+from itertools import cycle
 
-from DualQuaternion import DualQuaternion
-from NormalizedLine import NormalizedLine
-from PointHomogeneous import PointHomogeneous
-from MotionFactorization import MotionFactorization
-from RationalMechanism import RationalMechanism
-from TransfMatrix import TransfMatrix
-from RationalCurve import RationalCurve
-from RationalBezier import RationalBezier
+from .DualQuaternion import DualQuaternion
+from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
+from .MotionFactorization import MotionFactorization
+from .RationalMechanism import RationalMechanism
+from .TransfMatrix import TransfMatrix
+from .RationalCurve import RationalCurve
+from .RationalBezier import RationalBezier
 
 
 class Plotter:
-    def __init__(self, interval=(-1, 1), steps=50, interactive: bool = False):
+    def __init__(self, interval=(-1, 1), steps=50, interactive: bool = False,
+                 arrows_length: float = 1.0):
+        """
+        Initialize the plotter
+
+        :param interval: interval for plotting
+        :param steps: number of steps for plotting
+        :param interactive: activate interactive mode
+        :param arrows_length: length of quiver arrows for poses and frames
+        """
+        # use Qt5Agg backend for interactive plotting
+        matplotlib.use("Qt5Agg")
+
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(projection="3d")
 
@@ -25,9 +37,20 @@ class Plotter:
         self.ax.set_zlabel("Z-axis")
         self.ax.set_aspect("equal")
 
+        plt.subplots_adjust(
+            top=1.0,
+            bottom=0.16,
+            left=0.32,
+            right=0.935,
+            hspace=0.2,
+            wspace=0.2)
+
         self.t_space = np.linspace(interval[0], interval[1], steps)
         self.steps = steps
         self.interactive = interactive
+
+        # length of quiver arrows for poses and frames
+        self.arrows_length = arrows_length
 
         self.plotted = {}
 
@@ -166,7 +189,6 @@ class Plotter:
         :param dq: DualQuaternion
         :param kwargs: not used
         """
-        from TransfMatrix import TransfMatrix
         matrix = TransfMatrix(dq.dq2matrix())
         self._plot_transf_matrix(matrix, **kwargs)
 
@@ -185,9 +207,9 @@ class Plotter:
         else:
             self.ax.text(*matrix.t, ' ' + kwargs['label'])
 
-        self.ax.quiver(*x_vec, color="red")
-        self.ax.quiver(*y_vec, color="green")
-        self.ax.quiver(*z_vec, color="blue")
+        self.ax.quiver(*x_vec, color="red", length=self.arrows_length)
+        self.ax.quiver(*y_vec, color="green", length=self.arrows_length)
+        self.ax.quiver(*z_vec, color="blue", length=self.arrows_length)
 
     @_plotting_decorator
     def _plot_rational_curve(self, curve: RationalCurve, **kwargs):
@@ -319,10 +341,14 @@ class Plotter:
         # append first slider that is the driving joint angle slider
         self.move_slider = self._init_slider()
         # set a text box that can be used to set the angle manually
-        self.text_box_angle = TextBox(self.fig.add_axes([0.3, 0.06, 0.15, 0.05]),
+        self.text_box_angle = TextBox(self.fig.add_axes([0.3, 0.055, 0.15, 0.05]),
                                       "Set angle [rad]: ", textalignment="right")
-        self.text_box_param = TextBox(self.fig.add_axes([0.3, 0.12, 0.15, 0.05]),
+        # set a text box that can be used to set the t param manually
+        self.text_box_param = TextBox(self.fig.add_axes([0.3, 0.11, 0.15, 0.05]),
                                       "Set param t [-]: ", textalignment="right")
+        # text box to save files
+        self.text_box_save = TextBox(self.fig.add_axes([0.3, 0.165, 0.15, 0.05]),
+                                     "Save with filename: ", textalignment="right")
 
         # vertical sliders to control physical linkage position (connecting points)
         self.joint_sliders = []
@@ -347,15 +373,26 @@ class Plotter:
                 mechanism.factorizations[1].linkage[i].points_params[1])
 
         # initialize the linkages plot
-        self.link_plot, = self.ax.plot([], [], [], color="black")
+        linestyles = cycle(['solid', 'dashdot'])
+        self.lines = []
+        for i in range(mechanism.num_joints * 2):
+            # alter between solid (links) and dashdot (joints)
+            linestyle = next(linestyles)
+            line, = self.ax.plot([], [], [], linestyle=linestyle,
+                                 color='black', marker='.')
+            self.lines.append(line)
 
         if self.show_tool:
             # initialize the tool point interactive plot
-            self.tool_plot, = self.ax.plot([], [], [], color="red")
+            self.tool_plot, = self.ax.plot([], [], [], color="purple",
+                                           linestyle="dashed", label="tool connection")
             # initialize the tool frame
-            self.pose_frame = [self.ax.quiver([], [], [], [], [], [], color="red"),
-                               self.ax.quiver([], [], [], [], [], [], color="green"),
-                               self.ax.quiver([], [], [], [], [], [], color="blue")]
+            self.pose_frame = [self.ax.quiver([], [], [], [], [], [], color="red",
+                                              length=self.arrows_length),
+                               self.ax.quiver([], [], [], [], [], [], color="green",
+                                              length=self.arrows_length),
+                               self.ax.quiver([], [], [], [], [], [], color="blue",
+                                              length=self.arrows_length)]
 
         def submit_angle(text):
             """Event handler for the text box"""
@@ -367,11 +404,18 @@ class Plotter:
             """Event handler for the text box"""
             val = float(text)
             self.plot_slider_update(val, t_param=val)
+            self.move_slider.set_val(mechanism.factorizations[0].t_param_to_joint_angle(val))
+
+        def submit_save(text):
+            """Event handler for the text box"""
+            val = text
+            mechanism.save(filename=val)
 
         # connect the slider and text box to the event handlers
         self.move_slider.on_changed(self.plot_slider_update)
         self.text_box_angle.on_submit(submit_angle)
         self.text_box_param.on_submit(submit_parameter)
+        self.text_box_save.on_submit(submit_save)
 
         # joint physical placement sliders
         for i in range(4 * mechanism.factorizations[0].number_of_factors):
@@ -406,7 +450,8 @@ class Plotter:
             j_slider_lim = 2.0
             slider0 = Slider(
                 ax=plt.axes([0.03 + i * 0.04, 0.25, 0.0225, 0.63]),
-                label="j{}.0".format(i),
+                #label="j{}.0".format(i),
+                label="j{}".format(i),
                 valmin=-j_slider_lim,
                 valmax=j_slider_lim,
                 valinit=0.0,
@@ -414,7 +459,8 @@ class Plotter:
             )
             slider1 = Slider(
                 ax=plt.axes([0.045 + i * 0.04, 0.25, 0.0225, 0.63]),
-                label="j{}.1".format(i),
+                #label="j{}.1".format(i),
+                label="",
                 valmin=-j_slider_lim,
                 valmax=j_slider_lim,
                 valinit=0.0,
@@ -451,7 +497,22 @@ class Plotter:
         links.insert(0, links[-1])
 
         x, y, z = zip(*[links[j] for j in range(len(links))])
-        self.link_plot.set_data_3d(x, y, z)
+
+        for i, line in enumerate(self.lines):
+            line.set_data_3d([x[i], x[i+1]], [y[i], y[i+1]], [z[i], z[i+1]])
+
+        """
+        xyz_coordinates = [(100 * xi, 100 * yi, 100 * zi) for xi, yi, zi in zip(x, y, z)]
+
+        # Save XYZ coordinates to a CSV file
+        pts_file_path = "xyz.pts"
+
+        # Write the XYZ coordinates to the .pts file
+        with open(pts_file_path, 'w') as pts_file:
+            for point in xyz_coordinates:
+                x, y, z = point
+                pts_file.write(f"{x} {y} {z}\n")
+        """
 
         if self.show_tool:
             # plot tool
@@ -477,7 +538,10 @@ class Plotter:
             for pose_arrow in self.pose_frame:
                 pose_arrow.remove()
             # plot new frame
-            self.pose_frame = [self.ax.quiver(*vec, color=color, length=0.3) for vec, color in zip([x_vec, y_vec, z_vec], ["red", "green", "blue"])]
+            self.pose_frame = [self.ax.quiver(*vec, color=color,
+                                              length=self.arrows_length)
+                               for vec, color in zip([x_vec, y_vec, z_vec],
+                                                     ["red", "green", "blue"])]
 
         # update the plot
         self.fig.canvas.draw_idle()

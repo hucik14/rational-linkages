@@ -1,20 +1,21 @@
 import numpy as np
 import sympy as sp
 from typing import Union
-from DualQuaternion import DualQuaternion
-from PointHomogeneous import PointHomogeneous
-from RationalCurve import RationalCurve
-from Linkage import Linkage
-from NormalizedLine import NormalizedLine
+
+from .DualQuaternion import DualQuaternion
+from .PointHomogeneous import PointHomogeneous
+from .RationalCurve import RationalCurve
+from .Linkage import Linkage
+from .NormalizedLine import NormalizedLine
 
 
 class MotionFactorization(RationalCurve):
     """
     Class representing Motion Factorization sequence
 
-    Inherits from :class:`linkages.RationalCurve` class. Given as set of polynomials in
+    Inherits from :class:`rational_linkages.RationalCurve` class. Given as set of polynomials in
     dual quaternion space. You can find more information in the paper by Frischauf et
-    al. [1]_.
+    al. [#frischauf2022]_.
 
     :param list[DualQuaternion] sequence_of_factored_dqs: list of DualQuaternions
         representing the revolute axes of the rational motion factorization
@@ -31,14 +32,15 @@ class MotionFactorization(RationalCurve):
     .. code-block:: python
         :caption: Motion factorization of a 2R mechanism
 
-        from DualQuaternion import DualQuaternion
-        from MotionFactorization import MotionFactorization
+        from rational_linkages import DualQuaternion
+        from rational_linkages import MotionFactorization
+
 
         f1 = MotionFactorization(
             [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)])
 
-    .. [1] Frischauf, Johanna et al. (2022). A multi-Bennett 8R mechanism obtained from
+    .. [#frischauf2022] Frischauf, Johanna et al. (2022). A multi-Bennett 8R mechanism obtained from
         factorization of bivariate motion polynomials. *Mechanisms and Machine Theory*.
         DOI: 10.1016/j.mechmachtheory.2022.105143 (https://doi.org/10.1016/j.mechmachtheory.2022.105143).
     """
@@ -61,18 +63,6 @@ class MotionFactorization(RationalCurve):
 
     def __repr__(self):
         return f"MotionFactorization({self.factors_with_parameter})"
-
-    def __add__(self, other):
-        """
-        Add two MotionFactorization objects - concatenate them. The order of the other
-        object IS REVERSED.
-
-        :param MotionFactorization other: other MotionFactorization to be added
-
-        :return: concatenated MotionFactorization
-        :rtype: MotionFactorization
-        """
-        return MotionFactorization(self.dq_axes + other.dq_axes[::-1])
 
     @staticmethod
     def get_polynomials_from_factorization(factors: list[DualQuaternion]) -> (
@@ -137,7 +127,7 @@ class MotionFactorization(RationalCurve):
         :return: object after the action
         :rtype: PointHomogeneous, NormalizedLine
         """
-        from DualQuaternionAction import DualQuaternionAction
+        from .DualQuaternionAction import DualQuaternionAction
 
         start_idx = 0 if start_idx is None else start_idx
         end_idx = self.number_of_factors - 1 if end_idx is None else end_idx
@@ -217,8 +207,10 @@ class MotionFactorization(RationalCurve):
         :return: list of np.array - tool and link points
         :rtype: list[np.ndarray]
         """
-        ee_point = self.direct_kinematics_of_tool(t_numerical, end_effector, inverted_part=inverted_part)
-        link_point = self.direct_kinematics(t_numerical, inverted_part=inverted_part)[-1]
+        ee_point = self.direct_kinematics_of_tool(t_numerical, end_effector,
+                                                  inverted_part=inverted_part)
+        link_point = self.direct_kinematics(t_numerical,
+                                            inverted_part=inverted_part)[-1]
 
         return [ee_point, link_point]
 
@@ -260,6 +252,32 @@ class MotionFactorization(RationalCurve):
 
         return t
 
+    def t_param_to_joint_angle(self, t_param: float) -> float:
+        """
+        Convert t parameter of the curve to joint angle
+
+        This is an inverse function of
+        :meth:`.MotionFactorization.joint_angle_to_t_param` method. See more
+        information in documentation in `Joint Angle to Curve Parameter`_.
+
+        :param float t_param: t parameter of the curve
+
+        :return: joint angle in radians
+        :rtype: float
+        """
+        t_param_joint0 = t_param - self.dq_axes[0].p[0]
+
+        if t_param_joint0 == 0.0:
+            t_param_joint0 = 0.000000000000000001
+
+        angle = 2 * np.arctan(np.sqrt(self.dq_axes[0].p.norm()) / t_param_joint0)
+
+        # normalize angle to [0, 2*pi]
+        if angle < 0:
+            angle += 2 * np.pi
+
+        return angle
+
     def factorize(self) -> list['MotionFactorization']:
         """
         Factorize the motion curve into motion factorizations
@@ -267,7 +285,7 @@ class MotionFactorization(RationalCurve):
         :return: list of MotionFactorization objects
         :rtype: list[MotionFactorization]
         """
-        from FactorizationProvider import FactorizationProvider
+        from .FactorizationProvider import FactorizationProvider
 
         factorization_provider = FactorizationProvider()
         return factorization_provider.factorize_for_motion_factorization(self)

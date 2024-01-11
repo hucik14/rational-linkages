@@ -52,4 +52,6 @@ The right-hand side we can simplify to:
 
 Which is the equation used in the function
 :meth:`.MotionFactorization.joint_angle_to_t_param`. :math:`q q^*` is the norm of
-the quaternion :math:`q` and :math:`q_0` is its real part.
+the quaternion :math:`q` and :math:`q_0` is its real part. There exists an inverse
+method :meth:`.MotionFactorization.t_param_to_joint_angle` which takes the curve
+parameter as an argument and returns the joint angle.

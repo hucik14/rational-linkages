@@ -1,7 +1,7 @@
 from math import isclose
-
 import numpy as np
-from TransfMatrix import TransfMatrix
+
+from .TransfMatrix import TransfMatrix
 
 # Forward declarations for class names
 DualQuaternion = "DualQuaternion"
@@ -10,29 +10,27 @@ DualQuaternion = "DualQuaternion"
 class PointHomogeneous:
     # TODO: add tests for __methods__
     """
-    Class to represent points in Projective 3D (PR3) or Projective 2D (PR2) space using homogeneous coordinates.
+    Points in projective space with homogeneous coordinates.
 
-    Homogeneous coordinates are used to represent points, including points at infinity. The first row of the point
-    array (index 0) stores the homogeneous coordinates.
+    Homogeneous coordinates are used to represent points, including points at infinity.
+    The first row of the point array (index 0) stores the homogeneous coordinates.
 
-    Attributes:
-        coordinates (numpy.ndarray): Array of floats representing the homogeneous coordinates of the point.
-        is_at_infinity (bool): Indicates whether the point is at infinity (coordinates[0] is close to 0).
+    :ivar coordinates: Array of floats representing the homogeneous coordinates of the
+        point.
+    :ivar is_at_infinity: Indicates whether the point is at infinity (coordinates[0] is
+        close to 0).
 
-    Args:
-        point (numpy.ndarray, optional): An array of floats representing the homogeneous coordinates of the point.
-            If None, a point at the origin in PR3 is created. Defaults to None.
+    :examples:
 
-    Examples:
-        Point at the origin in PR3:
-        >>> origin_point_3D = PointHomogeneous()
+    .. code-block:: python
+        :caption: Create points in projective space
 
-        Point at the origin in PR2:
-        >>> origin_point_2D = PointHomogeneous.at_origin_in_2d()
+        from rational_linkages import PointHomogeneous
 
-        Point with custom coordinates:
-        >>> custom_point = PointHomogeneous([2.0, 3.0, 4.0, 1.0])
 
+        origin_point_3D = PointHomogeneous()
+        origin_point_2D = PointHomogeneous.at_origin_in_2d()
+        custom_point = PointHomogeneous([2.0, 3.0, 4.0, 1.0])
     """
 
     def __init__(self, point=None):

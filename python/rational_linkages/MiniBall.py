@@ -1,7 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from PointHomogeneous import PointHomogeneous
 from scipy.optimize import minimize
+
+from .PointHomogeneous import PointHomogeneous
 
 
 class MiniBall:

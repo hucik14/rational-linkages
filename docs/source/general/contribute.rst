@@ -37,13 +37,16 @@ Every class/method/function should have a docstring that can contain following s
 
 
 Example of a docstring:
+
 ::
+
     def example_function(a: int, b: float) -> float:
         """
         One-line summary of the function.
 
         Multiline description of the function. For example, this function takes two
-        parameters and returns their sum.
+        parameters and returns their sum. See more in a paper by
+        Authorsurname [#authorsurname2023]_.
 
         :param int a: description of parameter a
         :param float b: description of parameter b
@@ -66,8 +69,9 @@ Example of a docstring:
         :note: additional notes
 
         :see also: :func:`example_function2`
-        :references: https://www.python.org/
 
+        .. [#authorsurname2023] Authors, Title of the Source, *Journal Name*, Year,
+            DOI: *number* (https://doi.org/*number*))
         """
         from warnings import warn
 

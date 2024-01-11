@@ -1,5 +1,4 @@
 from typing import Optional, Sequence
-
 import numpy as np
 
 
@@ -7,24 +6,24 @@ class Quaternion:
     """
     Quaternion class representing a 4-dimensional quaternion.
 
-    Args:
-        vec4 Optional[Sequence[float]]: A sequence of 4 float
-        or numeric parameters.
-            If None, a default identity Quaternion is constructed. Defaults to None.
+    :ivar np.ndarray q: 4-vector of quaternion parameters
 
-    Examples:
-        Identity Quaternion:
-        >>> identity_quaternion = Quaternion()
+    :examples:
 
-        Quaternion from a list of parameters:
-        >>> quaternion_from_list = Quaternion([0.5, 2, 1, 5])
+    .. code-block:: python
+        :caption: General usage
+
+        from rational_linkages import Quaternion
+
+        identity_quaternion = Quaternion()
+        quaternion_from_list = Quaternion([0.5, 2, 1, 5])
     """
 
     def __init__(self, vec4: Optional[Sequence[float]] = None):
         """
         Quaternion class
 
-        :param vec4: 4-vector list of quaternion parameters
+        :param Optional[Sequence[float]] vec4: 4-vector list of quaternion parameters
         """
         if vec4 is not None:
             if len(vec4) != 4:

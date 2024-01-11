@@ -2,7 +2,7 @@ from warnings import warn
 from typing import Union, Optional, Sequence
 
 import numpy as np
-from matplotlib import pyplot as plt
+from sympy import Expr
 
 # Forward declarations for class names
 DualQuaternion = "DualQuaternion"
@@ -30,20 +30,20 @@ class NormalizedLine:
     .. code-block:: python
         :caption: Creating a NormalizedLine from a unit screw axis
 
-        from NormalizedLine import NormalizedLine
+        from rational_linkages import NormalizedLine
         line = NormalizedLine([1, 0, 0, 0, -2, 1])
 
     .. code-block:: python
         :caption: Creating a default NormalizedLine at the origin along the Z axis
 
-        from NormalizedLine import NormalizedLine
+        from rational_linkages import NormalizedLine
         line = NormalizedLine()
 
     .. code-block:: python
         :caption: Creating a NormalizedLine from two points
 
-        from NormalizedLine import NormalizedLine
-        from PointHomogeneous import PointHomogeneous
+        from rational_linkages import NormalizedLine
+        from rational_linkages import PointHomogeneous
         point1 = PointHomogeneous([1, 1, 1, 1])
         point2 = PointHomogeneous([1, 3, 1, 1])
         line = NormalizedLine.from_two_points(point1, point2)
@@ -51,35 +51,34 @@ class NormalizedLine:
     .. code-block:: python
         :caption: Creating a NormalizedLine from a direction and a point
 
-        from NormalizedLine import NormalizedLine
+        from rational_linkages import NormalizedLine
         line = NormalizedLine.from_direction_and_point([1, 0, 0], [1, 1, 1])
 
     .. code-block:: python
         :caption: Creating a NormalizedLine from a direction and a moment
 
-        from NormalizedLine import NormalizedLine
+        from rational_linkages import NormalizedLine
         line = NormalizedLine.from_direction_and_moment([1, 0, 0], [0, 1, -1])
 
     .. code-block:: python
         :caption: Creating a NormalizedLine from a DualQuaternion
 
-        from NormalizedLine import NormalizedLine
-        from DualQuaternion import DualQuaternion
+        from rational_linkages import NormalizedLine
+        from rational_linkages import DualQuaternion
         dq = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])
         line = NormalizedLine.from_dual_quaternion(dq)
     """
 
-    def __init__(self, unit_screw: Optional[Sequence[Union[float, np.ndarray]]] = None):
+    def __init__(self,
+                 unit_screw: Optional[Sequence[Union[float, np.ndarray]]] = None):
         """
         Normalized line class in Dual Quaternion space
 
         Given by Plucker coordinates, representing a Unit Screw axis
 
-        :param np.ndarray, list[float] unit_screw: Plucker coordinates representing the
-            Unit Screw axis
+        :param np.ndarray, list[float] unit_screw: Plucker coordinates
+            representing the Unit Screw axis
         """
-        from sympy import Expr
-
         if unit_screw is None:
             # in origin along Z axis
             self.direction = np.array([0, 0, 1])
@@ -128,7 +127,7 @@ class NormalizedLine:
         :return: NormalizedLine
         :rtype: NormalizedLine
         """
-        from PointHomogeneous import PointHomogeneous
+        from .PointHomogeneous import PointHomogeneous
 
         if isinstance(pt0, PointHomogeneous) and isinstance(pt1, PointHomogeneous):
             pt0 = pt0.normalized_in_3d()
@@ -332,7 +331,7 @@ class NormalizedLine:
         :return: True if the point is on the line, False otherwise
         :rtype: bool
         """
-        from PointHomogeneous import PointHomogeneous
+        from .PointHomogeneous import PointHomogeneous
 
         if isinstance(point, PointHomogeneous):
             point = point.normalized_in_3d()
@@ -341,7 +340,7 @@ class NormalizedLine:
 
         return np.allclose(np.cross(point, self.direction), self.moment)
 
-    def get_plot_data(self, interval) -> np.ndarray:
+    def get_plot_data(self, interval: tuple) -> np.ndarray:
         """
         Get data for plotting the line in 3D
 

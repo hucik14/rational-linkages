@@ -7,9 +7,9 @@ Classes in the Module:
 import numpy as np
 from typing import Union
 
-from DualQuaternion import DualQuaternion
-from PointHomogeneous import PointHomogeneous
-from NormalizedLine import NormalizedLine
+from .DualQuaternion import DualQuaternion
+from .PointHomogeneous import PointHomogeneous
+from .NormalizedLine import NormalizedLine
 
 
 class Linkage:
@@ -43,7 +43,8 @@ class Linkage:
 
         # The parameters of the connection points are 0 by default (nearest point on
         # the axis to the origin), if not set differently
-        self._params = [0.0, 0.0001]
+        self._params = [self._get_point_param_on_line(self.default_connection_point[0]),
+                        self._get_point_param_on_line(self.default_connection_point[1])]
         self.set_point_by_param(0, self._get_point_param_on_line(self.default_connection_point[0]))
         self.set_point_by_param(1, self._get_point_param_on_line(self.default_connection_point[1]))
 

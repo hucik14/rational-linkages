@@ -1,27 +1,31 @@
 from copy import deepcopy
-
-import numpy as np
 import sympy as sp
-from MiniBall import MiniBall
-from PointHomogeneous import PointHomogeneous
-from RationalCurve import RationalCurve
+
+from .MiniBall import MiniBall
+from .PointHomogeneous import PointHomogeneous
+from .RationalCurve import RationalCurve
 
 
 class RationalBezier(RationalCurve):
     """
     Class representing rational Bezier curves in n-dimensional space.
 
-    Args:
-        control_points (list of PointHomogeneous): Control points of the curve.
+    :examples:
 
-    Example:
-        Part of Limancon of Pascal:
-        >>> control_points = [PointHomogeneous(np.array([4.,  0., -2.,  4.])),
-        ...                   PointHomogeneous(np.array([0.,  1., -2.,  0.])),
-        ...                   PointHomogeneous(np.array([1.33333333, 2.66666667, 0., 1.33333333])),
-        ...                   PointHomogeneous(np.array([0., 1., 2., 0.])),
-        ...                   PointHomogeneous(np.array([4., 0., 2., 4.]))]
-        >>> bezier_curve = RationalBezier(control_points)
+    .. code-block:: python
+        :caption: Create a rational Bezier curve from control points
+
+        # part of Limancon of Pascal
+
+        from rational_linkages import RationalBezier, PointHomogeneous
+
+
+        control_points = [PointHomogeneous(np.array([4.,  0., -2.,  4.])),
+                          PointHomogeneous(np.array([0.,  1., -2.,  0.])),
+                          PointHomogeneous(np.array([1.33333333, 2.66666667, 0., 1.33333333])),
+                          PointHomogeneous(np.array([0., 1., 2., 0.])),
+                         PointHomogeneous(np.array([4., 0., 2., 4.]))]
+        bezier_curve = RationalBezier(control_points)
     """
 
     def __init__(self, control_points: list[PointHomogeneous], reparametrization:
@@ -29,7 +33,7 @@ class RationalBezier(RationalCurve):
         """
         Initializes a RationalBezier object with the provided control points.
 
-        :param control_points: list of PointHomogeneous - control points of the curve
+        :param list[PointHomogeneous] control_points: control points of the curve
         """
         super().__init__(
             self.get_coeffs_from_control_points(control_points, reparametrization=reparametrization)

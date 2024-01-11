@@ -3,9 +3,7 @@ from typing import Optional, Sequence, Union
 from warnings import warn
 
 import numpy as np
-from matplotlib import pyplot as plt
-from Quaternion import Quaternion
-from TransfMatrix import TransfMatrix
+from .Quaternion import Quaternion
 
 # Forward declarations for class names
 NormalizedLine = "NormalizedLine"
@@ -24,9 +22,9 @@ class DualQuaternion:
         parameters. If None, an identity DualQuaternion is constructed.
 
     :ivar Quaternion p: primal quaternion - the primal part of the Dual Quaternion,
-        representing rotation and translation.  See also :class:`~linkages.Quaternion`
+        representing rotation and translation.  See also :class:`~rational_linkages.Quaternion`
     :ivar Quaternion d: dual quaternion - the dual part of the Dual Quaternion,
-        representing translation. See also :class:`~linkages.Quaternion`
+        representing translation. See also :class:`~rational_linkages.Quaternion`
     :ivar np.ndarray dq: 8-vector of study parameters, representing the Dual Quaternion
     :ivar bool is_rotation: True if the Dual Quaternion represents a rotation, False
 
@@ -35,20 +33,20 @@ class DualQuaternion:
     .. code-block:: python
         :caption: General usage
 
-        from DualQuaternion import DualQuaternion
+        from rational_linkages import DualQuaternion
         dq = DualQuaternion([1, 2, 3, 4, 0.1, 0.2, 0.3, 0.4])
 
     .. code-block:: python
         :caption: Identity DualQuaternion with no rotation, no translation
 
-        from DualQuaternion import DualQuaternion
+        from rational_linkages import DualQuaternion
         dq = DualQuaternion()
 
     .. code-block:: python
         :caption: DualQuaternion from two Quaternions
 
-        from DualQuaternion import DualQuaternion
-        from Quaternion import Quaternion
+        from rational_linkages import DualQuaternion
+        from rational_linkages import Quaternion
         q1 = Quaternion([0.5, 0.5, 0.5, 0.5])
         q2 = Quaternion([1, 2, 3, 4])
         dq = DualQuaternion.from_two_quaternions(q1, q2)
@@ -81,7 +79,13 @@ class DualQuaternion:
         self.dq = self.array()
 
         self.is_rotation = is_rotation
-        self.is_rational = False
+
+        # check if all entries of the DQ are rational numbers
+        from sympy import Rational
+        if all(isinstance(x, Rational) for x in self.array()):
+            self.is_rational = True
+        else:
+            self.is_rational = False
 
     @property
     def type(self) -> str:
@@ -128,6 +132,28 @@ class DualQuaternion:
         :rtype: DualQuaternion
         """
         return cls(np.concatenate((primal.array(), dual.array())))
+
+    @classmethod
+    def as_rational(cls, study_parameters: Union[list, np.ndarray] = None,
+                    is_rotation: bool = False):
+        """
+        Assembly of DualQuaternion from Sympy's rational numbers
+
+        :param Union[list, np.ndarray] study_parameters: list of 8 numbers
+        :param bool is_rotation: True if the Dual Quaternion represents a rotation,
+
+        :return: DualQuaternion with rational elements
+        :rtype: DualQuaternion
+        """
+        from sympy import Rational, nsimplify
+
+        if study_parameters is not None:
+            rational_numbers = [nsimplify(x, tolerance=1*(-10)) for x in study_parameters]
+        else:
+            rational_numbers = [Rational(1), Rational(0), Rational(0), Rational(0),
+                                Rational(0), Rational(0), Rational(0), Rational(0)]
+
+        return cls(rational_numbers, is_rotation)
 
     def __repr__(self):
         """
@@ -389,13 +415,13 @@ class DualQuaternion:
         .. code-block:: python
             :caption: Act on a line with a Dual Quaternion
 
-            from DualQuaternion import DualQuaternion
-            from NormalizedLine import NormalizedLine
+            from rational_linkages import DualQuaternion
+            from rational_linkages import NormalizedLine
             dq = DualQuaternion([1, 0, 0, 1, 0, 3, 2, -1])
             line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
             line_after_half_turn = dq.act(line)
         """
-        from DualQuaternionAction import DualQuaternionAction
+        from .DualQuaternionAction import DualQuaternionAction
 
         action = DualQuaternionAction()
         return action.act(self, affected_object)

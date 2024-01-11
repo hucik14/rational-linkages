@@ -2,9 +2,9 @@ import biquaternion_py as bq
 import sympy as sp
 
 from FactorizationProvider import FactorizationProvider
-from DualQuaternion import DualQuaternion
+from rational_linkages import DualQuaternion
 from RationalDualQuaternion import RationalDualQuaternion
-from MotionFactorization import MotionFactorization
+from rational_linkages import MotionFactorization
 from RationalMechanism import RationalMechanism
 from Plotter import Plotter
 

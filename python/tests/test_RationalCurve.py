@@ -1,10 +1,10 @@
 from unittest import TestCase
-
 import numpy as np
 import sympy as sp
-from mpl_toolkits.mplot3d import Axes3D
-from PointHomogeneous import PointHomogeneous
-from RationalCurve import RationalCurve
+
+from rational_linkages import PointHomogeneous
+from rational_linkages import RationalCurve
+from rational_linkages import RationalMechanism
 
 
 class TestRationalCurve(TestCase):
@@ -232,4 +232,26 @@ class TestRationalCurve(TestCase):
                                     [0, 0, 0, 1, 0, 0, 0, 0]))
         self.assertTrue(np.allclose(factorizations[1].dq_axes[1].array(),
                                     [0, 0, 0, 2, 0, 0, -1, 0]))
+
+        m = RationalMechanism(factorizations)
+        self.assertRaises(TypeError, m.factorize)
+
+    def test_curve(self):
+        t = sp.Symbol("t")
+        curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(-3.0 * t, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(1.0, t),
+                               sp.Poly(1.0 * t, t),
+                               sp.Poly(0.0, t)])
+
+        self.assertEqual(curve.curve().set_of_polynomials, curve.set_of_polynomials)
+
+
+
+
+
+
 

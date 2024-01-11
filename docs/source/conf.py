@@ -16,7 +16,7 @@ import sys
 
 docs_source_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(docs_source_dir, '..', '..'))
-src_dir = os.path.join(project_root, 'python', 'linkages')
+src_dir = os.path.join(project_root, 'python', 'rational_linkages')
 parent_dir = os.path.join(project_root, 'python')
 
 sys.path.insert(0, parent_dir)
@@ -31,7 +31,7 @@ copyright = '2023, Daniel'
 author = 'Daniel'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = '1.0.0'
 
 
 # -- General configuration ---------------------------------------------------

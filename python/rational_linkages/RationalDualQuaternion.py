@@ -1,7 +1,7 @@
-from DualQuaternion import DualQuaternion
-
 import numpy as np
 import sympy as sp
+
+from .DualQuaternion import DualQuaternion
 
 # Forward declarations for class names
 NormalizedLine = "NormalizedLine"
@@ -24,7 +24,6 @@ class RationalDualQuaternion(DualQuaternion):
         super().__init__(floating_point_numbers, is_rotation=is_rotation)
 
         self.is_rational = True
-
 
     def __repr__(self):
         """
