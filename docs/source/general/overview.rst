@@ -1,15 +1,14 @@
 Overview
 --------
-Welcome to the documentation for MyPackage. This page provides a general overview of the package, its goals, and key features.
 
-Key Features
-~~~~~~~~~~~~
-- Feature 1: Description of feature 1.
-- Feature 2: Description of feature 2.
-- ...
+After the successful `installation`_, you can open one of the tutorials:
 
-How to Use
-~~~~~~~~~~
-Provide instructions or code snippets on how users can get started with your package.
+* `Loading a prepared model`_
+* `ARK paper - extended`_
+* `Motion interpolation`_
 
 
+.. _installation: ../general/installation.rst
+.. _ARK paper - extended: ../tutorials/ark2024.rst
+.. _Loading a prepared model: ../tutorials/loading_bennett.rst
+.. _Motion interpolation: ../tutorials/motion_interp.rst

@@ -26,7 +26,7 @@ if __name__ == "__main__":
     p0 = DualQuaternion()
 
     c = MotionInterpolation.interpolate([p1, p2, p3])
-    f = FactorizationProvider().factorize_motion_curve(c)
+    f = c.factorize()
     m = RationalMechanism(f)
 
     #m.collision_check(parallel=True)

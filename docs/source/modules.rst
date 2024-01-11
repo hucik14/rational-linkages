@@ -1,7 +1,7 @@
-Linkages
-=========
+Python Modules
+==============
 
 .. toctree::
    :maxdepth: 4
 
-   rational-linkages
+   rational_linkages

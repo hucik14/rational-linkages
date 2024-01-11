@@ -5,7 +5,7 @@ Tutorials
    :maxdepth: 4
    :caption: Contents:
 
-   tutorials/getting_started
+   tutorials/loading_bennett
    tutorials/ark2024
-   tutorials/test
+   tutorials/motion_interp
 

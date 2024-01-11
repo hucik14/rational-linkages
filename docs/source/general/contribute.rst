@@ -37,7 +37,9 @@ Every class/method/function should have a docstring that can contain following s
 
 
 Example of a docstring:
+
 ::
+
     def example_function(a: int, b: float) -> float:
         """
         One-line summary of the function.
