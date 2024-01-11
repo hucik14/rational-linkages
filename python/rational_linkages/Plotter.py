@@ -16,7 +16,17 @@ from .RationalBezier import RationalBezier
 
 
 class Plotter:
-    def __init__(self, interval=(-1, 1), steps=50, interactive: bool = False):
+    def __init__(self, interval=(-1, 1), steps=50, interactive: bool = False,
+                 arrows_length: float = 1.0):
+        """
+        Initialize the plotter
+
+        :param interval: interval for plotting
+        :param steps: number of steps for plotting
+        :param interactive: activate interactive mode
+        :param arrows_length: length of quiver arrows for poses and frames
+        """
+        # use Qt5Agg backend for interactive plotting
         matplotlib.use("Qt5Agg")
 
         self.fig = plt.figure()
@@ -38,6 +48,9 @@ class Plotter:
         self.t_space = np.linspace(interval[0], interval[1], steps)
         self.steps = steps
         self.interactive = interactive
+
+        # length of quiver arrows for poses and frames
+        self.arrows_length = arrows_length
 
         self.plotted = {}
 
@@ -176,7 +189,6 @@ class Plotter:
         :param dq: DualQuaternion
         :param kwargs: not used
         """
-        from TransfMatrix import TransfMatrix
         matrix = TransfMatrix(dq.dq2matrix())
         self._plot_transf_matrix(matrix, **kwargs)
 
@@ -195,9 +207,9 @@ class Plotter:
         else:
             self.ax.text(*matrix.t, ' ' + kwargs['label'])
 
-        self.ax.quiver(*x_vec, color="red")
-        self.ax.quiver(*y_vec, color="green")
-        self.ax.quiver(*z_vec, color="blue")
+        self.ax.quiver(*x_vec, color="red", length=self.arrows_length)
+        self.ax.quiver(*y_vec, color="green", length=self.arrows_length)
+        self.ax.quiver(*z_vec, color="blue", length=self.arrows_length)
 
     @_plotting_decorator
     def _plot_rational_curve(self, curve: RationalCurve, **kwargs):
@@ -374,9 +386,12 @@ class Plotter:
             # initialize the tool point interactive plot
             self.tool_plot, = self.ax.plot([], [], [], color="black")
             # initialize the tool frame
-            self.pose_frame = [self.ax.quiver([], [], [], [], [], [], color="red"),
-                               self.ax.quiver([], [], [], [], [], [], color="green"),
-                               self.ax.quiver([], [], [], [], [], [], color="blue")]
+            self.pose_frame = [self.ax.quiver([], [], [], [], [], [], color="red",
+                                              length=self.arrows_length),
+                               self.ax.quiver([], [], [], [], [], [], color="green",
+                                              length=self.arrows_length),
+                               self.ax.quiver([], [], [], [], [], [], color="blue",
+                                              length=self.arrows_length)]
 
         def submit_angle(text):
             """Event handler for the text box"""
@@ -522,7 +537,10 @@ class Plotter:
             for pose_arrow in self.pose_frame:
                 pose_arrow.remove()
             # plot new frame
-            self.pose_frame = [self.ax.quiver(*vec, color=color, length=0.05) for vec, color in zip([x_vec, y_vec, z_vec], ["red", "green", "blue"])]
+            self.pose_frame = [self.ax.quiver(*vec, color=color,
+                                              length=self.arrows_length)
+                               for vec, color in zip([x_vec, y_vec, z_vec],
+                                                     ["red", "green", "blue"])]
 
         # update the plot
         self.fig.canvas.draw_idle()

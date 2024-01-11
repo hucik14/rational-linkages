@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "0.9.14"
+version = "0.9.15"
 description = "Rational Linkages Toolbox"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -34,6 +34,7 @@ doc = [
 ]
 dev = [
     "coverage",
+    "pytest",
     "flake8",
     "black",
     "twine"

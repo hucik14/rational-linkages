@@ -23,9 +23,7 @@ C) from source:
 
     git clone https://git.uibk.ac.at/geometrie-vermessung/rational-linkages.git
 
-    pip install -r requirements.txt
-
-After installation, follow the steps in
+    pip install -e .
 
 The requirements are:
 

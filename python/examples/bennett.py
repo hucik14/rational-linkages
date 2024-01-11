@@ -1,9 +1,7 @@
-from rational_linkages import RationalMechanism
-from rational_linkages import FactorizationProvider
 from rational_linkages import DualQuaternion
 from rational_linkages import NormalizedLine
 from rational_linkages import RationalCurve
-from rational_linkages import Plotter
+from rational_linkages import Plotter, TransfMatrix
 from rational_linkages.models import bennett_ark24 as bennett
 
 import numpy as np
@@ -43,7 +41,11 @@ if __name__ == '__main__':
 
     m = bennett()
 
-    p = Plotter(interactive=True, steps=500)
+    p = Plotter(interactive=True, steps=500, arrows_length=0.05)
     p.plot(m, show_tool=True)
+
+    p0 = TransfMatrix.from_rpy_xyz([-90, 0, 0], [0.15, 0, 0], units='deg')
+    p.plot(p0)
+
     p.show()
 

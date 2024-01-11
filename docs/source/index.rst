@@ -17,9 +17,10 @@ Rational Linkages Toolbox Documentation
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs
    :alt: Coverage Status
 
-.. image:: https://img.shields.io/badge/python-3.11-blue.svg
+.. image:: https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg
    :target: https://www.python.org/downloads/release/python-3117/
-   :alt: Python 3.11
+   :alt: Python
+
 
 Welcome to the Rational Linkages Toolbox Documentation, which serves as a reference for
 the toolbox. The toolbox is a collection of functions for the analysis of rational
