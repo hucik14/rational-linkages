@@ -33,20 +33,20 @@ class DualQuaternion:
     .. code-block:: python
         :caption: General usage
 
-        from DualQuaternion import DualQuaternion
+        from rational_linkages import DualQuaternion
         dq = DualQuaternion([1, 2, 3, 4, 0.1, 0.2, 0.3, 0.4])
 
     .. code-block:: python
         :caption: Identity DualQuaternion with no rotation, no translation
 
-        from DualQuaternion import DualQuaternion
+        from rational_linkages import DualQuaternion
         dq = DualQuaternion()
 
     .. code-block:: python
         :caption: DualQuaternion from two Quaternions
 
-        from DualQuaternion import DualQuaternion
-        from Quaternion import Quaternion
+        from rational_linkages import DualQuaternion
+        from rational_linkages import Quaternion
         q1 = Quaternion([0.5, 0.5, 0.5, 0.5])
         q2 = Quaternion([1, 2, 3, 4])
         dq = DualQuaternion.from_two_quaternions(q1, q2)
@@ -415,8 +415,8 @@ class DualQuaternion:
         .. code-block:: python
             :caption: Act on a line with a Dual Quaternion
 
-            from DualQuaternion import DualQuaternion
-            from NormalizedLine import NormalizedLine
+            from rational_linkages import DualQuaternion
+            from rational_linkages import NormalizedLine
             dq = DualQuaternion([1, 0, 0, 1, 0, 3, 2, -1])
             line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
             line_after_half_turn = dq.act(line)

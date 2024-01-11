@@ -32,8 +32,9 @@ class MotionFactorization(RationalCurve):
     .. code-block:: python
         :caption: Motion factorization of a 2R mechanism
 
-        from DualQuaternion import DualQuaternion
-        from MotionFactorization import MotionFactorization
+        from rational_linkages import DualQuaternion
+        from rational_linkages import MotionFactorization
+
 
         f1 = MotionFactorization(
             [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),

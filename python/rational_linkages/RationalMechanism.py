@@ -16,6 +16,47 @@ TransfMatrix = 'TransfMatrix'
 class RationalMechanism(RationalCurve):
     """
     Class representing rational mechanisms in dual quaternion space.
+
+    :ivar factorizations: list of MotionFactorization objects
+    :ivar num_joints: number of joints in the mechanism
+    :ivar is_linkage: True if the mechanism is a linkage, False if it is 1 branch of a
+        linkage
+    :ivar end_effector: end effector of the mechanism
+    :ivar segments: list of LineSegment objects representing the physical realization of
+        the linkage
+
+    :examples:
+
+    .. code-block:: python
+        :caption: Create a rational mechanism from given example
+
+        from rational_linkages import RationalMechanism, Plotter
+        from rational_linkages.models import bennett_ark24
+
+
+        if __name__ == "__main__":
+            # load the model of the Bennett's linkage
+            m = bennett_ark24()
+
+            # create an interactive plotter object, with 500 descrete steps
+            # for the input rational curves, and arrows scaled to 0.05 length
+            myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
+
+            # plot the model with tool frame
+            myplt.plot(m, show_tool=True)
+
+            ##### additional plotting options #####
+            # create a pose of the identity
+            base = TransfMatrix()
+            myplt.plot(base)
+
+            # create another pose
+            p0 = TransfMatrix.from_rpy_xyz([-90, 0, 0], [0.15, 0, 0], units='deg')
+            myplt.plot(p0)
+            ######################################
+
+            # show the plot
+            myplt.show()
     """
 
     def __init__(self, factorizations: list[MotionFactorization],
@@ -194,7 +235,7 @@ class RationalMechanism(RationalCurve):
         :return: list of TransfMatrix objects
         :rtype: list[TransfMatrix]
         """
-        from TransfMatrix import TransfMatrix
+        from .TransfMatrix import TransfMatrix
 
         frames = [TransfMatrix()] * (self.num_joints + 2)
 
@@ -513,7 +554,7 @@ class RationalMechanism(RationalCurve):
         :return: list of intersection points
         :rtype: list[PointHomogeneous]
         """
-        from PointHomogeneous import PointHomogeneous
+        from .PointHomogeneous import PointHomogeneous
         intersection_points = [PointHomogeneous()] * len(t_params)
 
         for i, t_val in enumerate(t_params):

@@ -1,13 +1,10 @@
-from .AffineMatrix import AffineMatrix
-from .AffineMetric import AffineMetric
-from .ButtonID import ButtonID
 from .DualQuaternion import DualQuaternion
 from .DualQuaternionAction import DualQuaternionAction
 from .RationalCurve import RationalCurve
 from .FactorizationProvider import FactorizationProvider
 from .Linkage import Linkage, PointsConnection, LineSegment
 from .MiniBall import MiniBall
-from .MotionApproximation import MotionApproximation
+from .MotionInterpolation import MotionInterpolation
 from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
 from .Plotter import Plotter

@@ -25,7 +25,6 @@ class RationalDualQuaternion(DualQuaternion):
 
         self.is_rational = True
 
-
     def __repr__(self):
         """
         Printing method override

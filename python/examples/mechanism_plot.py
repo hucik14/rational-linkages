@@ -1,4 +1,4 @@
-from DualQuaternion import DualQuaternion
+from rational_linkages import DualQuaternion
 from python.legacy_classes.MechanismCollisions import MechanismCollisions
 from python.legacy_classes.MechanismPlotter import MechanismPlotter
 

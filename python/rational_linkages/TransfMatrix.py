@@ -4,6 +4,19 @@ from typing import Union
 
 
 class TransfMatrix:
+    """
+    Transformation matrix class - following European convention
+
+    The transformation matrix is stored as vectors n, o, a, and t, which can be changed
+    independently, but be aware of the normalization of the rotation matrix.
+
+    :ivar np.array n: normal vector (x-axis)
+    :ivar np.array o: orthogonal vector (y-axis)
+    :ivar np.array a: approach vector (z-axis)
+    :ivar np.array t: translation vector
+
+    :ivar np.array matrix: 4x4 transformation matrix
+    """
     def __init__(self, *args):
         """
         Constructor for Trasformation Matrix class; the matrix itself is stored

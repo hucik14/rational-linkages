@@ -1,6 +1,6 @@
-from DualQuaternion import DualQuaternion
-from PointHomogeneous import PointHomogeneous
-from MotionFactorization import MotionFactorization
+from rational_linkages import DualQuaternion
+from rational_linkages import PointHomogeneous
+from rational_linkages import MotionFactorization
 from RationalMechanism import RationalMechanism
 from Plotter import Plotter
 

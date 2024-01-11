@@ -7,6 +7,7 @@ from .PointHomogeneous import PointHomogeneous
 
 MotionFactorization = "MotionFactorization"
 
+
 class RationalCurve:
     """
     Class representing rational curves in n-dimensional space, where the first row is
@@ -14,29 +15,37 @@ class RationalCurve:
 
     This class allows you to work with rational curves defined by parametric equations.
 
-    Attributes:
-        coeffs (np.array): Coefficients of parametric equations of the curve.
-        dimension (int): The dimension of the curve, excluding the homogeneous
-        coordinate.
-        degree (int): The degree of the curve.
-        symbolic (list): Symbolic expressions for the parametric equations of the curve.
-        set_of_polynomials (list): A set of polynomials representing the curve.
+    :ivar coeffs: Coefficients of parametric equations of the curve.
+    :ivar dimension: The dimension of the curve, excluding the homogeneous coordinate.
+    :ivar degree: The degree of the curve.
+    :ivar symbolic: Symbolic expressions for the parametric equations of the curve.
+    :ivar set_of_polynomials: A set of polynomials representing the curve.
 
-    Args:
-        polynomials (list): A list of polynomials representing the curve.
+    :examples:
 
-    Example:
-        Limancon of Pascal:
-        >>> a = 1
-        >>> b = 0.5
-        >>> t = sp.Symbol('t')
-        >>> eq0 = sp.Poly((1+t**2)**2, t)
-        >>> eq1 = sp.Poly(b*(1-t**2)*(1+t**2) + a*(1-t**2)**2, t)
-        >>> eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t)
-        >>> curve = RationalCurve([eq0, eq1, eq2, eq0])
+    .. code-block:: python
+        :caption: Limancon of Pascal -- from polynomial equations
 
-        or from coefficients:
-        >>> obj = RationalCurve.from_coeffs(np.array([[1., 0., 2., 0., 1.], [0.5, 0., -2., 0., 1.5], [0., -1., 0., 3., 0.], [1., 0., 2., 0., 1.]]))
+
+        import sympy as sp
+        from rational_linkages import RationalCurve
+
+        a = 1
+        b = 0.5
+        t = sp.Symbol('t')
+        eq0 = sp.Poly((1+t**2)**2, t)
+        eq1 = sp.Poly(b*(1-t**2)*(1+t**2) + a*(1-t**2)**2, t)
+        eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t)
+        curve = RationalCurve([eq0, eq1, eq2, eq0])
+
+    .. code-block:: python
+        :caption: From coefficients
+
+        import sympy as sp
+        from rational_linkages import RationalCurve
+
+
+        curve = RationalCurve.from_coeffs(np.array([[1., 0., 2., 0., 1.], [0.5, 0., -2., 0., 1.5], [0., -1., 0., 3., 0.], [1., 0., 2., 0., 1.]]))
     """
 
     def __init__(self, polynomials: list[sp.Poly]):
@@ -66,7 +75,8 @@ class RationalCurve:
 
         :coeffs: np.ndarray - coefficients of the curve
 
-        :returns: RationalCurve
+        :returns: RationalCurve object from coefficients
+        :rtype: RationalCurve
         """
         _, polynomials = cls.get_symbolic_expressions(coeffs)
         return cls(polynomials)
@@ -76,9 +86,10 @@ class RationalCurve:
         """
         Add a symbolic variable to the matrix of coefficients that describes the curve
 
-        :param coeffs: np.ndarray - coefficients of the curve
+        :param np.ndarray coeffs: coefficients of the curve
 
         :return: tuple of symbolic expressions list and list of sympy polynomials
+        :rtype: tuple[list, list[sp.Poly]]
         """
         symbolic_expressions = []
         polynomials = []
@@ -102,9 +113,8 @@ class RationalCurve:
         """
         Get the coefficients of the symbolic polynomial equations
 
-        :param polynomials: list of sympy polynomials
-
         :return: np.array of coefficients
+        :rtype: np.ndarray
         """
         # Obtain the coefficients
         coeffs = np.zeros((self.dimension + 1, self.degree + 1))
@@ -131,9 +141,10 @@ class RationalCurve:
         """
         Convert a curve to a Bezier curve using the Bernstein polynomials
 
-        :param reparametrization: bool - if True, the curve is mapped to the [-1,1]
+        :param bool reparametrization: if True, the curve is mapped to the [-1,1]
 
         :return: list of Bezier control points
+        :rtype: list[PointHomogeneous]
         """
         t = sp.Symbol("t")
 
@@ -178,12 +189,13 @@ class RationalCurve:
         """
         Generate the Bernstein polynomial equation
 
-        :param t_var: symbolic variable
-        :param reparametrization: a function that maps the interval
+        :param sp.Symbol t_var: symbolic variable
+        :param bool reparametrization: if True, the curve is mapped to the [-1,1]
         :param degree: int - degree of the polynomial, if None (not specified),
             the degree of the curve is used
 
         :return: list of symbolic expressions
+        :rtype: list
         """
         if degree is None:
             degree = self.degree
@@ -208,11 +220,12 @@ class RationalCurve:
 
         return expr
 
-    def inverse_coeffs(self) -> np.array:
+    def inverse_coeffs(self) -> np.ndarray:
         """
         Get the coefficients of the inverse curve
 
         :return: np.array of inversed coefficients
+        :rtype: np.ndarray
         """
         inverse_coeffs = np.zeros((self.dimension + 1, self.degree + 1))
         for i in range(self.dimension + 1):
@@ -224,7 +237,8 @@ class RationalCurve:
         """
         Get the inverse curve
 
-        :return: RationalCurve
+        :return: inversed rational curve
+        :rtype: RationalCurve
         """
         return RationalCurve.from_coeffs(self.inverse_coeffs())
 
@@ -252,10 +266,11 @@ class RationalCurve:
         """
         Evaluate the curve for given t and return in the form of dual quaternion vector
 
-        :param t_param: float - parameter of the motion curve
-        :param inverted_part: bool - if True, return the inverted part of the curve
+        :param float t_param: parameter of the motion curve
+        :param bool inverted_part: if True, return the inverted part of the curve
 
         :return: pose of the curve as a dual quaternion vector
+        :rtype: np.ndarray
         """
         t = sp.Symbol("t")
         if inverted_part:
@@ -279,12 +294,13 @@ class RationalCurve:
         """
         Evaluate the curve for given t and return in the form of a transformation matrix
 
-        :param t_param: float - parameter of the motion curve
-        :param inverted_part: bool - if True, return the inverted part of the curve
+        :param float t_param: parameter of the motion curve
+        :param bool inverted_part: if True, return the inverted part of the curve
 
         :return: pose of the curve as a matrix
+        :rtype: np.ndarray
         """
-        from DualQuaternion import DualQuaternion
+        from .DualQuaternion import DualQuaternion
 
         dq = DualQuaternion(self.evaluate(t_param, inverted_part))
         return dq.dq2matrix()
@@ -310,12 +326,13 @@ class RationalCurve:
         """
         Get the data to plot the curve in 3D
 
-        :param interval: interval of the parameter t
-        :param steps: number of numerical steps in the interval
+        :param tuple interval: interval of the parameter t
+        :param int steps: number of numerical steps in the interval
 
         :return: tuple of np.ndarray - (x, y, z) coordinates of the curve
+        :rtype: tuple[np.ndarray, np.ndarray, np.ndarray]
         """
-        from DualQuaternion import DualQuaternion
+        from .DualQuaternion import DualQuaternion
 
         t = sp.Symbol("t")
         t_space = np.linspace(interval[0], interval[1], steps)

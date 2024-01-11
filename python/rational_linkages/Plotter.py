@@ -384,7 +384,8 @@ class Plotter:
 
         if self.show_tool:
             # initialize the tool point interactive plot
-            self.tool_plot, = self.ax.plot([], [], [], color="black")
+            self.tool_plot, = self.ax.plot([], [], [], color="purple",
+                                           linestyle="dashed", label="tool connection")
             # initialize the tool frame
             self.pose_frame = [self.ax.quiver([], [], [], [], [], [], color="red",
                                               length=self.arrows_length),

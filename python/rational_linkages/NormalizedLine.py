@@ -30,20 +30,20 @@ class NormalizedLine:
     .. code-block:: python
         :caption: Creating a NormalizedLine from a unit screw axis
 
-        from NormalizedLine import NormalizedLine
+        from rational_linkages import NormalizedLine
         line = NormalizedLine([1, 0, 0, 0, -2, 1])
 
     .. code-block:: python
         :caption: Creating a default NormalizedLine at the origin along the Z axis
 
-        from NormalizedLine import NormalizedLine
+        from rational_linkages import NormalizedLine
         line = NormalizedLine()
 
     .. code-block:: python
         :caption: Creating a NormalizedLine from two points
 
-        from NormalizedLine import NormalizedLine
-        from PointHomogeneous import PointHomogeneous
+        from rational_linkages import NormalizedLine
+        from rational_linkages import PointHomogeneous
         point1 = PointHomogeneous([1, 1, 1, 1])
         point2 = PointHomogeneous([1, 3, 1, 1])
         line = NormalizedLine.from_two_points(point1, point2)
@@ -51,20 +51,20 @@ class NormalizedLine:
     .. code-block:: python
         :caption: Creating a NormalizedLine from a direction and a point
 
-        from NormalizedLine import NormalizedLine
+        from rational_linkages import NormalizedLine
         line = NormalizedLine.from_direction_and_point([1, 0, 0], [1, 1, 1])
 
     .. code-block:: python
         :caption: Creating a NormalizedLine from a direction and a moment
 
-        from NormalizedLine import NormalizedLine
+        from rational_linkages import NormalizedLine
         line = NormalizedLine.from_direction_and_moment([1, 0, 0], [0, 1, -1])
 
     .. code-block:: python
         :caption: Creating a NormalizedLine from a DualQuaternion
 
-        from NormalizedLine import NormalizedLine
-        from DualQuaternion import DualQuaternion
+        from rational_linkages import NormalizedLine
+        from rational_linkages import DualQuaternion
         dq = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])
         line = NormalizedLine.from_dual_quaternion(dq)
     """
