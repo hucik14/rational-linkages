@@ -65,11 +65,11 @@ max-line-length = '88'
 ignore = ["E501"]
 exclude = ".git, .idea, docs"
 
-#[tool.coverage.run]
-#command_line = "-m unittest discover -s python/tests"
-#omit = [
-#    "*/test*",
-#    "*__init__.py",
-#    "*Plotter.py",
-#    "*ButtonID.py",
-#    ]
+[tool.coverage.run]
+command_line = "-m pytest python/tests"
+omit = [
+    "*/test*",
+    "*__init__.py",
+    "*Plotter.py",
+    "*ButtonID.py",
+    ]

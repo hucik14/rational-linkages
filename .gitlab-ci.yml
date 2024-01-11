@@ -22,9 +22,7 @@ run_tests:
   script:
     - pip install .
     - pip install coverage pytest
-    - cd python/rational_linkages
-    #- coverage run --omit="*/test*,*Plotter.py,*ButtonID.py,*__init__.py" -m unittest discover -s ../tests
-    - coverage run -m pytest ../tests
+    - coverage run
     - coverage report -m
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
   rules:
@@ -39,8 +37,9 @@ run_python_versions:
         entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
         - pip install .
+        - pip install pytest
         - cd python/rational_linkages
-        - python -m unittest discover -s ../tests
+        - python -m pytest ../tests
     parallel:
       matrix:
         - IMAGE: [python:3.12-bullseye, python:3.10-bullseye]
