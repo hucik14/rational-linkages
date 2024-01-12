@@ -111,7 +111,7 @@ class FactorizationProvider:
         print('Factorization is running...')
 
         # Calculate the irreducible factors, that determine the different factorizations
-        _, factors = bq.irreducible_factors(norm_poly)
+        _, factors = bq.irreducible_factors(norm_poly, domain='RR')
 
         # The different permutations of the irreducible factors then generate
         # the different factorizations of the motion.
