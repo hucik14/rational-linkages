@@ -4,16 +4,17 @@ from typing import Union
 from .DualQuaternion import DualQuaternion
 from .TransfMatrix import TransfMatrix
 from .RationalCurve import RationalCurve
+from .RationalDualQuaternion import RationalDualQuaternion
 
 
 class MotionInterpolation:
     """
-    Method for interpolation of 3 poses and origin by rational motion curve in SE(3).
+    Method for interpolation of poses by rational motion curve in SE(3).
 
     :examples:
 
     .. code-block:: python
-        :caption: General usage
+        :caption: 4-pose interpolation
 
         from rational_linkages import (DualQuaternion, Plotter, FactorizationProvider,
                                        MotionInterpolation, RationalMechanism)
@@ -27,7 +28,7 @@ class MotionInterpolation:
             p3 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
 
             # obtain the interpolated motion curve
-            c = MotionInterpolation.interpolate([p1, p2, p3])
+            c = MotionInterpolation.interpolate([p0, p1, p2, p3])
 
             # factorize the motion curve
             f = FactorizationProvider().factorize_motion_curve(c)
@@ -46,6 +47,25 @@ class MotionInterpolation:
 
             # show the plot
             myplt.show()
+
+    .. code-block:: python
+        :caption: 3-pose interpolation
+
+        from rational_linkages import DualQuaternion, Plotter, MotionInterpolation
+
+
+            if __name__ == "__main__":
+                p0 = DualQuaternion([0, 17, -33, -89, 0, -6, 5, -3])
+                p1 = DualQuaternion([0, 84, -21, -287, 0, -30, 3, -9])
+                p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
+
+                c = MotionInterpolation.interpolate([p0, p1, p2])
+
+                plt = Plotter(interactive=False, steps=500, arrows_length=0.05)
+                plt.plot(c, interval='closed')
+
+                for i, pose in enumerate([p0, p1, p2]):
+                    plt.plot(pose, label='p{}'.format(i+1))
     """
     def __init__(self):
         """
@@ -65,10 +85,10 @@ class MotionInterpolation:
         :rtype: RationalCurve
         """
         # check number of poses
-        if len(poses) != 3:
-            raise ValueError('The number of poses must be 3.')
+        if not (len(poses) == 3 or len(poses) == 4):
+            raise ValueError('The number of poses must be 3 or 4.')
 
-        rational_poses = [DualQuaternion()]
+        rational_poses = []
 
         # convert poses to rational dual quaternions
         for pose in poses:
@@ -82,13 +102,72 @@ class MotionInterpolation:
                 raise ValueError('The given poses must be either TransfMatrix '
                                  'or DualQuaternion.')
 
-        curve_eqs = MotionInterpolation._interpolate_rational_poses(rational_poses)
-        return RationalCurve(curve_eqs)
+        # interpolate the rational poses
+        if len(rational_poses) == 4:
+            curve_eqs = MotionInterpolation._interpolate_cubic(rational_poses)
+            return RationalCurve(curve_eqs)
+        else:
+            curve_eqs = MotionInterpolation._interpolate_quadratic(rational_poses)
+            return RationalCurve(curve_eqs)
 
     @staticmethod
-    def _interpolate_rational_poses(poses: list[DualQuaternion]) -> list[sp.Poly]:
+    def _interpolate_quadratic(poses: list[DualQuaternion]) -> list[sp.Poly]:
         """
-        Interpolates the given 4 rational poses by a rational motion curve in SE(3).
+        Interpolates the given 3 rational poses by a quadratic curve in SE(3).
+
+        :param list[DualQuaternion] poses: The rational poses to interpolate.
+
+        :return: The rational motion curve.
+        :rtype: list[sp.Poly]
+        """
+        alpha = sp.Symbol('alpha')
+        omega = sp.Symbol('omega')
+        t = sp.Symbol('t')
+
+        p0 = poses[0].array()
+        p1 = poses[1].array()
+        p2 = poses[2].array()
+
+        c = alpha * p0 + (p1 - alpha * p0 - omega * p2) * t + omega * p2 * t**2
+
+        symbolic_curve = RationalDualQuaternion(c)
+
+        # apply Stydy condition, i.e. obtain epsilon norm of the curve
+        study_norm = symbolic_curve.norm()
+
+        # simplify the norm
+        study_norm = sp.simplify(study_norm[4] / (t * (t - 1)))
+
+        # obtain the equations for alpha and omega
+        eq0 = study_norm.subs(t, 0)
+        eq1 = study_norm.subs(t, 1)
+
+        # solve the equations
+        sols = sp.solve([eq0, eq1], [alpha, omega])
+
+        # get non zero solution
+        nonzero_sol = None
+        for sol in sols:
+            if not (sol[0] == 0 and sol[1] == 0):
+                nonzero_sol = sol
+
+        if nonzero_sol is None:
+            raise ValueError('Interpolation has no solution.')
+
+        al = nonzero_sol[0]
+        om = nonzero_sol[1]
+        # obtain the interpolated curve
+        c_interp = al * p0 + (p1 - al * p0 - om * p2) * t + om * p2 * t**2
+
+        # list of polynomials
+        poly = [sp.Poly(el, t) for el in c_interp]
+
+        return poly
+
+    @staticmethod
+    def _interpolate_cubic(poses: list[DualQuaternion]) -> list[sp.Poly]:
+        """
+        Interpolates the given 4 rational poses by a cubic curve in SE(3).
 
         :param list[DualQuaternion] poses: The rational poses to interpolate.
 
