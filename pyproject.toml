@@ -30,7 +30,8 @@ dependencies = [
 doc = [
     "sphinx",
     "sphinx-rtd-theme",
-    "nbsphinx"
+    "nbsphinx",
+    "toml",
 ]
 dev = [
     "coverage",
