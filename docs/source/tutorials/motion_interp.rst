@@ -41,6 +41,18 @@ linkage, i.e. the Bennett mechanism.
         # show the plot
         myplt.show()
 
+
+The following example applies the method by Brunnthaler et al. [#brunnthaler2005new]_.
+It is important to note that the method is providing a rational function that consists
+of polynomials that are not monic. The implemented factorization method uses
+the produced curve but returns factors that, if multiplied, will yield a monic
+polynomial.
+In practice, this means that the synthesized mechanism will be still able to perform a
+desired motion and pass the given poses, but the visualization will however transform
+the whole mechanism by the a static transformation :math:`p_2` (or the last pose if
+named differently). To match the visualization with the originally given poses, the
+easiest way is to pre-multiply the original poses with the :math:`p_2`.
+
 .. code-block:: python
         :caption: Quadratic interpolation of 3 poses
 
