@@ -5,8 +5,9 @@ The recommended version of Python to run this package is version 3.11 (3.10 or h
 are supported), when it provides the smoothest plotting. It is also the version used
 for development.
 
-There are three ways to install the Python package, for regular use we recommend A) or
-B). For development and testing C) is recommended.
+There are more ways to install the Python package. For regular use we recommend
+installation from PyPI using **pip**, which will provide the latest released version.
+For development, you can install from source by cloning the repository.
 
 A) using pip:
 
@@ -15,17 +16,20 @@ A) using pip:
     pip install rational-linkages
 
 
-B) using conda:
+..
+    B) using conda:
 
-.. code-block:: bash
+    .. code-block:: bash
 
     conda install -c conda-forge rational-linkages
 
 
-C) from source as editable package:
+B) from source as editable package:
 
 .. code-block:: bash
 
     git clone https://git.uibk.ac.at/geometrie-vermessung/rational-linkages.git
+
+    cd rational-linkages
 
     pip install -e .
