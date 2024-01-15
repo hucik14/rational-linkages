@@ -21,6 +21,10 @@ Rational Linkages Toolbox Documentation
    :target: https://www.python.org/downloads/release/python-3117/
    :alt: Python
 
+.. image:: https://badge.fury.io/py/rational-linkages.svg
+    :target: https://pypi.org/project/rational-linkages/
+    :alt: PyPI
+
 
 Welcome to the Rational Linkages Toolbox Documentation, which serves as a reference for
 the toolbox. The toolbox is a collection of functions for the analysis of rational

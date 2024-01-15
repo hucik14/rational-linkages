@@ -12,6 +12,7 @@
 #
 import os
 import sys
+import toml
 
 
 docs_source_dir = os.path.dirname(__file__)
@@ -24,14 +25,25 @@ sys.path.insert(0, src_dir)
 
 print(sys.path)
 
+# -- Helper functions --------------------------------------------------------
+
+
+def get_version():
+    # Load the pyproject.toml file
+    pyproject = toml.load("../../pyproject.toml")
+    # Extract the version
+    version = pyproject['project']['version']
+    return version
+
 # -- Project information -----------------------------------------------------
 
+
 project = 'Rational Linkages'
-copyright = '2023, Daniel'
-author = 'Daniel'
+copyright = '2024, Daniel Huczala'
+author = 'Daniel Huczala'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = get_version()
 
 
 # -- General configuration ---------------------------------------------------

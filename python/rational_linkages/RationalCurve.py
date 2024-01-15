@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Union
 import numpy as np
 import sympy as sp
 
@@ -262,11 +263,12 @@ class RationalCurve:
         return [self.set_of_polynomials[i].expr
                 for i in range(len(self.set_of_polynomials))]
 
-    def evaluate(self, t_param, inverted_part: bool = False) -> np.ndarray:
+    def evaluate(self, t_param: Union[float, np.ndarray],
+                 inverted_part: bool = False) -> np.ndarray:
         """
         Evaluate the curve for given t and return in the form of dual quaternion vector
 
-        :param float t_param: parameter of the motion curve
+        :param float, np.ndarray t_param: parameter of the motion curve
         :param bool inverted_part: if True, return the inverted part of the curve
 
         :return: pose of the curve as a dual quaternion vector
@@ -321,12 +323,13 @@ class RationalCurve:
         factorization_provider = FactorizationProvider()
         return factorization_provider.factorize_motion_curve(self)
 
-    def get_plot_data(self, interval: tuple = (0, 1), steps: int = 50) -> (
+    def get_plot_data(self, interval: Union[str, tuple] = (0, 1), steps: int = 50) -> (
             tuple)[np.ndarray, np.ndarray, np.ndarray]:
         """
         Get the data to plot the curve in 3D
 
-        :param tuple interval: interval of the parameter t
+        :param Union[str, tuple] interval: interval of the parameter t, if 'closed',
+            the closed-loop curve is parametrized using tangent half-angle substitution
         :param int steps: number of numerical steps in the interval
 
         :return: tuple of np.ndarray - (x, y, z) coordinates of the curve
@@ -335,7 +338,12 @@ class RationalCurve:
         from .DualQuaternion import DualQuaternion
 
         t = sp.Symbol("t")
-        t_space = np.linspace(interval[0], interval[1], steps)
+
+        if interval == 'closed':
+            # tangent half-angle substitution for closed curves
+            t_space = np.tan(np.linspace(-np.pi/2, np.pi/2, steps + 1))
+        else:
+            t_space = np.linspace(interval[0], interval[1], steps)
 
         # make a copy of the polynomials and append the homogeneous coordinate
         # to the Z-equation place in the list if in 2D, so later z = 1
