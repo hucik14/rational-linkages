@@ -34,12 +34,8 @@ This equation serves as the input for the following script.
 .. code-block:: python
         :caption: Bennett mechanism example
 
-        from RationalCurve import RationalCurve
-        from RationalMechanism import RationalMechanism
-        from FactorizationProvider import FactorizationProvider
-        from Plotter import Plotter
+        from rational_linkages import RationalCurve, RationalMechanism, FactorizationProvider, Plotter
         import numpy as np
-
 
         coeffs = np.array([[0, 0, 0],
                            [4440, 39870, 22134],
@@ -54,14 +50,14 @@ This equation serves as the input for the following script.
         c = RationalCurve.from_coeffs(coeffs)
 
         # factorize the curve
-        factors = FactorizationProvider().factorize_motion_curve(c)
+        factors = c.factorize()
 
         # define a mechanism object
         m = RationalMechanism(factors)
 
         # define a plotter object, set interactive mode and number of discrete steps
         # to plot the curve
-        p = Plotter(interactive=True, steps=500)
+        p = Plotter(interactive=True, steps=500, arrows_length=0.05)
 
         # plot the mechanism
         p.plot(m, show_tool=True)
@@ -156,17 +152,18 @@ collisions happen. This value can be passed to the plotting window at the textbo
 .. code-block:: python
         :caption: Loading a mechanism, collision checking, and design generation
 
-        from RationalMechanism import RationalMechanism
+        from rational_linkages import RationalMechanism
+        from rational_linkages.models import bennett_ark24
 
 
         # on Windows, the script has to be run inside the if __name__ == '__main__'
         # so the parallel processing can be used
         if __name__ == '__main__':
             # load the mechanism
-            m = RationalMechanism.from_saved_file('bennett.pkl')
+            m = bennett_ark24()
 
             # check for collisions
-            m.check_collisions(parallel=True)
+            m.collision_check(parallel=True)
 
             # generate the design
             dh, cp = m.get_design(unit='deg', scale=200)
