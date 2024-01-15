@@ -2,8 +2,13 @@ ARK 2024 paper - extended information
 =====================================
 
 This page contains the extended information for the paper submitted to conference ARK
-2024, Lublijana, Slovenia, under the title: **Rational Linkages: from Poses to
-3D-printed Prototypes**
+2024, Lublijana, Slovenia, under the title: *Rational Linkages: From Poses to
+3D-printed Prototypes*
+
+Please, make sure to **install** the package before running the following examples, as
+described in the `installation`_ section.
+
+.. _installation: ../general/installation.rst
 
 Bennett mechanism example
 -------------------------
