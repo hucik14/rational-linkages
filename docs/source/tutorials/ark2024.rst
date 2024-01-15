@@ -34,12 +34,8 @@ This equation serves as the input for the following script.
 .. code-block:: python
         :caption: Bennett mechanism example
 
-        from RationalCurve import RationalCurve
-        from RationalMechanism import RationalMechanism
-        from FactorizationProvider import FactorizationProvider
-        from Plotter import Plotter
+        from rational_linkages import RationalCurve, RationalMechanism, FactorizationProvider, Plotter
         import numpy as np
-
 
         coeffs = np.array([[0, 0, 0],
                            [4440, 39870, 22134],
@@ -61,7 +57,7 @@ This equation serves as the input for the following script.
 
         # define a plotter object, set interactive mode and number of discrete steps
         # to plot the curve
-        p = Plotter(interactive=True, steps=500)
+        p = Plotter(interactive=True, steps=500, arrows_length=0.05)
 
         # plot the mechanism
         p.plot(m, show_tool=True)
@@ -156,7 +152,7 @@ collisions happen. This value can be passed to the plotting window at the textbo
 .. code-block:: python
         :caption: Loading a mechanism, collision checking, and design generation
 
-        from RationalMechanism import RationalMechanism
+        from rational_linkages import RationalMechanism
         from rational_linkages.models import bennett_ark24
 
 
@@ -167,7 +163,7 @@ collisions happen. This value can be passed to the plotting window at the textbo
             m = bennett_ark24()
 
             # check for collisions
-            m.check_collisions(parallel=True)
+            m.collision_check(parallel=True)
 
             # generate the design
             dh, cp = m.get_design(unit='deg', scale=200)
