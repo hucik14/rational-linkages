@@ -54,7 +54,7 @@ This equation serves as the input for the following script.
         c = RationalCurve.from_coeffs(coeffs)
 
         # factorize the curve
-        factors = FactorizationProvider().factorize_motion_curve(c)
+        factors = c.factorize()
 
         # define a mechanism object
         m = RationalMechanism(factors)
@@ -157,13 +157,14 @@ collisions happen. This value can be passed to the plotting window at the textbo
         :caption: Loading a mechanism, collision checking, and design generation
 
         from RationalMechanism import RationalMechanism
+        from rational_linkages.models import bennett_ark24
 
 
         # on Windows, the script has to be run inside the if __name__ == '__main__'
         # so the parallel processing can be used
         if __name__ == '__main__':
             # load the mechanism
-            m = RationalMechanism.from_saved_file('bennett.pkl')
+            m = bennett_ark24()
 
             # check for collisions
             m.check_collisions(parallel=True)
