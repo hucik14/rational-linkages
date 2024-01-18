@@ -185,8 +185,8 @@ class NormalizedLine:
         :return: NormalizedLine
         :rtype: NormalizedLine
         """
-        direction = dq[1:4]
-        moment = dq[5:8]
+        direction = np.asarray(dq[1:4])
+        moment = np.asarray(dq[5:8])
 
         # a lines maps to dual quaternion with conjugate moment
         # TODO: check if this is correct
