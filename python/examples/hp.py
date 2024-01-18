@@ -1,34 +1,36 @@
+import sympy as sy
+import numpy as np
+import biquaternion_py as bq
+from biquaternion_py import II, JJ, KK, EE
+
 from rational_linkages import DualQuaternion, Plotter, RationalMechanism, MotionFactorization
 
+# Create a planar motion polynomial
+t = sy.symbols('t')
+h1 = KK
+h2 = 2*KK + EE * II
+C = bq.Poly(bq.Poly(t - h1, t) * bq.Poly(t - h2, t))
 
-if __name__ == '__main__':
-    # Create two DualQuaternion objects, h1 and h2, if they are rotational quaternions,
-    # set is_rotation=True; by default, is_rotation=False
-    h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True)
-    h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)
+# Compute its two factorizations
+M1 = bq.Poly(bq.Poly(t - h1, *C.indets).norm().poly.scal, t)
+M2 = bq.Poly(bq.Poly(t - h2, *C.indets).norm().poly.scal, t)
+F1 = bq.factorize_from_list(C, [M1, M2])
+F2 = bq.factorize_from_list(C, [M2, M1])
 
-    # Create a MotionFactorization object, f1, with h1 and h2 as parameters
-    f1 = MotionFactorization([h1, h2])
+h1_org = DualQuaternion.from_bq_biquaternion(h1, is_rotation=True)
+h2_org = DualQuaternion.from_bq_biquaternion(2*KK + EE * II, is_rotation=True)
 
-    # Create another MotionFactorization object, f2, with two new DualQuaternion objects as parameters
-    f2 = MotionFactorization(
-        [DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0], is_rotation=True),
-         DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0], is_rotation=True)])
-
-    # f2 can be also factorized using line bellow, it returns a list of MotionFactorization objects
-    # f2 = f1.factorize()[0]  # or [1] if equal
-
-    # Create a RationalMechanism object, with f1 and f2 as parameters
-    m = RationalMechanism([f1, f2])
-    m.curve()
+h1 = DualQuaternion.from_bq_poly(F1[0], t, is_rotation=True)
+h2 = DualQuaternion.from_bq_poly(F1[1], t, is_rotation=True)
+k1 = DualQuaternion.from_bq_poly(F2[0], t, is_rotation=True)
+k2 = DualQuaternion.from_bq_poly(F2[1], t, is_rotation=True)
 
 
-    # Create a Plotter object, that is interactive, with 500 descrete steps for plotting
-    # curves, and poses frame arrows will be 0.2 units long
-    plt = Plotter(interactive=True, steps=500, arrows_length=0.2)
 
-    # Plot the RationalMechanism object with the tool shown
-    plt.plot(m, show_tool=True)
+f1 = MotionFactorization([h1, h2])
+f2 = MotionFactorization([k1, k2])
 
-    # Display the plot
-    plt.show()
+m = RationalMechanism([f1, f2])
+plt = Plotter(interactive = True, steps = 500, arrows_length = 0.2)
+plt.plot(m, show_tool = True)
+plt.show()

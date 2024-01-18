@@ -1,6 +1,9 @@
 import unittest
 
 import numpy as np
+from biquaternion_py import BiQuaternion, Poly
+from sympy import Symbol
+
 from rational_linkages import DualQuaternion
 from rational_linkages import Quaternion
 from rational_linkages import PointHomogeneous
@@ -34,6 +37,21 @@ class TestDualQuaternion(unittest.TestCase):
 
         for i, val in enumerate(dq.array()):
             self.assertEqual(val, expected_dq[i])
+
+    def test_from_bq_biquaternion(self):
+        biquaternion = BiQuaternion(
+            [-1 / 4, 13 / 5, -213 / 5, -68 / 15, 0, -52 / 3, -28 / 15, 38 / 5])
+
+        result = DualQuaternion.from_bq_biquaternion(biquaternion, is_rotation=False)
+
+        expected = DualQuaternion(np.array(
+            [-1 / 4, 13 / 5, -213 / 5, -68 / 15, 0, -52 / 3, -28 / 15, 38 / 5]),
+                                  is_rotation=False)
+        self.assertEqual(result, expected)
+        self.assertTrue(np.allclose(result.array(), expected.array()))
+
+        self.assertRaises(ValueError,
+                          DualQuaternion.from_bq_biquaternion, [1, 2, 3, 4, 5, 6, 7])
 
     def test_getitem(self):
         dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
