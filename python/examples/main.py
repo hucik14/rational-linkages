@@ -1,8 +1,8 @@
 from rational_linkages import DualQuaternion
 from rational_linkages import PointHomogeneous
 from rational_linkages import MotionFactorization
-from RationalMechanism import RationalMechanism
-from Plotter import Plotter
+from rational_linkages import RationalMechanism
+from rational_linkages import Plotter
 
 
 # Daniel's testing code, for examples see 'examples' folder or read

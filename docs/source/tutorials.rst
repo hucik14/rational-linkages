@@ -8,4 +8,5 @@ Tutorials
    tutorials/loading_bennett
    tutorials/ark2024
    tutorials/motion_interp
+   tutorials/plotting
 
