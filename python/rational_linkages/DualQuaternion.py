@@ -134,6 +134,63 @@ class DualQuaternion:
         return cls(np.concatenate((primal.array(), dual.array())))
 
     @classmethod
+    def from_bq_biquaternion(cls, biquaternion, is_rotation: bool = False):
+        """
+        Construct DualQuaternion from a biquaternion.
+
+        :param bq.BiQuaternion biquaternion: biquaternion
+        :param bool is_rotation: True if the dual quaternion represents a rotational
+            dual quaternion.
+
+        :return: DualQuaternion
+        :rtype: DualQuaternion
+
+        :raises ValueError: if the input is not a biquaternion_py.BiQuaternion object
+        """
+        from biquaternion_py import BiQuaternion
+
+        if not isinstance(biquaternion, BiQuaternion):
+            raise ValueError("The input has to be a biquaternion_py.BiQuaternion object"
+                             "from biquaternion_py package.")
+
+        coeffs = biquaternion.coeffs
+        coeffs_as_np_array = np.array(coeffs, dtype="float64")
+        return cls(coeffs_as_np_array, is_rotation=is_rotation)
+
+    @classmethod
+    def from_bq_poly(cls, poly, indet, is_rotation: bool = False):
+        """
+        Construct DualQuaternion from a biquaternion polynomial.
+
+        The biquaternion polynomial is given in the form (t - h), where t is the
+        indeterminant and h is a biquaternion. To obtain the DualQuaternion, the
+        coefficients of the polynomial are negated and then assembled into a numpy
+        array.
+
+        :param bq.Poly poly: biquaternion polynomial
+        :param sp.Symbol indet: indeterminant of the polynomial
+        :param bool is_rotation: True if the dual quaternion represents a rotational
+            dual quaternion.
+
+        :return: DualQuaternion
+        :rtype: DualQuaternion
+
+        :raises ValueError: if the input is not a biquaternion_py.Poly object
+        :raises ValueError: if the polynomial is not of degree 1
+        """
+        from biquaternion_py import Poly
+
+        if not isinstance(poly, Poly):
+            raise ValueError("The input has to be a biquaternion_py.Poly object from"
+                             "biquaternion_py package.")
+        elif poly.deg(indet) != 1:
+            raise ValueError("The polynomial has to be of degree 1.")
+
+        poly_coeffs = [-x for x in poly.coeff(indet, 0).coeffs]
+        coeffs_as_np_array = np.array(poly_coeffs, dtype="float64")
+        return cls(coeffs_as_np_array, is_rotation=is_rotation)
+
+    @classmethod
     def as_rational(cls, study_parameters: Union[list, np.ndarray] = None,
                     is_rotation: bool = False):
         """
