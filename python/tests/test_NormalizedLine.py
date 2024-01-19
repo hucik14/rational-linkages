@@ -1,8 +1,7 @@
 from unittest import TestCase
 import numpy as np
 
-from rational_linkages import NormalizedLine
-from rational_linkages import PointHomogeneous
+from rational_linkages import NormalizedLine, PointHomogeneous, DualQuaternion
 
 
 class TestNormalizedLine(TestCase):
@@ -53,7 +52,6 @@ class TestNormalizedLine(TestCase):
         evaluated_line = line.evaluate(2)
         self.assertTrue(np.allclose(evaluated_line.screw, np.array([0, 0, 1, 4, -1, 2])))
 
-
     def test_from_two_points(self):
         point1 = np.array([1, 1, 1])
         point2 = np.array([3, 1, 1])
@@ -103,6 +101,13 @@ class TestNormalizedLine(TestCase):
         self.assertTrue(
             np.allclose(nl.screw, np.concatenate((expected_direction, expected_moment)))
         )
+
+    def test_from_dual_quaternion(self):
+        dq = DualQuaternion([0, -2, 0, 0, 0, 4, -4, 6])
+        expected_line = np.array([-1, 0, 0, -2, 2, -3])
+
+        line = NormalizedLine.from_dual_quaternion(dq)
+        self.assertTrue(np.allclose(line.screw, expected_line))
 
     def test_point_on_line(self):
         direction = [0, 0, 1]

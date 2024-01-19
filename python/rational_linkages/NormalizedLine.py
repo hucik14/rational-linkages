@@ -182,17 +182,10 @@ class NormalizedLine:
 
         :param DualQuaternion dq: DualQuaternion
 
-        :return: NormalizedLine
+        :return: NormalizedLine from DualQuaternion
         :rtype: NormalizedLine
         """
-        direction = np.asarray(dq[1:4])
-        moment = np.asarray(dq[5:8])
-
-        # a lines maps to dual quaternion with conjugate moment
-        # TODO: check if this is correct
-        moment = -1 * moment  # if dq.is_rotation else moment
-
-        return cls(np.concatenate((direction, moment)))
+        return cls(dq.dq2screw())
 
     def line2dq_array(self) -> np.ndarray:
         """
