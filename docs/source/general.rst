@@ -1,4 +1,4 @@
-General information
+General Information
 ===================
 
 .. toctree::

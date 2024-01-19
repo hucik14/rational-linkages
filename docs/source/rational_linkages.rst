@@ -1,5 +1,5 @@
-Rational Linkages package
-=========================
+Rational Linkages
+=================
 
 Dual Quaternion
 ---------------
