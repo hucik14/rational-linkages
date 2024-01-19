@@ -81,18 +81,18 @@ class NormalizedLine:
         """
         if unit_screw is None:
             # in origin along Z axis
-            self.direction = np.array([0, 0, 1])
-            self.moment = np.array([0, 0, 0])
-
+            unit_screw = np.array([0, 0, 1, 0, 0, 0])
         elif any(isinstance(element, Expr) for element in unit_screw):
-            # sympy object
-            self.direction = np.asarray(unit_screw[0:3])
-            self.moment = np.asarray(unit_screw[3:6])
+            # sympy object, try to convert it to numpy float
+            try:
+                unit_screw = np.asarray(unit_screw, dtype='float64')
+            except Exception:
+                self.direction = np.asarray(unit_screw[0:3])
+                self.moment = np.asarray(unit_screw[3:6])
 
-        else:
+        if not any(isinstance(element, Expr) for element in unit_screw):
             direction = np.asarray(unit_screw[0:3])
             moment = np.asarray(unit_screw[3:6])
-
             # Check if the direction vector is normalized
             if round(np.linalg.norm(direction), 6) == 1.0:
                 self.direction = direction
@@ -106,7 +106,6 @@ class NormalizedLine:
                 self.moment = np.asarray(moment)
 
         self.screw = np.concatenate((self.direction, self.moment))
-        self.as_dq_array = self.line2dq_array()
 
     def __repr__(self):
         return f"NormalizedLine({self.screw})"

@@ -37,8 +37,8 @@ class MotionFactorization(RationalCurve):
 
 
         f1 = MotionFactorization(
-            [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-             DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)])
+            [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+             DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
 
     .. [#frischauf2022] Frischauf, Johanna et al. (2022). A multi-Bennett 8R mechanism obtained from
         factorization of bivariate motion polynomials. *Mechanisms and Machine Theory*.

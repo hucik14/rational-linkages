@@ -148,11 +148,11 @@ class FactorizationProvider:
         axis_h = t_dq - factor_dq
 
         # TODO: implement return of rational axis
-        rational_dq = RationalDualQuaternion(axis_h.array(), is_rotation=True)
+        rational_dq = RationalDualQuaternion(axis_h.array())
 
         # convert to numpy array as float64
         axis_h = np.asarray(axis_h.array(), dtype='float64')
-        return DualQuaternion(axis_h, is_rotation=True)
+        return DualQuaternion(axis_h)
 
 
 

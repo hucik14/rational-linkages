@@ -11,8 +11,8 @@ class TestRationalMechanism(TestCase):
     def test_init(self):
         f1 = MotionFactorization(
             [
-                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True),
+                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0]),
             ]
         )
 

@@ -1,7 +1,5 @@
-from math import isclose
 from typing import Optional, Sequence, Union
-from warnings import warn
-
+from sympy import Expr
 import numpy as np
 from .Quaternion import Quaternion
 
@@ -26,7 +24,6 @@ class DualQuaternion:
     :ivar Quaternion d: dual quaternion - the dual part of the Dual Quaternion,
         representing translation. See also :class:`~rational_linkages.Quaternion`
     :ivar np.ndarray dq: 8-vector of study parameters, representing the Dual Quaternion
-    :ivar bool is_rotation: True if the Dual Quaternion represents a rotation, False
 
     :examples:
 
@@ -52,8 +49,7 @@ class DualQuaternion:
         dq = DualQuaternion.from_two_quaternions(q1, q2)
     """
 
-    def __init__(self, study_parameters: Optional[Sequence[float]] = None,
-                 is_rotation: bool = False):
+    def __init__(self, study_parameters: Optional[Sequence[float]] = None):
         """
         Dual Quaternion object, assembled from 8-vector (list or np.array) as DQ,
         or two 4-vectors (np.arrays) as two Quaternions (see @classmethod bellow).
@@ -62,7 +58,6 @@ class DualQuaternion:
         :param Optional[Sequence[float]] study_parameters: array or list
             of 8 Study's parameters. If None, an identity DualQuaternion is constructed.
             Defaults to None.
-        :param bool is_rotation: True if the Dual Quaternion represents a rotation,
         """
         if study_parameters is not None:
             if len(study_parameters) != 8:
@@ -78,45 +73,11 @@ class DualQuaternion:
         self.d = Quaternion(dual)
         self.dq = self.array()
 
-        self.is_rotation = is_rotation
-
         # check if all entries of the DQ are rational numbers
-        from sympy import Rational
-        if all(isinstance(x, Rational) for x in self.array()):
+        if all(isinstance(x, Expr) for x in self.array()):
             self.is_rational = True
         else:
             self.is_rational = False
-
-    @property
-    def type(self) -> str:
-        """
-        Test if the DualQuaternion is a special case representing line, plane, or point,
-        and fulfills Study's condition
-
-        :return: type of the DualQuaternion
-        :rtype: str
-        """
-        # TODO: not working correctly
-        if not isclose(np.dot(self.p.array(), self.d.array()), 0):
-            warn("DualQuaternion: Study's condition is not fulfilled")
-            return "affine"
-        elif isclose(self.p.norm(), 0):
-            warn("DualQuaternion: This DQ is in an exceptional qenerator!")
-            return "paul"
-        elif isclose(self.p[0], 0) and all(isclose(val, 0) for val in self.d[1:4]):
-            return "plane"
-        elif isclose(self.dq[0], 1) and all(isclose(val, 0) for val in self.dq[1:5]):
-            return "point"
-        elif (
-            isclose(self.p[0], 0)
-            and isclose(self.d[0], 0)
-            and not isclose(self.d.norm(), 0)
-        ):
-            return "line"
-        elif not isclose(self.p.norm(), 0) and isclose(self.d[0], 0):
-            return "rotation"
-        else:
-            return "general"
 
     @classmethod
     def from_two_quaternions(
@@ -134,13 +95,11 @@ class DualQuaternion:
         return cls(np.concatenate((primal.array(), dual.array())))
 
     @classmethod
-    def from_bq_biquaternion(cls, biquaternion, is_rotation: bool = False):
+    def from_bq_biquaternion(cls, biquaternion):
         """
         Construct DualQuaternion from a biquaternion.
 
         :param bq.BiQuaternion biquaternion: biquaternion
-        :param bool is_rotation: True if the dual quaternion represents a rotational
-            dual quaternion.
 
         :return: DualQuaternion
         :rtype: DualQuaternion
@@ -154,11 +113,10 @@ class DualQuaternion:
                              "from biquaternion_py package.")
 
         coeffs = biquaternion.coeffs
-        coeffs_as_np_array = np.array(coeffs, dtype="float64")
-        return cls(coeffs_as_np_array, is_rotation=is_rotation)
+        return cls(np.array(coeffs, dtype="float64"))
 
     @classmethod
-    def from_bq_poly(cls, poly, indet, is_rotation: bool = False):
+    def from_bq_poly(cls, poly, indet):
         """
         Construct DualQuaternion from a biquaternion polynomial.
 
@@ -169,8 +127,6 @@ class DualQuaternion:
 
         :param bq.Poly poly: biquaternion polynomial
         :param sp.Symbol indet: indeterminant of the polynomial
-        :param bool is_rotation: True if the dual quaternion represents a rotational
-            dual quaternion.
 
         :return: DualQuaternion
         :rtype: DualQuaternion
@@ -187,12 +143,10 @@ class DualQuaternion:
             raise ValueError("The polynomial has to be of degree 1.")
 
         poly_coeffs = [-x for x in poly.coeff(indet, 0).coeffs]
-        coeffs_as_np_array = np.array(poly_coeffs, dtype="float64")
-        return cls(coeffs_as_np_array, is_rotation=is_rotation)
+        return cls(np.array(poly_coeffs, dtype="float64"))
 
     @classmethod
-    def as_rational(cls, study_parameters: Union[list, np.ndarray] = None,
-                    is_rotation: bool = False):
+    def as_rational(cls, study_parameters: Union[list, np.ndarray] = None):
         """
         Assembly of DualQuaternion from Sympy's rational numbers
 
@@ -210,7 +164,7 @@ class DualQuaternion:
             rational_numbers = [Rational(1), Rational(0), Rational(0), Rational(0),
                                 Rational(0), Rational(0), Rational(0), Rational(0)]
 
-        return cls(rational_numbers, is_rotation)
+        return cls(rational_numbers)
 
     def __repr__(self):
         """
@@ -411,10 +365,20 @@ class DualQuaternion:
         """
         Dual Quaternion directly to line coordinates
 
+        If the DQ is a sympy Expression, it is not converted to float and do not
+        normalized
+
         :return: tuple of 2 numpy arrays, 3-vector coordinates each
         :rtype: tuple
         """
-        dq = np.asarray(self.array(), dtype="float64")
+        # if the DQ is a sympy Expression, do not convert to float and do not normalize
+        if any(isinstance(x, Expr) for x in self.array()):
+            try:
+                dq = np.asarray(self.array(), dtype="float64")
+            except Exception:
+                dq = self.array()
+        else:
+            dq = np.asarray(self.array(), dtype="float64")
 
         k = dq[0] ** 2 - dq[1] ** 2 - dq[2] ** 2 - dq[3] ** 2  # Different from Study
         f = k - dq[0] ** 2
@@ -425,8 +389,13 @@ class DualQuaternion:
                         g * dq[2] - f * dq[6],
                         g * dq[3] - f * dq[7]])
 
-        moment = -1 * mom / np.linalg.norm(dir)
-        direction = -1 * dir / np.linalg.norm(dir)
+        # if the DQ is a sympy Expression, do not convert to float and do not normalize
+        if any(isinstance(x, Expr) for x in dir) or any(isinstance(x, Expr) for x in mom):
+            moment = -1 * mom
+            direction = -1 * dir
+        else:
+            moment = -1 * mom / np.linalg.norm(dir)
+            direction = -1 * dir / np.linalg.norm(dir)
 
         return direction, moment
 

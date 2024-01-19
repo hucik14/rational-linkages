@@ -535,6 +535,7 @@ class RationalMechanism(RationalCurve):
                 solutions = np.append(solutions, sol)
             else:
                 #sol = np.inf
+                # TODO: debug this
                 sol = 10 ** 20
                 solutions = np.append(solutions, sol)
 

@@ -12,7 +12,7 @@ class RationalDualQuaternion(DualQuaternion):
     """
     RationalDualQuaternion class representing a 8-dimensional dual quaternion.
     """
-    def __init__(self, study_parameters: list[sp.Rational], is_rotation: bool = False):
+    def __init__(self, study_parameters: list[sp.Rational]):
         """
         RationalDualQuaternion class
 
@@ -21,7 +21,7 @@ class RationalDualQuaternion(DualQuaternion):
         self.rational_numbers = study_parameters
 
         floating_point_numbers = np.asarray(study_parameters)
-        super().__init__(floating_point_numbers, is_rotation=is_rotation)
+        super().__init__(floating_point_numbers)
 
         self.is_rational = True
 
@@ -52,4 +52,4 @@ class RationalDualQuaternion(DualQuaternion):
         :return: Rational numbers
         :rtype: sp.Matrix
         """
-        return self.rational_numbers
+        return np.array(self.rational_numbers)

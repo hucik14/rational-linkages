@@ -17,13 +17,13 @@ M2 = bq.Poly(bq.Poly(t - h2, *C.indets).norm().poly.scal, t)
 F1 = bq.factorize_from_list(C, [M1, M2])
 F2 = bq.factorize_from_list(C, [M2, M1])
 
-h1_org = DualQuaternion.from_bq_biquaternion(h1, is_rotation=True)
-h2_org = DualQuaternion.from_bq_biquaternion(2*KK + EE * II, is_rotation=True)
+h1_org = DualQuaternion.from_bq_biquaternion(h1)
+h2_org = DualQuaternion.from_bq_biquaternion(2*KK + EE * II)
 
-h1 = DualQuaternion.from_bq_poly(F1[0], t, is_rotation=True)
-h2 = DualQuaternion.from_bq_poly(F1[1], t, is_rotation=True)
-k1 = DualQuaternion.from_bq_poly(F2[0], t, is_rotation=True)
-k2 = DualQuaternion.from_bq_poly(F2[1], t, is_rotation=True)
+h1 = DualQuaternion.from_bq_poly(F1[0], t)
+h2 = DualQuaternion.from_bq_poly(F1[1], t)
+k1 = DualQuaternion.from_bq_poly(F2[0], t)
+k2 = DualQuaternion.from_bq_poly(F2[1], t)
 
 
 
