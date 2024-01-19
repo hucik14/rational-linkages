@@ -96,7 +96,7 @@ class TestPointHomogeneous(TestCase):
         obj = PointHomogeneous(np.array([4, 1, 2, 3]))
 
         expected_matrix = np.array(
-            [[1, 0, 0, 0.25], [0, 1, 0, 0.5], [0, 0, 1, 0.75], [0, 0, 0, 1]]
+            [[1, 0, 0, 0], [0.25, 1, 0, 0], [0.5, 0, 1, 0], [0.75, 0, 0, 1]]
         )
 
         self.assertTrue(np.allclose(obj.point2matrix(), expected_matrix))
