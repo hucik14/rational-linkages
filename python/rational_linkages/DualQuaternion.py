@@ -414,19 +414,19 @@ class DualQuaternion:
         :return: tuple of 2 numpy arrays, 3-vector coordinates each
         :rtype: tuple
         """
-        direction = self.dq[1:4]
-        moment = self.dq[5:8]
+        dq = np.asarray(self.array(), dtype="float64")
 
-        direction = np.asarray(direction, dtype="float64")
-        moment = np.asarray(moment, dtype="float64")
+        k = dq[0] ** 2 - dq[1] ** 2 - dq[2] ** 2 - dq[3] ** 2  # Different from Study
+        f = k - dq[0] ** 2
+        g = dq[0] * dq[4]
 
-        moment = moment / np.linalg.norm(direction)
-        direction = direction / np.linalg.norm(direction)
+        dir = f * dq[1:4]
+        mom = np.array([g * dq[1] - f * dq[5],
+                        g * dq[2] - f * dq[6],
+                        g * dq[3] - f * dq[7]])
 
-        # if DualQuaternion is representing a rotation, the moment is negative to
-        # become a line
-        # TODO: check if it holds also if not a rotation
-        moment = -1 * moment if self.is_rotation else moment
+        moment = -1 * mom / np.linalg.norm(dir)
+        direction = -1 * dir / np.linalg.norm(dir)
 
         return direction, moment
 
