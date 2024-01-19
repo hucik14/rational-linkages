@@ -46,11 +46,13 @@ class PointHomogeneous:
         if point is None:  # point in the origin in PR3
             self.coordinates = np.array([1, 0, 0, 0])
         elif any(isinstance(element, Expr) for element in point):
-            self.coordinates = point
-            self.is_real = False
-
+            try:
+                self.coordinates = np.asarray(point, dtype='float64')
+            except Exception:
+                self.coordinates = point
+                self.is_real = False
         else:
-            self.coordinates = np.asarray(point, dtype=float)
+            self.coordinates = np.asarray(point, dtype='float64')
 
         if self.is_real and isclose(self.coordinates[0], 0.0):  # point at infinity
             self.is_at_infinity = True

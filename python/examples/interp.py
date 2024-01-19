@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     p0 = DualQuaternion()
 
-    c = MotionInterpolation.interpolate([p1, p2, p3])
+    c = MotionInterpolation.interpolate([p0, p1, p2, p3])
     f = c.factorize()
     m = RationalMechanism(f)
 

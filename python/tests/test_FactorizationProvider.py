@@ -40,11 +40,11 @@ class TestFactorizationProvider(TestCase):
         h1 = RationalDualQuaternion([sp.Rational(0), sp.Rational(0),
                                     sp.Rational(0), sp.Rational(1),
                                     sp.Rational(0), sp.Rational(0),
-                                    sp.Rational(0), sp.Rational(0)], is_rotation=True)
+                                    sp.Rational(0), sp.Rational(0)])
         h2 = RationalDualQuaternion([sp.Rational(0), sp.Rational(0),
                                     sp.Rational(0), sp.Rational(2),
                                     sp.Rational(0), sp.Rational(0),
-                                    sp.Rational(-1), sp.Rational(0)], is_rotation=True)
+                                    sp.Rational(-1), sp.Rational(0)])
 
         f = MotionFactorization([h1, h2])
 

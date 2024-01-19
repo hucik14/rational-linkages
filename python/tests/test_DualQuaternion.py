@@ -1,8 +1,7 @@
 import unittest
 
 import numpy as np
-from biquaternion_py import BiQuaternion, Poly
-from sympy import Symbol
+from biquaternion_py import BiQuaternion
 
 from rational_linkages import DualQuaternion
 from rational_linkages import Quaternion
@@ -42,11 +41,10 @@ class TestDualQuaternion(unittest.TestCase):
         biquaternion = BiQuaternion(
             [-1 / 4, 13 / 5, -213 / 5, -68 / 15, 0, -52 / 3, -28 / 15, 38 / 5])
 
-        result = DualQuaternion.from_bq_biquaternion(biquaternion, is_rotation=False)
+        result = DualQuaternion.from_bq_biquaternion(biquaternion)
 
         expected = DualQuaternion(np.array(
-            [-1 / 4, 13 / 5, -213 / 5, -68 / 15, 0, -52 / 3, -28 / 15, 38 / 5]),
-                                  is_rotation=False)
+            [-1 / 4, 13 / 5, -213 / 5, -68 / 15, 0, -52 / 3, -28 / 15, 38 / 5]))
         self.assertEqual(result, expected)
         self.assertTrue(np.allclose(result.array(), expected.array()))
 
@@ -96,28 +94,6 @@ class TestDualQuaternion(unittest.TestCase):
 
         dq = dq1 * dq2
         self.assertTrue(np.allclose(dq.array(), np.array([0, 0, 1, 0, 0, -1, 0, 0])))
-
-    def test_type(self):
-        dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
-        self.assertEqual("affine", dq.type)
-
-        dq = DualQuaternion([0, 0, 0, 0, 0, 6, 7, 8])
-        self.assertEqual("paul", dq.type)
-
-        dq = DualQuaternion([1, 0, 0, 2, 0, 0, -1 / 3, 0])
-        self.assertEqual("rotation", dq.type)
-
-        dq = DualQuaternion([1, 0, 0, 0, 0, 6, 7, 8])
-        self.assertEqual("point", dq.type)
-
-        dq = DualQuaternion([0, 1, 0, 0, 0, 0, 1, 0])
-        self.assertEqual("line", dq.type)
-
-        dq = DualQuaternion([0, 1, 2, 3, -5, 0, 0, 0])
-        self.assertEqual("plane", dq.type)
-
-        dq = DualQuaternion([0, 2, 0, 0, 1, 0, 1, 10])
-        self.assertEqual("general", dq.type)
 
     def test_from_two_quaternions(self):
         p = Quaternion([-1 / 4, 13 / 5, -213 / 5, -68 / 15])
@@ -211,34 +187,44 @@ class TestDualQuaternion(unittest.TestCase):
     def test_dq2line(self):
         dq = DualQuaternion([0, -2, 0, 0, 0, 4, -4, 6])
         expected_direction = np.array([-1, 0, 0])
-        expected_moment = np.array([2, -2, 3])
+        expected_moment = np.array([-2, 2, -3])
         direction, moment = dq.dq2line()
         self.assertTrue(np.allclose(direction, expected_direction))
         self.assertTrue(np.allclose(moment, expected_moment))
 
-        dq = DualQuaternion([3, -2, 0, 0, 0, 4, -4, 6], is_rotation=True)
+        dq = DualQuaternion([3, -2, 0, 0, 0, 4, -4, 6])
         expected_direction = np.array([-1, 0, 0])
         expected_moment = np.array([-2, 2, -3])
         direction, moment = dq.dq2line()
         self.assertTrue(np.allclose(direction, expected_direction))
         self.assertTrue(np.allclose(moment, expected_moment))
 
+        dq = DualQuaternion([3, -2, 2, -7, 5, 4, -4, 6])
+        expected_direction = np.array([-0.26490647,  0.26490647, -0.92717265])
+        expected_moment = np.array([-0.46010071,  0.46010071, -0.55072661])
+        direction, moment = dq.dq2line()
+        self.assertTrue(np.allclose(direction, expected_direction))
+        self.assertTrue(np.allclose(moment, expected_moment))
+
     def test_dq2screw(self):
         dq = DualQuaternion([0, -2, 0, 0, 0, 4, -4, 6])
-        expected_line = np.array([-1, 0, 0, 2, -2, 3])
+        expected_line = np.array([-1, 0, 0, -2, 2, -3])
         self.assertTrue(np.allclose(dq.dq2screw(), expected_line))
 
     def test_dq2point_via_line(self):
         dq = DualQuaternion([0, 0, 0, 1, 0, 0, -2, 0])
-        expected_point = np.array([2, 0, 0])
-        self.assertTrue(np.allclose(dq.dq2point_via_line(), expected_point))
-
-        dq = DualQuaternion([1, 0, 0, 1, 0, 0, -2, 0], is_rotation=True)
         expected_point = np.array([-2, 0, 0])
         self.assertTrue(np.allclose(dq.dq2point_via_line(), expected_point))
 
+        dir = np.array([0, 0, 1])
+        line = NormalizedLine.from_direction_and_point(dir, expected_point)
+
+        dq = DualQuaternion(line.line2dq_array())
+
+        self.assertTrue(np.allclose(dq.dq2point_via_line(), expected_point))
+
     def test_act(self):
-        dq = DualQuaternion([0, 0, 0, 1, 0, 0, 2, 0], is_rotation=True)
+        dq = DualQuaternion([0, 0, 0, 1, 0, 0, 2, 0])
 
         acted_point0 = PointHomogeneous([1, 7, 0, 0])
         expected_acted_pt0 = PointHomogeneous([1, -3, 0, 0])

@@ -18,8 +18,8 @@ if __name__ == '__main__':
     h1 = l1.line2dq_array()
     h2 = l2.line2dq_array()
     h2[0] = 0.2
-    h1 = DualQuaternion.as_rational(h1, is_rotation=True)
-    h2 = DualQuaternion.as_rational(h2, is_rotation=True)
+    h1 = DualQuaternion.as_rational(h1)
+    h2 = DualQuaternion.as_rational(h2)
 
     coeffs = np.array([[0, 0, 0],
                        [4440, 39870, 22134],

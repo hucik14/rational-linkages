@@ -30,7 +30,7 @@ class Linkage:
         :param PointHomogeneous connection_points: The default connection point (
             common perpendicular)
         """
-        self.normalized_axis = NormalizedLine.from_direction_and_moment(*axis.dq2line())
+        self.normalized_axis = NormalizedLine(axis.dq2screw())
 
         if len(connection_points) == 1:
             self.default_connection_point = [connection_points[0], connection_points[0]]
