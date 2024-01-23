@@ -167,9 +167,8 @@ class MotionFactorization(RationalCurve):
                              for i in range(len(linkage_points))]
         return linkage_points_3d
 
-    def direct_kinematics_of_tool(
-        self, t_numerical: float, end_effector: np.ndarray, inverted_part=False
-    ) -> np.ndarray:
+    def direct_kinematics_of_tool(self, t_numerical: float, end_effector: np.ndarray,
+                                  inverted_part=False) -> np.ndarray:
         """
         Direct kinematics of the end effector position
 
@@ -181,7 +180,7 @@ class MotionFactorization(RationalCurve):
         :return: list of np.array - point of the tool position
         :rtype: np.ndarray
         """
-        ee_point = PointHomogeneous(end_effector)
+        ee_point = PointHomogeneous.from_3d_point(end_effector)
 
         if inverted_part:
             point_after_action = self.act(

@@ -19,7 +19,7 @@ class TestRationalMechanism(TestCase):
         motion = RationalMechanism([f1])
         self.assertTrue(isinstance(motion, RationalMechanism))
         self.assertEqual(motion.factorizations[0], f1)
-        self.assertEqual(motion.end_effector, DualQuaternion())
+        self.assertEqual(motion.tool_frame, DualQuaternion())
         self.assertTrue(not motion.is_linkage)
 
     def test_from_saved_file(self):

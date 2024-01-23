@@ -136,7 +136,7 @@ class TestMotionFactorization(TestCase):
         f = MotionFactorization([h1, h2])
 
         tool_pt = f.direct_kinematics_of_tool(10000000000000000000000000000000000000000,
-                                              np.array([1, 0, 0, 0]))
+                                              np.array([0, 0, 0]))
         self.assertTrue(np.allclose(tool_pt,
                                     np.array([[0, 0, 0]])))
 

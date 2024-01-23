@@ -2,15 +2,16 @@ import numpy as np
 import sympy as sp
 from copy import deepcopy
 from time import time
+from typing import Union
 import pickle
 
 from .RationalCurve import RationalCurve
 from .DualQuaternion import DualQuaternion
 from .NormalizedLine import NormalizedLine
 from .MotionFactorization import MotionFactorization
+from .TransfMatrix import TransfMatrix
 
 PointHomogeneous = 'PointHomogeneous'
-TransfMatrix = 'TransfMatrix'
 
 
 class RationalMechanism(RationalCurve):
@@ -21,7 +22,7 @@ class RationalMechanism(RationalCurve):
     :ivar num_joints: number of joints in the mechanism
     :ivar is_linkage: True if the mechanism is a linkage, False if it is 1 branch of a
         linkage
-    :ivar end_effector: end effector of the mechanism
+    :ivar tool_frame: end effector of the mechanism
     :ivar segments: list of LineSegment objects representing the physical realization of
         the linkage
 
@@ -60,7 +61,7 @@ class RationalMechanism(RationalCurve):
     """
 
     def __init__(self, factorizations: list[MotionFactorization],
-                 end_effector: DualQuaternion = None):
+                 tool_frame: Union[DualQuaternion, str] = None):
         """
         Initializes a RationalMechanism object
         """
@@ -70,9 +71,7 @@ class RationalMechanism(RationalCurve):
 
         self.is_linkage = True if len(self.factorizations) == 2 else False
 
-        self.end_effector = (
-            DualQuaternion(self.evaluate(0, inverted_part=True))
-            if end_effector is None else end_effector)
+        self.tool_frame = self._determine_tool(tool_frame)
 
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
@@ -112,6 +111,42 @@ class RationalMechanism(RationalCurve):
 
         with open(filename, 'wb') as file:
             pickle.dump(self, file)
+
+    def _determine_tool(self, tool: Union[DualQuaternion, None, str]) -> DualQuaternion:
+        """
+        Determine the tool frame of the mechanism.
+
+        :return: tool frame of the mechanism
+        :rtype: DualQuaternion
+        """
+        if tool is None:
+             return DualQuaternion(self.evaluate(0, inverted_part=True))
+        elif isinstance(tool, DualQuaternion):
+            return tool
+        elif tool == 'mid_of_last_link':
+            # calculate the midpoint of the last link
+            p0 = self.factorizations[0].direct_kinematics(0.0000000000000000001, inverted_part=True)[-1]
+            p1 = self.factorizations[1].direct_kinematics(0.0000000000000000001, inverted_part=True)[-1]
+
+            # define the x axis vector - along the last link
+            vec_x = (p1 - p0) / np.linalg.norm(p1 - p0)
+
+            # get some random vector from the last joint points
+            vec_y_pts = self.factorizations[0].direct_kinematics(0.0000000000000000001, inverted_part=True)[-2:]
+            vec_y = vec_y_pts[1] - vec_y_pts[0]
+
+            # define the z axis vector - perpendicular to the x and y vectors
+            vec_z = np.cross(vec_x, vec_y)
+            vec_z = vec_z / np.linalg.norm(vec_z)
+
+            mid = (p1 + p0) / 2
+
+            t = TransfMatrix.from_vectors(normal_x=vec_x, approach_z=vec_z, origin=mid)
+            return DualQuaternion(t.matrix2dq())
+        else:
+            raise ValueError("tool must be either DualQuaternion, "
+                             "None default motion zero configuration, "
+                             "or 'mid_of_last_link'")
 
     def get_design(self, unit: str = 'rad',
                    scale: float = 1.0,
@@ -621,5 +656,14 @@ class RationalMechanism(RationalCurve):
         segments[1].append(LineSegment(tool_link, p0, p1, linkage_type="t", f_idx=1, idx=tool_idx))
 
         return segments[0] + segments[1][::-1]
+
+    def get_motion_curve(self):
+        """
+        Return the rational motion curve of the linkage as RationalCurve object.
+
+        :return: motion curve of the linkage
+        :rtype: RationalCurve
+        """
+        return self.curve()
 
 
