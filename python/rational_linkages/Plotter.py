@@ -37,6 +37,11 @@ class Plotter:
         self.ax.set_zlabel("Z-axis")
         self.ax.set_aspect("equal")
 
+        # Initialize min/max variables
+        self.min_x, self.max_x = float('inf'), float('-inf')
+        self.min_y, self.max_y = float('inf'), float('-inf')
+        self.min_z, self.max_z = float('inf'), float('-inf')
+
         plt.subplots_adjust(
             top=1.0,
             bottom=0.16,
@@ -543,6 +548,8 @@ class Plotter:
                                for vec, color in zip([x_vec, y_vec, z_vec],
                                                      ["red", "green", "blue"])]
 
+        self.update_limits(self.ax)
+
         # update the plot
         self.fig.canvas.draw_idle()
         self.fig.canvas.update()
@@ -553,4 +560,38 @@ class Plotter:
         Show the plot
         """
         plt.show()
+
+    def update_limits(self, ax):
+        """
+        Update the limits of the plot
+
+        :param ax: matplotlib axes
+        """
+
+
+
+        # Iterate over all collections and artists in the Axes3D object
+        for collection in ax.collections:
+            for path in collection.get_paths():
+                for array in path.to_polygons():
+                    self.min_x = min(self.min_x, np.min(array[:, 0]))
+                    self.max_x = max(self.max_x, np.max(array[:, 0]))
+                    self.min_y = min(self.min_y, np.min(array[:, 1]))
+                    self.max_y = max(self.max_y, np.max(array[:, 1]))
+                    self.min_z = min(self.min_z, np.min(array[:, 2]))
+                    self.max_z = max(self.max_z, np.max(array[:, 2]))
+
+        for line in ax.lines:
+            xdata, ydata, zdata = line._verts3d
+            self.min_x = min(self.min_x, np.min(xdata))
+            self.max_x = max(self.max_x, np.max(xdata))
+            self.min_y = min(self.min_y, np.min(ydata))
+            self.max_y = max(self.max_y, np.max(ydata))
+            self.min_z = min(self.min_z, np.min(zdata))
+            self.max_z = max(self.max_z, np.max(zdata))
+
+        # Set the limits
+        ax.set_xlim3d(self.min_x, self.max_x)
+        ax.set_ylim3d(self.min_y, self.max_y)
+        ax.set_zlim3d(self.min_z, self.max_z)
 

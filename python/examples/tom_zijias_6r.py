@@ -3,8 +3,8 @@ import numpy as np
 from rational_linkages import DualQuaternion
 from rational_linkages import PointHomogeneous
 from rational_linkages import MotionFactorization
-from RationalMechanism import RationalMechanism
-from Plotter import Plotter
+from rational_linkages import RationalMechanism
+from rational_linkages import Plotter
 
 
 # Definition of the two factorizations
@@ -78,7 +78,8 @@ f2.set_joint_connection_points([PointHomogeneous([1, -0.68679894,  1.58103396,  
 if __name__ == '__main__':
     m = RationalMechanism([f1, f2])
     p = Plotter(interactive=True, steps=500)
-    p.plot(m, show_tool=False)
+    p.plot(m, show_tool=True)
+    p.show()
     #res = m.collision_check(parallel=True)
     #res = m.collision_check(parallel=False)
     #print(res)
