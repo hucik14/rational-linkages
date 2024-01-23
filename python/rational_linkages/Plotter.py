@@ -567,9 +567,6 @@ class Plotter:
 
         :param ax: matplotlib axes
         """
-
-
-
         # Iterate over all collections and artists in the Axes3D object
         for collection in ax.collections:
             for path in collection.get_paths():
