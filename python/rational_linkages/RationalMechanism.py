@@ -21,7 +21,7 @@ class RationalMechanism(RationalCurve):
     :ivar num_joints: number of joints in the mechanism
     :ivar is_linkage: True if the mechanism is a linkage, False if it is 1 branch of a
         linkage
-    :ivar end_effector: end effector of the mechanism
+    :ivar tool_frame: end effector of the mechanism
     :ivar segments: list of LineSegment objects representing the physical realization of
         the linkage
 
@@ -60,7 +60,7 @@ class RationalMechanism(RationalCurve):
     """
 
     def __init__(self, factorizations: list[MotionFactorization],
-                 end_effector: DualQuaternion = None):
+                 tool_frame: DualQuaternion = None):
         """
         Initializes a RationalMechanism object
         """
@@ -70,9 +70,9 @@ class RationalMechanism(RationalCurve):
 
         self.is_linkage = True if len(self.factorizations) == 2 else False
 
-        self.end_effector = (
+        self.tool_frame = (
             DualQuaternion(self.evaluate(0, inverted_part=True))
-            if end_effector is None else end_effector)
+            if tool_frame is None else tool_frame)
 
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
@@ -621,5 +621,14 @@ class RationalMechanism(RationalCurve):
         segments[1].append(LineSegment(tool_link, p0, p1, linkage_type="t", f_idx=1, idx=tool_idx))
 
         return segments[0] + segments[1][::-1]
+
+    def get_motion_curve(self):
+        """
+        Return the rational motion curve of the linkage as RationalCurve object.
+
+        :return: motion curve of the linkage
+        :rtype: RationalCurve
+        """
+        return self.curve()
 
 

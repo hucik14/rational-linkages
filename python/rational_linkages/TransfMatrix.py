@@ -38,6 +38,9 @@ class TransfMatrix:
         # test if the tranformation matrix has proper rotation matrix
         self.is_rotation()
 
+    def __mul__(self, other):
+        return TransfMatrix(self.matrix @ other.matrix)
+
     @property
     def matrix(self):
         """
