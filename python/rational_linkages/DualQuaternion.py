@@ -105,6 +105,24 @@ class DualQuaternion:
         :rtype: DualQuaternion
 
         :raises ValueError: if the input is not a biquaternion_py.BiQuaternion object
+
+        :examples:
+
+        .. code-block:: python
+            :caption: Construct DualQuaternion from a BiQuaternion
+
+            from rational_linkages import DualQuaternion
+            from biquaternion_py import II, JJ, KK, EE
+            bq = 2*KK + EE * II
+            dq = DualQuaternion.from_bq_biquaternion(bq)
+
+        .. code-block:: python
+            :caption: Construct DualQuaternion from a BiQuaternion
+
+            from rational_linkages import DualQuaternion
+            from biquaternion_py import BiQuaternion
+            bq = bq.BiQuaternion(1, 0, 0, 0, 0, 2, 3, 4)
+            dq = DualQuaternion.from_bq_biquaternion(bq)
         """
         from biquaternion_py import BiQuaternion
 
@@ -133,6 +151,22 @@ class DualQuaternion:
 
         :raises ValueError: if the input is not a biquaternion_py.Poly object
         :raises ValueError: if the polynomial is not of degree 1
+
+        :examples:
+
+        .. code-block:: python
+            :caption: Construct DualQuaternion from a BiQuaternion
+
+            from rational_linkages import DualQuaternion
+            from biquaternion_py import Poly, II, JJ, KK, EE
+            from sympy import Symbol
+
+            t = Symbol('t')
+            h = 2*KK + EE * II
+            poly_bq = Poly(t - h, t)
+
+            # poly_bq must be of form (t - h), i.e. degree 1 otherwise ValueError is raised
+            dq = DualQuaternion.from_bq_poly(poly_bq, indet=t)
         """
         from biquaternion_py import Poly
 

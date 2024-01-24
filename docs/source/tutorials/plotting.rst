@@ -86,3 +86,128 @@ Which will result in the following image:
 The interactive plotter can be used to animate the mechanism using the slider widget
 bellow the plot. The sliders on the left side of the plot can be used to change the
 design parameters of the mechanism.
+
+
+Optional tool frames
+^^^^^^^^^^^^^^^^^^^^
+
+When an object :class:`.RationalMechanism` is plotted, an optional argument
+``show_tool=True`` can be used to plot its tool frame, as showed in the previous
+examples.
+However, the tool of a mechanism frame can be handled in three ways:
+
+    1. The tool frame is not specified, i.e. ``None`` -- then, the tool frame
+    is attached by two connecting lines to the last link and follows the mechanism's
+    motion curve.
+
+    2. The tool frame is specified as string `tool='mid_of_last_link'`, which calculates
+    and places the tool frame in the middle of the last link, with x-axis coinciding
+    with the link.
+
+    3. The tool frame is specified as :class:`.DualQuaternion` object using argument
+    ``tool=DualQuaternion()`` -- then, this tool frame is attached to the last link.
+
+The following examples show the three options.
+
+.. code-block:: python
+    :caption: Tool frame on motion curve
+
+    from rational_linkages import (RationalMechanism, DualQuaternion,
+                                   Plotter, MotionFactorization)
+
+
+    if __name__ == '__main__':
+        # Define factorizations
+        f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                                  DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
+
+        f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                                  DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
+
+        # Create mechanism
+        m = RationalMechanism([f1, f2])
+
+        # Create plotter
+        p = Plotter(interactive=True, steps=200, arrows_length=0.2)
+
+        # Plot mechanism, do not specify tool frame
+        p.plot(m, show_tool=True)
+        p.show()
+
+.. figure:: figures/plot_tool1.png
+    :width: 500 px
+    :align: center
+    :alt: Tool frame on motion curve
+
+.. code-block:: python
+    :caption: Tool frame in the middle of the last link
+
+    from rational_linkages import (RationalMechanism, DualQuaternion,
+                                   Plotter, MotionFactorization)
+
+
+    if __name__ == '__main__':
+        # Define factorizations
+        f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                                  DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
+
+        f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                                  DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
+
+        # Create mechanism
+        m = RationalMechanism([f1, f2], tool='mid_of_last_link')
+
+        # Create plotter
+        p = Plotter(interactive=True, steps=200, arrows_length=0.2)
+
+        # Plot mechanism, do not specify tool frame
+        p.plot(m, show_tool=True)
+
+        # Plot the default motion curve
+        p.plot(m.get_motion_curve(), label='motion curve', interval='closed',
+               color='red', linewidth='0.7', linestyle=':')
+        p.show()
+
+
+.. figure:: figures/plot_tool2.png
+    :width: 500 px
+    :align: center
+    :alt: Tool frame in the middle of the last link
+
+.. code-block:: python
+    :caption: Tool frame specified as DualQuaternion
+
+    from rational_linkages import (RationalMechanism, DualQuaternion, TransfMatrix,
+                                   Plotter, MotionFactorization)
+
+
+    if __name__ == '__main__':
+        # Define factorizations
+        f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                                  DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
+
+        f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                                  DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
+
+        # Create tool frame from transformation matrix
+        tool_matrix = TransfMatrix.from_rpy_xyz([90, 0, 45], [-0.2, 0.5, 0], units='deg')
+        tool_dq = DualQuaternion(tool_matrix.matrix2dq())
+
+        # Create mechanism
+        m = RationalMechanism([f1, f2], tool=tool_dq)
+
+        # Create plotter
+        p = Plotter(interactive=True, steps=200, arrows_length=0.2)
+
+        # Plot mechanism, do not specify tool frame
+        p.plot(m, show_tool=True)
+
+        # Plot the default motion curve
+        p.plot(m.get_motion_curve(), label='motion curve', interval='closed',
+               color='red', linewidth='0.7', linestyle=':')
+        p.show()
+
+.. figure:: figures/plot_tool3.png
+    :width: 500 px
+    :align: center
+    :alt: Tool frame in the middle of the last link

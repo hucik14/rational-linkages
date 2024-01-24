@@ -322,7 +322,7 @@ class Plotter:
         ee_points = [mechanism.factorizations[0].direct_kinematics_of_tool(
             t[i], mechanism.tool_frame.dq2point_via_matrix()) for i in range(self.steps)]
 
-        kwargs['label'] = "motion curve"
+        kwargs['label'] = "tool path"
 
         x, y, z = zip(*ee_points)
         self.ax.plot(x, y, z, **kwargs)
@@ -559,6 +559,7 @@ class Plotter:
         """
         Show the plot
         """
+        self.update_limits(self.ax)
         plt.show()
 
     def update_limits(self, ax):
@@ -567,28 +568,39 @@ class Plotter:
 
         :param ax: matplotlib axes
         """
-        # Iterate over all collections and artists in the Axes3D object
-        for collection in ax.collections:
-            for path in collection.get_paths():
-                for array in path.to_polygons():
-                    self.min_x = min(self.min_x, np.min(array[:, 0]))
-                    self.max_x = max(self.max_x, np.max(array[:, 0]))
-                    self.min_y = min(self.min_y, np.min(array[:, 1]))
-                    self.max_y = max(self.max_y, np.max(array[:, 1]))
-                    self.min_z = min(self.min_z, np.min(array[:, 2]))
-                    self.max_z = max(self.max_z, np.max(array[:, 2]))
+        # Inner function to update the minimum and maximum values
+        def update_min_max(data):
+            # Update min and max for x and y axes
+            self.min_x, self.max_x = (min(self.min_x, np.min(data[:, 0])),
+                                      max(self.max_x, np.max(data[:, 0])))
+            self.min_y, self.max_y = (min(self.min_y, np.min(data[:, 1])),
+                                      max(self.max_y, np.max(data[:, 1])))
+            # Update min and max for z-axis if present
+            if data.shape[1] > 2:
+                self.min_z, self.max_z = (min(self.min_z, np.min(data[:, 2])),
+                                          max(self.max_z, np.max(data[:, 2])))
 
-        for line in ax.lines:
-            xdata, ydata, zdata = line._verts3d
-            self.min_x = min(self.min_x, np.min(xdata))
-            self.max_x = max(self.max_x, np.max(xdata))
-            self.min_y = min(self.min_y, np.min(ydata))
-            self.max_y = max(self.max_y, np.max(ydata))
-            self.min_z = min(self.min_z, np.min(zdata))
-            self.max_z = max(self.max_z, np.max(zdata))
+        # Iterate over all artists in the Axes3D object
+        for artist in ax.get_children():
+            # Handle 3D scatter plots
+            if isinstance(artist, matplotlib.collections.PathCollection):
+                update_min_max(np.array(artist._offsets3d).T)
+            # Handle 3D line plots
+            elif hasattr(artist, '_verts3d'):
+                update_min_max(np.array(artist._verts3d).T)
+            # Handle 3D quiver plots
+            elif hasattr(artist, '_segments3d'):
+                for segment in artist._segments3d:
+                    update_min_max(np.array(segment))
+            # Handle other collection types (like PolyCollection for polygons)
+            elif isinstance(artist, matplotlib.collections.Collection):
+                for path in artist.get_paths():
+                    for polygon in path.to_polygons():
+                        update_min_max(np.array(polygon))
 
-        # Set the limits
+        # Set the updated limits to the axes
         ax.set_xlim3d(self.min_x, self.max_x)
         ax.set_ylim3d(self.min_y, self.max_y)
         ax.set_zlim3d(self.min_z, self.max_z)
+        ax.set_aspect("equal")
 

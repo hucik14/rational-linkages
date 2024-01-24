@@ -61,7 +61,7 @@ class RationalMechanism(RationalCurve):
     """
 
     def __init__(self, factorizations: list[MotionFactorization],
-                 tool_frame: Union[DualQuaternion, str] = None):
+                 tool: Union[DualQuaternion, str] = None):
         """
         Initializes a RationalMechanism object
         """
@@ -71,7 +71,7 @@ class RationalMechanism(RationalCurve):
 
         self.is_linkage = True if len(self.factorizations) == 2 else False
 
-        self.tool_frame = self._determine_tool(tool_frame)
+        self.tool_frame = self._determine_tool(tool)
 
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
