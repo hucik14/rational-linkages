@@ -13,7 +13,6 @@
 import os
 import sys
 import toml
-import pytest
 
 
 docs_source_dir = os.path.dirname(__file__)
