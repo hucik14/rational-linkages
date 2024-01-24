@@ -28,8 +28,9 @@ class RationalMechanism(RationalCurve):
 
     :examples:
 
-    .. code-block:: python
-        :caption: Create a rational mechanism from given example
+    .. testcode::
+
+        # Create a rational mechanism from given example
 
         from rational_linkages import RationalMechanism, Plotter
         from rational_linkages.models import bennett_ark24

@@ -29,8 +29,9 @@ class MotionFactorization(RationalCurve):
 
     :example:
 
-    .. code-block:: python
-        :caption: Motion factorization of a 2R mechanism
+    .. testcode::
+
+        # Motion factorization of a 2R mechanism
 
         from rational_linkages import DualQuaternion
         from rational_linkages import MotionFactorization

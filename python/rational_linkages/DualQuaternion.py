@@ -27,20 +27,23 @@ class DualQuaternion:
 
     :examples:
 
-    .. code-block:: python
-        :caption: General usage
+    .. testcode::
+
+        # General usage
 
         from rational_linkages import DualQuaternion
         dq = DualQuaternion([1, 2, 3, 4, 0.1, 0.2, 0.3, 0.4])
 
-    .. code-block:: python
-        :caption: Identity DualQuaternion with no rotation, no translation
+    .. testcode::
+
+        # Identity dual quaternion with no rotation, no translation
 
         from rational_linkages import DualQuaternion
         dq = DualQuaternion()
 
-    .. code-block:: python
-        :caption: DualQuaternion from two Quaternions
+    .. testcode::
+
+        # Dual quaternion from two quaternions
 
         from rational_linkages import DualQuaternion
         from rational_linkages import Quaternion
@@ -108,20 +111,22 @@ class DualQuaternion:
 
         :examples:
 
-        .. code-block:: python
-            :caption: Construct DualQuaternion from a BiQuaternion
+        .. testcode::
+
+            # Construct dual quaternion from a BiQuaternion
 
             from rational_linkages import DualQuaternion
             from biquaternion_py import II, JJ, KK, EE
             bq = 2*KK + EE * II
             dq = DualQuaternion.from_bq_biquaternion(bq)
 
-        .. code-block:: python
-            :caption: Construct DualQuaternion from a BiQuaternion
+        .. testcode::
+
+            # Construct dual quaternion from a BiQuaternion
 
             from rational_linkages import DualQuaternion
             from biquaternion_py import BiQuaternion
-            bq = bq.BiQuaternion(1, 0, 0, 0, 0, 2, 3, 4)
+            bq = BiQuaternion(1, 0, 0, 0, 0, 2, 3, 4)
             dq = DualQuaternion.from_bq_biquaternion(bq)
         """
         from biquaternion_py import BiQuaternion
@@ -154,8 +159,9 @@ class DualQuaternion:
 
         :examples:
 
-        .. code-block:: python
-            :caption: Construct DualQuaternion from a BiQuaternion
+        .. testcode::
+
+            # Construct dual quaternion from a BiQuaternion polynomial
 
             from rational_linkages import DualQuaternion
             from biquaternion_py import Poly, II, JJ, KK, EE
@@ -472,13 +478,16 @@ class DualQuaternion:
 
         :examples:
 
-        .. code-block:: python
-            :caption: Act on a line with a Dual Quaternion
+        .. testcode::
 
-            from rational_linkages import DualQuaternion
-            from rational_linkages import NormalizedLine
+            # Act on a line with a dual quaternion
+
+            from rational_linkages import DualQuaternion, NormalizedLine
+
+
             dq = DualQuaternion([1, 0, 0, 1, 0, 3, 2, -1])
             line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
+
             line_after_half_turn = dq.act(line)
         """
         from .DualQuaternionAction import DualQuaternionAction

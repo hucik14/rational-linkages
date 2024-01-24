@@ -10,8 +10,9 @@ Static plotting
 By default, the plots are not interactive. This is suitable for simple plots with
 static objects:
 
-.. code-block:: python
-    :caption: Plotting static objects
+.. testcode::
+
+    # Plotting static objects
 
     from rational_linkages import Plotter, DualQuaternion, PointHomogeneous, NormalizedLine, TransfMatrix
 
@@ -55,26 +56,27 @@ Interactive plotting
 
 In the interactive mode, the mechanisms can be animated.
 
-.. code-block:: python
-        :caption: Interactive plotting with a loaded mechanism model
+.. testcode::
 
-        from rational_linkages import RationalMechanism, Plotter
-        from rational_linkages.models import bennett_ark24
+    # Interactive plotting with a loaded mechanism model
+
+    from rational_linkages import RationalMechanism, Plotter
+    from rational_linkages.models import bennett_ark24
 
 
-        if __name__ == '__main__':
-            # load the mechanism
-            m = bennett_ark24()
+    if __name__ == '__main__':
+        # load the mechanism
+        m = bennett_ark24()
 
-            # create an interactive plotter object
-            myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
+        # create an interactive plotter object
+        myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
 
-            # create a point with homogeneous coordinates w = 1, x = 2, y = -3, z = 1.5
-            point = PointHomogeneous([1, 0.5, -0.75, 0.25])
+        # create a point with homogeneous coordinates w = 1, x = 2, y = -3, z = 1.5
+        point = PointHomogeneous([1, 0.5, -0.75, 0.25])
 
-            myplt.plot(point, label='pt')
-            myplt.plot(m, show_tool=True)
-            myplt.show()
+        myplt.plot(point, label='pt')
+        myplt.plot(m, show_tool=True)
+        myplt.show()
 
 Which will result in the following image:
 
@@ -109,8 +111,9 @@ However, the tool of a mechanism frame can be handled in three ways:
 
 The following examples show the three options.
 
-.. code-block:: python
-    :caption: Tool frame on motion curve
+.. testcode::
+
+    # Tool frame on motion curve
 
     from rational_linkages import (RationalMechanism, DualQuaternion,
                                    Plotter, MotionFactorization)
@@ -139,8 +142,9 @@ The following examples show the three options.
     :align: center
     :alt: Tool frame on motion curve
 
-.. code-block:: python
-    :caption: Tool frame in the middle of the last link
+.. testcode::
+
+    # Tool frame in the middle of the last link
 
     from rational_linkages import (RationalMechanism, DualQuaternion,
                                    Plotter, MotionFactorization)
@@ -174,8 +178,9 @@ The following examples show the three options.
     :align: center
     :alt: Tool frame in the middle of the last link
 
-.. code-block:: python
-    :caption: Tool frame specified as DualQuaternion
+.. testcode::
+
+    # Tool frame specified as DualQuaternion
 
     from rational_linkages import (RationalMechanism, DualQuaternion, TransfMatrix,
                                    Plotter, MotionFactorization)

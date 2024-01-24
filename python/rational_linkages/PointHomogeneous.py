@@ -21,8 +21,9 @@ class PointHomogeneous:
 
     :examples:
 
-    .. code-block:: python
-        :caption: Create points in projective space
+    .. testcode::
+
+        # Create points in projective space
 
         from rational_linkages import PointHomogeneous
 

@@ -31,8 +31,9 @@ It performs the motion :math:`C(t)` given byt the following equation
 
 This equation serves as the input for the following script.
 
-.. code-block:: python
-        :caption: Bennett mechanism example
+.. testcode::
+
+        # Bennett mechanism example
 
         from rational_linkages import RationalCurve, RationalMechanism, FactorizationProvider, Plotter
         import numpy as np
@@ -62,6 +63,14 @@ This equation serves as the input for the following script.
         # plot the mechanism
         p.plot(m, show_tool=True)
         p.show()
+
+.. testoutput::
+        :hide:
+
+        Factorization is running...
+        Factorization ended.
+
+
 
 The curve :math:`C(t)` is of degree 2 in the variable :math:`t`, and can be factorized
 in the following form:
@@ -149,8 +158,9 @@ If there are collisions, it will return list of parameter :math:`t` values, wher
 collisions happen. This value can be passed to the plotting window at the textbox
 :code:`Set param t [-]`.
 
-.. code-block:: python
-        :caption: Loading a mechanism, collision checking, and design generation
+.. testcode::
+
+        # Loading a mechanism, collision checking, and design generation
 
         from rational_linkages import RationalMechanism
         from rational_linkages.models import bennett_ark24

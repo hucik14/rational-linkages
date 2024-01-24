@@ -7,8 +7,9 @@ The package implements the method described in the paper by Hegedüs et al.
 3 poses interpolation using quadratic rational functions, that yields 4-revolute
 linkage, i.e. the Bennett mechanism.
 
-.. code-block:: python
-    :caption: Cubic interpolation of 4 poses
+.. testcode::
+
+    # Cubic interpolation of 4 poses
 
     from rational_linkages import DualQuaternion, Plotter, FactorizationProvider, MotionInterpolation, RationalMechanism
 
@@ -53,25 +54,26 @@ the whole mechanism by the a static transformation :math:`p_2` (or the last pose
 named differently). To match the visualization with the originally given poses, the
 easiest way is to pre-multiply the original poses with the :math:`p_2`.
 
-.. code-block:: python
-        :caption: Quadratic interpolation of 3 poses
+.. testcode::
 
-        from rational_linkages import DualQuaternion, Plotter, MotionInterpolation
+    # Quadratic interpolation of 3 poses
+
+    from rational_linkages import DualQuaternion, Plotter, MotionInterpolation
 
 
-        if __name__ == "__main__":
-            p0 = DualQuaternion([0, 17, -33, -89, 0, -6, 5, -3])
-            p1 = DualQuaternion([0, 84, -21, -287, 0, -30, 3, -9])
-            p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
+    if __name__ == "__main__":
+        p0 = DualQuaternion([0, 17, -33, -89, 0, -6, 5, -3])
+        p1 = DualQuaternion([0, 84, -21, -287, 0, -30, 3, -9])
+        p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
 
-            c = MotionInterpolation.interpolate([p0, p1, p2])
+        c = MotionInterpolation.interpolate([p0, p1, p2])
 
-            plt = Plotter(interactive=False, steps=500, arrows_length=0.05)
-            plt.plot(c, interval='closed')
+        plt = Plotter(interactive=False, steps=500, arrows_length=0.05)
+        plt.plot(c, interval='closed')
 
-            for i, pose in enumerate([p0, p1, p2]):
-                plt.plot(pose, label='p{}'.format(i+1))
-            plt.show()
+        for i, pose in enumerate([p0, p1, p2]):
+            plt.plot(pose, label='p{}'.format(i+1))
+        plt.show()
 
 .. [#hedegus2015] Hegedüs, G., Schicho, J., and Schröcker, H. Four-Pose Synthesis of
     Angle-Symmetric 6R Linkages. *ASME. J. Mechanisms Robotics*. 2015.

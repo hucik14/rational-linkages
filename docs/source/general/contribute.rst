@@ -59,8 +59,10 @@ Example of a docstring:
         :warns b: if b is an integer, not a float
 
         :example:
-        .. code-block:: python
-            :caption: General usage of a function  # be careful to make an empty line after this line
+
+        .. testcode::
+
+            # General usage of a function, this section will be also included in doctest
 
             a = 1
             b = 2.0

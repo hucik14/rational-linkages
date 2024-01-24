@@ -5,8 +5,9 @@ The package can load a prepared model from its source. So far, only a Bennett me
 model from `ARK paper - extended info`_ is supported. The model is loaded from a file
 with the following code:
 
-.. code-block:: python
-    :caption: Loading a model from the package
+.. testcode::
+
+    # Loading a model from the package
 
     from rational_linkages import Plotter, TransfMatrix
     from rational_linkages.models import bennett_ark24

@@ -13,6 +13,7 @@
 import os
 import sys
 import toml
+import pytest
 
 
 docs_source_dir = os.path.dirname(__file__)
@@ -29,8 +30,12 @@ print(sys.path)
 
 
 def get_version():
+    # Get the directory of this file
+    this_dir = os.path.dirname(os.path.realpath(__file__))
+    # Construct the path to pyproject.toml relative to this directory
+    pyproject_path = os.path.join(this_dir, '..', '..', 'pyproject.toml')
     # Load the pyproject.toml file
-    pyproject = toml.load("../../pyproject.toml")
+    pyproject = toml.load(pyproject_path)
     # Extract the version
     version = pyproject['project']['version']
     return version
@@ -51,7 +56,7 @@ release = get_version()
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'nbsphinx']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'nbsphinx', 'sphinx.ext.doctest']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

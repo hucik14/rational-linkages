@@ -27,20 +27,23 @@ class NormalizedLine:
 
     :examples:
 
-    .. code-block:: python
-        :caption: Creating a NormalizedLine from a unit screw axis
+    .. testcode::
+
+        # Creating a NormalizedLine from a unit screw axis
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine([1, 0, 0, 0, -2, 1])
 
-    .. code-block:: python
-        :caption: Creating a default NormalizedLine at the origin along the Z axis
+    .. testcode::
+
+        # Creating a default NormalizedLine at the origin along the Z axis
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine()
 
-    .. code-block:: python
-        :caption: Creating a NormalizedLine from two points
+    .. testcode::
+
+        # Creating a NormalizedLine from two points
 
         from rational_linkages import NormalizedLine
         from rational_linkages import PointHomogeneous
@@ -48,20 +51,23 @@ class NormalizedLine:
         point2 = PointHomogeneous([1, 3, 1, 1])
         line = NormalizedLine.from_two_points(point1, point2)
 
-    .. code-block:: python
-        :caption: Creating a NormalizedLine from a direction and a point
+    .. testcode::
+
+        # Creating a NormalizedLine from a direction and a point
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine.from_direction_and_point([1, 0, 0], [1, 1, 1])
 
-    .. code-block:: python
-        :caption: Creating a NormalizedLine from a direction and a moment
+    .. testcode::
+
+        # Creating a NormalizedLine from a direction and a moment
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine.from_direction_and_moment([1, 0, 0], [0, 1, -1])
 
-    .. code-block:: python
-        :caption: Creating a NormalizedLine from a DualQuaternion
+    .. testcode::
+
+        # Creating a NormalizedLine from a DualQuaternion
 
         from rational_linkages import NormalizedLine
         from rational_linkages import DualQuaternion

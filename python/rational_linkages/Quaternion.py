@@ -10,8 +10,9 @@ class Quaternion:
 
     :examples:
 
-    .. code-block:: python
-        :caption: General usage
+    .. testcode::
+
+        # General usage
 
         from rational_linkages import Quaternion
 
