@@ -47,6 +47,7 @@ instructions* can be found in the `installation manual`_.
 .. _Gitlab repository: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
 .. _installation manual: general/installation.rst
 
+
 Indices and tables
 ==================
 
@@ -54,7 +55,9 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-**Acknowledgements**
+
+Acknowledgements
+================
 
 Funded by the European Union. Views and opinions expressed are however those of
 the author(s) only and do not necessarily reflect those of the European Union
