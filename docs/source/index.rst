@@ -53,3 +53,15 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+**Acknowledgements**
+
+Funded by the European Union. Views and opinions expressed are however those of
+the author(s) only and do not necessarily reflect those of the European Union
+or the European Research Executive Agency (REA). Neither the European Union
+nor the granting authority can be held responsible for them.
+
+.. figure:: ./docs/source/figures/eu.png
+   :align: left
+   :alt: EU Flag
+   :width: 250px

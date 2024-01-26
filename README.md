@@ -1,7 +1,7 @@
 [![build](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/pipeline.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
 [![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=run_tests)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)]()
 [![Documentation Status](https://readthedocs.org/projects/rational-linkages/badge/?version=latest)](https://rational-linkages.readthedocs.io/?badge=latest)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)]()
 [![PyPI version](https://badge.fury.io/py/rational-linkages.svg)](https://pypi.org/project/rational-linkages/)
 
 # Rational Linkages
@@ -12,8 +12,9 @@ documentation is hosted on Read the Docs, available here:
 
 ## Intallation instuctions
 
-Recommended Python version is **3.11** (3.10 or higher are supported), when it provides 
-the smoothest plotting. It is also the version used for development.
+Recommended Python version is **3.11**, when it provides the smoothest plotting 
+(but 3.10 or higher are supported). Python 3.11 is also the version used for 
+development.
 
 ### Install from PyPI
 
@@ -38,3 +39,13 @@ Using pip:
 ## Usage
 
 See the [documentation examples](https://rational-linkages.readthedocs.io/) for more details.
+
+
+## Acknowledgements
+
+Funded by the European Union. Views and opinions expressed are however those of 
+the author(s) only and do not necessarily reflect those of the European Union 
+or the European Research Executive Agency (REA). Neither the European Union 
+nor the granting authority can be held responsible for them.
+
+<img src="./docs/source/figures/eu.png" width="250" />
