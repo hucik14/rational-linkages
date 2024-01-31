@@ -22,8 +22,9 @@ dependencies = [
     "scipy >= 1.7.0",
     "sympy >= 1.8.0",
     "matplotlib >= 3.4.0",
-    "biquaternion-py >= 1.1.0",
-    "PyQt5 >= 5.15.10"
+    "biquaternion-py >= 1.2.0",
+    "PyQt5 >= 5.15.10",
+    "exudyn >= 1.7.0",
 ]
 
 [project.optional-dependencies]
