@@ -1,5 +1,7 @@
 from rational_linkages import (RationalMechanism, DualQuaternion, Plotter,
-                               MotionFactorization, PointHomogeneous)
+                               MotionFactorization, PointHomogeneous, ExudynAnalysis)
+
+from rational_linkages.models import bennett_ark24
 import exudyn as exu
 from exudyn.itemInterface import *
 from exudyn.utilities import *  # includes graphics and rigid body utilities
@@ -15,8 +17,8 @@ if __name__ == '__main__':
                               DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
 
     # adjust points on links
-    l0_p0 = PointHomogeneous([1, 0, 0, 0])
-    l0_p1 = PointHomogeneous([1, -0.16666667, 0, 0])
+    l0_p1 = PointHomogeneous([1, 0, 0, 0])
+    l0_p0 = PointHomogeneous([1, -0.16666667, 0, 0])
     l1_p0 = PointHomogeneous([1, 0, 0, 0.2])
     l1_p1 = PointHomogeneous([1, -0.5, 0, 0.2])
     l2_p0 = PointHomogeneous([1, -0.5, 0, 0.1])
@@ -24,16 +26,17 @@ if __name__ == '__main__':
     l3_p0 = PointHomogeneous([1, -0.66666667, 0, -0.1])
     l3_p1 = PointHomogeneous([1, -0.16666667, 0, -0.1])
 
-    f0.set_joint_connection_points([l0_p0, l1_p0, l1_p1, l2_p0])
-    f1.set_joint_connection_points([l0_p1, l3_p1, l3_p0, l2_p1])
+    f0.set_joint_connection_points([l0_p1, l1_p0, l1_p1, l2_p0])
+    f1.set_joint_connection_points([l0_p0, l3_p1, l3_p0, l2_p1])
 
     # create mechanism object, place tool frame in the middle of the last link
     m = RationalMechanism([f0, f1], tool='mid_of_last_link')
+    m = bennett_ark24()
 
-    # p = Plotter(interactive=True, steps=200, arrows_length=0.08)
-    # p.plot(m, show_tool=True)
-    # p.plot(DualQuaternion())
-    # p.show()
+    p = Plotter(interactive=True, steps=200, arrows_length=0.08)
+    p.plot(m, show_tool=True)
+    p.plot(DualQuaternion())
+    p.show()
 
     ###################################################################################
     ############################# Exudyn part #########################################
@@ -49,15 +52,9 @@ if __name__ == '__main__':
     # physical parameters
     g = [0, -1, -9.81]  # gravity + disturbance
 
-    L = [0.16666667, 0.5, 0.194365066, 0.5]
-    w = 0.06  # width
-
-    bodyDim = [[L[1], w, w], [L[2], w, w], [L[3], w, w]]  # body dimensions
-
-    pMid0 = np.array([-0.25, 0, 0.2])  # center of mass, body0  #TODO global frame
-    pMid1 = np.array([-0.58333333, 0, 0.05])  # center of mass, body1
-    pMid2 = np.array([-0.41666667, 0, -0.1])  # center of mass, body2
-    ref_positions = [pMid0, pMid1, pMid2]
+    links_pts, links_lengths, body_dim, links_masses_pts, joint_axes, rel_links_pts = ExudynAnalysis().get_exudyn_params(m)
+    L = links_lengths
+    w = 0.06  # width of link
 
     # ground body
     # graphics data for checkerboard background (not required):
@@ -66,66 +63,63 @@ if __name__ == '__main__':
     #oGround = mbs.CreateGround(graphicsDataList=[gGround0])  # TODO not working
     oGround = mbs.AddObject(ObjectGround(visualization=VObjectGround(graphicsData=[gGround0])))
 
-    inertias = [InertiaCuboid(density=5000, sideLengths=bodyDim[0]),
-                InertiaCuboid(density=5000, sideLengths=bodyDim[1]),
-                InertiaCuboid(density=5000, sideLengths=bodyDim[2])]
+    inertias = [InertiaCuboid(density=5000, sideLengths=body_dim[0]),
+                InertiaCuboid(density=5000, sideLengths=body_dim[1]),
+                InertiaCuboid(density=5000, sideLengths=body_dim[2]),
+                InertiaCuboid(density=5000, sideLengths=body_dim[3])]
 
     # graphics for body # TODO local frame from center of mass?
-    graphicsBody0 = GraphicsDataRigidLink(p0=[0.5 * L[1], 0, 0], p1=[-0.5 * L[1], 0, 0],
-                                          axis0=[0, 0, 1], axis1=[0, 0, 1],
+    graphicsBody0 = GraphicsDataRigidLink(p0=rel_links_pts[1][0], p1=rel_links_pts[1][1],
+                                          axis0=joint_axes[0], axis1=joint_axes[1],
                                           radius=[0.5 * w, 0.5 * w],
                                           thickness=w, width=[1.2 * w, 1.2 * w],
                                           color=color4red)
-    graphicsBody1 = GraphicsDataRigidLink(p0=[0.08333333, 0, 0.05], p1=[-0.08333333, 0, -0.05],
-                                          axis0=[0, 0, 1], axis1=[0, 0, 1],
+    graphicsBody1 = GraphicsDataRigidLink(p0=rel_links_pts[2][0], p1=rel_links_pts[2][1],
+                                          axis0=joint_axes[1], axis1=joint_axes[2],
                                           radius=[0.5 * w, 0.5 * w],
                                           thickness=w, width=[1.2 * w, 1.2 * w],
                                           color=color4green)
-    graphicsBody2 = GraphicsDataRigidLink(p0=[-0.5 * L[3], 0, 0], p1=[0.5 * L[3], 0, 0],
-                                          axis0=[0, 0, 1], axis1=[0, 0, 1],
+    graphicsBody2 = GraphicsDataRigidLink(p0=rel_links_pts[3][0], p1=rel_links_pts[3][1],
+                                          axis0=joint_axes[2], axis1=joint_axes[3],
                                           radius=[0.5 * w, 0.5 * w],
                                           thickness=w, width=[1.2 * w, 1.2 * w],
                                           color=color4steelblue)
 
-    b0 = mbs.CreateRigidBody(inertia=inertias[0],
-                             referencePosition=ref_positions[0],
-                             initialVelocity=[0, 0, 0],
-                             initialAngularVelocity=[0, 0, 0],
+    b1 = mbs.CreateRigidBody(inertia=inertias[1],
+                             referencePosition=links_masses_pts[1],
                              gravity=g,
                              graphicsDataList=[graphicsBody0])
 
-    b1 = mbs.CreateRigidBody(inertia=inertias[1],
-                             referencePosition=ref_positions[1],
-                             initialVelocity=[0, 0, 0],
-                             initialAngularVelocity=[0, 0, 0],
+    b2 = mbs.CreateRigidBody(inertia=inertias[2],
+                             referencePosition=links_masses_pts[2],
                              gravity=g,
                              graphicsDataList=[graphicsBody1])
 
-    b2 = mbs.CreateRigidBody(inertia=inertias[2],
-                             referencePosition=ref_positions[2],
-                             initialVelocity=[0, 0, 0],
-                             initialAngularVelocity=[0, 0, 0],
+    b3 = mbs.CreateRigidBody(inertia=inertias[3],
+                             referencePosition=links_masses_pts[3],
                              gravity=g,
                              graphicsDataList=[graphicsBody2])
 
-    mbs.CreateRevoluteJoint(bodyNumbers=[oGround, b0],
-                            position=[0, 0, 0],
-                            axis=[0, 0, 1],  # rotation along global z-axis
-                            useGlobalFrame=True, axisRadius=0.02, axisLength=0.14)
-
-    mbs.CreateRevoluteJoint(bodyNumbers=[b0, b1],
-                            position=[-0.5, 0, 0.2],
-                            axis=[0, 0, 1],  # rotation along global z-axis
+    mbs.CreateRevoluteJoint(bodyNumbers=[oGround, b1],
+                            position=links_pts[0][1],
+                            axis=joint_axes[0],  # rotation along global z-axis
                             useGlobalFrame=True, axisRadius=0.02, axisLength=0.14)
 
     mbs.CreateRevoluteJoint(bodyNumbers=[b1, b2],
-                            position=[-0.66666667, 0, 0],
-                            axis=[0, 0, 1],  # rotation along global z-axis
+                            position=links_pts[1][1],
+                            axis=joint_axes[1],  # rotation along global z-axis
                             useGlobalFrame=True, axisRadius=0.02, axisLength=0.14)
 
-    mbs.CreateRevoluteJoint(bodyNumbers=[b2, oGround],
-                            position=[-0.16666667, 0, -0.1],
-                            axis=[0, 0, 1],  # rotation along global z-axis
+    mbs.CreateRevoluteJoint(bodyNumbers=[b2, b3],
+                            position=links_pts[2][1],
+                            axis=joint_axes[2],  # rotation along global z-axis
+                            #axis=[0, 0, 1],
+                            useGlobalFrame=True, axisRadius=0.02, axisLength=0.14)
+
+    mbs.CreateRevoluteJoint(bodyNumbers=[b3, oGround],
+                            position=links_pts[3][1],
+                            axis=joint_axes[3],  # rotation along global z-axis
+                            #axis=[0, 0, 1],
                             useGlobalFrame=True, axisRadius=0.02, axisLength=0.14)
 
     mbs.Assemble()
