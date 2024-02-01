@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     # create mechanism object, place tool frame in the middle of the last link
     m = RationalMechanism([f0, f1], tool='mid_of_last_link')
-    m = bennett_ark24()
+    #m = bennett_ark24()
 
     p = Plotter(interactive=True, steps=200, arrows_length=0.08)
     p.plot(m, show_tool=True)
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # graphics data for checkerboard background (not required):
     gGround0 = GraphicsDataCheckerBoard(point=[-0.4, 0, -0.4], normal=[0, 0, 1], size=1)
     # add ground object and background graphics; visualization is optional
-    #oGround = mbs.CreateGround(graphicsDataList=[gGround0])  # TODO not working
+    #oGround = mbs.CreateGround(graphicsDataList=[gGround0])
     oGround = mbs.AddObject(ObjectGround(visualization=VObjectGround(graphicsData=[gGround0])))
 
     inertias = [InertiaCuboid(density=5000, sideLengths=body_dim[0]),
