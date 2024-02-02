@@ -191,7 +191,6 @@ class DualQuaternion:
         Assembly of DualQuaternion from Sympy's rational numbers
 
         :param Union[list, np.ndarray] study_parameters: list of 8 numbers
-        :param bool is_rotation: True if the Dual Quaternion represents a rotation,
 
         :return: DualQuaternion with rational elements
         :rtype: DualQuaternion
@@ -205,6 +204,34 @@ class DualQuaternion:
                                 Rational(0), Rational(0), Rational(0), Rational(0)]
 
         return cls(rational_numbers)
+
+    @classmethod
+    def random(cls, interval: float = 1):
+        """
+        Construct a random DualQuaternion with in the interval (-interval, interval)
+
+        :param float interval: interval of random numbers
+
+        :return: DualQuaternion with random numbers
+        :rtype: DualQuaternion
+        """
+        study_parameters = np.random.uniform(-interval, interval, 8)
+        return cls(study_parameters)
+
+    @classmethod
+    def random_on_study_quadric(cls, interval: float = 1):
+        """
+        Construct a random DualQuaternion on the Study quadric
+
+        The interval (-interval, interval) is used to generate random numbers.
+
+        :param float interval: interval of random numbers
+
+        :return: DualQuaternion with random numbers lying on the Study quadric
+        :rtype: DualQuaternion
+        """
+        dq = cls.random(interval)
+        return dq.back_projection()
 
     def __repr__(self):
         """
@@ -270,14 +297,90 @@ class DualQuaternion:
         """
         Multiplication of two DualQuaternions
 
-        :param DualQuaternion other: other DualQuaternion
+        :param DualQuaternion, int, float other: other DualQuaternion
 
         :return: multiplied DualQuaternion
         :rtype: DualQuaternion
         """
-        p = self.p * other.p
-        d = (self.d * other.p) + (self.p * other.d)
-        return DualQuaternion.from_two_quaternions(p, d)
+        if isinstance(other, (int, float)):
+            return DualQuaternion(self.array() * other)
+        else:
+            p = self.p * other.p
+            d = (self.d * other.p) + (self.p * other.d)
+            return DualQuaternion.from_two_quaternions(p, d)
+
+    def __rmul__(self, other) -> "DualQuaternion":
+        """Handle when the dual quaternion is on the right side of the multiplication"""
+        return self.__mul__(other)
+
+    def __truediv__(self, other) -> "DualQuaternion":
+        """
+        Division of two DualQuaternions
+
+        :param DualQuaternion, int, float other: other DualQuaternion
+
+        :return: divided DualQuaternion
+        :rtype: DualQuaternion
+        """
+        if isinstance(other, (int, float)):
+            return DualQuaternion(self.array() / other)
+        else:
+            return self * other.inv()
+
+    def __neg__(self) -> "DualQuaternion":
+        """
+        Negation of the DualQuaternion
+
+        :return: negated DualQuaternion
+        :rtype: DualQuaternion
+        """
+        return DualQuaternion(-1 * self.array())
+
+    def real(self) -> np.ndarray:
+        """
+        Real part of the DualQuaternion, list of first and fifth element
+
+        :return: real part of the DualQuaternion
+        :rtype: np.ndarray
+        """
+        return np.array([self.array()[0], self.array()[4]])
+
+    def imag(self) -> np.ndarray:
+        """
+        Imaginary part of the DualQuaternion
+
+        List of 6 elements - ijk elements of the primal and dual part. In case of a
+        line, these might be Plucker coordinates.
+
+        :return: imaginary part of the DualQuaternion
+        :rtype: np.ndarray
+        """
+        return np.array([self.array()[1], self.array()[2], self.array()[3],
+                         self.array()[5], self.array()[6], self.array()[7]])
+
+    def back_projection(self) -> "DualQuaternion":
+        """
+        Returns the projection of dual quaternion onto Study quadric.
+
+        The back projection, or also known as fiber projection, is a method to project
+        a dual quaternion onto the Study quadric, i.e. to obtain a proper rigid body
+        displacement that it represents.
+
+        :return: DualQuaternion
+        :rtype: DualQuaternion
+        """
+        primal = self.p
+        dual = self.d
+
+        primal_2norm = 2 * primal.norm()
+        new_primal = Quaternion(np.array([primal_2norm, 0, 0, 0]))
+        new_dual = -1 * (primal * dual.conjugate() - dual * primal.conjugate())
+
+        dq = (DualQuaternion.from_two_quaternions(new_primal, new_dual)
+              * DualQuaternion.from_two_quaternions(primal, Quaternion(np.zeros(4)))
+              ) / 2
+
+        return dq
 
     def array(self) -> np.ndarray:
         """
@@ -324,6 +427,28 @@ class DualQuaternion:
             + self.p[3] * self.d[3]
         )
         return DualQuaternion(np.array([n, 0, 0, 0, eps_n, 0, 0, 0]))
+
+    def inv(self):
+        """
+        Inverse of the DualQuaternion
+
+        :return: inverse of the DualQuaternion
+        :rtype: DualQuaternion
+        """
+        p = self.p.inv()
+        d = -1 * p * self.d * p
+        return DualQuaternion.from_two_quaternions(p, d)
+
+    def is_on_study_quadric(self) -> bool:
+        """
+        Check if the DualQuaternion is on the study quadric
+
+        :return: True if the DualQuaternion is on the study quadric, False otherwise
+        :rtype: bool
+        """
+        study_condition = (self.p[0] * self.d[0] + self.p[1] * self.d[1]
+                           + self.p[2] * self.d[2] + self.p[3] * self.d[3])
+        return np.isclose(study_condition, 0)
 
     def dq2matrix(self):
         """

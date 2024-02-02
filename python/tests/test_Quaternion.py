@@ -45,12 +45,27 @@ class TestQuaternion(TestCase):
 
     def test_norm(self):
         q = Quaternion([0.5, 2, 1, 5])
-        self.assertTrue(np.allclose(q.norm(), 0.5**2 + 2**2 + 1**2 + 5**2))
+        self.assertTrue(np.allclose(q.norm(), 0.5 ** 2 + 2 ** 2 + 1 ** 2 + 5 ** 2))
 
     def test_inv(self):
         q = Quaternion([0.5, 2, 1, 5])
         expected_q_inversed = np.array([0.5, -2, -1, -5]) / (
-            0.5**2 + 2**2 + 1**2 + 5**2
+                0.5 ** 2 + 2 ** 2 + 1 ** 2 + 5 ** 2
         )
         self.assertTrue(isinstance(q.inv(), Quaternion))
         self.assertTrue(np.allclose(q.inv().array(), expected_q_inversed))
+
+    def test_length(self):
+        q = Quaternion([0.5, 2, 1, 5])
+        self.assertTrue(
+            np.allclose(q.length(), np.sqrt(0.5 ** 2 + 2 ** 2 + 1 ** 2 + 5 ** 2)))
+
+    def test__truediv__(self):
+        q1 = Quaternion([3, 2, 1, 5])
+        self.assertTrue(np.allclose((q1 / q1).array(), np.array([1, 0, 0, 0])))
+
+        self.assertTrue(np.allclose((q1 / 2).array(), np.array([1.5, 1, 0.5, 2.5])))
+
+    def test__neg__(self):
+        q = Quaternion([0.5, 2, -1, 5])
+        self.assertTrue(np.allclose((-q).array(), np.array([-0.5, -2, 1, -5])))

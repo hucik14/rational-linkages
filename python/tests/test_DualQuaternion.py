@@ -32,7 +32,7 @@ class TestDualQuaternion(unittest.TestCase):
 
         from sympy import Rational
         expected_dq = np.array([Rational(1), Rational(2), Rational(3), Rational(4),
-                                Rational(1/2), Rational(0), Rational(0), Rational(8)])
+                                Rational(1 / 2), Rational(0), Rational(0), Rational(8)])
 
         for i, val in enumerate(dq.array()):
             self.assertEqual(val, expected_dq[i])
@@ -95,6 +95,24 @@ class TestDualQuaternion(unittest.TestCase):
         dq = dq1 * dq2
         self.assertTrue(np.allclose(dq.array(), np.array([0, 0, 1, 0, 0, -1, 0, 0])))
 
+        scalar_mult = dq1 * 2
+        self.assertTrue(np.allclose(scalar_mult.array(),
+                                    np.array([0, 0, 0, 2, 0, 0, 0, 0])))
+
+        scalar_mult = - 4.5 * dq1
+        self.assertTrue(np.allclose(scalar_mult.array(),
+                                    np.array([0, 0, 0, -4.5, 0, 0, 0, 0])))
+
+    def test_is_on_study_quadric(self):
+        dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+        self.assertFalse(dq.is_on_study_quadric())
+
+        dq = DualQuaternion()
+        self.assertTrue(dq.is_on_study_quadric())
+
+        dq = DualQuaternion([1., 1., -1., 1., -1.5, 1.5, 3.5, 3.5])
+        self.assertTrue(dq.is_on_study_quadric())
+
     def test_from_two_quaternions(self):
         p = Quaternion([-1 / 4, 13 / 5, -213 / 5, -68 / 15])
         d = Quaternion([0, -52 / 3, -28 / 15, 38 / 5])
@@ -155,13 +173,16 @@ class TestDualQuaternion(unittest.TestCase):
             [
                 [1, 0, 0, 0],
                 [
-                    2360800 / 6631681, -6582559 / 6631681, -805632 / 6631681, -8184 / 6631681
+                    2360800 / 6631681, -6582559 / 6631681, -805632 / 6631681,
+                    -8184 / 6631681
                 ],
                 [
-                    -426848 / 6631681, -789312 / 6631681, 6435041 / 6631681, 1395144 / 6631681
+                    -426848 / 6631681, -789312 / 6631681, 6435041 / 6631681,
+                    1395144 / 6631681
                 ],
                 [
-                    5365104 / 6631681, -161544 / 6631681, 1385784 / 6631681, -6483263 / 6631681
+                    5365104 / 6631681, -161544 / 6631681, 1385784 / 6631681,
+                    -6483263 / 6631681
                 ],
             ]
         )
@@ -200,8 +221,8 @@ class TestDualQuaternion(unittest.TestCase):
         self.assertTrue(np.allclose(moment, expected_moment))
 
         dq = DualQuaternion([3, -2, 2, -7, 5, 4, -4, 6])
-        expected_direction = np.array([-0.26490647,  0.26490647, -0.92717265])
-        expected_moment = np.array([-0.46010071,  0.46010071, -0.55072661])
+        expected_direction = np.array([-0.26490647, 0.26490647, -0.92717265])
+        expected_moment = np.array([-0.46010071, 0.46010071, -0.55072661])
         direction, moment = dq.dq2line()
         self.assertTrue(np.allclose(direction, expected_direction))
         self.assertTrue(np.allclose(moment, expected_moment))
@@ -262,3 +283,30 @@ class TestDualQuaternion(unittest.TestCase):
         dq = DualQuaternion()
         wrongly_initiated_line = [1, 2, 3, 4, 5, 6]
         self.assertRaises(TypeError, dq.act, wrongly_initiated_line)
+
+    def test_inv(self):
+        dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+        expected_identity = dq * dq.inv()
+        self.assertTrue(np.allclose(DualQuaternion().array(),
+                                    expected_identity.array()))
+
+    def test__truediv__(self):
+        dq1 = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+        dq2 = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+        self.assertTrue(np.allclose((dq1 / dq2).array(), np.array([1, 0, 0, 0, 0, 0, 0, 0])))
+
+        self.assertTrue(np.allclose((dq1 / 2).array(), np.array([0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4])))
+
+    def test__neg__(self):
+        dq = DualQuaternion([1, 2, 3, 4, -5, 6, 7, 8])
+        self.assertTrue(np.allclose((-dq).array(), np.array([-1, -2, -3, -4, 5, -6, -7, -8])))
+
+    def test_back_projection(self):
+        dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+        dq_on_study_quadric = dq.back_projection()
+        self.assertTrue(dq_on_study_quadric.is_on_study_quadric())
+
+    def test_random_on_study_quadric(self):
+        dq = DualQuaternion.random_on_study_quadric(interval=1)
+        self.assertTrue(len(dq.array()) == 8)
+        self.assertTrue(dq.is_on_study_quadric())
