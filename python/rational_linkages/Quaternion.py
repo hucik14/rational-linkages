@@ -33,6 +33,9 @@ class Quaternion:
         else:
             self.q = np.array([1, 0, 0, 0])
 
+        self.real = self.q[0]
+        self.imag = self.q[1:]
+
     def __getitem__(self, idx):
         """
         Get an element of Quaternion
@@ -49,6 +52,7 @@ class Quaternion:
         Printing method override
 
         :return: Quaterion in readable form
+        :rtype: str
         """
         return f"{self.__class__.__qualname__}({self.q})"
 
@@ -77,32 +81,42 @@ class Quaternion:
         :param other: Quaternion
         :return: Quaternion
         """
-        q0 = (
-            self.q[0] * other.q[0]
-            - self.q[1] * other.q[1]
-            - self.q[2] * other.q[2]
-            - self.q[3] * other.q[3]
-        )
-        q1 = (
-            self.q[0] * other.q[1]
-            + self.q[1] * other.q[0]
-            + self.q[2] * other.q[3]
-            - self.q[3] * other.q[2]
-        )
-        q2 = (
-            self.q[0] * other.q[2]
-            - self.q[1] * other.q[3]
-            + self.q[2] * other.q[0]
-            + self.q[3] * other.q[1]
-        )
-        q3 = (
-            self.q[0] * other.q[3]
-            + self.q[1] * other.q[2]
-            - self.q[2] * other.q[1]
-            + self.q[3] * other.q[0]
-        )
+        if isinstance(other, (int, float)):
+            return Quaternion(self.q * other)
+        else:
+            w, x, y, z = self.q
+            ow, ox, oy, oz = other.q
+            return Quaternion(np.array([w * ow - x * ox - y * oy - z * oz,
+                                        w * ox + x * ow + y * oz - z * oy,
+                                        w * oy - x * oz + y * ow + z * ox,
+                                        w * oz + x * oy - y * ox + z * ow]))
 
-        return Quaternion(np.array([q0, q1, q2, q3]))
+    def __rmul__(self, other):
+        """Handle when the quaternion is on the right side of the multiplication"""
+        return self.__mul__(other)
+
+    def __truediv__(self, other):
+        """
+        Quaternion division
+
+        :param Quaternion, int, float other: Quaternion
+
+        :return: Quaternion
+        :rtype: Quaternion
+        """
+        if isinstance(other, (int, float)):
+            return Quaternion(self.q / other)
+        else:
+            return self * other.inv()
+
+    def __neg__(self):
+        """
+        Quaternion negation
+
+        :return: Quaternion
+        :rtype: Quaternion
+        """
+        return Quaternion(-1 * self.q)
 
     def __eq__(self, other):
         """
@@ -116,14 +130,18 @@ class Quaternion:
     def array(self):
         """
         Quaternion to numpy array
+
         :return: numpy array of quaternion 4-vector parameters
+        :rtype: np.ndarray
         """
         return np.array([self.q[0], self.q[1], self.q[2], self.q[3]])
 
     def conjugate(self):
         """
         Quaternion conjugate
+
         :return: Quaternion
+        :rtype: Quaternion
         """
         q0 = self.q[0]
         q1 = -1 * self.q[1]
@@ -134,21 +152,32 @@ class Quaternion:
 
     def norm(self):
         """
-        Quaternion norm
+        Quaternion norm, aslo called the Quadrance
+
         :return: Quaternion
+        :rtype: float
         """
         q0 = self.q[0]
         q1 = self.q[1]
         q2 = self.q[2]
         q3 = self.q[3]
 
-        _n = q0**2 + q1**2 + q2**2 + q3**2
-        return _n
+        return q0**2 + q1**2 + q2**2 + q3**2
+
+    def length(self):
+        """
+        Quaternion length
+
+        :return: Quaternion
+        :rtype: float
+        """
+        return np.sqrt(self.norm())
 
     def inv(self):
         """
         Quaternion inverse
+
         :return: Quaternion
+        :rtype: Quaternion
         """
-        _inv = self.conjugate().array() / self.norm()
-        return Quaternion(_inv)
+        return Quaternion(self.conjugate().array() / self.norm())
