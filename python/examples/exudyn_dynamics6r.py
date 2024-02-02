@@ -2,7 +2,7 @@
 from rational_linkages import (RationalMechanism, DualQuaternion, Plotter,
                                MotionFactorization, PointHomogeneous, ExudynAnalysis)
 
-from rational_linkages.models import bennett_ark24
+from rational_linkages.models import collisions_free_6r
 import exudyn as exu
 from exudyn.itemInterface import *
 from exudyn.utilities import *  # includes graphics and rigid body utilities
@@ -10,10 +10,10 @@ import numpy as np
 
 
 if __name__ == '__main__':
-    m = bennett_ark24()
+    m = collisions_free_6r()
 
     if False:
-        p = Plotter(interactive=True, steps=200, arrows_length=0.08)
+        p = Plotter(interactive=True, steps=200, arrows_length=0.2)
         p.plot(m, show_tool=True)
         p.plot(DualQuaternion())
         p.show()
@@ -48,7 +48,9 @@ if __name__ == '__main__':
     inertias = [InertiaCuboid(density=5000, sideLengths=body_dim[0]),
                 InertiaCuboid(density=5000, sideLengths=body_dim[1]),
                 InertiaCuboid(density=5000, sideLengths=body_dim[2]),
-                InertiaCuboid(density=5000, sideLengths=body_dim[3])]
+                InertiaCuboid(density=5000, sideLengths=body_dim[3]),
+                InertiaCuboid(density=5000, sideLengths=body_dim[4]),
+                InertiaCuboid(density=5000, sideLengths=body_dim[5])]
 
     # graphics for body # TODO local frame from center of mass?
     graphicsBody0 = GraphicsDataRigidLink(p0=rel_links_pts[1][0], p1=rel_links_pts[1][1],
@@ -66,6 +68,16 @@ if __name__ == '__main__':
                                           radius=[0.5 * w, 0.5 * w],
                                           thickness=w, width=[1.2 * w, 1.2 * w],
                                           color=color4steelblue)
+    graphicsBody3 = GraphicsDataRigidLink(p0=rel_links_pts[4][0], p1=rel_links_pts[4][1],
+                                            axis0=joint_axes[3], axis1=joint_axes[4],
+                                            radius=[0.5 * w, 0.5 * w],
+                                            thickness=w, width=[1.2 * w, 1.2 * w],
+                                            color=color4steelblue)
+    graphicsBody4 = GraphicsDataRigidLink(p0=rel_links_pts[5][0], p1=rel_links_pts[5][1],
+                                            axis0=joint_axes[4], axis1=joint_axes[5],
+                                            radius=[0.5 * w, 0.5 * w],
+                                            thickness=w, width=[1.2 * w, 1.2 * w],
+                                            color=color4steelblue)
 
     b1 = mbs.CreateRigidBody(inertia=inertias[1],
                              # initialAngularVelocity=[5,6,7],
@@ -83,6 +95,17 @@ if __name__ == '__main__':
                              gravity=g,
                              graphicsDataList=[graphicsBody2])
 
+    b4 = mbs.CreateRigidBody(inertia=inertias[4],
+                                referencePosition=links_masses_pts[4],
+                                gravity=g,
+                                graphicsDataList=[graphicsBody3])
+
+    b5 = mbs.CreateRigidBody(inertia=inertias[5],
+                                referencePosition=links_masses_pts[5],
+                                gravity=g,
+                                graphicsDataList=[graphicsBody4])
+
+
     mbs.CreateRevoluteJoint(bodyNumbers=[oGround, b1],
                             position=links_pts[0][1],
                             axis=joint_axes[0],  # rotation along global z-axis
@@ -99,19 +122,31 @@ if __name__ == '__main__':
                             # axis=[0, 0, 1],
                             useGlobalFrame=True, axisRadius=0.02, axisLength=0.14)
 
+    mbs.CreateRevoluteJoint(bodyNumbers=[b3, b4],
+                            position=links_pts[3][1],
+                            axis=joint_axes[3],  # rotation along global z-axis
+                            # axis=[0, 0, 1],
+                            useGlobalFrame=True, axisRadius=0.02, axisLength=0.14)
+
+    mbs.CreateRevoluteJoint(bodyNumbers=[b4, b5],
+                            position=links_pts[4][1],
+                            axis=joint_axes[4],  # rotation along global z-axis
+                            # axis=[0, 0, 1],
+                            useGlobalFrame=True, axisRadius=0.02, axisLength=0.14)
+
     if False:
-        mbs.CreateRevoluteJoint(bodyNumbers=[b3, oGround],
-                                position=links_pts[3][1],
-                                axis=joint_axes[3],  # rotation along global z-axis
+        mbs.CreateRevoluteJoint(bodyNumbers=[b5, oGround],
+                                position=links_pts[5][1],
+                                axis=joint_axes[5],  # rotation along global z-axis
                                 # axis=[0, 0, 1],
                                 useGlobalFrame=True, axisRadius=0.02, axisLength=0.14)
     else:
-        joint3Frame = ComputeOrthonormalBasis(joint_axes[3])
+        joint5Frame = ComputeOrthonormalBasis(joint_axes[5])
 
-        mbs.CreateGenericJoint(bodyNumbers=[b3, oGround],
-                               position=links_pts[3][1],
-                               rotationMatrixAxes=joint3Frame,
-                               constrainedAxes=[1, 1, 0, 0, 0, 0],
+        mbs.CreateGenericJoint(bodyNumbers=[b5, oGround],
+                               position=links_pts[5][1],
+                               rotationMatrixAxes=joint5Frame,
+                               constrainedAxes=[0, 1, 1, 1, 1, 0],
                                # axis=joint_axes[3],  # rotation along global z-axis
                                # axis=[0, 0, 1],
                                useGlobalFrame=True,

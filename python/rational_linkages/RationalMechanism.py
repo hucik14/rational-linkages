@@ -126,14 +126,15 @@ class RationalMechanism(RationalCurve):
             return tool
         elif tool == 'mid_of_last_link':
             # calculate the midpoint of the last link
-            p0 = self.factorizations[0].direct_kinematics(0.0000000000000000001, inverted_part=True)[-1]
-            p1 = self.factorizations[1].direct_kinematics(0.0000000000000000001, inverted_part=True)[-1]
+            nearly_zero = np.finfo(float).eps
+            p0 = self.factorizations[0].direct_kinematics(nearly_zero, inverted_part=True)[-1]
+            p1 = self.factorizations[1].direct_kinematics(nearly_zero, inverted_part=True)[-1]
 
             # define the x axis vector - along the last link
             vec_x = (p1 - p0) / np.linalg.norm(p1 - p0)
 
             # get some random vector from the last joint points
-            vec_y_pts = self.factorizations[0].direct_kinematics(0.0000000000000000001, inverted_part=True)[-2:]
+            vec_y_pts = self.factorizations[0].direct_kinematics(nearly_zero, inverted_part=True)[-2:]
             vec_y = vec_y_pts[1] - vec_y_pts[0]
 
             # define the z axis vector - perpendicular to the x and y vectors

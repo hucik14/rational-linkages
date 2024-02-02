@@ -52,9 +52,11 @@ class ExudynAnalysis:
         :rtype: list
         """
         # get points sequence
-        t = .0000000000000000000000001
-        points = (mechanism.factorizations[0].direct_kinematics(t, inverted_part=True)
-                  + mechanism.factorizations[1].direct_kinematics(t, inverted_part=True)[::-1])
+        nearly_zero = np.finfo(float).eps
+        points = (mechanism.factorizations[0].direct_kinematics(
+                  nearly_zero, inverted_part=True)
+                  + mechanism.factorizations[1].direct_kinematics(
+                    nearly_zero, inverted_part=True)[::-1])
 
         # rearamge points, so the base link has the first 2 points
         points = points[-1:] + points[:-1]

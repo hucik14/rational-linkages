@@ -245,7 +245,7 @@ class MotionFactorization(RationalCurve):
 
         # avoid division by zero
         if normalized_angle == 0.0:
-            normalized_angle = 0.000000000000000001
+            normalized_angle = np.finfo(float).eps
 
         sqrt_p_norm = np.sqrt(self.dq_axes[0].p.norm())
         t = sqrt_p_norm / np.tan(normalized_angle/2) + self.dq_axes[0].p[0]
@@ -268,7 +268,7 @@ class MotionFactorization(RationalCurve):
         t_param_joint0 = t_param - self.dq_axes[0].p[0]
 
         if t_param_joint0 == 0.0:
-            t_param_joint0 = 0.000000000000000001
+            t_param_joint0 = np.finfo(float).eps
 
         angle = 2 * np.arctan(np.sqrt(self.dq_axes[0].p.norm()) / t_param_joint0)
 
