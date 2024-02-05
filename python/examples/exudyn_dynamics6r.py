@@ -105,8 +105,8 @@ if __name__ == '__main__':
 
     if False:
         mbs.CreateRevoluteJoint(bodyNumbers=[bodies[-1], bodies[0]],
-                                position=links_pts[3][1],
-                                axis=joint_axes[3],
+                                position=links_pts[5][1],
+                                axis=joint_axes[5],
                                 useGlobalFrame=True, axisRadius=0.02, axisLength=0.14)
     else:
         joint5Frame = ComputeOrthonormalBasis(joint_axes[5])
