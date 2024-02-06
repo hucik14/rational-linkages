@@ -20,3 +20,17 @@ def bennett_ark24() -> RationalMechanism:
     with importlib.resources.path(resource_package, resource_path) as file_path:
         with open(file_path, 'rb') as f:
             return pickle.load(f)
+
+
+def collisions_free_6r() -> RationalMechanism:
+    """
+    Returns a RationalMechanism object of a 6R collision-free realization.
+
+    :return: RationalMechanism object for the 6R linkage.
+    :rtype: RationalMechanism
+    """
+    resource_package = "rational_linkages.data"
+    resource_path = 'collisions_free_6r.pkl'
+    with importlib.resources.path(resource_package, resource_path) as file_path:
+        with open(file_path, 'rb') as f:
+            return pickle.load(f)

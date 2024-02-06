@@ -14,8 +14,8 @@ class MotionFactorization(RationalCurve):
     Class representing Motion Factorization sequence
 
     Inherits from :class:`rational_linkages.RationalCurve` class. Given as set of polynomials in
-    dual quaternion space. You can find more information in the paper by Frischauf et
-    al. [#frischauf2022]_.
+    dual quaternion space. You can find more information in the paper by
+    :footcite:t:`Frischauf2023`.
 
     :param list[DualQuaternion] sequence_of_factored_dqs: list of DualQuaternions
         representing the revolute axes of the rational motion factorization
@@ -41,9 +41,8 @@ class MotionFactorization(RationalCurve):
             [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
 
-    .. [#frischauf2022] Frischauf, Johanna et al. (2022). A multi-Bennett 8R mechanism obtained from
-        factorization of bivariate motion polynomials. *Mechanisms and Machine Theory*.
-        DOI: 10.1016/j.mechmachtheory.2022.105143 (https://doi.org/10.1016/j.mechmachtheory.2022.105143).
+    .. footbibliography::
+
     """
 
     def __init__(self, sequence_of_factored_dqs: list[DualQuaternion]):
@@ -245,7 +244,7 @@ class MotionFactorization(RationalCurve):
 
         # avoid division by zero
         if normalized_angle == 0.0:
-            normalized_angle = 0.000000000000000001
+            normalized_angle = np.finfo(float).eps
 
         sqrt_p_norm = np.sqrt(self.dq_axes[0].p.norm())
         t = sqrt_p_norm / np.tan(normalized_angle/2) + self.dq_axes[0].p[0]
@@ -268,7 +267,7 @@ class MotionFactorization(RationalCurve):
         t_param_joint0 = t_param - self.dq_axes[0].p[0]
 
         if t_param_joint0 == 0.0:
-            t_param_joint0 = 0.000000000000000001
+            t_param_joint0 = np.finfo(float).eps
 
         angle = 2 * np.arctan(np.sqrt(self.dq_axes[0].p.norm()) / t_param_joint0)
 

@@ -1,9 +1,23 @@
 Loading a prepared model
 ========================
 
-The package can load a prepared model from its source. So far, only a Bennett mechanism
-model from `ARK paper - extended info`_ is supported. The model is loaded from a file
-with the following code:
+.. include:: ../refs-weblinks.rst
+
+The package can load a prepared model from its source. So far, a **Bennett mechanism**
+model from :ref:`ARK 2024 paper - extended information<ark2024extended>` is supported,
+and a **collision-free 6R mechanism**.
+
+.. testcode::
+
+    from rational_linkages.models import bennett_ark24, collisions_free_6r
+
+    # load the model of the Bennett's linkage
+    bennett = bennett_ark24()
+
+    # load the model of the 6R mechanism
+    r6 = collisions_free_6r()
+
+Plotting a model can be done as in the following example.
 
 .. testcode::
 
@@ -37,4 +51,3 @@ with the following code:
         # show the plot
         myplt.show()
 
-.. _ARK paper - extended info: ../tutorials/ark2024.rst

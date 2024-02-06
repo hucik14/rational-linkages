@@ -1,3 +1,5 @@
+.. _ark2024extended:
+
 ARK 2024 paper - extended information
 =====================================
 
@@ -6,14 +8,12 @@ This page contains the extended information for the paper submitted to conferenc
 3D-printed Prototypes*
 
 Please, make sure to **install** the package before running the following examples, as
-described in the `installation`_ section.
-
-.. _installation: ../general/installation.rst
+described in the :ref:`installation<installation>` section.
 
 Bennett mechanism example
 -------------------------
 
-A Bennett mechanism was synthesized by Brunnthaler et al. [#brunnthaler2005new]_.
+A Bennett mechanism was synthesized by :footcite:t:`Brunnthaler2005`.
 It performs the motion :math:`C(t)` given byt the following equation
 
 .. math::
@@ -271,8 +271,6 @@ Editing so-called Mate Connectors which determine the shape of the link-curve:
 
 **References**
 
-.. [#brunnthaler2005new] Katrin Brunnthaler, Hans-Peter Schroecker, and Manfred Husty.
-    A new method for the synthesis of bennett mechanisms. *International Workshop on
-    Computational Kinematics, 2005.*
-    (https://geometrie.uibk.ac.at/cms/datastore/husty/BennettSynthesis-CK53-final.pdf)
+.. footbibliography::
+
 

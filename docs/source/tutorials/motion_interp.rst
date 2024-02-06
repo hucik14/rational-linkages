@@ -1,9 +1,9 @@
 Motion interpolation
 ====================
 
-The package implements the method described in the paper by Hegedüs et al.
-[#hedegus2015]_ for 4 poses interpolation using cubic rational function, that yields
-6-revolute linkages, and the method by Brunnthaler et al. [#brunnthaler2005new]_ for
+The package implements the method described in the paper by :footcite:t:`Hegeds2015`
+for 4 poses interpolation using cubic rational function, that yields
+6-revolute linkages, and the method by :footcite:t:`Brunnthaler2005` for
 3 poses interpolation using quadratic rational functions, that yields 4-revolute
 linkage, i.e. the Bennett mechanism.
 
@@ -43,7 +43,7 @@ linkage, i.e. the Bennett mechanism.
         myplt.show()
 
 
-The following example applies the method by Brunnthaler et al. [#brunnthaler2005new]_.
+The following example applies the method by :footcite:t:`Brunnthaler2005`.
 It is important to note that the method is providing a rational function that consists
 of polynomials that are not monic. The implemented factorization method uses
 the produced curve but returns factors that, if multiplied, will yield a monic
@@ -75,11 +75,8 @@ easiest way is to pre-multiply the original poses with the :math:`p_2`.
             plt.plot(pose, label='p{}'.format(i+1))
         plt.show()
 
-.. [#hedegus2015] Hegedüs, G., Schicho, J., and Schröcker, H. Four-Pose Synthesis of
-    Angle-Symmetric 6R Linkages. *ASME. J. Mechanisms Robotics*. 2015.
-    https://doi.org/10.1115/1.4029186 arxiv: https://arxiv.org/abs/1309.4959
+**References**
 
-.. [#brunnthaler2005new] Katrin Brunnthaler, Hans-Peter Schroecker, and Manfred Husty.
-    A new method for the synthesis of bennett mechanisms. *International Workshop on
-    Computational Kinematics, 2005.*
-    (https://geometrie.uibk.ac.at/cms/datastore/husty/BennettSynthesis-CK53-final.pdf)
+.. footbibliography::
+
+.. include:: ../references.rst

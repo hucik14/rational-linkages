@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "1.2.dev2"
+version = "1.2.dev3"
 description = "Rational Linkages Toolbox"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -22,8 +22,8 @@ dependencies = [
     "scipy >= 1.7.0",
     "sympy >= 1.8.0",
     "matplotlib >= 3.4.0",
-    "biquaternion-py >= 1.1.0",
-    "PyQt5 >= 5.15.10"
+    "biquaternion-py >= 1.2.0",
+    "PyQt5 >= 5.15.10",
 ]
 
 [project.optional-dependencies]
@@ -31,9 +31,11 @@ doc = [
     "sphinx",
     "sphinx-rtd-theme",
     "nbsphinx",
+    "sphinxcontrib-bibtex",
     "toml",
 ]
 dev = [
+    "build",
     "coverage",
     "pytest",
     "flake8",

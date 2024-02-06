@@ -3,6 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. include:: refs-weblinks.rst
+
 Rational Linkages Toolbox Documentation
 =======================================
 .. image:: https://img.shields.io/gitlab/v/release/21918?gitlab_url=https%3A%2F%2Fgit.uibk.ac.at%2F&style=social&logo=gitlab&label=repository
@@ -33,7 +35,7 @@ SymPy libraries for computations, and Matplotlib for plotting. The toolbox is de
 at the Unit of Geometry and Surveying, University of Innsbruck, Austria.
 
 The source code is available as `Gitlab repository`_ hosted by UIBK. The *installation
-instructions* can be found in the `installation manual`_.
+instructions* can be found in the :ref:`installation manual<installation>`.
 
 .. toctree::
    :maxdepth: 2
@@ -43,9 +45,6 @@ instructions* can be found in the `installation manual`_.
    modules
    tutorials
    background-math
-
-.. _Gitlab repository: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
-.. _installation manual: general/installation.rst
 
 
 Indices and tables

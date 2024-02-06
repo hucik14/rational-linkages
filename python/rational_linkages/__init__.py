@@ -1,6 +1,7 @@
 from .DualQuaternion import DualQuaternion
 from .DualQuaternionAction import DualQuaternionAction
 from .RationalCurve import RationalCurve
+from .ExudynAnalysis import ExudynAnalysis
 from .FactorizationProvider import FactorizationProvider
 from .Linkage import Linkage, PointsConnection, LineSegment
 from .MiniBall import MiniBall

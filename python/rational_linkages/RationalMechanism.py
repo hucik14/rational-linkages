@@ -126,14 +126,15 @@ class RationalMechanism(RationalCurve):
             return tool
         elif tool == 'mid_of_last_link':
             # calculate the midpoint of the last link
-            p0 = self.factorizations[0].direct_kinematics(0.0000000000000000001, inverted_part=True)[-1]
-            p1 = self.factorizations[1].direct_kinematics(0.0000000000000000001, inverted_part=True)[-1]
+            nearly_zero = np.finfo(float).eps
+            p0 = self.factorizations[0].direct_kinematics(nearly_zero, inverted_part=True)[-1]
+            p1 = self.factorizations[1].direct_kinematics(nearly_zero, inverted_part=True)[-1]
 
             # define the x axis vector - along the last link
             vec_x = (p1 - p0) / np.linalg.norm(p1 - p0)
 
             # get some random vector from the last joint points
-            vec_y_pts = self.factorizations[0].direct_kinematics(0.0000000000000000001, inverted_part=True)[-2:]
+            vec_y_pts = self.factorizations[0].direct_kinematics(nearly_zero, inverted_part=True)[-2:]
             vec_y = vec_y_pts[1] - vec_y_pts[0]
 
             # define the z axis vector - perpendicular to the x and y vectors
@@ -227,7 +228,7 @@ class RationalMechanism(RationalCurve):
         The parameters are in the order: theta, d, a, alpha. It follows the standard
         convention. The first row is are the parameters of the base frame.
 
-        See more in the paper by Huczala et al. [#huczala2022icma]_.
+        See more in the paper by :footcite:t:`Huczala2022iccma`.
 
         :param str unit: desired unit of the angle parameters, can be 'deg' or 'rad'
         :param float scale: scale of the length parameters of the linkage
@@ -235,12 +236,8 @@ class RationalMechanism(RationalCurve):
         :return: theta, d, a, alpha array of Denavit-Hartenberg parameters
         :rtype: np.ndarray
 
-        .. [#huczala2022icma] D. Huczala, T. Kot, J. Mlotek, J. Suder and M. Pfurner,
-            "An Automated Conversion Between Selected Robot Kinematic Representations,"
-            2022 *10th International Conference on Control, Mechatronics and Automation
-            (ICCMA)*, Belval, Luxembourg, 2022, pp. 47-52,
-            DOI: 10.1109/ICCMA56665.2022.10011595
-            (https://doi.org/10.1109/ICCMA56665.2022.10011595).
+        .. footbibliography::
+
         """
         frames = self.get_frames()
 
