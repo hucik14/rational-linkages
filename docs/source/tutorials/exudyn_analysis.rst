@@ -8,7 +8,16 @@ flexible multibody dynamics simulation library by :footcite:t:`Gerstmayr2023`,
 developed at the Department of Mechatronics, University of Innsbruck, Austria.
 Source code is available at https://github.com/jgerstmayr/EXUDYN
 
-**Exudyn** is lightweight, written in C++, and provides a Python interface
+Exudyn **is NOT** listed in the *Rational Linkages* dependencies, since it does not
+support Python 3.12 yet, and it is not used in the background. To install Exudyn,
+please follow the instructions in the `Exudyn documentation`_, the usual way with
+pip is:
+
+.. code-block:: bash
+
+    pip install exudyn
+
+Exudyn is lightweight, written in C++, and provides a Python interface
 for easy usage and integration. The library supports large deformations
 and handles can handle contact and friction problems.
 It offers a variety of joints and forces for comprehensive simulation
