@@ -17,6 +17,14 @@ Dual Quaternion Action
    :undoc-members:
    :show-inheritance:
 
+Exudyn Analysis
+---------------
+
+.. automodule:: rational_linkages.ExudynAnalysis
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Factorization Provider
 ----------------------
 

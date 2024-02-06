@@ -5,7 +5,8 @@ from exudyn.utilities import *
 
 # choose 4-bar or 6-bar mechanism
 mechanism_case = '4r'
-# mechanism_case = '6r'
+mechanism_case = '6r'
+
 
 if __name__ == '__main__':
     # define initial parameters for simulation
