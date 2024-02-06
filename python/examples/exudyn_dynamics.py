@@ -1,42 +1,53 @@
-from rational_linkages import ExudynAnalysis, DualQuaternion, Plotter
-from rational_linkages.models import bennett_ark24
-
-# import numpy as np
-
-# import exudyn as exu
-# from exudyn.itemInterface import *
+from rational_linkages import ExudynAnalysis
+from rational_linkages.models import collisions_free_6r, bennett_ark24
 from exudyn.utilities import *
 
 
-if __name__ == '__main__':
-    m = bennett_ark24()
+# choose 4-bar or 6-bar mechanism
+mechanism_case = '4r'
+# mechanism_case = '6r'
 
-    if False:
-        p = Plotter(interactive=True, steps=200, arrows_length=0.08)
-        p.plot(m, show_tool=True)
-        p.plot(DualQuaternion())
-        p.show()
+if __name__ == '__main__':
+    # define initial parameters for simulation
+    match mechanism_case:
+        case '4r':
+            m = bennett_ark24()
+            number_of_links = 4
+
+            # exudyn parameters
+            w = 0.06  # width of link
+            simulation_time = 1.5
+            torque_load = [0, 0, 50]
+
+            # last joint is "generic" with these constraints
+            constrained_axes = [1, 1, 0, 0, 0, 0]
+        case '6r':
+            m = collisions_free_6r()
+            number_of_links = 6
+
+            # exudyn parameters
+            w = 0.12  # width of link
+            simulation_time = 5
+            torque_load = [3000, 0, 0]
+
+            # last joint is "generic" with these constraints
+            constrained_axes = [1, 1, 1, 0, 1, 0]
+
+    # get parameters from rational_linkages mechanism model
+    (links_pts, links_lengths, body_dim, links_masses_pts, joint_axes,
+     rel_links_pts) = ExudynAnalysis().get_exudyn_params(m)
 
     ###################################################################################
-    ############################# Exudyn part #########################################
+    # EXUDYN PART #####################################################################
 
     useGraphics = True
-
+    g = [0, 0, -9.81]  # gravity
+    colors = [color4red, color4green, color4blue, color4magenta, color4yellow]
     SC = exu.SystemContainer()
     mbs = SC.AddSystem()
 
-    # physical parameters
-    g = [0, 0, -9.81]
-    number_of_links = 4
-
-    links_pts, links_lengths, body_dim, links_masses_pts, joint_axes, rel_links_pts \
-        = ExudynAnalysis().get_exudyn_params(m)
-    w = 0.06  # width of link
-
     inertias = [InertiaCuboid(density=5000, sideLengths=body_dim[i])
                 for i in range(number_of_links)]
-
-    colors = [color4red, color4green, color4steelblue]
 
     # GRAPIHCS BODIES
     # ground link
@@ -89,25 +100,19 @@ if __name__ == '__main__':
         )
 
     # TORQUE
-    mBody = mbs.AddMarker(MarkerNodeRigid(nodeNumber=mbs.GetObject(bodies[-1])['nodeNumber']))
-    mbs.AddLoad(Torque(markerNumber=mBody, loadVector=[0, 0, 50]))
+    mBody = mbs.AddMarker(
+        MarkerNodeRigid(nodeNumber=mbs.GetObject(bodies[-1])['nodeNumber']))
+    mbs.AddLoad(Torque(markerNumber=mBody, loadVector=torque_load))
 
-    # GENERIC JOINT - last joint
-    if False:
-        mbs.CreateRevoluteJoint(bodyNumbers=[bodies[-1], bodies[0]],
-                                position=links_pts[3][1],
-                                axis=joint_axes[3],
-                                useGlobalFrame=True, axisRadius=0.02, axisLength=0.14)
-    else:
-        joint3Frame = ComputeOrthonormalBasis(joint_axes[3])
+    last_joint_frame = ComputeOrthonormalBasis(joint_axes[-1])
 
-        mbs.CreateGenericJoint(bodyNumbers=[bodies[-1], bodies[0]],
-                               position=links_pts[3][1],
-                               rotationMatrixAxes=joint3Frame,
-                               constrainedAxes=[1, 1, 0, 0, 0, 0],
-                               useGlobalFrame=True,
-                               axesRadius=0.02,
-                               axesLength=0.14)
+    mbs.CreateGenericJoint(bodyNumbers=[bodies[-1], bodies[0]],
+                           position=links_pts[-1][1],
+                           rotationMatrixAxes=last_joint_frame,
+                           constrainedAxes=constrained_axes,
+                           useGlobalFrame=True,
+                           axesRadius=0.02,
+                           axesLength=0.14)
 
     mbs.Assemble()
 
@@ -115,7 +120,7 @@ if __name__ == '__main__':
     simulationSettings = exu.SimulationSettings()
 
     simulationSettings.timeIntegration.numberOfSteps = 1000
-    simulationSettings.timeIntegration.endTime = 1.5
+    simulationSettings.timeIntegration.endTime = simulation_time
     simulationSettings.timeIntegration.verboseMode = 1
 
     simulationSettings.linearSolverSettings.ignoreSingularJacobian = True
@@ -129,17 +134,12 @@ if __name__ == '__main__':
         print('wait')
         mbs.WaitForUserToContinue()
 
-    mbs.SolveDynamic(simulationSettings,
-                     #solverType=exu.DynamicSolverType.TrapezoidalIndex2, #index 2
-                     )
-    # , showHints=True, showCausingItems=True)
+    mbs.SolveDynamic(simulationSettings)#, showHints=True, showCausingItems=True)
 
-    ## stop graphics
+    # stop graphics
     if useGraphics:
         SC.WaitForRenderEngineStopFlag()
         exu.StopRenderer()
 
     # visualize results after simulation:
     mbs.SolutionViewer()
-
-
