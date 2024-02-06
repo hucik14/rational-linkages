@@ -20,15 +20,15 @@ report any issues or suggestions. It might be necessary to adjust the simulation
 parameters from the following code to fit the specific mechanism. Additionally, please
 see the `Exudyn documentation`_ for more information on the simulation parameters.
 
-.. figure:: figures/bennett-exudyn.gif
-    :width: 600 px
-    :align: center
-    :alt: Bennett linkage simulation in Exudyn
-
 .. figure:: figures/r6-exudyn.gif
     :width: 600 px
     :align: center
     :alt: 6R linkage simulation in Exudyn
+
+.. figure:: figures/bennett-exudyn.gif
+    :width: 600 px
+    :align: center
+    :alt: Bennett linkage simulation in Exudyn
 
 The class :class:`.ExudynAnalysis` gathers the necessary geometric and kinematic
 properties of a linkage, that can be used to create a simulation model in Exudyn.
