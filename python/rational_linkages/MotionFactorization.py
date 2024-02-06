@@ -14,8 +14,8 @@ class MotionFactorization(RationalCurve):
     Class representing Motion Factorization sequence
 
     Inherits from :class:`rational_linkages.RationalCurve` class. Given as set of polynomials in
-    dual quaternion space. You can find more information in the paper by Frischauf et
-    al. [#frischauf2022]_.
+    dual quaternion space. You can find more information in the paper by
+    :footcite:t:`Frischauf2023`.
 
     :param list[DualQuaternion] sequence_of_factored_dqs: list of DualQuaternions
         representing the revolute axes of the rational motion factorization
@@ -41,9 +41,8 @@ class MotionFactorization(RationalCurve):
             [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
 
-    .. [#frischauf2022] Frischauf, Johanna et al. (2022). A multi-Bennett 8R mechanism obtained from
-        factorization of bivariate motion polynomials. *Mechanisms and Machine Theory*.
-        DOI: 10.1016/j.mechmachtheory.2022.105143 (https://doi.org/10.1016/j.mechmachtheory.2022.105143).
+    .. footbibliography::
+
     """
 
     def __init__(self, sequence_of_factored_dqs: list[DualQuaternion]):
