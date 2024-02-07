@@ -78,7 +78,7 @@ f2.set_joint_connection_points([PointHomogeneous([1, -0.68679894,  1.58103396,  
 
 if __name__ == '__main__':
     m = RationalMechanism([f1, f2])
-    p = Plotter(interactive=True, steps=500)
+    p = Plotter(interactive=True, steps=500, joint_range_lim=2)
     p.plot(m, show_tool=True)
     p.show()
     #res = m.collision_check(parallel=True)

@@ -17,8 +17,12 @@ from .TransfMatrix import TransfMatrix
 
 
 class Plotter:
-    def __init__(self, interval=(-1, 1), steps=50, interactive: bool = False,
-                 arrows_length: float = 1.0):
+    def __init__(self,
+                 interval=(-1, 1),
+                 steps=50,
+                 interactive: bool = False,
+                 arrows_length: float = 1.0,
+                 joint_range_lim: float = 1.0):
         """
         Initialize the plotter
 
@@ -26,6 +30,7 @@ class Plotter:
         :param steps: number of steps for plotting
         :param interactive: activate interactive mode
         :param arrows_length: length of quiver arrows for poses and frames
+        :param joint_range_lim: limit for joint sliders, will be +/- value
         """
         # use Qt5Agg backend for interactive plotting
         matplotlib.use("Qt5Agg")
@@ -54,6 +59,7 @@ class Plotter:
         self.t_space = np.linspace(interval[0], interval[1], steps)
         self.steps = steps
         self.interactive = interactive
+        self.j_sliders_limit = joint_range_lim
 
         # length of quiver arrows for poses and frames
         self.arrows_length = arrows_length
@@ -329,8 +335,10 @@ class Plotter:
         self.ax.plot(x, y, z, **kwargs)
 
     @_plotting_decorator
-    def _plot_interactive(self, mechanism: RationalMechanism,
-                          show_tool: bool = True, **kwargs):
+    def _plot_interactive(self,
+                          mechanism: RationalMechanism,
+                          show_tool: bool = True,
+                          **kwargs):
         """
         Plot a mechanism in interactive mode
 
@@ -359,7 +367,9 @@ class Plotter:
         # vertical sliders to control physical linkage position (connecting points)
         self.joint_sliders = []
         for i in range(mechanism.num_joints):
-            slider0, slider1 = self._init_slider(idx=i, j_sliders=self.joint_sliders)
+            slider0, slider1 = self._init_slider(idx=i,
+                                                 j_sliders=self.joint_sliders,
+                                                 slider_limit=self.j_sliders_limit)
             self.joint_sliders.append(slider0)
             self.joint_sliders.append(slider1)
 
@@ -431,12 +441,14 @@ class Plotter:
         self.move_slider.set_val(0.0)
 
     @staticmethod
-    def _init_slider(idx: int = None, j_sliders=None):
+    def _init_slider(idx: int = None, j_sliders=None, slider_limit: float = 1.0):
         """
         Initialize the slider for interactive plotting
 
         :param int idx: index of the slider, first one is added automatically as joint
-        angle slider
+            angle slider
+        :param list j_sliders: list of joint sliders
+        :param float slider_limit: limit for joint sliders, will be +/- value
 
         :return: matplotlib slider
         """
@@ -453,13 +465,12 @@ class Plotter:
 
         else:  # joint connection points sliders
             i = int(len(j_sliders) / 2)
-            j_slider_lim = 2.0
             slider0 = Slider(
                 ax=plt.axes([0.03 + i * 0.04, 0.25, 0.0225, 0.63]),
                 #label="j{}.0".format(i),
                 label="j{}".format(i),
-                valmin=-j_slider_lim,
-                valmax=j_slider_lim,
+                valmin=-slider_limit,
+                valmax=slider_limit,
                 valinit=0.0,
                 orientation="vertical",
             )
@@ -467,8 +478,8 @@ class Plotter:
                 ax=plt.axes([0.045 + i * 0.04, 0.25, 0.0225, 0.63]),
                 #label="j{}.1".format(i),
                 label="",
-                valmin=-j_slider_lim,
-                valmax=j_slider_lim,
+                valmin=-slider_limit,
+                valmax=slider_limit,
                 valinit=0.0,
                 orientation="vertical",
             )
