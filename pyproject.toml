@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "1.2.dev3"
+version = "1.2.dev4"
 description = "Rational Linkages Toolbox"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -58,19 +58,19 @@ Issues = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/issues
 [tool.black]
 line-length = 88
 target-version = ["py311"]
-exclude = "(.git|.idea|docs)/.*"
+exclude = "(.git|.idea|docs|dist|rational_linkages.egg-info)/.*"
 
 [tool.isort]
 profile = "black"
 line_length = 88
-skip = [".git", ".idea", "docs"]
-known_first_party = ["linkages"]
-force_to_top = ["linkages"]
+skip = [".git", ".idea", "docs", "dist", "rational_linkages.egg-info"]
+known_first_party = ["rational_linkages"]
+force_to_top = ["rational_linkages"]
 
 [tool.flake8]
 max-line-length = '88'
 ignore = ["E501"]
-exclude = ".git, .idea, docs"
+exclude = ".git, .idea, docs, dist, rational_linkages.egg-info"
 
 [tool.coverage.run]
 command_line = "-m pytest python/tests"
