@@ -39,7 +39,9 @@ dev = [
     "coverage",
     "pytest",
     "flake8",
+    "flake8-pyproject",
     "black",
+    "isort",
     "twine"
 ]
 
