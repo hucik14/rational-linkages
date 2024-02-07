@@ -1,18 +1,19 @@
-import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, TextBox
 from functools import wraps
 from itertools import cycle
 
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.widgets import Slider, TextBox
+
 from .DualQuaternion import DualQuaternion
+from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
 from .PointHomogeneous import PointHomogeneous
-from .MotionFactorization import MotionFactorization
+from .RationalBezier import RationalBezier
+from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
-from .RationalCurve import RationalCurve
-from .RationalBezier import RationalBezier
 
 
 class Plotter:

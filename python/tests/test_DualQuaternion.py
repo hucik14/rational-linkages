@@ -3,10 +3,12 @@ import unittest
 import numpy as np
 from biquaternion_py import BiQuaternion
 
-from rational_linkages import DualQuaternion
-from rational_linkages import Quaternion
-from rational_linkages import PointHomogeneous
-from rational_linkages import NormalizedLine
+from rational_linkages import (
+    DualQuaternion,
+    NormalizedLine,
+    PointHomogeneous,
+    Quaternion,
+)
 
 
 class TestDualQuaternion(unittest.TestCase):

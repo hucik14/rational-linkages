@@ -1,7 +1,8 @@
 from unittest import TestCase
+
 import numpy as np
 
-from rational_linkages import NormalizedLine, PointHomogeneous, DualQuaternion
+from rational_linkages import DualQuaternion, NormalizedLine, PointHomogeneous
 
 
 class TestNormalizedLine(TestCase):

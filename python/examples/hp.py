@@ -1,8 +1,14 @@
-import sympy as sy
 import biquaternion_py as bq
-from biquaternion_py import II, JJ, KK, EE
+import sympy as sy
+from biquaternion_py import EE, II, JJ, KK
 
-from rational_linkages import DualQuaternion, Plotter, RationalMechanism, MotionFactorization, TransfMatrix
+from rational_linkages import (
+    DualQuaternion,
+    MotionFactorization,
+    Plotter,
+    RationalMechanism,
+    TransfMatrix,
+)
 
 # Create a planar motion polynomial
 t = sy.symbols('t')

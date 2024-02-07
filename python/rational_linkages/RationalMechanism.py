@@ -1,14 +1,15 @@
-import numpy as np
-import sympy as sp
+import pickle
 from copy import deepcopy
 from time import time
 from typing import Union
-import pickle
 
-from .RationalCurve import RationalCurve
+import numpy as np
+import sympy as sp
+
 from .DualQuaternion import DualQuaternion
-from .NormalizedLine import NormalizedLine
 from .MotionFactorization import MotionFactorization
+from .NormalizedLine import NormalizedLine
+from .RationalCurve import RationalCurve
 from .TransfMatrix import TransfMatrix
 
 PointHomogeneous = 'PointHomogeneous'

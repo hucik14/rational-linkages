@@ -1,9 +1,8 @@
 from unittest import TestCase
+
 import numpy as np
 
-from rational_linkages import MotionFactorization
-from rational_linkages import DualQuaternion
-from rational_linkages import RationalMechanism
+from rational_linkages import DualQuaternion, MotionFactorization, RationalMechanism
 from rational_linkages.models import bennett_ark24 as bennett
 
 

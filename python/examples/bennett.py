@@ -1,10 +1,16 @@
-from rational_linkages import (NormalizedLine, FactorizationProvider, RationalMechanism,
-                               Plotter, TransfMatrix, RationalCurve, DualQuaternion,
-                               PointHomogeneous)
-from rational_linkages.models import bennett_ark24 as bennett
-
 import numpy as np
 
+from rational_linkages import (
+    DualQuaternion,
+    FactorizationProvider,
+    NormalizedLine,
+    Plotter,
+    PointHomogeneous,
+    RationalCurve,
+    RationalMechanism,
+    TransfMatrix,
+)
+from rational_linkages.models import bennett_ark24 as bennett
 
 if __name__ == '__main__':
     # coeffs = np.array([[0, 0, 0],

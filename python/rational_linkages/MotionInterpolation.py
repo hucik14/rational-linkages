@@ -1,10 +1,11 @@
-import sympy as sp
 from typing import Union
 
+import sympy as sp
+
 from .DualQuaternion import DualQuaternion
-from .TransfMatrix import TransfMatrix
 from .RationalCurve import RationalCurve
 from .RationalDualQuaternion import RationalDualQuaternion
+from .TransfMatrix import TransfMatrix
 
 
 class MotionInterpolation:

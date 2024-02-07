@@ -1,4 +1,5 @@
 from copy import deepcopy
+
 import sympy as sp
 
 from .MiniBall import MiniBall

@@ -1,12 +1,13 @@
-import numpy as np
-import sympy as sp
 from typing import Union
 
+import numpy as np
+import sympy as sp
+
 from .DualQuaternion import DualQuaternion
-from .PointHomogeneous import PointHomogeneous
-from .RationalCurve import RationalCurve
 from .Linkage import Linkage
 from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
+from .RationalCurve import RationalCurve
 
 
 class MotionFactorization(RationalCurve):

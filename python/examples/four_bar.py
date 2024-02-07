@@ -1,6 +1,10 @@
-from rational_linkages import (RationalMechanism, TransfMatrix, DualQuaternion,
-                               Plotter, MotionFactorization)
-
+from rational_linkages import (
+    DualQuaternion,
+    MotionFactorization,
+    Plotter,
+    RationalMechanism,
+    TransfMatrix,
+)
 
 if __name__ == '__main__':
     f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),

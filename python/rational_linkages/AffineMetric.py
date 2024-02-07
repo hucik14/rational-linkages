@@ -1,8 +1,8 @@
 import numpy as np
 
-from .RationalCurve import RationalCurve
-from .PointHomogeneous import PointHomogeneous
 from .DualQuaternion import DualQuaternion
+from .PointHomogeneous import PointHomogeneous
+from .RationalCurve import RationalCurve
 
 
 class AffineMetric:

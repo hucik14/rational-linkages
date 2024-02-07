@@ -1,10 +1,10 @@
 from copy import deepcopy
 from typing import Union
+
 import numpy as np
 import sympy as sp
 
 from .PointHomogeneous import PointHomogeneous
-
 
 MotionFactorization = "MotionFactorization"
 

@@ -1,10 +1,11 @@
-from rational_linkages import DualQuaternion
-from rational_linkages import TransfMatrix
-from rational_linkages import Plotter
-from rational_linkages import FactorizationProvider
-from rational_linkages import RationalMechanism
-from rational_linkages import MotionInterpolation
-
+from rational_linkages import (
+    DualQuaternion,
+    FactorizationProvider,
+    MotionInterpolation,
+    Plotter,
+    RationalMechanism,
+    TransfMatrix,
+)
 
 if __name__ == "__main__":
 

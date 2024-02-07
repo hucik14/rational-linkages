@@ -1,5 +1,5 @@
+from typing import Optional, Sequence, Union
 from warnings import warn
-from typing import Union, Optional, Sequence
 
 import numpy as np
 from sympy import Expr

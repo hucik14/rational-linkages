@@ -1,11 +1,12 @@
 import numpy as np
 
-from rational_linkages import DualQuaternion
-from rational_linkages import PointHomogeneous
-from rational_linkages import MotionFactorization
-from rational_linkages import RationalMechanism
-from rational_linkages import Plotter
-
+from rational_linkages import (
+    DualQuaternion,
+    MotionFactorization,
+    Plotter,
+    PointHomogeneous,
+    RationalMechanism,
+)
 
 # Definition of the two factorizations
 ######################################

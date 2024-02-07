@@ -1,11 +1,14 @@
 from unittest import TestCase
-import sympy as sp
-import numpy as np
 
-from rational_linkages import MotionFactorization
-from rational_linkages import DualQuaternion
-from rational_linkages import NormalizedLine
-from rational_linkages import PointHomogeneous
+import numpy as np
+import sympy as sp
+
+from rational_linkages import (
+    DualQuaternion,
+    MotionFactorization,
+    NormalizedLine,
+    PointHomogeneous,
+)
 
 
 class TestMotionFactorization(TestCase):

@@ -1,10 +1,9 @@
 from unittest import TestCase
+
 import numpy as np
 import sympy as sp
 
-from rational_linkages import PointHomogeneous
-from rational_linkages import RationalCurve
-from rational_linkages import RationalMechanism
+from rational_linkages import PointHomogeneous, RationalCurve, RationalMechanism
 
 
 class TestRationalCurve(TestCase):

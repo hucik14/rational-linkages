@@ -1,5 +1,6 @@
-from rational_linkages import RationalMechanism
 import numpy as np
+
+from .RationalMechanism import RationalMechanism
 
 
 class ExudynAnalysis:

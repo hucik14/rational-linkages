@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import sympy as sp
-from rational_linkages import RationalBezier, RationalCurve, Plotter
+
+from rational_linkages import Plotter, RationalBezier, RationalCurve
 
 t = sp.Symbol("t")
 

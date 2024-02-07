@@ -1,10 +1,14 @@
 import biquaternion_py as bq
 import sympy as sp
 
-from rational_linkages import (DualQuaternion, RationalDualQuaternion,
-                               RationalMechanism, Plotter, MotionFactorization,
-                               FactorizationProvider)
-
+from rational_linkages import (
+    DualQuaternion,
+    FactorizationProvider,
+    MotionFactorization,
+    Plotter,
+    RationalDualQuaternion,
+    RationalMechanism,
+)
 
 # Setting up the symbols
 t = sp.Symbol("t")

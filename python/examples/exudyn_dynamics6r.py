@@ -1,11 +1,12 @@
-from rational_linkages import ExudynAnalysis, DualQuaternion, Plotter
+# import exudyn as exu
+# from exudyn.itemInterface import *
+from exudyn.utilities import *
+
+from rational_linkages import DualQuaternion, ExudynAnalysis, Plotter
 from rational_linkages.models import collisions_free_6r
 
 # import numpy as np
 
-# import exudyn as exu
-# from exudyn.itemInterface import *
-from exudyn.utilities import *
 
 
 if __name__ == '__main__':

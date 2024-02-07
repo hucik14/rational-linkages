@@ -1,6 +1,7 @@
-import numpy as np
-from warnings import warn
 from typing import Union
+from warnings import warn
+
+import numpy as np
 
 
 class TransfMatrix:

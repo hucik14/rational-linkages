@@ -1,10 +1,15 @@
-from rational_linkages import (RationalMechanism, DualQuaternion, Plotter,
-                               MotionFactorization, PointHomogeneous)
 import exudyn as exu
+import numpy as np
 from exudyn.itemInterface import *
 from exudyn.utilities import *  # includes graphics and rigid body utilities
-import numpy as np
 
+from rational_linkages import (
+    DualQuaternion,
+    MotionFactorization,
+    Plotter,
+    PointHomogeneous,
+    RationalMechanism,
+)
 
 if __name__ == '__main__':
     # define mechanism factorizations (branches) and its axes

@@ -1,4 +1,10 @@
-from rational_linkages import Plotter, DualQuaternion, PointHomogeneous, NormalizedLine, TransfMatrix
+from rational_linkages import (
+    DualQuaternion,
+    NormalizedLine,
+    Plotter,
+    PointHomogeneous,
+    TransfMatrix,
+)
 from rational_linkages.models import bennett_ark24
 
 if __name__ == '__main__':

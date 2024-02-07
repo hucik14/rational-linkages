@@ -1,13 +1,13 @@
+from typing import Union
+from warnings import warn
+
 import biquaternion_py as bq
 import numpy as np
 import sympy as sp
 
-from typing import Union
-from warnings import warn
-
-from .RationalCurve import RationalCurve
-from .MotionFactorization import MotionFactorization
 from .DualQuaternion import DualQuaternion
+from .MotionFactorization import MotionFactorization
+from .RationalCurve import RationalCurve
 
 
 class FactorizationProvider:

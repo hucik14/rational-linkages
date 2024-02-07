@@ -1,9 +1,11 @@
-from rational_linkages import DualQuaternion
-from rational_linkages import PointHomogeneous
-from rational_linkages import MotionFactorization
-from rational_linkages import RationalMechanism, TransfMatrix
-from rational_linkages import Plotter
-
+from rational_linkages import (
+    DualQuaternion,
+    MotionFactorization,
+    Plotter,
+    PointHomogeneous,
+    RationalMechanism,
+    TransfMatrix,
+)
 
 # Daniel's testing code, for examples see 'examples' folder or read
 # the documentation/docstrings of classes

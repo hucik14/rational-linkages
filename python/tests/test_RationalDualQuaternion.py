@@ -5,6 +5,7 @@ import sympy as sp
 
 from rational_linkages import RationalDualQuaternion
 
+
 class Test(TestCase):
     def test_rational_dual_quaternion(self):
         rational_numbers = [sp.Rational(-1 / 4), sp.Rational(13 / 5),

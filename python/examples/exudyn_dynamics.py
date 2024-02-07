@@ -1,7 +1,7 @@
-from rational_linkages import ExudynAnalysis
-from rational_linkages.models import collisions_free_6r, bennett_ark24
 from exudyn.utilities import *
 
+from rational_linkages import ExudynAnalysis
+from rational_linkages.models import bennett_ark24, collisions_free_6r
 
 # choose 4-bar or 6-bar mechanism
 mechanism_case = '4r'

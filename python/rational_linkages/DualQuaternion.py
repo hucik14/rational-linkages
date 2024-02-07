@@ -1,6 +1,8 @@
 from typing import Optional, Sequence, Union
-from sympy import Expr
+
 import numpy as np
+from sympy import Expr
+
 from .Quaternion import Quaternion
 
 # Forward declarations for class names

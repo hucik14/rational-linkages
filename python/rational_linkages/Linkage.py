@@ -4,12 +4,13 @@ Classes in the Module:
     - PointsConnection: Operates the connection points for a given joint.
     - LineSegment: Represents the physical realization of a linkage.
 """
-import numpy as np
 from typing import Union
 
+import numpy as np
+
 from .DualQuaternion import DualQuaternion
-from .PointHomogeneous import PointHomogeneous
 from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
 
 
 class Linkage:
