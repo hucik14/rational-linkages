@@ -5,6 +5,10 @@ import numpy as np
 class ExudynAnalysis:
     """
     Class for dynamics analysis using Exudyn package.
+
+    The Exudyn packages is not listed in this project's requirements, please install
+    it manually. More information can be found in :ref:`documentation <exudyn_info>`
+    or the Exudyn homepage: https://github.com/jgerstmayr/EXUDYN
     """
     def __init__(self, gravity: np.ndarray = np.array([0, 0, -9.81])):
         """
@@ -14,11 +18,24 @@ class ExudynAnalysis:
         """
         self.gravity = gravity
 
-    def get_exudyn_params(self, mechanism: RationalMechanism):
+    def get_exudyn_params(self, mechanism: RationalMechanism) -> tuple:
         """
         Get parameters for Exudyn simulation.
 
-        This method is used to get parameters for Exudyn -
+        This method is used to get parameters for Exudyn - a multibody dynamics
+        simulation package. The parameters are used to create a multibody system
+        and simulate the mechanism's dynamics.
+
+        The parameters are: links_pts (positions of links connection points),
+        links_lengths, body_dim (dimensions of rigid bodies), links_masses_pts
+        (positions of links' center of gravity), joint_axes (joints unit axes),
+        relative_links_pts (links connection points relative to its center of gravity).
+
+        :param RationalMechanism mechanism: RationalMechanism object
+
+        :return: links_pts, links_lengths, body_dim, links_masses_pts, joint_axes,
+            relative_links_pts
+        :rtype: tuple
         """
         # get positions of links connection points
         links_pts = self._links_points(mechanism)

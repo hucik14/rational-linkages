@@ -3,7 +3,8 @@ Dual Quaternions Algebra
 
 Dual quaternions are a mathematical tool used to represent rigid transformations in 3D
 space, or more concretely, the special Euclidean space SE(3). They are an extension of
-quaternions, which are used to represent rotations.
+quaternions, which are used to represent rotations. For more mathematical details, see
+books by :footcite:t:`Bottema1979`, or :footcite:t:`Selig2005`,
 
 Dual quaternions are composed of two quaternions, one representing the rotation and
 the other representing the translation. It is an 8-dimensional vector space over the
@@ -152,4 +153,7 @@ Text
 
 Planes NOT SUPPORTED by the package yet.
 
+**References:**
+
+.. footbibliography::
 

@@ -1,3 +1,5 @@
+.. _exudyn_info:
+
 Dynamics Simulations - Exudyn Integration
 =========================================
 
@@ -24,7 +26,7 @@ It offers a variety of joints and forces for comprehensive simulation
 capabilities. Its flexibility makes it suitable for a broad spectrum
 of dynamic simulations.
 
-**This tool is a work-in-progress and probably won't work for all linkages.** Please,
+**This interface to Exudyn is a work-in-progress and probably won't work for all linkages.** Please,
 report any issues or suggestions. It might be necessary to adjust the simulation
 parameters from the following code to fit the specific mechanism. Additionally, please
 see the `Exudyn documentation`_ for more information on the simulation parameters.
