@@ -19,7 +19,8 @@ class ExudynAnalysis:
         """
         self.gravity = gravity
 
-    def get_exudyn_params(self, mechanism: RationalMechanism) -> tuple:
+    def get_exudyn_params(self, mechanism: RationalMechanism,
+                          link_radius: float = 0.1) -> tuple:
         """
         Get parameters for Exudyn simulation.
 
@@ -33,6 +34,7 @@ class ExudynAnalysis:
         relative_links_pts (links connection points relative to its center of gravity).
 
         :param RationalMechanism mechanism: RationalMechanism object
+        :param float link_radius: width of links
 
         :return: links_pts, links_lengths, body_dim, links_masses_pts, joint_axes,
             relative_links_pts
@@ -51,7 +53,7 @@ class ExudynAnalysis:
         links_masses_pts = self._links_center_of_gravity(links_pts)
 
         # body dimensions
-        body_dim = [[l, 0.06, 0.06] for l in links_lengths]  # TODO width
+        body_dim = [[length, link_radius, link_radius] for length in links_lengths]
 
         # relative link points
         relative_links_pts = self._relative_links_points(links_pts, links_masses_pts)

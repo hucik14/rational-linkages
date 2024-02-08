@@ -76,16 +76,16 @@ Use the following code to create an Exudyn model from a linkage:
                 number_of_links = 6
 
                 # exudyn parameters
-                w = 0.12  # width of link
+                w = 0.1  # width of link
                 simulation_time = 5
-                torque_load = [3000, 0, 0]
+                torque_load = [6000, 0, 0]
 
                 # last joint is "generic" with these constraints
                 constrained_axes = [1, 1, 1, 0, 1, 0]
 
         # get parameters from rational_linkages mechanism model
         (links_pts, links_lengths, body_dim, links_masses_pts, joint_axes,
-         rel_links_pts) = ExudynAnalysis().get_exudyn_params(m)
+         rel_links_pts) = ExudynAnalysis().get_exudyn_params(m, link_radius=w)
 
         ###################################################################################
         # EXUDYN PART #####################################################################
