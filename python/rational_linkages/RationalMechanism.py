@@ -564,14 +564,13 @@ class RationalMechanism(RationalCurve):
         solutions = deepcopy(sol_real)
 
         for sol in sol_real_inversed:
-            if not np.isclose(sol, 0):
-                sol = 1 / sol
-                solutions = np.append(solutions, sol)
+            if np.isclose(sol, 0):
+                # eps is very small number (avoid division by zero)
+                sol = 1 / np.finfo(float).eps
             else:
-                #sol = np.inf
-                # TODO: debug this
-                sol = 10 ** 20
-                solutions = np.append(solutions, sol)
+                sol = 1 / sol
+
+            solutions = np.append(solutions, sol)
 
         intersection_points = self.get_intersection_points(l0, l1, solutions)
 

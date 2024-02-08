@@ -89,6 +89,31 @@ The interactive plotter can be used to animate the mechanism using the slider wi
 bellow the plot. The sliders on the left side of the plot can be used to change the
 design parameters of the mechanism.
 
+Scaling of plotted objects
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sometimes, the mechanism is too large or too small to be plotted along with its
+tool frame, or the range sliders that control physical realization have very high/low
+limits. In such cases, it is possible to use key word arguments ``arrows_length`` and
+``joint_range_lim`` when initializing the plotter using :class:`.Plotter` class.
+
+The ``joint_range_lim`` specifies the limits of the range sliders, and the ``arrows_length``
+to adjust the size of the length of the frames/poses that are plotted.
+
+.. testcode::
+
+    # Interactive plotting with a loaded mechanism model, adjusted scaling
+
+    from rational_linkages import Plotter
+    from rational_linkages.models import bennett_ark24 as bennett
+
+
+    m = bennett()
+
+    plt = Plotter(interactive=True, arrows_length=0.05, joint_range_lim=0.5)
+    plt.plot(m, show_tool=True)
+    plt.show()
+
 
 Optional tool frames
 ^^^^^^^^^^^^^^^^^^^^

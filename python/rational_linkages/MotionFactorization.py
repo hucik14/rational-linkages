@@ -369,5 +369,10 @@ class MotionFactorization(RationalCurve):
         """
         point0 = self.linkage[-1].points[1]
         point1 = other_factorization_point
+
+        if np.allclose(point0.normalized_in_3d(), point1.normalized_in_3d()):
+            # if the points are the same, add a minimal offset
+            point1 = point0 + PointHomogeneous([0, 0, 0, 0.0001])
+
         link = NormalizedLine.from_two_points(point0, point1)
         return link, point0, point1

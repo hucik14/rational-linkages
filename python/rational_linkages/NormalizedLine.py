@@ -103,7 +103,7 @@ class NormalizedLine:
             if round(np.linalg.norm(direction), 6) == 1.0:
                 self.direction = direction
                 self.moment = moment
-            elif round(np.linalg.norm(direction), 6) > 0.0:
+            elif np.abs(np.linalg.norm(direction)) > 1e-10:
                 self.direction = direction / np.linalg.norm(direction)
                 self.moment = moment / np.linalg.norm(direction)
             else:
@@ -140,6 +140,9 @@ class NormalizedLine:
         else:
             pt0 = np.asarray(pt0)
             pt1 = np.asarray(pt1)
+
+        if np.allclose(pt0, pt1):
+            raise ValueError("Points are the same!")
 
         direction = np.asarray(pt1 - pt0)
         moment = np.cross(-1 * direction, np.asarray(pt0))
@@ -368,7 +371,8 @@ class NormalizedLine:
 
         t = Symbol("t")
 
-        line = [Expr(self.screw[i]).subs(t, t_param) for i in range(len(self.screw))]
+        line = [Expr(self.screw[i]).subs(t, t_param)
+                for i in range(len(self.screw))]
         line = [line[j].args[0] for j in range(len(line))]
         return NormalizedLine(np.asarray(line, dtype="float64"))
 
