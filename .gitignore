@@ -3,6 +3,10 @@ python/.idea/
 python/conda-env/
 .idea/
 
+# user - figures for testing
+/python/tests/baseline_images/plot_line-failed-diff.png
+/test_plot_line.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
