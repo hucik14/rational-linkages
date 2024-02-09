@@ -22,7 +22,7 @@ dependencies = [
     "scipy >= 1.10.0",
     "sympy >= 1.10.0",
     "matplotlib >= 3.7.0",
-    "PyQt5 >= 5.15.4",
+    "PyQt5 >= 5.15.10",
     "biquaternion-py >= 1.2.0",
 ]
 
