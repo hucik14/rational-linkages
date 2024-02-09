@@ -63,7 +63,7 @@ class TestPlotter(unittest.TestCase):
         self.plotter.plot(line)
         self.plotter.fig.savefig('test_plot_line.png')
         self.assertTrue(compare_images('test_plot_line.png',
-                                       'python/tests/baseline_images/plot_line.png',
+                                       'python/tests_plotting/baseline_images/plot_line.png',
                                        0.1))
 
 
