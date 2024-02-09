@@ -66,36 +66,8 @@ transformation. They are a 3-space on the quadric that fulfills the equation:
 .. math::
     p_0^2 + p_1^2 + p_2^2 + p_3^2 = 0
 
-
-
-Points on Study's quadric
-
-
-Rational Curves and Motions
----------------------------
-
-A single point :math:`\mathbf{p}` on the Study quadric describes a discrete
-transformation. A curve :math:`C(t)` on the Study quadric describes a 1-parametric
-rigid body motion in SE(3). If all point trajectories are rational curves, :math:`C(t)`
-is called a rational motion. It is given by a polynomial :math:`C(t)` with dual quaternion
-coefficients.
-
-Correspondence between Dual Quaternions and Transformation Matrices
--------------------------------------------------------------------
-
-Text
-
-Points
-------
-
-Text
-
-
-Lines
------
-
-Text
-
+They form a 3-dimensional space of non-rigid transformations, called the exepctional
+generator.
 
 Dual Quaternion Norms and Conjugation
 -------------------------------------
@@ -126,9 +98,134 @@ DQ Epsilon Conjugate
 
 Text
 
+Correspondence between Dual Quaternions and Transformation Matrices
+-------------------------------------------------------------------
+
+A dual quaternion :math:`\mathbf{p} = (p_0, p_1, p_2, p_3, p_4, p_5, p_6, p_7)` can be
+mapped to a transformation matrix :math:`\mathbf{T}` in SE(3) by the following equation.
+The map is done by :meth:`.DualQuaternion.dq2matrix()` and
+:meth:`.TransfMatrix.matrix2dq()` methods. The class :class:`.TransfMatrix` uses the
+**european** convention for the transformation matrix, i.e., it has the form:
+
+.. math::
+    \mathbf{T} = \begin{bmatrix} 1 & 0 \\ \mathbf{t} & \mathbf{R} \end{bmatrix}
+
+where :math:`\mathbf{R}` is a 3x3 rotation matrix, and :math:`\mathbf{t}` is a 3x1
+translation vector. This is in contrast to the **american** convention, much more common
+in engineering:
+
+.. math::
+    \mathbf{T} = \begin{bmatrix} \mathbf{R} & \mathbf{t} \\ 0 & 1 \end{bmatrix}
+
+The rotation matrix :math:`\mathbf{R}` consists of three orthogonal unit vectors,
+called normal, orthogonal, and approach vectors, i.e.:
+
+.. math::
+    \mathbf{R} = \begin{bmatrix} \mathbf{n} & \mathbf{o} & \mathbf{a} \end{bmatrix}
+
+Often, it is convenient to use create a transformation matrix from Tait-Bryan angles,
+also known as roll-pitch-yaw angles. The method :meth:`.TransfMatrix.from_rpy_xyz()`
+serves for this purpose. Conversion to dual quaternion is then straightforward,
+as seen in the following example:
+
+.. testcode::
+
+    # Create a transformation matrix from Tait-Bryan angles and translation vector,
+    # and convert it to dual quaternion
+
+    from rational_linkages import TransfMatrix, DualQuaternion
+    from math import pi
+
+    # Identity/origin
+    T0 = TransfMatrix()
+
+    # Create a transformation matrix from Tait-Bryan angles and translation vector
+    T1 = TransfMatrix.from_rpy_xyz([pi/2, 0, 0], [1, 2, 3])
+
+    # Create a transformation matrix from Tait-Bryan angles and translation vector,
+    # use degrees instead of radians
+    T2 = TransfMatrix.from_rpy_xyz([0, -90, 0], [4, 5, 6], units='deg')
+
+    # Convert the transformation matrices to dual quaternions
+    T_list = [T0, T1, T2]
+
+    for T in T_list:
+        p = DualQuaternion(T.matrix2dq())
+        print("--------------------")
+        print("Transformation matrix:")
+        print(T)
+        print("Corresponding dual quaternion:")
+        print(p)
+        print("--------------------")
+
+    # Create TransfMatrix from DualQuaternion
+    p = DualQuaternion(T2.matrix2dq())
+    T = TransfMatrix(p.dq2matrix())
+    print(T)
+
+The output of the example is:
+
+.. testoutput::
+
+    --------------------
+    Transformation matrix:
+    [[1., 0., 0., 0.],
+     [0., 1., 0., 0.],
+     [0., 0., 1., 0.],
+     [0., 0., 0., 1.]]
+    Corresponding dual quaternion:
+    [1., 0., 0., 0., 0., 0., 0., 0.]
+    --------------------
+    --------------------
+    Transformation matrix:
+    [[ 1.,  0.,  0.,  0.],
+     [ 1.,  1.,  0.,  0.],
+     [ 2.,  0.,  0., -1.],
+     [ 3.,  0.,  1.,  0.]]
+    Corresponding dual quaternion:
+    [ 1. ,  1. ,  0. ,  0. ,  0.5, -0.5, -2.5, -0.5]
+    --------------------
+    --------------------
+    Transformation matrix:
+    [[ 1.,  0.,  0.,  0.],
+     [ 4.,  0.,  0., -1.],
+     [ 5.,  0.,  1.,  0.],
+     [ 6.,  1.,  0.,  0.]]
+    Corresponding dual quaternion:
+    [ 1. ,  0. , -1. ,  0. , -2.5, -5. , -2.5, -1. ]
+    --------------------
+    [[ 1.,  0.,  0.,  0.],
+     [ 4.,  0., -0., -1.],
+     [ 5.,  0.,  1., -0.],
+     [ 6.,  1.,  0.,  0.]]
+
+
+Rational Curves and Motions
+===========================
+
+A single point :math:`\mathbf{p}` on the Study quadric describes a discrete
+transformation. A curve :math:`C(t)` on the Study quadric describes a 1-parametric
+rigid body motion in SE(3). If all point trajectories are rational curves, :math:`C(t)`
+is called a rational motion. It is given by a polynomial :math:`C(t)` with dual quaternion
+coefficients.
+
+
+
+Points
+======
+
+
+
+Lines
+=====
+
+Text
+
+
+
 
 Dual Quaternion Actions
------------------------
+=======================
 
 Text
 
@@ -152,6 +249,11 @@ Text
 
 
 Planes NOT SUPPORTED by the package yet.
+
+
+
+
+
 
 **References:**
 
