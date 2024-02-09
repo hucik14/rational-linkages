@@ -55,7 +55,11 @@ class Quaternion:
         :return: Quaterion in readable form
         :rtype: str
         """
-        return f"{self.__class__.__qualname__}({self.q})"
+        q = np.array2string(self.array(),
+                            precision=10,
+                            suppress_small=True,
+                            separator=', ')
+        return f"{self.__class__.__qualname__}({q})"
 
     def __add__(self, other):
         """

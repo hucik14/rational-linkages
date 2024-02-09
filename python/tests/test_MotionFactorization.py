@@ -30,8 +30,7 @@ class TestMotionFactorization(TestCase):
             ]
         )
 
-        self.assertEqual(repr(f1), "MotionFactorization([[t 0 0 -1] + eps[0 0 0 0], "
-                                   "[t 0 0 -2] + eps[0 0 1 0]])")
+        self.assertEqual(repr(f1), "MotionFactorization([[t, 0, 0, -1, 0, 0, 0, 0], [t, 0, 0, -2, 0, 0, 1, 0]])")
 
     def test_get_polynomials_from_factorization(self):
         f1 = [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),

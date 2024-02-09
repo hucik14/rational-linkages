@@ -242,7 +242,11 @@ class DualQuaternion:
         :return: DualQuaterion in readable form
         :rtype: str
         """
-        return f"{self.p.array()} + eps{self.d.array()}"
+        dq = np.array2string(self.array(),
+                             precision=10,
+                             suppress_small=True,
+                             separator=', ')
+        return f"{dq}"
 
     def __getitem__(self, idx) -> np.ndarray:
         """

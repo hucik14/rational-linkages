@@ -125,7 +125,7 @@ class TestNormalizedLine(TestCase):
 
     def test_repr(self):
         line = NormalizedLine()
-        self.assertEqual(line.__repr__(), "NormalizedLine([0 0 1 0 0 0])")
+        self.assertEqual(line.__repr__(), "[0, 0, 1, 0, 0, 0]")
 
     def test_line2dq_array(self):
         direction = [0, 0, 1]

@@ -58,7 +58,7 @@ class TestPointHomogeneous(TestCase):
     def test_repr(self):
         obj = PointHomogeneous(np.array([1, 2, 3, 4]))
 
-        self.assertEqual(obj.__repr__(), "[1. 2. 3. 4.]")
+        self.assertEqual(obj.__repr__(), "[1., 2., 3., 4.]")
 
     def test_add(self):
         obj1 = PointHomogeneous(np.array([1, -2, 3, 4]))

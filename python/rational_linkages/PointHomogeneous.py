@@ -122,7 +122,11 @@ class PointHomogeneous:
         Print point
         :return:
         """
-        return f"{self.coordinates}"
+        p = np.array2string(self.array(),
+                            precision=10,
+                            suppress_small=True,
+                            separator=', ')
+        return f"{p}"
 
     def __add__(self, other):
         """

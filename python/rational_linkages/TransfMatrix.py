@@ -57,7 +57,10 @@ class TransfMatrix:
         return m
 
     def __repr__(self):
-        return f"{self.matrix}"
+        return np.array2string(self.matrix,
+                               precision=10,
+                               suppress_small=True,
+                               separator=', ')
 
     @classmethod
     def from_rpy(cls, rpy: list[float], units: str = 'rad') -> np.array:

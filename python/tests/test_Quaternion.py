@@ -19,7 +19,7 @@ class TestQuaternion(TestCase):
 
     def test_repr(self):
         q = Quaternion([0.5, 2, 1, 5])
-        self.assertEqual(repr(q), "Quaternion([0.5 2.  1.  5. ])")
+        self.assertEqual(repr(q), "Quaternion([0.5, 2. , 1. , 5. ])")
 
     def test_add(self):
         q1 = Quaternion([0.5, 2, 1, 5])

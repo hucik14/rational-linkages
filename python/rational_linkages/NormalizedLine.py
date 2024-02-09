@@ -114,7 +114,11 @@ class NormalizedLine:
         self.screw = np.concatenate((self.direction, self.moment))
 
     def __repr__(self):
-        return f"NormalizedLine({self.screw})"
+        line = np.array2string(self.screw,
+                               precision=10,
+                               suppress_small=True,
+                               separator=", ")
+        return f"{line}"
 
     @classmethod
     def from_two_points(cls,
