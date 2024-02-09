@@ -3,8 +3,6 @@ from itertools import cycle
 
 import numpy as np
 import matplotlib
-# use Qt5Agg backend for interactive plotting
-matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, TextBox
 
@@ -34,6 +32,9 @@ class Plotter:
         :param arrows_length: length of quiver arrows for poses and frames
         :param joint_range_lim: limit for joint sliders, will be +/- value
         """
+        # use Qt5Agg backend for interactive plotting
+        matplotlib.use("Qt5Agg")
+
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(projection="3d")
 
