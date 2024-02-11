@@ -66,37 +66,55 @@ transformation. They are a 3-space on the quadric that fulfills the equation:
 .. math::
     p_0^2 + p_1^2 + p_2^2 + p_3^2 = 0
 
-They form a 3-dimensional space of non-rigid transformations, called the exepctional
+They form a 3-dimensional space of non-rigid transformations, called the exceptional
 generator.
 
-Dual Quaternion Norms and Conjugation
--------------------------------------
+Dual Quaternion Norms, Conjugation, and Inversion
+-------------------------------------------------
 
-Text
-
-
-DQ Norm
-^^^^^^^
-
-Text
-
-
-DQ Epsilon Norm
-^^^^^^^^^^^^^^^
-
-Text
-
+Except basic arithmetic operations like addition, scalar multiplication,
+and multiplication of two dual quaternions, there are several other operations that
+can be performed with dual quaternions.
 
 DQ Conjugate
 ^^^^^^^^^^^^
 
-Text
+Method :meth:`.DualQuaternion.conjugate()` returns the conjugate of a dual quaternion
+:math:`\mathbf{p}`. It is defined as conjugation of both
+quaternions :math:`\mathbf{q}_p` and :math:`\mathbf{q}_d`:
 
+.. math::
+    \mathbf{p^*} = \mathbf{q^*}_p + \epsilon \mathbf{q^*}_d =
+    (p_0, -p_1, -p_2, -p_3, p_4, -p_5, -p_6, -p_7)
 
 DQ Epsilon Conjugate
 ^^^^^^^^^^^^^^^^^^^^
 
-Text
+Method :meth:`.DualQuaternion.eps_conjugate()` returns the epsilon conjugate of a
+dual quaternion :math:`\mathbf{p}`. It is defined as the negation of the dual part:
+
+.. math::
+    \mathbf{p^*}_\epsilon = (p_0, p_1, p_2, p_3, -p_4, -p_5, -p_6, -p_7)
+
+DQ Norm
+^^^^^^^
+
+Method :meth:`.DualQuaternion.norm()` returns 8-tuple with the norm of a dual
+quaternion :math:`\mathbf{p}`. The norm is sometimes called the **quadrance**, and
+is defined as:
+
+.. math::
+    \mathbf{pp^*} = \mathbf{p^*p} =  \mathbf{q}_p\mathbf{q^*}_p
+    + \epsilon (\mathbf{q}_p\mathbf{q^*}_d + \mathbf{q}_d\mathbf{q^*}_p) = \\
+    = (p_0^2 + p_1^2 + p_2^2 + p_3^2) + 2\epsilon (p_0p_4 + p_1p_5 + p_2p_6 + p_3p_7)
+
+From the equation can be seen that the norm has primal and dual part. Therefore, the
+method mentioned above has the following shape:
+
+.. math::
+    \mathbf{pp^*} = \begin{bmatrix} p_0^2 + p_1^2 + p_2^2 + p_3^2 \\ 0 \\ 0 \\ 0 \\
+    2\epsilon (p_0p_4 + p_1p_5 + p_2p_6 + p_3p_7) \\ 0 \\ 0 \\ 0 \end{bmatrix}
+
 
 Correspondence between Dual Quaternions and Transformation Matrices
 -------------------------------------------------------------------
