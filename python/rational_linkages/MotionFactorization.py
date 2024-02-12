@@ -294,7 +294,8 @@ class MotionFactorization(RationalCurve):
         """
         Get points of the linkage of the MotionFactorization
 
-        :return: list of points of the linkage
+        :return: list of points of the linkage, the points are the nearest to origin,
+            i.e. the foot point of a line (axis)
         :rtype: list[Linkage]
         """
         return [Linkage(axis, [PointHomogeneous.from_3d_point(axis.dq2point_via_line())])

@@ -664,4 +664,34 @@ class RationalMechanism(RationalCurve):
         """
         return self.curve()
 
+    def smallest_polyline_points(self):
+        """
+        Get points on mechanism axes that form the smallest polyline.
+        """
+        from scipy.optimize import minimize
+
+        # get the axes represented as normalized lines
+        dq_lines = self.factorizations[0].dq_axes + self.factorizations[1].dq_axes[::-1]
+        lines = [NormalizedLine.from_dual_quaternion(dq_line) for dq_line in dq_lines]
+
+        def objective_function(x):
+            p = [line.point_on_line(x[i]) for i, line in enumerate(lines)]
+
+            total_distance = sum(
+                np.linalg.norm(p[i] - p[i + 1]) for i in range(self.num_joints - 1))
+            # Add distance between last and first point
+            total_distance += np.linalg.norm(p[-1] - p[0])
+            return total_distance
+
+        x_init = np.zeros(self.num_joints)
+        result = minimize(objective_function, x_init)
+
+        points_params = result.x
+        points = [line.point_on_line(points_params[i]) for i, line in enumerate(lines)]
+
+        return points, points_params, result
+
+
+
+
 
