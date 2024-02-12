@@ -419,7 +419,10 @@ class RationalMechanism(RationalCurve):
         for ii in range(len(self.segments)):
             for jj in range(ii + 2, len(self.segments)):
                 if only_links:
-                    if self.segments[ii].type == 'j' or self.segments[jj].type == 'j':
+                    if (self.segments[ii].type == 'j'
+                            or self.segments[jj].type == 'j'
+                            or jj - ii == 2
+                            or (jj == 10 and ii == 0)):
                         pass
                     else:
                         iters.append((ii, jj))

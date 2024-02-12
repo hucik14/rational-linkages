@@ -221,13 +221,7 @@ class LineSegment:
         d1 = np.linalg.norm(p1.normalized_in_3d() - point.normalized_in_3d())
 
         if np.allclose(l, d0 + d1):
-            # TODO if checked only for links, it can happen that the joint segment
-            # is small but in the opposite direction than needed and then these
-            # two neighboring links cross very close to joint
-            if l - d0 < 0.001 or l - d1 < 0.001:
-                return False
-            else:
-                return True
+            return True
         else:
             return False
 
