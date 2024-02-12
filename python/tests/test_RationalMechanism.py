@@ -62,7 +62,7 @@ class TestRationalMechanism(TestCase):
         f = [MotionFactorization([dq[0], dq[1]]),
              MotionFactorization([dq[3], dq[2]])]
 
-        points, params, optim_res = RationalMechanism(f).smallest_polyline_points()
+        points, params, optim_res = RationalMechanism(f).smallest_polyline()
 
         self.assertEqual(optim_res.fun, 4.0)
         self.assertTrue(np.allclose(optim_res.x, np.zeros(4)))
@@ -80,7 +80,7 @@ class TestRationalMechanism(TestCase):
         f = [MotionFactorization([dq[0], dq[1]]),
              MotionFactorization([dq[3], dq[2]])]
 
-        points, params, optim_res = RationalMechanism(f).smallest_polyline_points()
+        points, params, optim_res = RationalMechanism(f).smallest_polyline()
 
         self.assertTrue(np.allclose(optim_res.fun, 6.0))
 

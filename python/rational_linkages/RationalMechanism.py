@@ -388,7 +388,10 @@ class RationalMechanism(RationalCurve):
 
         return new_params
     
-    def collision_check(self, parallel: bool = False, pretty_print: bool = True):
+    def collision_check(self,
+                        parallel: bool = False,
+                        pretty_print: bool = True,
+                        only_links: bool = False):
         """
         Perform full-cycle collision check on the line-model linkage.
 
@@ -399,6 +402,8 @@ class RationalMechanism(RationalCurve):
         :param bool parallel: if True, perform collision check in parallel using
             multiprocessing
         :param bool pretty_print: if True, print the results in a readable form
+        :param bool only_links: if True, only link-link collisions are checked,
+            expecting that distances between joint connection points are minimal
 
         :return: list of collision check colliding parameter values
         :rtype: list[float]
@@ -413,7 +418,13 @@ class RationalMechanism(RationalCurve):
         iters = []
         for ii in range(len(self.segments)):
             for jj in range(ii + 2, len(self.segments)):
-                iters.append((ii, jj))
+                if only_links:
+                    if self.segments[ii].type == 'j' or self.segments[jj].type == 'j':
+                        pass
+                    else:
+                        iters.append((ii, jj))
+                else:
+                    iters.append((ii, jj))
 
         print(f"--- number of tasks to solve: {len(iters)} ---")
 
@@ -664,7 +675,7 @@ class RationalMechanism(RationalCurve):
         """
         return self.curve()
 
-    def smallest_polyline_points(self):
+    def smallest_polyline(self):
         """
         Get points on mechanism axes that form the smallest polyline.
         """
