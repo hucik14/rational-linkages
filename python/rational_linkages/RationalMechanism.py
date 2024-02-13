@@ -391,7 +391,8 @@ class RationalMechanism(RationalCurve):
     def collision_check(self,
                         parallel: bool = False,
                         pretty_print: bool = True,
-                        only_links: bool = False):
+                        only_links: bool = False,
+                        terminate_on_first: bool = False):
         """
         Perform full-cycle collision check on the line-model linkage.
 
@@ -404,6 +405,8 @@ class RationalMechanism(RationalCurve):
         :param bool pretty_print: if True, print the results in a readable form
         :param bool only_links: if True, only link-link collisions are checked,
             expecting that distances between joint connection points are minimal
+        :param bool terminate_on_first: if True, terminate the collision check when
+            the first collision is found
 
         :return: list of collision check colliding parameter values
         :rtype: list[float]
@@ -444,7 +447,8 @@ class RationalMechanism(RationalCurve):
         if parallel:
             collision_results = self._collision_check_parallel(iters)
         else:
-            collision_results = self._collision_check_nonparallel(iters)
+            collision_results = self._collision_check_nonparallel(iters,
+                                                                  terminate_on_first)
 
         results = [r for r in collision_results if r is not None]
         flattened_results = [item for sublist in results for item in sublist]
@@ -485,7 +489,8 @@ class RationalMechanism(RationalCurve):
 
         return list(results)
 
-    def _collision_check_nonparallel(self, iters: list[tuple[int, int]]):
+    def _collision_check_nonparallel(self, iters: list[tuple[int, int]],
+                                     terminate_on_first: bool = False):
         """
         Perform collision check in non-parallel mode.
 
@@ -493,6 +498,8 @@ class RationalMechanism(RationalCurve):
         motion curve, slower for 6-bar linkages with "complex" motions.
 
         :param list iters: list of tuples of indices of the line segments to be checked
+        :param bool terminate_on_first: if True, terminate the collision check when
+            the first collision is found
 
         :return: list of collision check results
         :rtype: list[str]
@@ -502,7 +509,10 @@ class RationalMechanism(RationalCurve):
 
         results = []
         for val in iters:
-            results.append(self._check_given_pair(val))
+            collsion = self._check_given_pair(val)
+            results.append(collsion)
+            if terminate_on_first and collsion is not None:
+                break
         return results
 
     def _check_given_pair(self, iters: tuple[int, int]):
@@ -723,7 +733,49 @@ class RationalMechanism(RationalCurve):
 
         return points, points_params, result
 
+    def collision_free_optimization(self, method: str = None, max_iter: int = 5):
+        """
+        Perform collision-free optimization of the mechanism.
 
+        :param str method: method of optimization, can be 'combinatorial_search' by
+            :footcite:t:`Li2020`
+        :param int max_iter: maximum number of iterations
+        """
 
+        if method is None:
+            method = 'combinatorial_search'
 
+        match method:
+            case 'combinatorial_search':
+                results = self._combinatorial_search(max_itererations=max_iter)
+            case _:
+                raise ValueError("Invalid method.")
 
+        return results
+
+    def _combinatorial_search(self, max_itererations: int = 10):
+        """
+        Perform collision-free combinatorial search method by :footcite:t:`Li2020`.
+        """
+        from .CollisionsFreeOptimization import CombinatorialSearch
+
+        points, points_params, result = self.smallest_polyline()
+
+        # update the design of the mechanism - set initial design
+        self.factorizations[0].set_joint_connection_points_by_parameters(
+            points_params[:len(self.factorizations[0].dq_axes)])
+        self.factorizations[1].set_joint_connection_points_by_parameters(
+            points_params[len(self.factorizations[1].dq_axes):][::-1])
+
+        # check design for collisions
+        #res = self.collision_check(only_links=True, terminate_on_first=True)
+        res = 'test'
+
+        if res is not None:
+            # TODO step length estimation
+            cs = CombinatorialSearch(self, linkage_lenght=result.fun, step_length=10)
+
+            for i in range(1, max_itererations):
+                coll_free_points_params = cs.search(i)
+
+        return coll_free_points_params

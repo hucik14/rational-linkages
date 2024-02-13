@@ -336,7 +336,14 @@ class MotionFactorization(RationalCurve):
         """
         point0 = self.linkage[idx].points[0]
         point1 = self.linkage[idx].points[1]
-        joint = NormalizedLine.from_two_points(point0, point1)
+
+        if np.allclose(point0.normalized_in_3d(), point1.normalized_in_3d()):
+            # if the points are the same, add a minimal offset
+            min_point = PointHomogeneous(point0.array() + np.array([0, 0, 0, 0.0001]))
+            joint = NormalizedLine.from_two_points(point0, min_point)
+        else:
+            joint = NormalizedLine.from_two_points(point0, point1)
+
         return joint, point0, point1
 
     def link(self, idx: int) -> tuple:

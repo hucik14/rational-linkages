@@ -15,3 +15,4 @@ from .RationalCurve import RationalCurve
 from .RationalDualQuaternion import RationalDualQuaternion
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
+from .CollisionsFreeOptimization import CombinatorialSearch

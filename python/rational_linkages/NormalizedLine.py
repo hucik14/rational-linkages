@@ -145,7 +145,7 @@ class NormalizedLine:
             pt0 = np.asarray(pt0)
             pt1 = np.asarray(pt1)
 
-        if np.allclose(pt0, pt1):
+        if np.allclose(pt0, pt1, rtol=1e-7):
             raise ValueError("Points are the same!")
 
         direction = np.asarray(pt1 - pt0)
