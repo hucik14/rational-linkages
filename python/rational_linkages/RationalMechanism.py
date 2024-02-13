@@ -416,18 +416,28 @@ class RationalMechanism(RationalCurve):
         self.segments = self._get_line_segments_of_linkage()
 
         iters = []
+        # iterate over all line segments
         for ii in range(len(self.segments)):
+            # for each line segment, iterate over all other line segments that are not
+            # its immediate neighbors
             for jj in range(ii + 2, len(self.segments)):
+                # in only links should be checked (joint segments have minimal length)
                 if only_links:
                     if (self.segments[ii].type == 'j'
                             or self.segments[jj].type == 'j'
-                            or jj - ii == 2
-                            or (jj == 10 and ii == 0)):
+                            or jj - ii == 2):  # skip neighbouring links
                         pass
                     else:
                         iters.append((ii, jj))
                 else:
                     iters.append((ii, jj))
+
+        # remove the last neighbouring pair of links
+        if only_links:
+            # find the pair with the highest difference
+            max_pair = max(iters, key=lambda x: x[1] - x[0])
+            # remove the pair from the list
+            iters.remove(max_pair)
 
         print(f"--- number of tasks to solve: {len(iters)} ---")
 
@@ -678,9 +688,17 @@ class RationalMechanism(RationalCurve):
         """
         return self.curve()
 
-    def smallest_polyline(self):
+    def smallest_polyline(self) -> tuple:
         """
         Get points on mechanism axes that form the smallest polyline.
+
+        This method calculates the smallest polyline that can be formed by points on
+        the mechanism axes. It uses scipy's minimize function to find the points on
+        the axes that minimize the total distance of the polyline.
+
+        :return: points on the mechanism axes that form the smallest polyline,
+            parameters of the points, result of the optimization
+        :rtype: tuple
         """
         from scipy.optimize import minimize
 
