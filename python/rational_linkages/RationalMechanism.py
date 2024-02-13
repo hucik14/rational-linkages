@@ -773,9 +773,9 @@ class RationalMechanism(RationalCurve):
 
         if res is not None:
             # TODO step length estimation
-            cs = CombinatorialSearch(self, linkage_lenght=result.fun, step_length=10)
+            cs = CombinatorialSearch(self, linkage_lenght=result.fun, step_length=25)
 
-            for i in range(1, max_itererations):
+            for i in range(1, max_itererations + 1):
                 coll_free_points_params = cs.search(i)
 
         return coll_free_points_params

@@ -63,6 +63,9 @@ class CombinatorialSearch:
         #combs.remove((0,)*self.mechanism.num_joints)
 
         shuffle(combs)
+        #combs = [(1, 1, 0, 0, -1, -1),
+        #         (1, 0, 1, 0, -1, 0),
+        #         (1, 0, -1, 1, -1, 0)]
         return combs
 
 
