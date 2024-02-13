@@ -1,7 +1,9 @@
 import numpy as np
 
 from .RationalMechanism import RationalMechanism
-from itertools import product
+from .MotionFactorization import MotionFactorization
+
+from itertools import product, combinations
 from random import shuffle
 
 
@@ -63,5 +65,48 @@ class CombinatorialSearch:
         shuffle(combs)
         return combs
 
+
+class SingularityAnalysis:
+    """
+    Singularity analysis algorithm of collision-free linkages by :footcite:t:`Li2020`.
+    """
+    def __init__(self):
+        pass
+
+    def check_singluarity(self, factorizations: list[MotionFactorization]):
+        """
+        Check for singularity in the mechanism.
+
+        :param list factorizations: list of two factorizations
+        """
+        if len(factorizations) != 2:
+            raise ValueError("Singularity analysis requires two factorizations")
+
+        # check for singularity
+        jacobian = self._jacobian(factorizations)
+
+        def get_submatrices(matrix):
+            indices = list(range(matrix.shape[0]))
+            for subset in combinations(indices, matrix.shape[0]-1):
+                yield matrix[np.ix_(subset, subset)]
+
+        def sum_of_squared_determinants(matrix):
+            submatrices = get_submatrices(matrix)
+            return sum(np.linalg.det(submatrix) ** 2 for submatrix in submatrices)
+
+        sum_det = sum_of_squared_determinants(jacobian)
+
+    def _jacobian(self, factorizations: list[MotionFactorization]):
+        """
+        Calculate the Jacobian matrix of the mechanism.
+
+        :param list factorizations: list of two factorizations
+        """
+        lines = factorizations[0].dq_axes + factorizations[1].dq_axes[::-1]
+        jacobian = np.zeros((6, len(lines)))
+        for i, line in enumerate(lines):
+            jacobian[:, i] = line.dq2screw()
+
+        return jacobian
 
 
