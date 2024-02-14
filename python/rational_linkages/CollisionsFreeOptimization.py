@@ -1,7 +1,8 @@
 import numpy as np
+import sympy as sp
 
 from .RationalMechanism import RationalMechanism
-from .MotionFactorization import MotionFactorization
+from .Linkage import LineSegment
 
 from itertools import product, combinations
 from random import shuffle
@@ -90,39 +91,48 @@ class SingularityAnalysis:
     def __init__(self):
         pass
 
-    def check_singluarity(self, factorizations: list[MotionFactorization]):
+    def check_singluarity(self, mechanism: RationalMechanism):
         """
         Check for singularity in the mechanism.
 
-        :param list factorizations: list of two factorizations
+        :param RationalMechanism mechanism: The mechanism to check for singularity
         """
-        if len(factorizations) != 2:
-            raise ValueError("Singularity analysis requires two factorizations")
-
         # check for singularity
-        jacobian = self._jacobian(factorizations)
+        jacobian = self.get_jacobian(mechanism.segments)
 
         def get_submatrices(matrix):
-            indices = list(range(matrix.shape[0]))
-            for subset in combinations(indices, matrix.shape[0]-1):
-                yield matrix[np.ix_(subset, subset)]
+            submatrices = []
+            for row_to_remove in range(matrix.rows):
+                for col_to_remove in range(matrix.cols):
+                    # Create a submatrix by removing one row and one column
+                    submatrix = matrix.minor_submatrix(row_to_remove, col_to_remove)
+                    submatrices.append(submatrix)
+            return submatrices
 
         def sum_of_squared_determinants(matrix):
             submatrices = get_submatrices(matrix)
-            return sum(np.linalg.det(submatrix) ** 2 for submatrix in submatrices)
+            return sum(submatrix.det() ** 2 for submatrix in submatrices)
 
         sum_det = sum_of_squared_determinants(jacobian)
 
-    def _jacobian(self, factorizations: list[MotionFactorization]):
-        """
-        Calculate the Jacobian matrix of the mechanism.
+        return sum_det
 
-        :param list factorizations: list of two factorizations
+    def get_jacobian(self, segments: list[LineSegment]):
         """
-        lines = factorizations[0].dq_axes + factorizations[1].dq_axes[::-1]
-        jacobian = np.zeros((6, len(lines)))
-        for i, line in enumerate(lines):
-            jacobian[:, i] = line.dq2screw()
+        Get the algebraic Jacobian matrix of the mechanism.
+
+        :param list[LineSegment] segments: The line segments of the mechanism.
+        """
+        algebraic_plucker_coords = [joint.equation
+                                    for joint in segments if joint.type == 'j']
+
+        # normalization
+
+
+
+        jacobian = sp.Matrix.zeros(6, len(algebraic_plucker_coords))
+        for i, plucker_line in enumerate(algebraic_plucker_coords):
+            jacobian[:, i] = plucker_line.screw
 
         return jacobian
 

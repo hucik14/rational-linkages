@@ -733,6 +733,15 @@ class RationalMechanism(RationalCurve):
 
         return points, points_params, result
 
+    def singularity_check(self):
+        """
+        Perform singularity check of the mechanism.
+        """
+        from .CollisionsFreeOptimization import SingularityAnalysis
+
+        sa = SingularityAnalysis()
+        return sa.check_singluarity(self)
+
     def collision_free_optimization(self, method: str = None, max_iter: int = 5):
         """
         Perform collision-free optimization of the mechanism.
