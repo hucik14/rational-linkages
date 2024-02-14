@@ -775,7 +775,7 @@ class RationalMechanism(RationalCurve):
             # TODO step length estimation
             cs = CombinatorialSearch(self, linkage_lenght=result.fun, step_length=25)
 
-            for i in range(1, max_itererations + 1):
-                coll_free_points_params = cs.search(i)
+            for i in range(10, max_itererations + 1):
+                coll_free_points_params = cs.search_links(i)
 
         return coll_free_points_params

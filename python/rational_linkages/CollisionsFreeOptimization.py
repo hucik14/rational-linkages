@@ -21,16 +21,19 @@ class CombinatorialSearch:
         self.step_length = step_length
         self.sequences = self._get_combinations_sequences()
 
-    def search(self, iter: int):
+    def search_links(self, iteration: int):
         """
-        Search for the solution of the combinatorial search algorithm.
+        Search for the solution of the combinatorial search algorithm, links only.
 
-        :param iter: iteration index
+        Searches for the smallest polyline that is collision free (only links).
+
+        :param iteration: iteration index
         """
-        shift_val = iter * self.linkage_lenght / self.step_length
+        shift_val = iteration * self.linkage_lenght / self.step_length
 
         for i, sequence in enumerate(self.sequences):
-            print("Iteration: {}, shift_value: {}, sequence {} of {}: {}".format(iter, shift_val, i, len(self.sequences), sequence))
+            print("Iteration: {}, shift_value: {}, sequence {} of {}: {}"
+                  .format(iteration, shift_val, i, len(self.sequences), sequence))
             points_params = shift_val * np.asarray(sequence)
             # update the design of the mechanism - set initial design
             self.mechanism.factorizations[0].set_joint_connection_points_by_parameters(
@@ -46,6 +49,16 @@ class CombinatorialSearch:
 
         print("No collision-free solution found for iteration: {}".format(iter))
         return None
+
+    def search_mechnism(self, iteration: int):
+        """
+        Search for the solution of the combinatorial search algorithm, including joints.
+
+        Searches for the mechanism that is collision free (including joint segments).
+
+        :param iteration: iteration index
+        """
+        pass
 
     def _get_combinations_sequences(self):
         """
@@ -63,9 +76,10 @@ class CombinatorialSearch:
         #combs.remove((0,)*self.mechanism.num_joints)
 
         shuffle(combs)
-        #combs = [(1, 1, 0, 0, -1, -1),
-        #         (1, 0, 1, 0, -1, 0),
-        #         (1, 0, -1, 1, -1, 0)]
+        combs = [(-1, -1, 0, 0, 0, 1),
+                 (1, 1, 0, 0, -1, -1),
+                 (1, 0, 1, 0, -1, 0),
+                 (1, 0, -1, 1, -1, 0)]
         return combs
 
 
