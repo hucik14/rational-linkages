@@ -69,14 +69,13 @@ the author(s) only and do not necessarily reflect those of the European Union
 or the European Research Executive Agency (REA). Neither the European Union
 nor the granting authority can be held responsible for them.`
 
-
-
 We would like to thank our colleagues outside the Unit of Geometry and Surveying, who
 contributed to the development of the toolbox and helped with implementation of
 their algorithms and suggestions. These people are namely:
 
 - **Johannes Gerstmayr**, University of Innsbruck, Austria, for the help with creating the interface to his `Exudyn`_ :footcite:p:`Gerstmayr2023` software. More on this in section :ref:`exudyn_info`.
-- **Georg Nawratil**, Technical University of Vienna, Austria, and **Zijia Li**, Chinese Academy of Sciences, China, for their help with the implementation of the Combinatorial Search Algorithm of collision-free linkages :footcite:p:`Li2020` module. More on this in section :ref:`combinatorial_search`.
+- **Georg Nawratil**, Technical University of Vienna, Austria,
+- and **Zijia Li**, Chinese Academy of Sciences, China, for their help with the implementation of the Combinatorial Search Algorithm of collision-free linkages :footcite:p:`Li2020`. More on this in section :ref:`combinatorial_search`.
 
 **References**
 

@@ -1,6 +1,14 @@
 Rational Linkages
 =================
 
+CollisionsFreeOptimization
+--------------------------
+
+.. automodule:: rational_linkages.CollisionsFreeOptimization
+   :members: CombinatorialSearch, SingularityAnalysis
+   :undoc-members:
+   :show-inheritance:
+
 Dual Quaternion
 ---------------
 

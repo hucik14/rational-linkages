@@ -35,11 +35,30 @@ is in this way reduced to solving 9 polynomial equations.
 Combinatorial Search
 ^^^^^^^^^^^^^^^^^^^^
 
+The algorithm is implemented in the class
+:class:`.CollisionsFreeOptimization.CombinatorialSearch`.
+It is based on shifting the initial configuration points along
+the joint axes. The shift distance :math:`k` is given as
 
+.. math::
 
+    k = \tau \frac{l}{p}
 
+where :math:`\tau` is the step value (iteration index), :math:`l` is the length of the
+smallest polyline and :math:`p` is a user-defined length factor, by default set to 10.
 
+The combination for every axis constist of 3 possible shifts :math:`\{-k, 0, k\}`.
+Therefore, for example in the case of 6R, one of the possible shifts of a single search
+is :math:`\{-k, -k, 0, 0, 0, k\}`, which is one of the 3^6 possible combinations,
+i.e. 729.
 
+The large number of combinations and slow collision check using the polynomial solver
+makes the algorithm slow.
+
+**Offsetting the initial configuration**
+
+When a solution from the previous step is found, the algorithm continues in a similar
+way by adding an offset on the joint axes between link connections.
 
 **References:**
 
