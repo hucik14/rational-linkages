@@ -1,7 +1,7 @@
 from typing import Optional, Sequence, Union
 
 import numpy as np
-from sympy import Expr
+from sympy import Expr, Matrix
 
 from .Quaternion import Quaternion
 
@@ -532,7 +532,7 @@ class DualQuaternion:
         dq = self.array()
         return np.array([dq[0], dq[5], dq[6], dq[7]])
 
-    def dq2line(self) -> tuple:
+    def dq2line_vectors(self) -> tuple:
         """
         Dual Quaternion directly to line coordinates
 
@@ -562,8 +562,13 @@ class DualQuaternion:
 
         # if the DQ is a sympy Expression, do not convert to float and do not normalize
         if any(isinstance(x, Expr) for x in dir) or any(isinstance(x, Expr) for x in mom):
-            moment = -1 * mom
-            direction = -1 * dir
+            # TODO check
+            # norm_dir = Matrix(dir).norm()
+            # norm_dir = 1
+            # moment = -1 * mom / norm_dir
+            # direction = -1 * dir / norm_dir
+            direction = dq[1:4]
+            moment = -1 * dq[5:8]
         else:
             moment = -1 * mom / np.linalg.norm(dir)
             direction = -1 * dir / np.linalg.norm(dir)
@@ -577,7 +582,7 @@ class DualQuaternion:
         :return: array of 6-coordinates of screw
         :rtype: np.ndarray
         """
-        direction, moment = self.dq2line()
+        direction, moment = self.dq2line_vectors()
         return np.concatenate((direction, moment))
 
     def dq2point_via_line(self) -> np.ndarray:
@@ -587,7 +592,7 @@ class DualQuaternion:
         :return: array of 3-coordinates of point
         :rtype: np.ndarray
         """
-        direction, moment = self.dq2line()
+        direction, moment = self.dq2line_vectors()
         return np.cross(direction, moment)
 
     def act(
