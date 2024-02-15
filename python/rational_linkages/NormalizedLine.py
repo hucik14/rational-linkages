@@ -128,9 +128,9 @@ class NormalizedLine:
         """
         Construct NormalizedLine from two points
 
-        :param np.ndarry, list[float] pt0: PointHomogeneous or list or np.array of
+        :param np.ndarray, list[float] pt0: PointHomogeneous or list or np.array of
             shape (3,)
-        :param np.ndarry, list[float] pt1: PointHomogeneous or list or np.array of
+        :param np.ndarray, list[float] pt1: PointHomogeneous or list or np.array of
             shape (3,)
 
         :return: NormalizedLine
@@ -159,8 +159,8 @@ class NormalizedLine:
         """
         Construct NormalizedLine from direction and point
 
-        :param np.ndarry, list[float] direction: list or np.array of shape (3,)
-        :param np.ndarry, list[float] point: list or np.array of shape (3,)
+        :param np.ndarray, list[float] direction: list or np.array of shape (3,)
+        :param np.ndarray, list[float] point: list or np.array of shape (3,)
 
         :return: NormalizedLine
         :rtype: NormalizedLine
@@ -177,8 +177,8 @@ class NormalizedLine:
         """
         Construct NormalizedLine from direction and moment
 
-        :param np.ndarry, list[float] direction: list or np.array of shape (3,)
-        :param np.ndarry, list[float] moment: list or np.array of shape (3,)
+        :param np.ndarray, list[float] direction: list or np.array of shape (3,)
+        :param np.ndarray, list[float] moment: list or np.array of shape (3,)
 
         :return: NormalizedLine
         :rtype: NormalizedLine

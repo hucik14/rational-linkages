@@ -57,11 +57,28 @@ release = get_version()
 # ones.
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.napoleon',
+              'sphinx.ext.intersphinx',
               'nbsphinx',
               'sphinx.ext.doctest',
               'sphinxcontrib.bibtex']
 
 bibtex_bibfiles = ['refs.bib']
+
+nitpicky = True
+nitpick_ignore = [
+    ('py:class', 'np.ndarray'),
+    ('py:class', 'numpy.ndarray'),
+    ('py:class', 'numpy.array'),
+    ('py:class', 'np.array'),
+]
+
+intersphinx_mapping = {'python': ('http://docs.python.org/3', None),
+                       'numpy': ('http://docs.scipy.org/doc/numpy', None),
+                       'scipy': ('http://docs.scipy.org/doc/scipy/reference', None),
+                       'matplotlib': ('http://matplotlib.org/stable', None),
+                       'sympy': ('https://docs.sympy.org/latest/', None),
+                       'biquaternion_py': ('https://biquaternion-py.readthedocs.io/en/latest/', None),
+                       }
 
 
 # Add any paths that contain templates here, relative to this directory.

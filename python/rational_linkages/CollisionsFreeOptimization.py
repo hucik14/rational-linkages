@@ -4,7 +4,7 @@ import sympy as sp
 from .RationalMechanism import RationalMechanism
 from .Linkage import LineSegment
 
-from itertools import product, combinations
+from itertools import product
 from random import shuffle
 
 

@@ -73,6 +73,14 @@ Normalized Line
    :undoc-members:
    :show-inheritance:
 
+Plotter
+-------
+
+.. automodule:: rational_linkages.Plotter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Point Homogeneous
 -----------------
 
