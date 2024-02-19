@@ -749,6 +749,9 @@ class RationalMechanism(RationalCurve):
         :param str method: method of optimization, can be 'combinatorial_search' by
             :footcite:t:`Li2020`
         :param int max_iter: maximum number of iterations
+
+        :return: list of collision-free points parameters
+        :rtype: list
         """
 
         if method is None:
@@ -762,9 +765,18 @@ class RationalMechanism(RationalCurve):
 
         return results
 
-    def _combinatorial_search(self, max_itererations: int = 10):
+    def _combinatorial_search(self,
+                              max_itererations: int = 10,
+                              step_length: float = 10):
         """
         Perform collision-free combinatorial search method by :footcite:t:`Li2020`.
+
+        :param int max_itererations: maximum number of iterations
+        :param int step_length: length of the step, i.e. the shift distance value, see
+            :ref:`combinatorial_search` for more detail
+
+        :return: list of collision-free points parameters
+        :rtype: list
         """
         from .CollisionsFreeOptimization import CombinatorialSearch
 
@@ -779,10 +791,13 @@ class RationalMechanism(RationalCurve):
         # check design for collisions
         #res = self.collision_check(only_links=True, terminate_on_first=True)
         res = 'test'
+        step_length = 25
 
         if res is not None:
             # TODO step length estimation
-            cs = CombinatorialSearch(self, linkage_lenght=result.fun, step_length=25)
+            cs = CombinatorialSearch(self,
+                                     linkage_lenght=result.fun,
+                                     step_length=step_length)
 
             for i in range(10, max_itererations + 1):
                 coll_free_points_params = cs.search_links(i)

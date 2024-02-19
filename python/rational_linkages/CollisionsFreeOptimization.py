@@ -14,11 +14,11 @@ class CombinatorialSearch:
     """
     def __init__(self,
                  mechanism: RationalMechanism,
-                 linkage_lenght: float,
+                 linkage_length: float,
                  step_length: float,
                  ):
         self.mechanism = mechanism
-        self.linkage_lenght = linkage_lenght
+        self.linkage_length = linkage_length
         self.step_length = step_length
         self.sequences = self._get_combinations_sequences()
 
@@ -30,7 +30,7 @@ class CombinatorialSearch:
 
         :param iteration: iteration index
         """
-        shift_val = iteration * self.linkage_lenght / self.step_length
+        shift_val = iteration * self.linkage_length / self.step_length
 
         for i, sequence in enumerate(self.sequences):
             print("Iteration: {}, shift_value: {}, sequence {} of {}: {}"
@@ -68,13 +68,11 @@ class CombinatorialSearch:
         :return: list of all combinations of joint angles
         :rtype: list
         """
-        # TODO reduced by avoiding 0
         elements = [0, 1, -1]
-        #elements = [1, -1]
         combs = list(product(elements, repeat=self.mechanism.num_joints))
 
         # remove the combination of all zeros, which was already tested
-        #combs.remove((0,)*self.mechanism.num_joints)
+        combs.remove((0,) * self.mechanism.num_joints)
 
         shuffle(combs)
         combs = [(-1, -1, 0, 0, 0, 1),
