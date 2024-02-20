@@ -70,6 +70,9 @@ nitpick_ignore = [
     ('py:class', 'numpy.ndarray'),
     ('py:class', 'numpy.array'),
     ('py:class', 'np.array'),
+    ('py:class', 'sp.Symbol'),
+    ('py:class', 'sp.Poly'),
+    ('py:class', 'bq.Poly'),
 ]
 
 intersphinx_mapping = {'python': ('http://docs.python.org/3', None),

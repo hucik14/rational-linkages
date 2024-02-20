@@ -104,12 +104,13 @@ class DualQuaternion:
         """
         Construct DualQuaternion from a biquaternion.
 
-        :param biquaternion_py.BiQuaternion biquaternion: biquaternion
+        :param biquaternion_py.biquaternion.BiQuaternion biquaternion: biquaternion
 
         :return: DualQuaternion
         :rtype: DualQuaternion
 
-        :raises ValueError: if the input is not a biquaternion_py.BiQuaternion object
+        :raises ValueError: if the input is not a
+            biquaternion_py.biquaternion.BiQuaternion object
 
         :examples:
 
@@ -134,7 +135,8 @@ class DualQuaternion:
         from biquaternion_py import BiQuaternion
 
         if not isinstance(biquaternion, BiQuaternion):
-            raise ValueError("The input has to be a biquaternion_py.BiQuaternion object"
+            raise ValueError("The input has to be a "
+                             "biquaternion_py.biquaternion.BiQuaternion object"
                              "from biquaternion_py package.")
 
         coeffs = biquaternion.coeffs
@@ -150,13 +152,14 @@ class DualQuaternion:
         coefficients of the polynomial are negated and then assembled into a numpy
         array.
 
-        :param biquaternion_py.Poly poly: biquaternion polynomial
+        :param biquaternion_py.polynomials.Poly poly: biquaternion polynomial
         :param sp.Symbol indet: indeterminant of the polynomial
 
         :return: DualQuaternion
         :rtype: DualQuaternion
 
-        :raises ValueError: if the input is not a biquaternion_py.Poly object
+        :raises ValueError: if the input is not a biquaternion_py.polynomials.Poly
+            object
         :raises ValueError: if the polynomial is not of degree 1
 
         :examples:
@@ -179,8 +182,8 @@ class DualQuaternion:
         from biquaternion_py import Poly
 
         if not isinstance(poly, Poly):
-            raise ValueError("The input has to be a biquaternion_py.Poly object from"
-                             "biquaternion_py package.")
+            raise ValueError("The input has to be a biquaternion_py.polynomials.Poly "
+                             "object from biquaternion_py package.")
         elif poly.deg(indet) != 1:
             raise ValueError("The polynomial has to be of degree 1.")
 

@@ -79,4 +79,3 @@ easiest way is to pre-multiply the original poses with the :math:`p_2`.
 
 .. footbibliography::
 
-.. include:: ../references.rst

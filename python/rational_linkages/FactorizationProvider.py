@@ -25,23 +25,26 @@ class FactorizationProvider:
         """
         pass
 
-    def factorize_motion_curve(self, curve: Union[RationalCurve, biquaternion_py.Poly]) -> (
+    def factorize_motion_curve(self,
+                               curve: Union[RationalCurve,
+                               biquaternion_py.polynomials.Poly]) -> (
             list)[MotionFactorization]:
         """
         Factorizes the given curve into a multiple motion factorizations.
 
-        :param RationalCurve curve: The curve to factorize.
+        :param Union[RationalCurve, biquaternion_py.polynomials.Poly] curve: The curve
+            to factorize, either as a RationalCurve or as a polynomial.
 
         :return: The factorizations of the curve.
         :rtype: list[MotionFactorization]
 
-        :raises warning: If the given curve has not only rational numbers as input.
+        :warning: If the given curve has not only rational numbers as input.
         """
         t = sp.Symbol("t")
 
         if isinstance(curve, RationalCurve):
             bi_quat = biquaternion_py.BiQuaternion(curve.extract_expressions())
-            bi_poly = biquaternion_py.Poly(bi_quat, t)
+            bi_poly = biquaternion_py.polynomials.Poly(bi_quat, t)
         else:
             bi_poly = curve
 
@@ -72,7 +75,7 @@ class FactorizationProvider:
         :return: The factorizations of the motion factorization.
         :rtype: list[MotionFactorization]
 
-        :raises warning: If the given motion factorization has not only dual
+        :warning: If the given motion factorization has not only dual
             quaternions with rational numbers elements as input.
         """
         # check if the given factorization has input DualQuaternions as rational numbers
@@ -86,26 +89,28 @@ class FactorizationProvider:
         for i in range(1, factorization.number_of_factors):
             bi_poly = bi_poly * (t - biquaternion_py.BiQuaternion(factorization.dq_axes[i].array()))
 
-        bi_poly = biquaternion_py.Poly(bi_poly, t)
+        bi_poly = biquaternion_py.polynomials.Poly(bi_poly, t)
 
         return self.factorize_motion_curve(bi_poly)
 
     @staticmethod
-    def factorize_polynomial(poly: biquaternion_py.Poly) -> list[biquaternion_py.Poly]:
+    def factorize_polynomial(poly: biquaternion_py.polynomials.Poly) -> (
+            list)[biquaternion_py.polynomials.Poly]:
         """
         Factorizes the given polynomial into irreducible factors.
 
-        :param bq.Poly poly: The polynomial to factorize.
+        :param biquaternion_py.polynomials.Poly poly: The polynomial to factorize.
 
         :return: The irreducible factors of the polynomial.
-        :rtype: list[bq.Poly]
+        :rtype: list[biquaternion_py.polynomials.Poly]
 
         :raises: If the factorization failed.
         """
         # Calculate the norm polynomial. To avoid numerical problems, extract
         # the scalar part, since the norm should be purely real
         norm_poly = poly.norm()
-        norm_poly = biquaternion_py.Poly(norm_poly.poly.scal, *norm_poly.indets)
+        norm_poly = biquaternion_py.polynomials.Poly(norm_poly.poly.scal,
+                                                     *norm_poly.indets)
 
         print('Factorization is running...')
 
@@ -126,18 +131,17 @@ class FactorizationProvider:
         return [factorization1, factorization2]
 
     @staticmethod
-    def factor2rotation_axis(factor: biquaternion_py.Poly) -> DualQuaternion:
+    def factor2rotation_axis(factor: biquaternion_py.polynomials.Poly) -> (
+            DualQuaternion):
         """
         Converts the given factor to a dual quaternion representing the rotation axis
         of a linkage, excluding the parameter.
 
-        :param bq.Poly factor: The factor to convert.
+        :param biquaternion_py.polynomials.Poly factor: The factor to convert.
 
         :return: The rotation axis of the factor.
         :rtype: DualQuaternion
         """
-        from .RationalDualQuaternion import RationalDualQuaternion
-
         t = sp.Symbol("t")
         t_dq = DualQuaternion([t, 0, 0, 0, 0, 0, 0, 0])
 
@@ -147,7 +151,8 @@ class FactorizationProvider:
         axis_h = t_dq - factor_dq
 
         # TODO: implement return of rational axis
-        rational_dq = RationalDualQuaternion(axis_h.array())
+        #from .RationalDualQuaternion import RationalDualQuaternion
+        #rational_dq = RationalDualQuaternion(axis_h.array())
 
         # convert to numpy array as float64
         axis_h = np.asarray(axis_h.array(), dtype='float64')

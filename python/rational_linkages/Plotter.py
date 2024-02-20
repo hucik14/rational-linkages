@@ -71,8 +71,8 @@ class Plotter:
         Plot the object
 
         :param object_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-        MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
-        or RationalBezier
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
+            or RationalBezier
         :param kwargs: plotting options following matplotlib standards and syntax
 
         :return: matplotlib axis
@@ -104,11 +104,11 @@ class Plotter:
         Analyze the object to plot
 
         :param object_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-        MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
-        or RationalBezier
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
+            or RationalBezier
 
         :return: str - 'is_line', 'is_point', 'is_motion_factorization', 'is_dq' or
-        'is_rational_mechanism'
+            'is_rational_mechanism'
         """
         if isinstance(object_to_plot, RationalMechanism) and not self.interactive:
             return "is_rational_mechanism"
