@@ -104,7 +104,7 @@ class DualQuaternion:
         """
         Construct DualQuaternion from a biquaternion.
 
-        :param bq.BiQuaternion biquaternion: biquaternion
+        :param biquaternion_py.BiQuaternion biquaternion: biquaternion
 
         :return: DualQuaternion
         :rtype: DualQuaternion
@@ -150,7 +150,7 @@ class DualQuaternion:
         coefficients of the polynomial are negated and then assembled into a numpy
         array.
 
-        :param bq.Poly poly: biquaternion polynomial
+        :param biquaternion_py.Poly poly: biquaternion polynomial
         :param sp.Symbol indet: indeterminant of the polynomial
 
         :return: DualQuaternion

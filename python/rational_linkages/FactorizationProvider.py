@@ -1,7 +1,7 @@
 from typing import Union
 from warnings import warn
 
-import biquaternion_py as bq
+import biquaternion_py
 import numpy as np
 import sympy as sp
 
@@ -25,7 +25,7 @@ class FactorizationProvider:
         """
         pass
 
-    def factorize_motion_curve(self, curve: Union[RationalCurve, bq.Poly]) -> (
+    def factorize_motion_curve(self, curve: Union[RationalCurve, biquaternion_py.Poly]) -> (
             list)[MotionFactorization]:
         """
         Factorizes the given curve into a multiple motion factorizations.
@@ -40,8 +40,8 @@ class FactorizationProvider:
         t = sp.Symbol("t")
 
         if isinstance(curve, RationalCurve):
-            bi_quat = bq.BiQuaternion(curve.extract_expressions())
-            bi_poly = bq.Poly(bi_quat, t)
+            bi_quat = biquaternion_py.BiQuaternion(curve.extract_expressions())
+            bi_poly = biquaternion_py.Poly(bi_quat, t)
         else:
             bi_poly = curve
 
@@ -82,16 +82,16 @@ class FactorizationProvider:
 
         t = sp.Symbol("t")
 
-        bi_poly = t - bq.BiQuaternion(factorization.dq_axes[0].array())
+        bi_poly = t - biquaternion_py.BiQuaternion(factorization.dq_axes[0].array())
         for i in range(1, factorization.number_of_factors):
-            bi_poly = bi_poly * (t - bq.BiQuaternion(factorization.dq_axes[i].array()))
+            bi_poly = bi_poly * (t - biquaternion_py.BiQuaternion(factorization.dq_axes[i].array()))
 
-        bi_poly = bq.Poly(bi_poly, t)
+        bi_poly = biquaternion_py.Poly(bi_poly, t)
 
         return self.factorize_motion_curve(bi_poly)
 
     @staticmethod
-    def factorize_polynomial(poly: bq.Poly) -> list[bq.Poly]:
+    def factorize_polynomial(poly: biquaternion_py.Poly) -> list[biquaternion_py.Poly]:
         """
         Factorizes the given polynomial into irreducible factors.
 
@@ -105,12 +105,12 @@ class FactorizationProvider:
         # Calculate the norm polynomial. To avoid numerical problems, extract
         # the scalar part, since the norm should be purely real
         norm_poly = poly.norm()
-        norm_poly = bq.Poly(norm_poly.poly.scal, *norm_poly.indets)
+        norm_poly = biquaternion_py.Poly(norm_poly.poly.scal, *norm_poly.indets)
 
         print('Factorization is running...')
 
         # Calculate the irreducible factors, that determine the different factorizations
-        _, factors = bq.irreducible_factors(norm_poly, domain='RR')
+        _, factors = biquaternion_py.irreducible_factors(norm_poly, domain='RR')
 
         # The different permutations of the irreducible factors then generate
         # the different factorizations of the motion.
@@ -118,15 +118,15 @@ class FactorizationProvider:
         if len(factors) <= 1:
             raise ValueError('The factorization failed for the given input.')
 
-        factorization1 = bq.factorize_from_list(poly, factors)
-        factorization2 = bq.factorize_from_list(poly, factors[::-1])
+        factorization1 = biquaternion_py.factorize_from_list(poly, factors)
+        factorization2 = biquaternion_py.factorize_from_list(poly, factors[::-1])
 
         print('Factorization ended.')
 
         return [factorization1, factorization2]
 
     @staticmethod
-    def factor2rotation_axis(factor: bq.Poly) -> DualQuaternion:
+    def factor2rotation_axis(factor: biquaternion_py.Poly) -> DualQuaternion:
         """
         Converts the given factor to a dual quaternion representing the rotation axis
         of a linkage, excluding the parameter.
