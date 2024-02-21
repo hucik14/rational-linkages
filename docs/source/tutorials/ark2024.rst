@@ -1,6 +1,6 @@
 .. _ark2024extended:
 
-ARK 2024 paper - extended information
+ARK 2024 Paper - Extended Information
 =====================================
 
 This page contains the extended information for the paper submitted to conference ARK

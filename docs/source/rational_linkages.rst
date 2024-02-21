@@ -63,7 +63,7 @@ Motion Factorization
 .. automodule:: rational_linkages.MotionFactorization
    :members:
    :undoc-members:
-   :show-inheritance: rational_linkages.RationalCurve
+   :show-inheritance:
 
 Motion Interpolation
 --------------------
@@ -71,7 +71,7 @@ Motion Interpolation
 .. automodule:: rational_linkages.MotionInterpolation
    :members:
    :undoc-members:
-   :show-inheritance: rational_linkages.RationalCurve
+   :show-inheritance:
 
 Normalized Line
 ---------------

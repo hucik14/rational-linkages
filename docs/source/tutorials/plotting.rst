@@ -1,4 +1,4 @@
-Plotting examples
+Plotting Examples
 =================
 
 The package class :class:`.Plotter` provides a simple interface to plotting rational

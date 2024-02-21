@@ -9,3 +9,4 @@ Background Math and Geometry
    background-math/dualquaternions
    background-math/joint-angle-to-t
    background-math/comb-optim
+   background-math/motion-interp-4p
