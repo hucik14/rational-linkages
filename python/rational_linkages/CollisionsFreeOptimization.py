@@ -134,16 +134,17 @@ class CombinatorialSearch:
 
         if init_collisions is not None:
             for i in range(10, self.max_iters):
-                coll_free_points_params = self.search_links(i)
+                coll_free_links_params = self.search_links(i)
 
-                if coll_free_points_params is not None:
+                if coll_free_links_params is not None:
                     print("Collision-free solution for links found, "
                           "starting joint search...")
-                    for i in range(1, 1):  # TODO max iters might be better to change
-                        coll_free_points_params = self.search_mechanism(i)
+                    for i in range(1, 2):  # TODO max iters might be better to change
+                        coll_free_params = self.search_mechanism(i,
+                                                                 coll_free_links_params)
 
-                        if coll_free_points_params is not None:
-                            return coll_free_points_params
+                        if coll_free_params is not None:
+                            return coll_free_params
         else:
             print("No collision-free solution found.")
             return None
@@ -188,40 +189,54 @@ class CombinatorialSearch:
         print("No collision-free solution found for iteration: {}".format(iter))
         return None
 
-    def search_mechanism(self, iteration: int):
+    def search_mechanism(self, iteration: int, coll_free_links_params: list):
         """
         Search for the solution of the combinatorial search algorithm, including joints.
 
         Searches for the mechanism that is collision free (including joint segments).
 
         :param iteration: iteration index
+        :param list coll_free_links_params: list of collision-free points parameters
 
         :return: list of collision-free points parameters
         :rtype: list
         """
-        shift_val = self.min_joint_segment_length
+        shift_val = 0.5 * self.min_joint_segment_length * iteration
+
         combs = self._get_combinations_sequences([1, -1])
-        #combs = [(-1, -1, 1, 1, -1, 1),
-        #         (-1, 1, -1, -1, -1, 1)]
+        combs = [(-1, -1, 1, 1, -1, 1),
+                 (-1, 1, -1, -1, -1, 1)]
+
+        coll_free_links_params = [item * 2 for item in coll_free_links_params]
 
         for i, sequence in enumerate(combs):
+
             print("Joint search. Iteration: {}, shift_value: {}, sequence {} of {}: {}"
                   .format(iteration, shift_val, i + 1, len(combs), sequence))
-            points_params = shift_val * np.asarray(sequence)
-            points_params = [[param, param * -1]
-                             for param in points_params]
+            shift_seq = shift_val * np.asarray(sequence)
 
-            # update the design of the mechanism
-            self.mechanism.factorizations[0].set_joint_connection_points_by_parameters(
-                points_params[:len(self.mechanism.factorizations[0].dq_axes)])
-            self.mechanism.factorizations[1].set_joint_connection_points_by_parameters(
-                points_params[len(self.mechanism.factorizations[1].dq_axes):][::-1])
+            for j in range(2):
+                if j == 0:
+                    # TODO all combs
+                    points_params = [[params[0] - shift_seq[ii],
+                                      params[1] + shift_seq[ii]]
+                                     for ii, params in enumerate(coll_free_links_params)]
+                else:
+                    points_params = [[params[0] + shift_seq[ii],
+                                      params[1] - shift_seq[ii]]
+                                     for ii, params in enumerate(coll_free_links_params)]
 
-            colls = self.mechanism.collision_check(only_links=False,
-                                                   terminate_on_first=True)
+                # update the design of the mechanism
+                self.mechanism.factorizations[0].set_joint_connection_points_by_parameters(
+                    points_params[:len(self.mechanism.factorizations[0].dq_axes)])
+                self.mechanism.factorizations[1].set_joint_connection_points_by_parameters(
+                    points_params[len(self.mechanism.factorizations[1].dq_axes):][::-1])
 
-            if colls is None:
-                return points_params
+                colls = self.mechanism.collision_check(only_links=False,
+                                                       terminate_on_first=True)
+
+                if colls is None:
+                    return points_params
 
         print("No collision-free solution found for iteration: {}".format(iter))
         return None
