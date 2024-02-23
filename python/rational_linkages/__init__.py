@@ -1,3 +1,4 @@
+from .CollisionFreeOptimization import CollisionFreeOptimization
 from .DualQuaternion import DualQuaternion
 from .DualQuaternionAction import DualQuaternionAction
 from .ExudynAnalysis import ExudynAnalysis
@@ -15,4 +16,3 @@ from .RationalCurve import RationalCurve
 from .RationalDualQuaternion import RationalDualQuaternion
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
-from .CollisionsFreeOptimization import CollisionFreeOptimization

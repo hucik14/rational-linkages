@@ -724,7 +724,7 @@ class RationalMechanism(RationalCurve):
         :return: list of collision-free points parameters
         :rtype: list
         """
-        from .CollisionsFreeOptimization import CollisionFreeOptimization
+        from .CollisionFreeOptimization import CollisionFreeOptimization
         optimizer = CollisionFreeOptimization(self)
 
         if method is None:

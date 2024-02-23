@@ -7,7 +7,7 @@ from itertools import product
 
 class CollisionFreeOptimization:
     """
-
+    Class for the optimization of the mechanism for full-cycle collision-free design.
     """
     def __init__(self, mechanism: RationalMechanism):
         """
