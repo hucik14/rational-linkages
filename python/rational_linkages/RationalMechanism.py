@@ -702,17 +702,24 @@ class RationalMechanism(RationalCurve):
         """
         Perform singularity check of the mechanism.
         """
-        from .CollisionsFreeOptimization import SingularityAnalysis
+        from .SingularityAnalysis import SingularityAnalysis
 
         sa = SingularityAnalysis()
         return sa.check_singularity(self)
 
-    def collision_free_optimization(self, method: str = None, max_iters: int = 10):
+    def collision_free_optimization(self,
+                                    method: str = None,
+                                    step_length=25,
+                                    min_joint_segment_length: float = 0.001,
+                                    max_iters: int = 10):
         """
         Perform collision-free optimization of the mechanism.
 
         :param str method: method of optimization, can be 'combinatorial_search' by
             :footcite:t:`Li2020`
+        :param float step_length: length of the step, i.e. the shift distance value, see
+            :ref:`combinatorial_search` for more detail
+        :param float min_joint_segment_length: minimum length of the joint segment
         :param int max_iters: maximum number of iterations
 
         :return: list of collision-free points parameters
@@ -726,7 +733,10 @@ class RationalMechanism(RationalCurve):
 
         match method:
             case 'combinatorial_search':
-                results = optimizer.optimize(method=method, max_iters=max_iters)
+                results = optimizer.optimize(method=method,
+                                             step_length=step_length,
+                                             min_joint_segment_length=min_joint_segment_length,
+                                             max_iters=max_iters)
             case _:
                 raise ValueError("Invalid method.")
 

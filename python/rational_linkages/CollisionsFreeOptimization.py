@@ -51,16 +51,25 @@ class CollisionFreeOptimization:
 
         # double the parameters for the two joint connection points
         points_params = result.x
+        points_params = [np.array([param, param]) for param in points_params]
 
-        points = [line.point_on_line(points_params[i]) for i, line in enumerate(lines)]
+        points = [line.point_on_line(float(points_params[i][0]))
+                  for i, line in enumerate(lines)]
 
         return points, points_params, result
 
-    def optimize(self, method: str, max_iters: int):
+    def optimize(self,
+                 method: str,
+                 step_length: float,
+                 min_joint_segment_length: float,
+                 max_iters: int):
         """
         Optimize the mechanism for collision-free operation.
 
         :param method: optimization method
+        :param step_length: length of the step, i.e. the shift distance value, see
+            :ref:`combinatorial_search` for more detail
+        :param min_joint_segment_length: minimum length of the joint segment
         :param max_iters: maximum number of iterations
         """
         # initial estimation - the smallest polyline
@@ -73,11 +82,15 @@ class CollisionFreeOptimization:
             points_params[len(self.mechanism.factorizations[1].dq_axes):][::-1])
 
         if method == 'combinatorial_search':
+            print("Starting combinatorial search algorithm...")
             cs = CombinatorialSearch(self.mechanism,
                                      linkage_length=result.fun,
-                                     step_length=10,
+                                     step_length=step_length,
+                                     min_joint_segment_length=min_joint_segment_length,
                                      max_iters=max_iters)
             coll_free_points_params = cs.combinatorial_search()
+
+        return coll_free_points_params
 
 
 class CombinatorialSearch:
@@ -90,6 +103,7 @@ class CombinatorialSearch:
                  mechanism: RationalMechanism,
                  linkage_length: float,
                  step_length: float = 10.0,  # TODO step length estimation
+                 min_joint_segment_length: float = 0.001,
                  max_iters: int = 10):
         """
         Initialize the combinatorial search algorithm.
@@ -98,11 +112,13 @@ class CombinatorialSearch:
         :param float linkage_length: length of the linkage
         :param float step_length: length of the step, i.e. the shift distance value, see
             :ref:`combinatorial_search` for more detail
+        :param float min_joint_segment_length: minimum length of the joint segment
         :param int max_iters: maximum number of iterations
         """
         self.mechanism = mechanism
         self.linkage_length = linkage_length
         self.step_length = step_length
+        self.min_joint_segment_length = min_joint_segment_length
         self.max_iters = max_iters + 1
 
     def combinatorial_search(self):
@@ -112,19 +128,18 @@ class CombinatorialSearch:
         :return: list of collision-free points parameters
         :rtype: list
         """
-
         # check design for collisions
-        #init_collisions = self.collision_check(only_links=True, terminate_on_first=True)
-        init_collisions = 'test'
-        self.step_length = 25
+        init_collisions = self.mechanism.collision_check(only_links=True,
+                                                         terminate_on_first=True)
 
         if init_collisions is not None:
             for i in range(10, self.max_iters):
                 coll_free_points_params = self.search_links(i)
 
                 if coll_free_points_params is not None:
-                    print("Collision-free for links found, starting joint search...")
-                    for i in range(1, self.max_iters):
+                    print("Collision-free solution for links found, "
+                          "starting joint search...")
+                    for i in range(1, 1):  # TODO max iters might be better to change
                         coll_free_points_params = self.search_mechanism(i)
 
                         if coll_free_points_params is not None:
@@ -140,6 +155,9 @@ class CombinatorialSearch:
         Searches for the smallest polyline that is collision free (only links).
 
         :param iteration: iteration index
+
+        :return: list of collision-free points parameters
+        :rtype: list
         """
         shift_val = iteration * self.linkage_length / self.step_length
 
@@ -151,8 +169,9 @@ class CombinatorialSearch:
 
         for i, sequence in enumerate(combs):
             print("Iteration: {}, shift_value: {}, sequence {} of {}: {}"
-                  .format(iteration, shift_val, i, len(combs), sequence))
+                  .format(iteration, shift_val, i + 1, len(combs), sequence))
             points_params = shift_val * np.asarray(sequence)
+            points_params = [[param] for param in points_params]
 
             # update the design of the mechanism
             self.mechanism.factorizations[0].set_joint_connection_points_by_parameters(
@@ -169,21 +188,28 @@ class CombinatorialSearch:
         print("No collision-free solution found for iteration: {}".format(iter))
         return None
 
-    def search_mechanism(self, iteration: int, shift_val: float = 0.001):
+    def search_mechanism(self, iteration: int):
         """
         Search for the solution of the combinatorial search algorithm, including joints.
 
         Searches for the mechanism that is collision free (including joint segments).
+
+        :param iteration: iteration index
+
+        :return: list of collision-free points parameters
+        :rtype: list
         """
+        shift_val = self.min_joint_segment_length
         combs = self._get_combinations_sequences([1, -1])
-        combs = [(-1, -1, 1, 1, -1, 1),
-                 (-1, 1, -1, -1, -1, 1)]
+        #combs = [(-1, -1, 1, 1, -1, 1),
+        #         (-1, 1, -1, -1, -1, 1)]
 
         for i, sequence in enumerate(combs):
-            print("Iteration: {}, shift_value: {}, sequence {} of {}: {}"
-                  .format(iteration, shift_val, i, len(combs), sequence))
+            print("Joint search. Iteration: {}, shift_value: {}, sequence {} of {}: {}"
+                  .format(iteration, shift_val, i + 1, len(combs), sequence))
             points_params = shift_val * np.asarray(sequence)
-            points_params = [[param, param * -1] for param in points_params]
+            points_params = [[param, param * -1]
+                             for param in points_params]
 
             # update the design of the mechanism
             self.mechanism.factorizations[0].set_joint_connection_points_by_parameters(

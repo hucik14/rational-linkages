@@ -323,12 +323,14 @@ class MotionFactorization(RationalCurve):
             on the lines.
         """
         for i, linkage in enumerate(self.linkage):
-            if len(params) == 1:
-                linkage.set_point_by_param(0, params[0])
-                linkage.set_point_by_param(1, params[0])
-            elif len(params) == 2:
-                linkage.set_point_by_param(0, params[0])
-                linkage.set_point_by_param(1, params[1])
+            if len(params[i]) == 1:
+                linkage.set_point_by_param(0, params[i][0])
+                linkage.set_point_by_param(1, params[i][0])
+            elif len(params[i]) == 2:
+                linkage.set_point_by_param(0, params[i][0])
+                linkage.set_point_by_param(1, params[i][1])
+            else:
+                raise ValueError("The parameters must be of length 1 or 2.")
 
     def joint(self, idx: int) -> tuple:
         """
