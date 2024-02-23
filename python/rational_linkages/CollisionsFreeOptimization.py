@@ -133,7 +133,7 @@ class CombinatorialSearch:
                                                          terminate_on_first=True)
 
         if init_collisions is not None:
-            for i in range(10, self.max_iters):
+            for i in range(1, self.max_iters):
                 coll_free_links_params = self.search_links(i)
 
                 if coll_free_links_params is not None:
@@ -162,10 +162,10 @@ class CombinatorialSearch:
         shift_val = iteration * self.linkage_length / self.step_length
 
         combs = self._get_combinations_sequences(joints=False)
-        combs = [(-1, -1, 0, 0, 0, 1),
-                 (1, 1, 0, 0, -1, -1),
-                 (1, 0, 1, 0, -1, 0),
-                 (1, 0, -1, 1, -1, 0)]
+        #combs = [(-1, -1, 0, 0, 0, 1),
+        #         (1, 1, 0, 0, -1, -1),
+        #         (1, 0, 1, 0, -1, 0),
+        #         (1, 0, -1, 1, -1, 0)]
 
         for i, sequence in enumerate(combs):
             print("--- iteration: {}, shift_value: {}, sequence {} of {}: {}"
