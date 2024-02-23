@@ -412,7 +412,6 @@ class RationalMechanism(RationalCurve):
         :rtype: list[float]
         """
         start_time = time()
-        print("")
         print("Collision check started...")
 
         # update the line segments (physical realization of the linkage)
@@ -456,7 +455,7 @@ class RationalMechanism(RationalCurve):
             flattened_results = None
 
         end_time = time()
-        print(f"Collision check finished in {end_time - start_time} seconds.")
+        print(f"--- collision check finished in {end_time - start_time} seconds.")
 
         if pretty_print:
             if flattened_results is None:

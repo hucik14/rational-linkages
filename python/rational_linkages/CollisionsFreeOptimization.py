@@ -137,16 +137,15 @@ class CombinatorialSearch:
                 coll_free_links_params = self.search_links(i)
 
                 if coll_free_links_params is not None:
+                    print("")
                     print("Collision-free solution for links found, "
                           "starting joint search...")
-                    for i in range(1, 2):  # TODO max iters might be better to change
-                        coll_free_params = self.search_mechanism(i,
-                                                                 coll_free_links_params)
+                    coll_free_params = self.search_mechanism(coll_free_links_params)
 
-                        if coll_free_params is not None:
-                            return coll_free_params
+                    if coll_free_params is not None:
+                        return coll_free_params
         else:
-            print("No collision-free solution found.")
+            print("Search was unsuccessful, collisions found.")
             return None
 
     def search_links(self, iteration: int):
@@ -162,14 +161,14 @@ class CombinatorialSearch:
         """
         shift_val = iteration * self.linkage_length / self.step_length
 
-        combs = self._get_combinations_sequences([0, 1, -1])
+        combs = self._get_combinations_sequences(joints=False)
         combs = [(-1, -1, 0, 0, 0, 1),
                  (1, 1, 0, 0, -1, -1),
                  (1, 0, 1, 0, -1, 0),
                  (1, 0, -1, 1, -1, 0)]
 
         for i, sequence in enumerate(combs):
-            print("Iteration: {}, shift_value: {}, sequence {} of {}: {}"
+            print("--- iteration: {}, shift_value: {}, sequence {} of {}: {}"
                   .format(iteration, shift_val, i + 1, len(combs), sequence))
             points_params = shift_val * np.asarray(sequence)
             points_params = [[param] for param in points_params]
@@ -189,71 +188,84 @@ class CombinatorialSearch:
         print("No collision-free solution found for iteration: {}".format(iter))
         return None
 
-    def search_mechanism(self, iteration: int, coll_free_links_params: list):
+    def search_mechanism(self, coll_free_links_params: list):
         """
         Search for the solution of the combinatorial search algorithm, including joints.
 
         Searches for the mechanism that is collision free (including joint segments).
 
-        :param iteration: iteration index
         :param list coll_free_links_params: list of collision-free points parameters
 
         :return: list of collision-free points parameters
         :rtype: list
         """
-        shift_val = 0.5 * self.min_joint_segment_length * iteration
+        shift_val = 0.5 * self.min_joint_segment_length
 
-        combs = self._get_combinations_sequences([1, -1])
-        combs = [(-1, -1, 1, 1, -1, 1),
-                 (-1, 1, -1, -1, -1, 1)]
+        combs = self._get_combinations_sequences(joints=True)
 
         coll_free_links_params = [item * 2 for item in coll_free_links_params]
 
         for i, sequence in enumerate(combs):
-
-            print("Joint search. Iteration: {}, shift_value: {}, sequence {} of {}: {}"
-                  .format(iteration, shift_val, i + 1, len(combs), sequence))
+            print("--- joint search. Shift_value: {}, sequence {} of {}: {}"
+                  .format(shift_val, i + 1, len(combs), sequence))
             shift_seq = shift_val * np.asarray(sequence)
 
-            for j in range(2):
-                if j == 0:
-                    # TODO all combs
-                    points_params = [[params[0] - shift_seq[ii],
-                                      params[1] + shift_seq[ii]]
-                                     for ii, params in enumerate(coll_free_links_params)]
-                else:
-                    points_params = [[params[0] + shift_seq[ii],
-                                      params[1] - shift_seq[ii]]
-                                     for ii, params in enumerate(coll_free_links_params)]
+            points_params = [[params[0] + shift_seq[ii * 2],
+                              params[1] + shift_seq[ii * 2 + 1]]
+                             for ii, params in enumerate(coll_free_links_params)]
 
-                # update the design of the mechanism
-                self.mechanism.factorizations[0].set_joint_connection_points_by_parameters(
-                    points_params[:len(self.mechanism.factorizations[0].dq_axes)])
-                self.mechanism.factorizations[1].set_joint_connection_points_by_parameters(
-                    points_params[len(self.mechanism.factorizations[1].dq_axes):][::-1])
+            # update the design of the mechanism
+            self.mechanism.factorizations[0].set_joint_connection_points_by_parameters(
+                points_params[:len(self.mechanism.factorizations[0].dq_axes)])
+            self.mechanism.factorizations[1].set_joint_connection_points_by_parameters(
+                points_params[len(self.mechanism.factorizations[1].dq_axes):][::-1])
 
-                colls = self.mechanism.collision_check(only_links=False,
-                                                       terminate_on_first=True)
+            colls = self.mechanism.collision_check(only_links=False,
+                                                   terminate_on_first=True)
 
-                if colls is None:
-                    return points_params
+            if colls is None:
+                return points_params
 
         print("No collision-free solution found for iteration: {}".format(iter))
         return None
 
-    def _get_combinations_sequences(self, elements: list):
+    def _get_combinations_sequences(self, joints: bool = False):
         """
         Get all combinations of the joint angles and shuffle them.
 
-        :param list elements: list of elements to combine
+        :param bool joints: True if joints segments are searched for, False otherwise
 
         :return: list of all combinations of joint angles
         :rtype: list
         """
-        combs = list(product(elements, repeat=self.mechanism.num_joints))
+        if not joints:
+            elements = [0, 1, -1]
+            combs = list(product(elements, repeat=self.mechanism.num_joints))
 
-        # remove the combination of all zeros, which was already tested
-        if 0 in elements:
-            combs.remove((0,) * self.mechanism.num_joints)
+            # remove the combination of all zeros, which was already tested
+            if 0 in elements:
+                combs.remove((0,) * self.mechanism.num_joints)
 
-        return combs
+            return combs
+
+        else:
+            elements = [-1, 1]
+            combs = list(product(elements, repeat=self.mechanism.num_joints * 2))
+
+            # filter out the combs that have the same value for the 2 connection pts
+            combs = [x for x in combs
+                     if all(x[i] != x[i + 1] for i in range(0, len(x) - 1, 2))]
+
+            # place the most promising combs first
+            def generate_tuple(n):
+                return tuple(-1 if i % 2 == 0 else 1 for i in range(n))
+
+            tup = generate_tuple(6) + generate_tuple(6)[::-1]
+            tup2 = generate_tuple(6)[::-1] + generate_tuple(6)
+
+            combs.remove(tup)
+            combs.insert(0, tup)
+            combs.remove(tup2)
+            combs.insert(0, tup2)
+
+            return combs
