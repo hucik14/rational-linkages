@@ -218,6 +218,34 @@ The output of the example is:
      [ 6.,  1.,  0.,  0.]]
 
 
+
+Dual Quaternion Actions
+-----------------------
+
+Text
+
+
+DQ Action on a Point
+^^^^^^^^^^^^^^^^^^^^
+
+Points are described in :ref:`homogeneous-points`
+
+
+DQ Action on a Line
+^^^^^^^^^^^^^^^^^^^
+
+Lines are described in :ref:`normalized-lines`
+
+
+DQ Action on a Plane
+^^^^^^^^^^^^^^^^^^^^
+
+Text
+
+
+Planes NOT SUPPORTED by the package yet.
+
+
 Rational Curves and Motions
 ===========================
 
@@ -240,49 +268,6 @@ of a joint axes.
 This mapping is in detail described in the section `Joint Angle to Curve Parameter`_.
 
 .. _Joint Angle to Curve Parameter: joint-angle-to-t.rst
-
-
-Points
-======
-
-The class :class:`.PointHomogeneous` is used to represent points in n-dimensional space.
-
-3D points can be embedded into dual quaternion space.
-
-
-Lines
-=====
-
-The class :class:`.NormalizedLine` is used to represent lines.
-
-
-
-
-Dual Quaternion Actions
-=======================
-
-Text
-
-
-DQ Action on a Point
-^^^^^^^^^^^^^^^^^^^^
-
-Text
-
-
-DQ Action on a Line
-^^^^^^^^^^^^^^^^^^^
-
-Text
-
-
-DQ Action on a Plane
-^^^^^^^^^^^^^^^^^^^^
-
-Text
-
-
-Planes NOT SUPPORTED by the package yet.
 
 
 

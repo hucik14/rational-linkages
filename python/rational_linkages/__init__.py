@@ -1,3 +1,4 @@
+from .CollisionFreeOptimization import CollisionFreeOptimization
 from .DualQuaternion import DualQuaternion
 from .DualQuaternionAction import DualQuaternionAction
 from .ExudynAnalysis import ExudynAnalysis

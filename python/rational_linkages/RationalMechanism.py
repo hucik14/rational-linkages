@@ -388,7 +388,11 @@ class RationalMechanism(RationalCurve):
 
         return new_params
     
-    def collision_check(self, parallel: bool = False, pretty_print: bool = True):
+    def collision_check(self,
+                        parallel: bool = False,
+                        pretty_print: bool = True,
+                        only_links: bool = False,
+                        terminate_on_first: bool = False):
         """
         Perform full-cycle collision check on the line-model linkage.
 
@@ -399,28 +403,51 @@ class RationalMechanism(RationalCurve):
         :param bool parallel: if True, perform collision check in parallel using
             multiprocessing
         :param bool pretty_print: if True, print the results in a readable form
+        :param bool only_links: if True, only link-link collisions are checked,
+            expecting that distances between joint connection points are minimal
+        :param bool terminate_on_first: if True, terminate the collision check when
+            the first collision is found
 
         :return: list of collision check colliding parameter values
         :rtype: list[float]
         """
         start_time = time()
-        print("")
         print("Collision check started...")
 
         # update the line segments (physical realization of the linkage)
         self.segments = self._get_line_segments_of_linkage()
 
         iters = []
+        # iterate over all line segments
         for ii in range(len(self.segments)):
+            # for each line segment, iterate over all other line segments that are not
+            # its immediate neighbors
             for jj in range(ii + 2, len(self.segments)):
-                iters.append((ii, jj))
+                # in only links should be checked (joint segments have minimal length)
+                if only_links:
+                    if (self.segments[ii].type == 'j'
+                            or self.segments[jj].type == 'j'
+                            or jj - ii == 2):  # skip neighbouring links
+                        pass
+                    else:
+                        iters.append((ii, jj))
+                else:
+                    iters.append((ii, jj))
+
+        # remove the last neighbouring pair of links
+        if only_links:
+            # find the pair with the highest difference
+            max_pair = max(iters, key=lambda x: x[1] - x[0])
+            # remove the pair from the list
+            iters.remove(max_pair)
 
         print(f"--- number of tasks to solve: {len(iters)} ---")
 
         if parallel:
             collision_results = self._collision_check_parallel(iters)
         else:
-            collision_results = self._collision_check_nonparallel(iters)
+            collision_results = self._collision_check_nonparallel(iters,
+                                                                  terminate_on_first)
 
         results = [r for r in collision_results if r is not None]
         flattened_results = [item for sublist in results for item in sublist]
@@ -428,7 +455,7 @@ class RationalMechanism(RationalCurve):
             flattened_results = None
 
         end_time = time()
-        print(f"Collision check finished in {end_time - start_time} seconds.")
+        print(f"--- collision check finished in {end_time - start_time} seconds.")
 
         if pretty_print:
             if flattened_results is None:
@@ -461,7 +488,8 @@ class RationalMechanism(RationalCurve):
 
         return list(results)
 
-    def _collision_check_nonparallel(self, iters: list[tuple[int, int]]):
+    def _collision_check_nonparallel(self, iters: list[tuple[int, int]],
+                                     terminate_on_first: bool = False):
         """
         Perform collision check in non-parallel mode.
 
@@ -469,6 +497,8 @@ class RationalMechanism(RationalCurve):
         motion curve, slower for 6-bar linkages with "complex" motions.
 
         :param list iters: list of tuples of indices of the line segments to be checked
+        :param bool terminate_on_first: if True, terminate the collision check when
+            the first collision is found
 
         :return: list of collision check results
         :rtype: list[str]
@@ -478,7 +508,10 @@ class RationalMechanism(RationalCurve):
 
         results = []
         for val in iters:
-            results.append(self._check_given_pair(val))
+            collsion = self._check_given_pair(val)
+            results.append(collsion)
+            if terminate_on_first and collsion is not None:
+                break
         return results
 
     def _check_given_pair(self, iters: tuple[int, int]):
@@ -664,4 +697,46 @@ class RationalMechanism(RationalCurve):
         """
         return self.curve()
 
+    def singularity_check(self):
+        """
+        Perform singularity check of the mechanism.
+        """
+        from .SingularityAnalysis import SingularityAnalysis
 
+        sa = SingularityAnalysis()
+        return sa.check_singularity(self)
+
+    def collision_free_optimization(self,
+                                    method: str = None,
+                                    step_length=25,
+                                    min_joint_segment_length: float = 0.001,
+                                    max_iters: int = 10):
+        """
+        Perform collision-free optimization of the mechanism.
+
+        :param str method: method of optimization, can be 'combinatorial_search' by
+            :footcite:t:`Li2020`
+        :param float step_length: length of the step, i.e. the shift distance value, see
+            :ref:`combinatorial_search` for more detail
+        :param float min_joint_segment_length: minimum length of the joint segment
+        :param int max_iters: maximum number of iterations
+
+        :return: list of collision-free points parameters
+        :rtype: list
+        """
+        from .CollisionFreeOptimization import CollisionFreeOptimization
+        optimizer = CollisionFreeOptimization(self)
+
+        if method is None:
+            method = 'combinatorial_search'
+
+        match method:
+            case 'combinatorial_search':
+                results = optimizer.optimize(method=method,
+                                             step_length=step_length,
+                                             min_joint_segment_length=min_joint_segment_length,
+                                             max_iters=max_iters)
+            case _:
+                raise ValueError("Invalid method.")
+
+        return results

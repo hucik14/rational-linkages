@@ -103,10 +103,14 @@ class Linkage:
     def set_point_by_param(self, idx: int, param: Union[float, np.ndarray]):
         """
         Sets the connection point at the given parameter.
+
+        :param int idx: Index of the connection parameter on the joint, 0 or 1.
+        :param Union[float, np.ndarray] param: line-parameter defining the point on the
+            line (joint axis)
         """
         if idx == 0:
             if param == self.points_params[1]:
-                self.points_params = [param - 0.0001, self.points_params[1]]
+                self.points_params = [param, self.points_params[1] + 0.0001]
             else:
                 self.points_params = [param, self.points_params[1]]
         elif idx == 1:

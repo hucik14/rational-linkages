@@ -133,12 +133,12 @@ class ExudynAnalysis:
         """
         axes = []
         for axis in mechanism.factorizations[0].dq_axes:
-            direction, moment = axis.dq2line()
+            direction, moment = axis.dq2line_vectors()
             axes.append(direction)
 
         axes_branch2 = []
         for axis in mechanism.factorizations[1].dq_axes:
-            direction, moment = axis.dq2line()
+            direction, moment = axis.dq2line_vectors()
             axes_branch2.append(direction)
 
         return axes + axes_branch2[::-1]

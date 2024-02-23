@@ -1,7 +1,8 @@
 from typing import Optional, Sequence, Union
+from warnings import warn
 
 import numpy as np
-from sympy import Expr
+from sympy import Expr, Matrix
 
 from .Quaternion import Quaternion
 
@@ -104,12 +105,13 @@ class DualQuaternion:
         """
         Construct DualQuaternion from a biquaternion.
 
-        :param bq.BiQuaternion biquaternion: biquaternion
+        :param biquaternion_py.biquaternion.BiQuaternion biquaternion: biquaternion
 
         :return: DualQuaternion
         :rtype: DualQuaternion
 
-        :raises ValueError: if the input is not a biquaternion_py.BiQuaternion object
+        :raises ValueError: if the input is not a
+            biquaternion_py.biquaternion.BiQuaternion object
 
         :examples:
 
@@ -134,7 +136,8 @@ class DualQuaternion:
         from biquaternion_py import BiQuaternion
 
         if not isinstance(biquaternion, BiQuaternion):
-            raise ValueError("The input has to be a biquaternion_py.BiQuaternion object"
+            raise ValueError("The input has to be a "
+                             "biquaternion_py.biquaternion.BiQuaternion object"
                              "from biquaternion_py package.")
 
         coeffs = biquaternion.coeffs
@@ -150,13 +153,14 @@ class DualQuaternion:
         coefficients of the polynomial are negated and then assembled into a numpy
         array.
 
-        :param bq.Poly poly: biquaternion polynomial
+        :param biquaternion_py.polynomials.Poly poly: biquaternion polynomial
         :param sp.Symbol indet: indeterminant of the polynomial
 
         :return: DualQuaternion
         :rtype: DualQuaternion
 
-        :raises ValueError: if the input is not a biquaternion_py.Poly object
+        :raises ValueError: if the input is not a biquaternion_py.polynomials.Poly
+            object
         :raises ValueError: if the polynomial is not of degree 1
 
         :examples:
@@ -179,8 +183,8 @@ class DualQuaternion:
         from biquaternion_py import Poly
 
         if not isinstance(poly, Poly):
-            raise ValueError("The input has to be a biquaternion_py.Poly object from"
-                             "biquaternion_py package.")
+            raise ValueError("The input has to be a biquaternion_py.polynomials.Poly "
+                             "object from biquaternion_py package.")
         elif poly.deg(indet) != 1:
             raise ValueError("The polynomial has to be of degree 1.")
 
@@ -532,39 +536,55 @@ class DualQuaternion:
         dq = self.array()
         return np.array([dq[0], dq[5], dq[6], dq[7]])
 
-    def dq2line(self) -> tuple:
+    def dq2line_vectors(self) -> tuple:
         """
         Dual Quaternion directly to line coordinates
 
-        If the DQ is a sympy Expression, it is not converted to float and do not
-        normalized
+        If the DQ is a sympy Expression, it is not converted to float and not normalized
 
         :return: tuple of 2 numpy arrays, 3-vector coordinates each
         :rtype: tuple
+
+        :warning: if the DQ is not a line, a warning is raised
         """
-        # if the DQ is a sympy Expression, do not convert to float and do not normalize
+        # if the DQ is a sympy Expression (rational number), try to convert it to float
         if any(isinstance(x, Expr) for x in self.array()):
             try:
                 dq = np.asarray(self.array(), dtype="float64")
             except Exception:
+                # if it is an expression with a variable, return the expression
                 dq = self.array()
         else:
+            # if the DQ is some numpy array, convert it to float
             dq = np.asarray(self.array(), dtype="float64")
 
-        k = dq[0] ** 2 - dq[1] ** 2 - dq[2] ** 2 - dq[3] ** 2  # Different from Study
-        f = k - dq[0] ** 2
-        g = dq[0] * dq[4]
+        # if the DQ is a sympy Expression
+        if any(isinstance(x, Expr) for x in dq):
+            if dq[0] == 0 and dq[4] == 0:  # if it is a line
+                dir = dq[1:4]
+                mom = -1 * dq[5:8]
 
-        dir = f * dq[1:4]
-        mom = np.array([g * dq[1] - f * dq[5],
-                        g * dq[2] - f * dq[6],
-                        g * dq[3] - f * dq[7]])
+                # normalize
+                norm_dir = Matrix(dir).norm()
+                norm_dir = 1
+                moment = mom / norm_dir
+                direction = dir / norm_dir
 
-        # if the DQ is a sympy Expression, do not convert to float and do not normalize
-        if any(isinstance(x, Expr) for x in dir) or any(isinstance(x, Expr) for x in mom):
-            moment = -1 * mom
-            direction = -1 * dir
+            else:  # warn that it is not a line
+                warn("The dual quaternion is not a line, returning the expression")
+                direction = dq[1:4]
+                moment = -1 * dq[5:8]
+
         else:
+            k = dq[0] ** 2 - dq[1] ** 2 - dq[2] ** 2 - dq[3] ** 2  # differs from Study
+            f = k - dq[0] ** 2
+            g = dq[0] * dq[4]
+
+            dir = f * dq[1:4]
+            mom = np.array([g * dq[1] - f * dq[5],
+                            g * dq[2] - f * dq[6],
+                            g * dq[3] - f * dq[7]])
+
             moment = -1 * mom / np.linalg.norm(dir)
             direction = -1 * dir / np.linalg.norm(dir)
 
@@ -577,7 +597,7 @@ class DualQuaternion:
         :return: array of 6-coordinates of screw
         :rtype: np.ndarray
         """
-        direction, moment = self.dq2line()
+        direction, moment = self.dq2line_vectors()
         return np.concatenate((direction, moment))
 
     def dq2point_via_line(self) -> np.ndarray:
@@ -587,7 +607,7 @@ class DualQuaternion:
         :return: array of 3-coordinates of point
         :rtype: np.ndarray
         """
-        direction, moment = self.dq2line()
+        direction, moment = self.dq2line_vectors()
         return np.cross(direction, moment)
 
     def act(

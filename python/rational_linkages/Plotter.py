@@ -18,17 +18,17 @@ from .TransfMatrix import TransfMatrix
 
 class Plotter:
     def __init__(self,
+                 interactive: bool = False,
                  interval=(-1, 1),
                  steps=50,
-                 interactive: bool = False,
                  arrows_length: float = 1.0,
                  joint_range_lim: float = 1.0):
         """
         Initialize the plotter
 
+        :param interactive: activate interactive mode
         :param interval: interval for plotting
         :param steps: number of steps for plotting
-        :param interactive: activate interactive mode
         :param arrows_length: length of quiver arrows for poses and frames
         :param joint_range_lim: limit for joint sliders, will be +/- value
         """
@@ -71,8 +71,8 @@ class Plotter:
         Plot the object
 
         :param object_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-        MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
-        or RationalBezier
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
+            or RationalBezier
         :param kwargs: plotting options following matplotlib standards and syntax
 
         :return: matplotlib axis
@@ -104,11 +104,11 @@ class Plotter:
         Analyze the object to plot
 
         :param object_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-        MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
-        or RationalBezier
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
+            or RationalBezier
 
         :return: str - 'is_line', 'is_point', 'is_motion_factorization', 'is_dq' or
-        'is_rational_mechanism'
+            'is_rational_mechanism'
         """
         if isinstance(object_to_plot, RationalMechanism) and not self.interactive:
             return "is_rational_mechanism"

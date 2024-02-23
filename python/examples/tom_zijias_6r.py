@@ -40,7 +40,7 @@ k2 = DualQuaternion(k2li)
 k3 = DualQuaternion(k3li)
 
 f1 = MotionFactorization([h1, h2, h3])
-f2 = MotionFactorization([k3, k2, k1])
+f2 = MotionFactorization([k3, k2, k1])  # REVERSED ORDER
 
 # Setting connecting points on the linkage
 #########################################

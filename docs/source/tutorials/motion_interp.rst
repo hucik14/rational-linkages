@@ -1,4 +1,6 @@
-Motion interpolation
+.. _interpolation_examples:
+
+Motion Interpolation
 ====================
 
 The package implements the method described in the paper by :footcite:t:`Hegeds2015`
@@ -6,6 +8,11 @@ for 4 poses interpolation using cubic rational function, that yields
 6-revolute linkages, and the method by :footcite:t:`Brunnthaler2005` for
 3 poses interpolation using quadratic rational functions, that yields 4-revolute
 linkage, i.e. the Bennett mechanism.
+
+The 4 pose interpolation is described in more detail in :ref:`interpolation_background`.
+
+The input can be both, :class:`.DualQuaternion` objects or :class:`.TransfMatrix`
+objects.
 
 .. testcode::
 
@@ -79,4 +86,3 @@ easiest way is to pre-multiply the original poses with the :math:`p_2`.
 
 .. footbibliography::
 
-.. include:: ../references.rst

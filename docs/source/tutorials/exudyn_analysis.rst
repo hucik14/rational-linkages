@@ -10,6 +10,8 @@ flexible multibody dynamics simulation library by :footcite:t:`Gerstmayr2023`,
 developed at the Department of Mechatronics, University of Innsbruck, Austria.
 Source code is available at https://github.com/jgerstmayr/EXUDYN
 
+We would like to thank prof. Johannes Gerstmayr for his help with the integration.
+
 Exudyn **is NOT** listed in the *Rational Linkages* dependencies, since it does not
 support Python 3.12 yet, and it is not used in the background. To install Exudyn,
 please follow the instructions in the `Exudyn documentation`_, the usual way with

@@ -1,6 +1,14 @@
 Rational Linkages
 =================
 
+CollisionsFreeOptimization
+--------------------------
+
+.. automodule:: rational_linkages.CollisionsFreeOptimization
+   :members: CombinatorialSearch, SingularityAnalysis
+   :undoc-members:
+   :show-inheritance:
+
 Dual Quaternion
 ---------------
 
@@ -55,7 +63,7 @@ Motion Factorization
 .. automodule:: rational_linkages.MotionFactorization
    :members:
    :undoc-members:
-   :show-inheritance: rational_linkages.RationalCurve
+   :show-inheritance:
 
 Motion Interpolation
 --------------------
@@ -63,12 +71,20 @@ Motion Interpolation
 .. automodule:: rational_linkages.MotionInterpolation
    :members:
    :undoc-members:
-   :show-inheritance: rational_linkages.RationalCurve
+   :show-inheritance:
 
 Normalized Line
 ---------------
 
 .. automodule:: rational_linkages.NormalizedLine
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Plotter
+-------
+
+.. automodule:: rational_linkages.Plotter
    :members:
    :undoc-members:
    :show-inheritance:

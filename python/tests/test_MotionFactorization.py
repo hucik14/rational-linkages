@@ -128,8 +128,8 @@ class TestMotionFactorization(TestCase):
 
         points = f.direct_kinematics(0)
         self.assertTrue(np.allclose(points,
-                                    np.array([[0., 0., -0.0001], [0., 0., 0.],
-                                              [0.5, 0., -0.0001], [0.5, 0.,  0.]])))
+                                    np.array([[0., 0., 0.], [0., 0., 0.0001],
+                                              [0.5, 0., 0.], [0.5, 0.,  0.0001]])))
 
     def test_direct_kinematics_of_tool(self):
         h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])

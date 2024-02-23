@@ -1,5 +1,5 @@
-Loading a prepared model
-========================
+Loading Prepared Models
+=======================
 
 .. include:: ../refs-weblinks.rst
 
