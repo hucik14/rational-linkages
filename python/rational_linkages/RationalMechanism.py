@@ -698,41 +698,6 @@ class RationalMechanism(RationalCurve):
         """
         return self.curve()
 
-    def smallest_polyline(self) -> tuple:
-        """
-        Get points on mechanism axes that form the smallest polyline.
-
-        This method calculates the smallest polyline that can be formed by points on
-        the mechanism axes. It uses scipy's minimize function to find the points on
-        the axes that minimize the total distance of the polyline.
-
-        :return: points on the mechanism axes that form the smallest polyline,
-            parameters of the points, result of the optimization
-        :rtype: tuple
-        """
-        from scipy.optimize import minimize
-
-        # get the axes represented as normalized lines
-        dq_lines = self.factorizations[0].dq_axes + self.factorizations[1].dq_axes[::-1]
-        lines = [NormalizedLine.from_dual_quaternion(dq_line) for dq_line in dq_lines]
-
-        def objective_function(x):
-            p = [line.point_on_line(x[i]) for i, line in enumerate(lines)]
-
-            total_distance = sum(
-                np.linalg.norm(p[i] - p[i + 1]) for i in range(self.num_joints - 1))
-            # Add distance between last and first point
-            total_distance += np.linalg.norm(p[-1] - p[0])
-            return total_distance
-
-        x_init = np.zeros(self.num_joints)
-        result = minimize(objective_function, x_init)
-
-        points_params = result.x
-        points = [line.point_on_line(points_params[i]) for i, line in enumerate(lines)]
-
-        return points, points_params, result
-
     def singularity_check(self):
         """
         Perform singularity check of the mechanism.
@@ -740,66 +705,29 @@ class RationalMechanism(RationalCurve):
         from .CollisionsFreeOptimization import SingularityAnalysis
 
         sa = SingularityAnalysis()
-        return sa.check_singluarity(self)
+        return sa.check_singularity(self)
 
-    def collision_free_optimization(self, method: str = None, max_iter: int = 5):
+    def collision_free_optimization(self, method: str = None, max_iters: int = 10):
         """
         Perform collision-free optimization of the mechanism.
 
         :param str method: method of optimization, can be 'combinatorial_search' by
             :footcite:t:`Li2020`
-        :param int max_iter: maximum number of iterations
+        :param int max_iters: maximum number of iterations
 
         :return: list of collision-free points parameters
         :rtype: list
         """
+        from .CollisionsFreeOptimization import CollisionFreeOptimization
+        optimizer = CollisionFreeOptimization(self)
 
         if method is None:
             method = 'combinatorial_search'
 
         match method:
             case 'combinatorial_search':
-                results = self._combinatorial_search(max_itererations=max_iter)
+                results = optimizer.optimize(method=method, max_iters=max_iters)
             case _:
                 raise ValueError("Invalid method.")
 
         return results
-
-    def _combinatorial_search(self,
-                              max_itererations: int = 10,
-                              step_length: float = 10):
-        """
-        Perform collision-free combinatorial search method by :footcite:t:`Li2020`.
-
-        :param int max_itererations: maximum number of iterations
-        :param int step_length: length of the step, i.e. the shift distance value, see
-            :ref:`combinatorial_search` for more detail
-
-        :return: list of collision-free points parameters
-        :rtype: list
-        """
-        from .CollisionsFreeOptimization import CombinatorialSearch
-
-        points, points_params, result = self.smallest_polyline()
-
-        # update the design of the mechanism - set initial design
-        self.factorizations[0].set_joint_connection_points_by_parameters(
-            points_params[:len(self.factorizations[0].dq_axes)])
-        self.factorizations[1].set_joint_connection_points_by_parameters(
-            points_params[len(self.factorizations[1].dq_axes):][::-1])
-
-        # check design for collisions
-        #res = self.collision_check(only_links=True, terminate_on_first=True)
-        res = 'test'
-        step_length = 25
-
-        if res is not None:
-            # TODO step length estimation
-            cs = CombinatorialSearch(self,
-                                     linkage_lenght=result.fun,
-                                     step_length=step_length)
-
-            for i in range(10, max_itererations + 1):
-                coll_free_points_params = cs.search_links(i)
-
-        return coll_free_points_params

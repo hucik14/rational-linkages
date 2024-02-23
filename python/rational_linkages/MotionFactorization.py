@@ -315,15 +315,20 @@ class MotionFactorization(RationalCurve):
         for i in range(len(points_pairs)):
             self.linkage[i] = Linkage(self.dq_axes[i], points_pairs[i])
 
-    def set_joint_connection_points_by_parameters(self, params: np.ndarray):
+    def set_joint_connection_points_by_parameters(self, params: list):
         """
         Set joint connection points based on the given line-parameters.
 
-        :param np.ndarray params: Parameters used to calculate the points on the lines.
+        :param np.ndarray params: Parameters used to calculate the points
+            on the lines.
         """
         for i, linkage in enumerate(self.linkage):
-            linkage.set_point_by_param(0, params[i])
-            linkage.set_point_by_param(1, params[i])
+            if len(params) == 1:
+                linkage.set_point_by_param(0, params[0])
+                linkage.set_point_by_param(1, params[0])
+            elif len(params) == 2:
+                linkage.set_point_by_param(0, params[0])
+                linkage.set_point_by_param(1, params[1])
 
     def joint(self, idx: int) -> tuple:
         """

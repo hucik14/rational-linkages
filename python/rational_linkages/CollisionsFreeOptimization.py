@@ -1,26 +1,137 @@
-import numpy as np
-import sympy as sp
-
 from .RationalMechanism import RationalMechanism
-from .Linkage import LineSegment
+from .NormalizedLine import NormalizedLine
 
+import numpy as np
 from itertools import product
-from random import shuffle
+
+
+class CollisionFreeOptimization:
+    """
+
+    """
+    def __init__(self, mechanism: RationalMechanism):
+        """
+        Initialize the combinatorial search algorithm.
+
+        :param RationalMechanism mechanism: The mechanism to optimize.
+        """
+        self.mechanism = mechanism
+
+    def smallest_polyline(self) -> tuple:
+        """
+        Get points on mechanism axes that form the smallest polyline.
+
+        This method calculates the smallest polyline that can be formed by points on
+        the mechanism axes. It uses scipy's minimize function to find the points on
+        the axes that minimize the total distance of the polyline.
+
+        :return: points on the mechanism axes that form the smallest polyline,
+            parameters of the points, result of the optimization
+        :rtype: tuple
+        """
+        from scipy.optimize import minimize
+
+        # get the axes represented as normalized lines
+        dq_lines = (self.mechanism.factorizations[0].dq_axes
+                    + self.mechanism.factorizations[1].dq_axes[::-1])
+        lines = [NormalizedLine.from_dual_quaternion(dq_line) for dq_line in dq_lines]
+
+        def objective_function(x):
+            p = [line.point_on_line(x[i]) for i, line in enumerate(lines)]
+
+            total_distance = sum(
+                np.linalg.norm(p[i] - p[i + 1])
+                for i in range(self.mechanism.num_joints - 1))
+            # Add distance between last and first point
+            total_distance += np.linalg.norm(p[-1] - p[0])
+            return total_distance
+
+        x_init = np.zeros(self.mechanism.num_joints)
+        result = minimize(objective_function, x_init)
+
+        # double the parameters for the two joint connection points
+        points_params = result.x
+
+        points = [line.point_on_line(points_params[i]) for i, line in enumerate(lines)]
+
+        return points, points_params, result
+
+    def optimize(self, method: str, max_iters: int):
+        """
+        Optimize the mechanism for collision-free operation.
+
+        :param method: optimization method
+        :param max_iters: maximum number of iterations
+        """
+        # initial estimation - the smallest polyline
+        points, points_params, result = self.smallest_polyline()
+
+        # update the design of the mechanism - set initial design
+        self.mechanism.factorizations[0].set_joint_connection_points_by_parameters(
+            points_params[:len(self.mechanism.factorizations[0].dq_axes)])
+        self.mechanism.factorizations[1].set_joint_connection_points_by_parameters(
+            points_params[len(self.mechanism.factorizations[1].dq_axes):][::-1])
+
+        if method == 'combinatorial_search':
+            cs = CombinatorialSearch(self.mechanism,
+                                     linkage_length=result.fun,
+                                     step_length=10,
+                                     max_iters=max_iters)
+            coll_free_points_params = cs.combinatorial_search()
 
 
 class CombinatorialSearch:
     """
-    Combinatorial search algorithm of collision-free linkages by :footcite:t:`Li2020`.
+    Combinatorial search algorithm of collision-free linkages.
+
+    Algorithm by :footcite:t:`Li2020`.
     """
     def __init__(self,
                  mechanism: RationalMechanism,
                  linkage_length: float,
-                 step_length: float,
-                 ):
+                 step_length: float = 10.0,  # TODO step length estimation
+                 max_iters: int = 10):
+        """
+        Initialize the combinatorial search algorithm.
+
+        :param RationalMechanism mechanism: The mechanism to optimize.
+        :param float linkage_length: length of the linkage
+        :param float step_length: length of the step, i.e. the shift distance value, see
+            :ref:`combinatorial_search` for more detail
+        :param int max_iters: maximum number of iterations
+        """
         self.mechanism = mechanism
         self.linkage_length = linkage_length
         self.step_length = step_length
-        self.sequences = self._get_combinations_sequences()
+        self.max_iters = max_iters + 1
+
+    def combinatorial_search(self):
+        """
+        Perform collision-free combinatorial search method.
+
+        :return: list of collision-free points parameters
+        :rtype: list
+        """
+
+        # check design for collisions
+        #init_collisions = self.collision_check(only_links=True, terminate_on_first=True)
+        init_collisions = 'test'
+        self.step_length = 25
+
+        if init_collisions is not None:
+            for i in range(10, self.max_iters):
+                coll_free_points_params = self.search_links(i)
+
+                if coll_free_points_params is not None:
+                    print("Collision-free for links found, starting joint search...")
+                    for i in range(1, self.max_iters):
+                        coll_free_points_params = self.search_mechanism(i)
+
+                        if coll_free_points_params is not None:
+                            return coll_free_points_params
+        else:
+            print("No collision-free solution found.")
+            return None
 
     def search_links(self, iteration: int):
         """
@@ -32,11 +143,18 @@ class CombinatorialSearch:
         """
         shift_val = iteration * self.linkage_length / self.step_length
 
-        for i, sequence in enumerate(self.sequences):
+        combs = self._get_combinations_sequences([0, 1, -1])
+        combs = [(-1, -1, 0, 0, 0, 1),
+                 (1, 1, 0, 0, -1, -1),
+                 (1, 0, 1, 0, -1, 0),
+                 (1, 0, -1, 1, -1, 0)]
+
+        for i, sequence in enumerate(combs):
             print("Iteration: {}, shift_value: {}, sequence {} of {}: {}"
-                  .format(iteration, shift_val, i, len(self.sequences), sequence))
+                  .format(iteration, shift_val, i, len(combs), sequence))
             points_params = shift_val * np.asarray(sequence)
-            # update the design of the mechanism - set initial design
+
+            # update the design of the mechanism
             self.mechanism.factorizations[0].set_joint_connection_points_by_parameters(
                 points_params[:len(self.mechanism.factorizations[0].dq_axes)])
             self.mechanism.factorizations[1].set_joint_connection_points_by_parameters(
@@ -51,87 +169,50 @@ class CombinatorialSearch:
         print("No collision-free solution found for iteration: {}".format(iter))
         return None
 
-    def search_mechnism(self, iteration: int):
+    def search_mechanism(self, iteration: int, shift_val: float = 0.001):
         """
         Search for the solution of the combinatorial search algorithm, including joints.
 
         Searches for the mechanism that is collision free (including joint segments).
-
-        :param iteration: iteration index
         """
-        pass
+        combs = self._get_combinations_sequences([1, -1])
+        combs = [(-1, -1, 1, 1, -1, 1),
+                 (-1, 1, -1, -1, -1, 1)]
 
-    def _get_combinations_sequences(self):
+        for i, sequence in enumerate(combs):
+            print("Iteration: {}, shift_value: {}, sequence {} of {}: {}"
+                  .format(iteration, shift_val, i, len(combs), sequence))
+            points_params = shift_val * np.asarray(sequence)
+            points_params = [[param, param * -1] for param in points_params]
+
+            # update the design of the mechanism
+            self.mechanism.factorizations[0].set_joint_connection_points_by_parameters(
+                points_params[:len(self.mechanism.factorizations[0].dq_axes)])
+            self.mechanism.factorizations[1].set_joint_connection_points_by_parameters(
+                points_params[len(self.mechanism.factorizations[1].dq_axes):][::-1])
+
+            colls = self.mechanism.collision_check(only_links=False,
+                                                   terminate_on_first=True)
+
+            if colls is None:
+                return points_params
+
+        print("No collision-free solution found for iteration: {}".format(iter))
+        return None
+
+    def _get_combinations_sequences(self, elements: list):
         """
         Get all combinations of the joint angles and shuffle them.
+
+        :param list elements: list of elements to combine
 
         :return: list of all combinations of joint angles
         :rtype: list
         """
-        elements = [0, 1, -1]
         combs = list(product(elements, repeat=self.mechanism.num_joints))
 
         # remove the combination of all zeros, which was already tested
-        combs.remove((0,) * self.mechanism.num_joints)
+        if 0 in elements:
+            combs.remove((0,) * self.mechanism.num_joints)
 
-        shuffle(combs)
-        combs = [(-1, -1, 0, 0, 0, 1),
-                 (1, 1, 0, 0, -1, -1),
-                 (1, 0, 1, 0, -1, 0),
-                 (1, 0, -1, 1, -1, 0)]
         return combs
-
-
-class SingularityAnalysis:
-    """
-    Singularity analysis algorithm of collision-free linkages by :footcite:t:`Li2020`.
-    """
-    def __init__(self):
-        pass
-
-    def check_singluarity(self, mechanism: RationalMechanism):
-        """
-        Check for singularity in the mechanism.
-
-        :param RationalMechanism mechanism: The mechanism to check for singularity
-        """
-        # check for singularity
-        jacobian = self.get_jacobian(mechanism.segments)
-
-        def get_submatrices(matrix):
-            submatrices = []
-            for row_to_remove in range(matrix.rows):
-                for col_to_remove in range(matrix.cols):
-                    # Create a submatrix by removing one row and one column
-                    submatrix = matrix.minor_submatrix(row_to_remove, col_to_remove)
-                    submatrices.append(submatrix)
-            return submatrices
-
-        def sum_of_squared_determinants(matrix):
-            submatrices = get_submatrices(matrix)
-            return sum(submatrix.det() ** 2 for submatrix in submatrices)
-
-        sum_det = sum_of_squared_determinants(jacobian)
-
-        return sum_det
-
-    def get_jacobian(self, segments: list[LineSegment]):
-        """
-        Get the algebraic Jacobian matrix of the mechanism.
-
-        :param list[LineSegment] segments: The line segments of the mechanism.
-        """
-        algebraic_plucker_coords = [joint.equation
-                                    for joint in segments if joint.type == 'j']
-
-        # normalization
-
-
-
-        jacobian = sp.Matrix.zeros(6, len(algebraic_plucker_coords))
-        for i, plucker_line in enumerate(algebraic_plucker_coords):
-            jacobian[:, i] = plucker_line.screw
-
-        return jacobian
-
-
