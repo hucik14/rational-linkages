@@ -60,7 +60,7 @@ In the interactive mode, the mechanisms can be animated.
 
     # Interactive plotting with a loaded mechanism model
 
-    from rational_linkages import RationalMechanism, Plotter
+    from rational_linkages import RationalMechanism, Plotter, PointHomogeneous
     from rational_linkages.models import bennett_ark24
 
 
