@@ -10,9 +10,9 @@ if __name__ == '__main__':
     number_of_links = 4
 
     # exudyn parameters
-    w = 0.015  # width of link
-    simulation_time = 1
-    torque_load = [0, 0, 0.04]
+    w = 0.06  # width of link
+    simulation_time = 1.5
+    torque_load = [0, 0, 50]
 
     # last joint is "generic" with these constraints
     constrained_axes = [1, 1, 0, 0, 0, 0]
@@ -21,7 +21,8 @@ if __name__ == '__main__':
     (links_pts, links_lengths, body_dim, links_masses_pts, joint_axes,
      rel_links_pts) = ExudynAnalysis().get_exudyn_params(m,
                                                          link_radius=w,
-                                                         scale=0.2)
+                                                         #scale=0.2
+                                                         )
 
     ###################################################################################
     # EXUDYN PART #####################################################################
@@ -37,38 +38,43 @@ if __name__ == '__main__':
 
     # GRAPIHCS BODIES
     # ground link
-    A = TransfMatrix.from_vectors(normal_x=[-0.55, 0.4, 0], approach_z=joint_axes[0])
+    A = TransfMatrix.from_vectors(normal_x=[-1, -0.8, 0], approach_z=joint_axes[-1])
     gGround0 = GraphicsDataFromSTLfile('link3.stl',
                                        color=[0.5, 0.5, 0, 1],
-                                       scale=0.001,
-                                       pOff=links_pts[0][0],
+                                       scale=0.005,
+                                       pOff=links_pts[0][0] - 0.29 * joint_axes[-1],
                                        Aoff=A.rot_matrix()
                                        )
+    # gGround0 = GraphicsDataRigidLink(p0=links_pts[0][0], p1=links_pts[0][1],
+    #                                  axis0=joint_axes[-1], axis1=joint_axes[0],
+    #                                  radius=[0.5 * w, 0.5 * w],
+    #                                  thickness=w, width=[1.2 * w, 1.2 * w],
+    #                                  color=color4darkgrey)
     graphics_bodies = [gGround0]
 
     A = TransfMatrix.from_vectors(normal_x=[-0.55, 0.4, 0], approach_z=joint_axes[0])
     stlGrafics = GraphicsDataFromSTLfile('link0.stl',
                                          color=[1, 0, 0, 1],
-                                         scale=1.0,
-                                         pOff=rel_links_pts[1][0],
+                                         scale=5,
+                                         pOff=rel_links_pts[1][0] - 0.04 * joint_axes[0],
                                          Aoff=A.rot_matrix()
                                          )
     graphics_bodies.append(stlGrafics)
 
-    A = TransfMatrix.from_vectors(normal_x=[0, 1, 0], approach_z=joint_axes[1])
+    A = TransfMatrix.from_vectors(normal_x=[0.1, 0.8, 0], approach_z=joint_axes[1])
     stlGrafics = GraphicsDataFromSTLfile('link1.stl',
                                          color=[0, 1, 0, 1],
-                                         scale=1.0,
-                                         pOff=rel_links_pts[2][0],
+                                         scale=5,
+                                         pOff=rel_links_pts[2][0] - 0.03 * joint_axes[1],
                                          Aoff=A.rot_matrix()
                                          )
     graphics_bodies.append(stlGrafics)
 
-    A = TransfMatrix.from_vectors(normal_x=[0.5, -0.5, 0], approach_z=joint_axes[2])
+    A = TransfMatrix.from_vectors(normal_x=[0.5, -0.3, 0], approach_z=joint_axes[2])
     stlGrafics = GraphicsDataFromSTLfile('link2.stl',
                                          color=[0, 0, 1, 1],
-                                         scale=1.0,
-                                         pOff=rel_links_pts[3][0],
+                                         scale=5,
+                                         pOff=rel_links_pts[3][0] + 0.1 * joint_axes[2],
                                          Aoff=A.rot_matrix()
                                          )
     graphics_bodies.append(stlGrafics)
@@ -107,13 +113,13 @@ if __name__ == '__main__':
 
     last_joint_frame = ComputeOrthonormalBasis(joint_axes[-1])
 
-    mbs.CreateGenericJoint(bodyNumbers=[bodies[-1], bodies[0]],
-                           position=links_pts[-1][1],
-                           rotationMatrixAxes=last_joint_frame,
-                           constrainedAxes=constrained_axes,
-                           useGlobalFrame=True,
-                           axesRadius=0.5*w,
-                           axesLength=w)
+    body = mbs.CreateGenericJoint(bodyNumbers=[bodies[-1], bodies[0]],
+                                  position=links_pts[-1][1],
+                                  rotationMatrixAxes=last_joint_frame,
+                                  constrainedAxes=constrained_axes,
+                                  axesRadius=0.5*w,
+                                  axesLength=w)
+    bodies.append(body)
 
     mbs.Assemble()
 
