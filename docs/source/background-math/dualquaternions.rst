@@ -222,13 +222,24 @@ The output of the example is:
 Dual Quaternion Actions
 -----------------------
 
-Text
+The class :class:`.DualQuaternionAction` implements methods for performing actions
+on points and lines in 3D space.
+
+An action is transformation of a point or a line by given dual quaternion. In case
+of a general dual quaternion, it is a half-turn around a screw axis defined by the
+dual quaternion.
 
 
 DQ Action on a Point
 ^^^^^^^^^^^^^^^^^^^^
 
-Points are described in :ref:`homogeneous-points`
+Points are described in :ref:`homogeneous-points`.
+
+An action of a dual quaternion :math:`\mathbf{p}` on a point :math:`\mathbf{q}` is
+defined as:
+
+.. math::
+    \mathbf{q}_{acted} = \mathbf{p^*}_\epsilon \mathbf{q} \mathbf{p^*}
 
 
 DQ Action on a Line
@@ -236,14 +247,17 @@ DQ Action on a Line
 
 Lines are described in :ref:`normalized-lines`
 
+An action of a dual quaternion :math:`\mathbf{p}` on a line :math:`\mathbf{l}` is
+defined as:
+
+.. math::
+    \mathbf{l}_{acted} = \mathbf{p} \mathbf{l} \mathbf{p^*}
+
 
 DQ Action on a Plane
 ^^^^^^^^^^^^^^^^^^^^
 
-Text
-
-
-Planes NOT SUPPORTED by the package yet.
+Planes are not supported by the package yet.
 
 
 Rational Curves and Motions

@@ -1,11 +1,11 @@
 Rational Linkages
 =================
 
-CollisionsFreeOptimization
---------------------------
+CollisionFreeOptimization
+-------------------------
 
-.. automodule:: rational_linkages.CollisionsFreeOptimization
-   :members: CombinatorialSearch, SingularityAnalysis
+.. automodule:: rational_linkages.CollisionFreeOptimization
+   :members: CollisionFreeOptimization, CombinatorialSearch
    :undoc-members:
    :show-inheritance:
 

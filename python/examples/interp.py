@@ -30,7 +30,7 @@ if __name__ == "__main__":
     f = c.factorize()
     m = RationalMechanism(f)
 
-    #m.collision_check(parallel=True)
+    m.collision_free_optimization()
 
     p = Plotter(interactive=True, steps=1000, arrows_length=0.5)
     p.plot(m, show_tool=True)

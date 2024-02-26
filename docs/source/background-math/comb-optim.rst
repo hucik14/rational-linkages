@@ -19,7 +19,7 @@ Initial Configuration
 The initial configuration is given as a set of points on a given mechanism joint axes.
 In case of 6R mechanism, there will be 6 points that form the smallest polyline
 connecting the axes. This is an unconstrained minimization problem, solved by
-method :meth:`.RationalMechanism.smallest_polyline()`.
+method :meth:`.CollisionFreeOptimization.smallest_polyline()`.
 The objective function is to minimize the length of the polyline.
 
 Collision Check
@@ -36,7 +36,7 @@ Combinatorial Search
 ^^^^^^^^^^^^^^^^^^^^
 
 The algorithm is implemented in the class
-:class:`.CollisionsFreeOptimization.CombinatorialSearch`.
+:class:`.CollisionFreeOptimization.CombinatorialSearch`.
 It is based on shifting the initial configuration points along
 the joint axes. The shift distance :math:`k` is given as
 
