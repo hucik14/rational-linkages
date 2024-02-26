@@ -1,8 +1,9 @@
 [![build](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/pipeline.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
-[![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=run_tests)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
 [![Documentation Status](https://readthedocs.org/projects/rational-linkages/badge/?version=latest)](https://rational-linkages.readthedocs.io/?badge=latest)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)]()
 [![PyPI version](https://badge.fury.io/py/rational-linkages.svg)](https://pypi.org/project/rational-linkages/)
+[![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=run_tests)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)]()
+
 
 # Rational Linkages
 
@@ -36,9 +37,9 @@ Using pip:
 
     <code>pip install -e .</code>
 
-## Usage
+## Tutorials and usage
 
-See the [documentation examples](https://rational-linkages.readthedocs.io/) for more details.
+See the [documentation examples](https://rational-linkages.readthedocs.io/latest/general/overview.html) for more details.
 
 
 ## Acknowledgements
