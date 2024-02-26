@@ -4,12 +4,13 @@ Classes in the Module:
     - PointsConnection: Operates the connection points for a given joint.
     - LineSegment: Represents the physical realization of a linkage.
 """
-import numpy as np
 from typing import Union
 
+import numpy as np
+
 from .DualQuaternion import DualQuaternion
-from .PointHomogeneous import PointHomogeneous
 from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
 
 
 class Linkage:
@@ -30,7 +31,7 @@ class Linkage:
         :param PointHomogeneous connection_points: The default connection point (
             common perpendicular)
         """
-        self.normalized_axis = NormalizedLine.from_direction_and_moment(*axis.dq2line())
+        self.normalized_axis = NormalizedLine(axis.dq2screw())
 
         if len(connection_points) == 1:
             self.default_connection_point = [connection_points[0], connection_points[0]]
@@ -102,10 +103,14 @@ class Linkage:
     def set_point_by_param(self, idx: int, param: Union[float, np.ndarray]):
         """
         Sets the connection point at the given parameter.
+
+        :param int idx: Index of the connection parameter on the joint, 0 or 1.
+        :param Union[float, np.ndarray] param: line-parameter defining the point on the
+            line (joint axis)
         """
         if idx == 0:
             if param == self.points_params[1]:
-                self.points_params = [param - 0.0001, self.points_params[1]]
+                self.points_params = [param, self.points_params[1] + 0.0001]
             else:
                 self.points_params = [param, self.points_params[1]]
         elif idx == 1:

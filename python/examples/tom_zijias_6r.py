@@ -1,11 +1,12 @@
 import numpy as np
 
-from rational_linkages import DualQuaternion
-from rational_linkages import PointHomogeneous
-from rational_linkages import MotionFactorization
-from RationalMechanism import RationalMechanism
-from Plotter import Plotter
-
+from rational_linkages import (
+    DualQuaternion,
+    MotionFactorization,
+    Plotter,
+    PointHomogeneous,
+    RationalMechanism,
+)
 
 # Definition of the two factorizations
 ######################################
@@ -31,15 +32,15 @@ k3li = np.array([0, 13380/101837, -2182923/2545925, 1266764/2545925, 0, -8468902
 k3li = k3li * (-5/6)
 k3li[0] = 2
 
-h1 = DualQuaternion(h1li, is_rotation=True)
-h2 = DualQuaternion(h2li, is_rotation=True)
-h3 = DualQuaternion(h3li, is_rotation=True)
-k1 = DualQuaternion(k1li, is_rotation=True)
-k2 = DualQuaternion(k2li, is_rotation=True)
-k3 = DualQuaternion(k3li, is_rotation=True)
+h1 = DualQuaternion(h1li)
+h2 = DualQuaternion(h2li)
+h3 = DualQuaternion(h3li)
+k1 = DualQuaternion(k1li)
+k2 = DualQuaternion(k2li)
+k3 = DualQuaternion(k3li)
 
 f1 = MotionFactorization([h1, h2, h3])
-f2 = MotionFactorization([k3, k2, k1])
+f2 = MotionFactorization([k3, k2, k1])  # REVERSED ORDER
 
 # Setting connecting points on the linkage
 #########################################
@@ -77,8 +78,9 @@ f2.set_joint_connection_points([PointHomogeneous([1, -0.68679894,  1.58103396,  
 
 if __name__ == '__main__':
     m = RationalMechanism([f1, f2])
-    p = Plotter(interactive=True, steps=500)
-    p.plot(m, show_tool=False)
+    p = Plotter(interactive=True, steps=500, joint_range_lim=2)
+    p.plot(m, show_tool=True)
+    p.show()
     #res = m.collision_check(parallel=True)
     #res = m.collision_check(parallel=False)
     #print(res)

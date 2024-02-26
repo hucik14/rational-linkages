@@ -1,4 +1,5 @@
 from copy import deepcopy
+
 import sympy as sp
 
 from .MiniBall import MiniBall
@@ -12,19 +13,21 @@ class RationalBezier(RationalCurve):
 
     :examples:
 
-    .. code-block:: python
-        :caption: Create a rational Bezier curve from control points
+    .. testcode::
+
+        # Create a rational Bezier curve from control points
 
         # part of Limancon of Pascal
 
         from rational_linkages import RationalBezier, PointHomogeneous
+        import numpy as np
 
 
         control_points = [PointHomogeneous(np.array([4.,  0., -2.,  4.])),
                           PointHomogeneous(np.array([0.,  1., -2.,  0.])),
                           PointHomogeneous(np.array([1.33333333, 2.66666667, 0., 1.33333333])),
                           PointHomogeneous(np.array([0., 1., 2., 0.])),
-                         PointHomogeneous(np.array([4., 0., 2., 4.]))]
+                          PointHomogeneous(np.array([4., 0., 2., 4.]))]
         bezier_curve = RationalBezier(control_points)
     """
 

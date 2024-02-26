@@ -30,13 +30,15 @@ class DualQuaternionAction:
 
         :example:
 
-        .. code-block:: python
-            :caption: Act on line with a Dual Quaternion
+        .. testcode::
 
-            from rational_linkages import DualQuaternion
-            from rational_linkages import NormalizedLine
+            #  Act on line with a Dual Quaternion
+
+            from rational_linkages import DualQuaternion, NormalizedLine
+
             dq = DualQuaternion([1, 2, 3, 4, 0.1, 0.2, 0.3, 0.4])
             line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
+
             line_after_half_turn = dq.act(line)
 
         """

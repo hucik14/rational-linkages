@@ -1,8 +1,8 @@
 from unittest import TestCase
+
 import numpy as np
 
-from rational_linkages import MotionInterpolation
-from rational_linkages import DualQuaternion, RationalCurve
+from rational_linkages import DualQuaternion, MotionInterpolation, RationalCurve
 
 
 class TestMotionInterpolation(TestCase):

@@ -1,6 +1,7 @@
-import numpy as np
-from warnings import warn
 from typing import Union
+from warnings import warn
+
+import numpy as np
 
 
 class TransfMatrix:
@@ -38,6 +39,9 @@ class TransfMatrix:
         # test if the tranformation matrix has proper rotation matrix
         self.is_rotation()
 
+    def __mul__(self, other):
+        return TransfMatrix(self.matrix @ other.matrix)
+
     @property
     def matrix(self):
         """
@@ -53,7 +57,10 @@ class TransfMatrix:
         return m
 
     def __repr__(self):
-        return f"{self.matrix}"
+        return np.array2string(self.matrix,
+                               precision=10,
+                               suppress_small=True,
+                               separator=', ')
 
     @classmethod
     def from_rpy(cls, rpy: list[float], units: str = 'rad') -> np.array:

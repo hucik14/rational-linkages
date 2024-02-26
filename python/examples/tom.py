@@ -1,10 +1,13 @@
-from rational_linkages import DualQuaternion
-from rational_linkages import PointHomogeneous
-from rational_linkages import NormalizedLine
-from TransfMatrix import TransfMatrix
-from Plotter import Plotter
-from MotionApproximation import MotionApproximation
 import numpy as np
+
+from rational_linkages import (
+    DualQuaternion,
+    MotionApproximation,
+    NormalizedLine,
+    Plotter,
+    PointHomogeneous,
+    TransfMatrix,
+)
 
 #plt = Plotter()
 

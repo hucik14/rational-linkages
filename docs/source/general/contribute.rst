@@ -45,8 +45,8 @@ Example of a docstring:
         One-line summary of the function.
 
         Multiline description of the function. For example, this function takes two
-        parameters and returns their sum. See more in a paper by
-        Authorsurname [#authorsurname2023]_.
+        parameters and returns their sum. See more in a paper
+        by :footcite:t:`Surname2024`.
 
         :param int a: description of parameter a
         :param float b: description of parameter b
@@ -59,8 +59,10 @@ Example of a docstring:
         :warns b: if b is an integer, not a float
 
         :example:
-        .. code-block:: python
-            :caption: General usage of a function  # be careful to make an empty line after this line
+
+        .. testcode::
+
+            # General usage of a function, this section will be also included in doctest
 
             a = 1
             b = 2.0
@@ -70,8 +72,8 @@ Example of a docstring:
 
         :see also: :func:`example_function2`
 
-        .. [#authorsurname2023] Authors, Title of the Source, *Journal Name*, Year,
-            DOI: *number* (https://doi.org/*number*))
+        .. footbibliography::
+
         """
         from warnings import warn
 
@@ -82,3 +84,16 @@ Example of a docstring:
 
         return a + b
 
+Then, remember to add a new **bibtex** entry to file ``refs.bib`` in `docs` directory.
+The entry should look like this:
+
+::
+
+    @article{Surname2024,
+        author = {Author, Name},
+        title = {Title of the Source},
+        journal = {Journal Name},
+        year = {2024},
+        doi = {number},
+        url = {weblink}
+    }

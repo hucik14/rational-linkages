@@ -1,4 +1,5 @@
 from unittest import TestCase
+
 import numpy as np
 
 from rational_linkages import PointHomogeneous
@@ -57,7 +58,7 @@ class TestPointHomogeneous(TestCase):
     def test_repr(self):
         obj = PointHomogeneous(np.array([1, 2, 3, 4]))
 
-        self.assertEqual(obj.__repr__(), "[1. 2. 3. 4.]")
+        self.assertEqual(obj.__repr__(), "[1., 2., 3., 4.]")
 
     def test_add(self):
         obj1 = PointHomogeneous(np.array([1, -2, 3, 4]))
@@ -96,7 +97,7 @@ class TestPointHomogeneous(TestCase):
         obj = PointHomogeneous(np.array([4, 1, 2, 3]))
 
         expected_matrix = np.array(
-            [[1, 0, 0, 0.25], [0, 1, 0, 0.5], [0, 0, 1, 0.75], [0, 0, 0, 1]]
+            [[1, 0, 0, 0], [0.25, 1, 0, 0], [0.5, 0, 1, 0], [0.75, 0, 0, 1]]
         )
 
         self.assertTrue(np.allclose(obj.point2matrix(), expected_matrix))

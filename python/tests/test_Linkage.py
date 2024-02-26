@@ -1,5 +1,6 @@
 from unittest import TestCase
-from rational_linkages import Linkage, PointsConnection, LineSegment
+
+from rational_linkages import LineSegment, Linkage, PointsConnection
 
 
 class Test(TestCase):

@@ -1,0 +1,3 @@
+.. _Exudyn: https://github.com/jgerstmayr/EXUDYN
+.. _Exudyn documentation: https://exudyn.readthedocs.io/
+.. _Gitlab repository: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages

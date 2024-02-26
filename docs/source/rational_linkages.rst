@@ -1,5 +1,13 @@
-Rational Linkages package
-=========================
+Rational Linkages
+=================
+
+CollisionFreeOptimization
+-------------------------
+
+.. automodule:: rational_linkages.CollisionFreeOptimization
+   :members: CollisionFreeOptimization, CombinatorialSearch
+   :undoc-members:
+   :show-inheritance:
 
 Dual Quaternion
 ---------------
@@ -13,6 +21,14 @@ Dual Quaternion Action
 ----------------------
 
 .. automodule:: rational_linkages.DualQuaternionAction
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Exudyn Analysis
+---------------
+
+.. automodule:: rational_linkages.ExudynAnalysis
    :members:
    :undoc-members:
    :show-inheritance:
@@ -47,12 +63,28 @@ Motion Factorization
 .. automodule:: rational_linkages.MotionFactorization
    :members:
    :undoc-members:
-   :show-inheritance: rational_linkages.RationalCurve
+   :show-inheritance:
+
+Motion Interpolation
+--------------------
+
+.. automodule:: rational_linkages.MotionInterpolation
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Normalized Line
 ---------------
 
 .. automodule:: rational_linkages.NormalizedLine
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Plotter
+-------
+
+.. automodule:: rational_linkages.Plotter
    :members:
    :undoc-members:
    :show-inheritance:

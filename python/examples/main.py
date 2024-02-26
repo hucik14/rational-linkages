@@ -1,53 +1,58 @@
-from rational_linkages import DualQuaternion
-from rational_linkages import PointHomogeneous
-from rational_linkages import MotionFactorization
-from RationalMechanism import RationalMechanism
-from Plotter import Plotter
-
+from rational_linkages import (
+    DualQuaternion,
+    MotionFactorization,
+    Plotter,
+    PointHomogeneous,
+    RationalMechanism,
+    TransfMatrix,
+)
 
 # Daniel's testing code, for examples see 'examples' folder or read
 # the documentation/docstrings of classes
 
 if __name__ == '__main__':
-    f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-                              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)])
+    f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
 
-    f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0], is_rotation=True),
-                              DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0], is_rotation=True)])
+    f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                              DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
 
-    h1 = DualQuaternion([-1 / 4, 13 / 5, -213 / 5, -68 / 15, 0, -52 / 3, -28 / 15, 38 / 5], is_rotation=True)
-    h2 = DualQuaternion([-3 / 10, 833 / 240, -451 / 160, 19 / 24, 0, -427 / 480, -1609 / 720, -1217 / 300], is_rotation=True)
-    h3 = DualQuaternion([9 / 4, -96 / 385, -3 / 11, 12 / 121, 0, -9 / 22, 18 / 77, -27 / 70], is_rotation=True)
-    k1 = DualQuaternion([9 / 4, -353293129020116088274366524 / 2046064697881244081606857985, 71057440088136127923615537 / 292294956840177725943836855,-770841181127162033209449696 / 3215244525241954985382205405,0,1285925291840670577611498917452530201753024451488061/ 3106776065243685802900593279235046876397736685683310,369908388252939453727221870302615264755351380922518/ 10873716228352900310152076477322664067392078399891585,-521169721602430808498118610255124429182751294514817/ 1977039314245981874573104814058666194071286981798470],is_rotation=True)
-    k2 = DualQuaternion([-3 / 10, -1584906194063534950985110611269499455843766362303 / 748589572249221191178253511800771099480289042160, -1920849060977583492916015219909062271715671063459 / 499059714832814127452169007867180732986859361440,-86070495207833111808000603712957119046286563789/ 74858957224922119117825351180077109948028904216,0,-1493945822997033838889866124648869571241092592593232647136782680036917092967587145383237343823/ 933977246133786589561715243908633265522422939574517641472244621670941695011531052831617095776,-4383675369926674968359098051148186009275012265484280981512415092271834593351409097148552548873/ 7004829346003399421712864329314749491418172046808882311041834662532062712586482896237128218320,4903731966877692899272930689015951377076396084948182642657351735217230221511376454058771819441/ 972892964722694364126786712404826318252523895390122543200254814240564265637011513366267808100],is_rotation=True)
-    k3 = DualQuaternion([-1 / 4, 71409809286507251213549 / 8803698436759977863535, -24700620508978006448565 / 586913229117331857569,-1322302914772604754264 / 586913229117331857569,0,-6009699344068792249739386119282475891686296/ 344467138512933679794546525402592102589761,-50778766896365492707380727887969151002044936/ 15501021233082015590754593643116644616539245,-8366061133662094762021335484888717836156016/ 5167007077694005196918197881038881538846415], is_rotation=True)
-
-    h1 = DualQuaternion([0, 1, 0, 0, 0, 0, 0, 0], is_rotation=True)
-    h2 = DualQuaternion([0, 0, 3, 0, 0, 0, 0, 1], is_rotation=True)
-    h3 = DualQuaternion([0, 1, 1, 0, 0, 0, 0, -2], is_rotation=True)
-    k1 = DualQuaternion([0, 47/37, 23/37, 0, 0, 0, 0, 24/37], is_rotation=True)
-    k2 = DualQuaternion([0, -93/481, 1440/481, 0, 0, 0, 0, -164/481], is_rotation=True)
-    k3 = DualQuaternion([0, 12/13, 5/13, 0, 0, 0, 0, -17/13], is_rotation=True)
-
-    #f1 = MotionFactorization([h1, h2, h3])
-    #f2 = MotionFactorization([k1, k2, k3])
+    # h1 = DualQuaternion([-1 / 4, 13 / 5, -213 / 5, -68 / 15, 0, -52 / 3, -28 / 15, 38 / 5])
+    # h2 = DualQuaternion([-3 / 10, 833 / 240, -451 / 160, 19 / 24, 0, -427 / 480, -1609 / 720, -1217 / 300])
+    # h3 = DualQuaternion([9 / 4, -96 / 385, -3 / 11, 12 / 121, 0, -9 / 22, 18 / 77, -27 / 70])
+    # k1 = DualQuaternion([9 / 4, -353293129020116088274366524 / 2046064697881244081606857985, 71057440088136127923615537 / 292294956840177725943836855,-770841181127162033209449696 / 3215244525241954985382205405,0,1285925291840670577611498917452530201753024451488061/ 3106776065243685802900593279235046876397736685683310,369908388252939453727221870302615264755351380922518/ 10873716228352900310152076477322664067392078399891585,-521169721602430808498118610255124429182751294514817/ 1977039314245981874573104814058666194071286981798470])
+    # k2 = DualQuaternion([-3 / 10, -1584906194063534950985110611269499455843766362303 / 748589572249221191178253511800771099480289042160, -1920849060977583492916015219909062271715671063459 / 499059714832814127452169007867180732986859361440,-86070495207833111808000603712957119046286563789/ 74858957224922119117825351180077109948028904216,0,-1493945822997033838889866124648869571241092592593232647136782680036917092967587145383237343823/ 933977246133786589561715243908633265522422939574517641472244621670941695011531052831617095776,-4383675369926674968359098051148186009275012265484280981512415092271834593351409097148552548873/ 7004829346003399421712864329314749491418172046808882311041834662532062712586482896237128218320,4903731966877692899272930689015951377076396084948182642657351735217230221511376454058771819441/ 972892964722694364126786712404826318252523895390122543200254814240564265637011513366267808100])
+    # k3 = DualQuaternion([-1 / 4, 71409809286507251213549 / 8803698436759977863535, -24700620508978006448565 / 586913229117331857569,-1322302914772604754264 / 586913229117331857569,0,-6009699344068792249739386119282475891686296/ 344467138512933679794546525402592102589761,-50778766896365492707380727887969151002044936/ 15501021233082015590754593643116644616539245,-8366061133662094762021335484888717836156016/ 5167007077694005196918197881038881538846415])
+    #
+    # h1 = DualQuaternion([0, 1, 0, 0, 0, 0, 0, 0])
+    # h2 = DualQuaternion([0, 0, 3, 0, 0, 0, 0, 1])
+    # h3 = DualQuaternion([0, 1, 1, 0, 0, 0, 0, -2])
+    # k1 = DualQuaternion([0, 47/37, 23/37, 0, 0, 0, 0, 24/37])
+    # k2 = DualQuaternion([0, -93/481, 1440/481, 0, 0, 0, 0, -164/481])
+    # k3 = DualQuaternion([0, 12/13, 5/13, 0, 0, 0, 0, -17/13])
+    #
+    # #f1 = MotionFactorization([h1, h2, h3])
+    # #f2 = MotionFactorization([k1, k2, k3])
+    # #"""
+    # f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0.1]),
+    #                                 PointHomogeneous([1, 0, 0, 0.5]),
+    #                                 PointHomogeneous([1, -0.5, 0, 0.2]),
+    #                                 PointHomogeneous([1, -0.5, 0, 0.3])])
+    # f2.set_joint_connection_points([PointHomogeneous([1, -0.16666667, 0, 0]),
+    #                                 PointHomogeneous([1, -0.16666667, 0, -0.1]),
+    #                                 PointHomogeneous([1, -0.66666667, 0, 0.1]),
+    #                                 PointHomogeneous([1, -0.66666667, 0, 0])])
     #"""
-    f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0.1]),
-                                    PointHomogeneous([1, 0, 0, 0.5]),
-                                    PointHomogeneous([1, -0.5, 0, 0.2]),
-                                    PointHomogeneous([1, -0.5, 0, 0.3])])
-    f2.set_joint_connection_points([PointHomogeneous([1, -0.16666667, 0, 0]),
-                                    PointHomogeneous([1, -0.16666667, 0, -0.1]),
-                                    PointHomogeneous([1, -0.66666667, 0, 0.1]),
-                                    PointHomogeneous([1, -0.66666667, 0, 0])])
-    #"""
-    m = RationalMechanism([f1, f2])
-    #res = m.collision_check(parallel=True)
+    t = TransfMatrix.from_rpy_xyz([90, 0, 45], [-0.2, 0.5, 0], units='deg')
+    tdq = DualQuaternion(t.matrix2dq())
+
+    m = RationalMechanism([f1, f2], tool=tdq)
     #res = m.collision_check(parallel=False)
     #print(res)
 
-    p = Plotter(interactive=True, steps=500)
-    p.plot(m, show_tool=False)
+    p = Plotter(interactive=True, steps=200, arrows_length=0.2)
+    p.plot(m, show_tool=True)
+    p.plot(m.get_motion_curve(), label='motion curve', interval='closed', color='red', linewidth='0.7', linestyle=':')
     p.show()
 
 
@@ -74,12 +79,12 @@ if __name__ == '__main__':
     k3li = k3li * (-5/6)
     k3li[0] = 2
     
-    h1 = DualQuaternion(h1li, is_rotation=True)
-    h2 = DualQuaternion(h2li, is_rotation=True)
-    h3 = DualQuaternion(h3li, is_rotation=True)
-    k1 = DualQuaternion(k1li, is_rotation=True)
-    k2 = DualQuaternion(k2li, is_rotation=True)
-    k3 = DualQuaternion(k3li, is_rotation=True)
+    h1 = DualQuaternion(h1li)
+    h2 = DualQuaternion(h2li)
+    h3 = DualQuaternion(h3li)
+    k1 = DualQuaternion(k1li)
+    k2 = DualQuaternion(k2li)
+    k3 = DualQuaternion(k3li)
     
     f1 = MotionFactorization([h1, h2, h3])
     f2 = MotionFactorization([k3, k2, k1])

@@ -1,4 +1,5 @@
 from math import isclose
+
 import numpy as np
 
 from .TransfMatrix import TransfMatrix
@@ -8,7 +9,6 @@ DualQuaternion = "DualQuaternion"
 
 
 class PointHomogeneous:
-    # TODO: add tests for __methods__
     """
     Points in projective space with homogeneous coordinates.
 
@@ -22,8 +22,9 @@ class PointHomogeneous:
 
     :examples:
 
-    .. code-block:: python
-        :caption: Create points in projective space
+    .. testcode::
+
+        # Create points in projective space
 
         from rational_linkages import PointHomogeneous
 
@@ -47,11 +48,13 @@ class PointHomogeneous:
         if point is None:  # point in the origin in PR3
             self.coordinates = np.array([1, 0, 0, 0])
         elif any(isinstance(element, Expr) for element in point):
-            self.coordinates = point
-            self.is_real = False
-
+            try:
+                self.coordinates = np.asarray(point, dtype='float64')
+            except Exception:
+                self.coordinates = point
+                self.is_real = False
         else:
-            self.coordinates = np.asarray(point, dtype=float)
+            self.coordinates = np.asarray(point, dtype='float64')
 
         if self.is_real and isclose(self.coordinates[0], 0.0):  # point at infinity
             self.is_at_infinity = True
@@ -119,7 +122,11 @@ class PointHomogeneous:
         Print point
         :return:
         """
-        return f"{self.coordinates}"
+        p = np.array2string(self.array(),
+                            precision=10,
+                            suppress_small=True,
+                            separator=', ')
+        return f"{p}"
 
     def __add__(self, other):
         """
@@ -164,18 +171,22 @@ class PointHomogeneous:
     def point2matrix(self) -> np.ndarray:
         """
         Convert point to homogeneous SE3 matrix with identity in rotation part
-        :return:
+
+        This methods follows the European convention for SE3 matrices, i.e. the first
+        column of the matrix is translation and the rotation part is represented by
+        the remaining 3 columns.
+
+        :return: 4x4 array
+        :rtype: np.ndarray
         """
-        # TODO repair to matrix with first row of normalized coordinates
         mat = np.eye(4)
         if len(self.coordinates_normalized) == 3:  # point in PR2
-            mat[0:2, 3] = self.coordinates_normalized[1:3]
+            mat[1:3, 0] = self.coordinates_normalized[1:3]
         elif len(self.coordinates_normalized) == 4:
-            mat[0:3, 3] = self.coordinates_normalized[1:4]
+            mat[1:4, 0] = self.coordinates_normalized[1:4]
         else:
             raise ValueError("PointHomogeneous: point has to be in PR2 or PR3")
 
-        mat[3, 3] = self.coordinates_normalized[0]
         return mat
 
     def point2dq_array(self) -> np.ndarray:
@@ -200,18 +211,22 @@ class PointHomogeneous:
     def point2affine12d(self, map_alpha: TransfMatrix) -> np.array:
         """
         Map point to 12D affine space
-        :param map_alpha: SE3matrix object that maps point to 12D affine space
-        :return: array of floats
+
+        :param TransfMatrix map_alpha: SE3matrix object that maps point to 12D affine
+            space
+
+        :return: 12D affine point
+        :rtype: np.array
         """
 
         x = self.coordinates
+        point0 = x[0] * map_alpha.t
+
         point1 = x[1] * map_alpha.n
         point2 = x[2] * map_alpha.o
         point3 = x[3] * map_alpha.a
-        # TODO repair to matrix with first row of normalized coordinates
-        point4 = x[0] * map_alpha.t
 
-        return np.concatenate((point1, point2, point3, point4))
+        return np.concatenate((point0, point1, point2, point3))
 
     def linear_interpolation(self, other, t: float = 0.5) -> "PointHomogeneous":
         """

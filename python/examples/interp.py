@@ -1,10 +1,11 @@
-from rational_linkages import DualQuaternion
-from rational_linkages import TransfMatrix
-from rational_linkages import Plotter
-from rational_linkages import FactorizationProvider
-from rational_linkages import RationalMechanism
-from rational_linkages import MotionInterpolation
-
+from rational_linkages import (
+    DualQuaternion,
+    FactorizationProvider,
+    MotionInterpolation,
+    Plotter,
+    RationalMechanism,
+    TransfMatrix,
+)
 
 if __name__ == "__main__":
 
@@ -25,11 +26,11 @@ if __name__ == "__main__":
 
     p0 = DualQuaternion()
 
-    c = MotionInterpolation.interpolate([p1, p2, p3])
+    c = MotionInterpolation.interpolate([p0, p1, p2, p3])
     f = c.factorize()
     m = RationalMechanism(f)
 
-    #m.collision_check(parallel=True)
+    m.collision_free_optimization()
 
     p = Plotter(interactive=True, steps=1000, arrows_length=0.5)
     p.plot(m, show_tool=True)

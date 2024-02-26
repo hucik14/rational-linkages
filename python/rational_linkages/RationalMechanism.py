@@ -1,16 +1,18 @@
-import numpy as np
-import sympy as sp
+import pickle
 from copy import deepcopy
 from time import time
-import pickle
+from typing import Union
 
-from .RationalCurve import RationalCurve
+import numpy as np
+import sympy as sp
+
 from .DualQuaternion import DualQuaternion
-from .NormalizedLine import NormalizedLine
 from .MotionFactorization import MotionFactorization
+from .NormalizedLine import NormalizedLine
+from .RationalCurve import RationalCurve
+from .TransfMatrix import TransfMatrix
 
 PointHomogeneous = 'PointHomogeneous'
-TransfMatrix = 'TransfMatrix'
 
 
 class RationalMechanism(RationalCurve):
@@ -21,14 +23,15 @@ class RationalMechanism(RationalCurve):
     :ivar num_joints: number of joints in the mechanism
     :ivar is_linkage: True if the mechanism is a linkage, False if it is 1 branch of a
         linkage
-    :ivar end_effector: end effector of the mechanism
+    :ivar tool_frame: end effector of the mechanism
     :ivar segments: list of LineSegment objects representing the physical realization of
         the linkage
 
     :examples:
 
-    .. code-block:: python
-        :caption: Create a rational mechanism from given example
+    .. testcode::
+
+        # Create a rational mechanism from given example
 
         from rational_linkages import RationalMechanism, Plotter
         from rational_linkages.models import bennett_ark24
@@ -60,7 +63,7 @@ class RationalMechanism(RationalCurve):
     """
 
     def __init__(self, factorizations: list[MotionFactorization],
-                 end_effector: DualQuaternion = None):
+                 tool: Union[DualQuaternion, str] = None):
         """
         Initializes a RationalMechanism object
         """
@@ -70,9 +73,7 @@ class RationalMechanism(RationalCurve):
 
         self.is_linkage = True if len(self.factorizations) == 2 else False
 
-        self.end_effector = (
-            DualQuaternion(self.evaluate(0, inverted_part=True))
-            if end_effector is None else end_effector)
+        self.tool_frame = self._determine_tool(tool)
 
         if self.is_linkage:
             self.segments = self._get_line_segments_of_linkage()
@@ -112,6 +113,43 @@ class RationalMechanism(RationalCurve):
 
         with open(filename, 'wb') as file:
             pickle.dump(self, file)
+
+    def _determine_tool(self, tool: Union[DualQuaternion, None, str]) -> DualQuaternion:
+        """
+        Determine the tool frame of the mechanism.
+
+        :return: tool frame of the mechanism
+        :rtype: DualQuaternion
+        """
+        if tool is None:
+             return DualQuaternion(self.evaluate(0, inverted_part=True))
+        elif isinstance(tool, DualQuaternion):
+            return tool
+        elif tool == 'mid_of_last_link':
+            # calculate the midpoint of the last link
+            nearly_zero = np.finfo(float).eps
+            p0 = self.factorizations[0].direct_kinematics(nearly_zero, inverted_part=True)[-1]
+            p1 = self.factorizations[1].direct_kinematics(nearly_zero, inverted_part=True)[-1]
+
+            # define the x axis vector - along the last link
+            vec_x = (p1 - p0) / np.linalg.norm(p1 - p0)
+
+            # get some random vector from the last joint points
+            vec_y_pts = self.factorizations[0].direct_kinematics(nearly_zero, inverted_part=True)[-2:]
+            vec_y = vec_y_pts[1] - vec_y_pts[0]
+
+            # define the z axis vector - perpendicular to the x and y vectors
+            vec_z = np.cross(vec_x, vec_y)
+            vec_z = vec_z / np.linalg.norm(vec_z)
+
+            mid = (p1 + p0) / 2
+
+            t = TransfMatrix.from_vectors(normal_x=vec_x, approach_z=vec_z, origin=mid)
+            return DualQuaternion(t.matrix2dq())
+        else:
+            raise ValueError("tool must be either DualQuaternion, "
+                             "None default motion zero configuration, "
+                             "or 'mid_of_last_link'")
 
     def get_design(self, unit: str = 'rad',
                    scale: float = 1.0,
@@ -191,7 +229,7 @@ class RationalMechanism(RationalCurve):
         The parameters are in the order: theta, d, a, alpha. It follows the standard
         convention. The first row is are the parameters of the base frame.
 
-        See more in the paper by Huczala et al. [#huczala2022icma]_.
+        See more in the paper by :footcite:t:`Huczala2022iccma`.
 
         :param str unit: desired unit of the angle parameters, can be 'deg' or 'rad'
         :param float scale: scale of the length parameters of the linkage
@@ -199,12 +237,8 @@ class RationalMechanism(RationalCurve):
         :return: theta, d, a, alpha array of Denavit-Hartenberg parameters
         :rtype: np.ndarray
 
-        .. [#huczala2022icma] D. Huczala, T. Kot, J. Mlotek, J. Suder and M. Pfurner,
-            "An Automated Conversion Between Selected Robot Kinematic Representations,"
-            2022 *10th International Conference on Control, Mechatronics and Automation
-            (ICCMA)*, Belval, Luxembourg, 2022, pp. 47-52,
-            DOI: 10.1109/ICCMA56665.2022.10011595
-            (https://doi.org/10.1109/ICCMA56665.2022.10011595).
+        .. footbibliography::
+
         """
         frames = self.get_frames()
 
@@ -354,7 +388,11 @@ class RationalMechanism(RationalCurve):
 
         return new_params
     
-    def collision_check(self, parallel: bool = False, pretty_print: bool = True):
+    def collision_check(self,
+                        parallel: bool = False,
+                        pretty_print: bool = True,
+                        only_links: bool = False,
+                        terminate_on_first: bool = False):
         """
         Perform full-cycle collision check on the line-model linkage.
 
@@ -365,28 +403,51 @@ class RationalMechanism(RationalCurve):
         :param bool parallel: if True, perform collision check in parallel using
             multiprocessing
         :param bool pretty_print: if True, print the results in a readable form
+        :param bool only_links: if True, only link-link collisions are checked,
+            expecting that distances between joint connection points are minimal
+        :param bool terminate_on_first: if True, terminate the collision check when
+            the first collision is found
 
         :return: list of collision check colliding parameter values
         :rtype: list[float]
         """
         start_time = time()
-        print("")
         print("Collision check started...")
 
         # update the line segments (physical realization of the linkage)
         self.segments = self._get_line_segments_of_linkage()
 
         iters = []
+        # iterate over all line segments
         for ii in range(len(self.segments)):
+            # for each line segment, iterate over all other line segments that are not
+            # its immediate neighbors
             for jj in range(ii + 2, len(self.segments)):
-                iters.append((ii, jj))
+                # in only links should be checked (joint segments have minimal length)
+                if only_links:
+                    if (self.segments[ii].type == 'j'
+                            or self.segments[jj].type == 'j'
+                            or jj - ii == 2):  # skip neighbouring links
+                        pass
+                    else:
+                        iters.append((ii, jj))
+                else:
+                    iters.append((ii, jj))
+
+        # remove the last neighbouring pair of links
+        if only_links:
+            # find the pair with the highest difference
+            max_pair = max(iters, key=lambda x: x[1] - x[0])
+            # remove the pair from the list
+            iters.remove(max_pair)
 
         print(f"--- number of tasks to solve: {len(iters)} ---")
 
         if parallel:
             collision_results = self._collision_check_parallel(iters)
         else:
-            collision_results = self._collision_check_nonparallel(iters)
+            collision_results = self._collision_check_nonparallel(iters,
+                                                                  terminate_on_first)
 
         results = [r for r in collision_results if r is not None]
         flattened_results = [item for sublist in results for item in sublist]
@@ -394,7 +455,7 @@ class RationalMechanism(RationalCurve):
             flattened_results = None
 
         end_time = time()
-        print(f"Collision check finished in {end_time - start_time} seconds.")
+        print(f"--- collision check finished in {end_time - start_time} seconds.")
 
         if pretty_print:
             if flattened_results is None:
@@ -427,7 +488,8 @@ class RationalMechanism(RationalCurve):
 
         return list(results)
 
-    def _collision_check_nonparallel(self, iters: list[tuple[int, int]]):
+    def _collision_check_nonparallel(self, iters: list[tuple[int, int]],
+                                     terminate_on_first: bool = False):
         """
         Perform collision check in non-parallel mode.
 
@@ -435,6 +497,8 @@ class RationalMechanism(RationalCurve):
         motion curve, slower for 6-bar linkages with "complex" motions.
 
         :param list iters: list of tuples of indices of the line segments to be checked
+        :param bool terminate_on_first: if True, terminate the collision check when
+            the first collision is found
 
         :return: list of collision check results
         :rtype: list[str]
@@ -444,7 +508,10 @@ class RationalMechanism(RationalCurve):
 
         results = []
         for val in iters:
-            results.append(self._check_given_pair(val))
+            collsion = self._check_given_pair(val)
+            results.append(collsion)
+            if terminate_on_first and collsion is not None:
+                break
         return results
 
     def _check_given_pair(self, iters: tuple[int, int]):
@@ -530,13 +597,13 @@ class RationalMechanism(RationalCurve):
         solutions = deepcopy(sol_real)
 
         for sol in sol_real_inversed:
-            if not np.isclose(sol, 0):
-                sol = 1 / sol
-                solutions = np.append(solutions, sol)
+            if np.isclose(sol, 0):
+                # eps is very small number (avoid division by zero)
+                sol = 1 / np.finfo(float).eps
             else:
-                #sol = np.inf
-                sol = 10 ** 20
-                solutions = np.append(solutions, sol)
+                sol = 1 / sol
+
+            solutions = np.append(solutions, sol)
 
         intersection_points = self.get_intersection_points(l0, l1, solutions)
 
@@ -621,4 +688,55 @@ class RationalMechanism(RationalCurve):
 
         return segments[0] + segments[1][::-1]
 
+    def get_motion_curve(self):
+        """
+        Return the rational motion curve of the linkage as RationalCurve object.
 
+        :return: motion curve of the linkage
+        :rtype: RationalCurve
+        """
+        return self.curve()
+
+    def singularity_check(self):
+        """
+        Perform singularity check of the mechanism.
+        """
+        from .SingularityAnalysis import SingularityAnalysis
+
+        sa = SingularityAnalysis()
+        return sa.check_singularity(self)
+
+    def collision_free_optimization(self,
+                                    method: str = None,
+                                    step_length=25,
+                                    min_joint_segment_length: float = 0.001,
+                                    max_iters: int = 10):
+        """
+        Perform collision-free optimization of the mechanism.
+
+        :param str method: method of optimization, can be 'combinatorial_search' by
+            :footcite:t:`Li2020`
+        :param float step_length: length of the step, i.e. the shift distance value, see
+            :ref:`combinatorial_search` for more detail
+        :param float min_joint_segment_length: minimum length of the joint segment
+        :param int max_iters: maximum number of iterations
+
+        :return: list of collision-free points parameters
+        :rtype: list
+        """
+        from .CollisionFreeOptimization import CollisionFreeOptimization
+        optimizer = CollisionFreeOptimization(self)
+
+        if method is None:
+            method = 'combinatorial_search'
+
+        match method:
+            case 'combinatorial_search':
+                results = optimizer.optimize(method=method,
+                                             step_length=step_length,
+                                             min_joint_segment_length=min_joint_segment_length,
+                                             max_iters=max_iters)
+            case _:
+                raise ValueError("Invalid method.")
+
+        return results

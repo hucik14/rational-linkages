@@ -1,10 +1,10 @@
 from copy import deepcopy
 from typing import Union
+
 import numpy as np
 import sympy as sp
 
 from .PointHomogeneous import PointHomogeneous
-
 
 MotionFactorization = "MotionFactorization"
 
@@ -24,8 +24,9 @@ class RationalCurve:
 
     :examples:
 
-    .. code-block:: python
-        :caption: Limancon of Pascal -- from polynomial equations
+    .. testcode::
+
+        # Limancon of Pascal -- from polynomial equations
 
 
         import sympy as sp
@@ -39,8 +40,9 @@ class RationalCurve:
         eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t)
         curve = RationalCurve([eq0, eq1, eq2, eq0])
 
-    .. code-block:: python
-        :caption: From coefficients
+    .. testcode::
+
+        # From coefficients
 
         import sympy as sp
         from rational_linkages import RationalCurve

@@ -1,4 +1,5 @@
 from unittest import TestCase
+
 import numpy as np
 
 from rational_linkages import TransfMatrix
@@ -17,6 +18,21 @@ class TestTransfMatrix(TestCase):
         transf = TransfMatrix(mat)
         self.assertTrue(np.allclose(transf.matrix, mat))
         self.assertIsInstance(transf, TransfMatrix)
+
+    def test__mul(self):
+        tm1 = TransfMatrix.from_rpy([0.1, 0.2, 0.3])
+        tm2 = TransfMatrix.from_rpy([0.4, 0.5, 0.6])
+        tm_result = tm1 * tm2
+        expected_result = tm1.matrix @ tm2.matrix
+        self.assertTrue(np.allclose(tm_result.matrix, expected_result))
+
+        m1 = np.array([[1, 0, 0, 0], [3, 0, -1, 0], [8, 1, 0, 0], [0, 0, 0, 1]])
+        m2 = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [8, 0, 1, 0], [3, 0, 0, 1]])
+        expected_result = m1 @ m2
+        tm1 = TransfMatrix(m1)
+        tm2 = TransfMatrix(m2)
+        tm_result = tm1 * tm2
+        self.assertTrue(np.allclose(tm_result.matrix, expected_result))
 
     def test_from_rpy_xyz(self):
         transf = TransfMatrix.from_rpy_xyz([0, 0, 0], [0, 0, 0])

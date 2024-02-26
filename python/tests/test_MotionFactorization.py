@@ -1,19 +1,22 @@
 from unittest import TestCase
-import sympy as sp
-import numpy as np
 
-from rational_linkages import MotionFactorization
-from rational_linkages import DualQuaternion
-from rational_linkages import NormalizedLine
-from rational_linkages import PointHomogeneous
+import numpy as np
+import sympy as sp
+
+from rational_linkages import (
+    DualQuaternion,
+    MotionFactorization,
+    NormalizedLine,
+    PointHomogeneous,
+)
 
 
 class TestMotionFactorization(TestCase):
     def test_init(self):
         f1 = MotionFactorization(
             [
-                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True),
+                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0]),
             ]
         )
         self.assertTrue(isinstance(f1, MotionFactorization))
@@ -22,17 +25,16 @@ class TestMotionFactorization(TestCase):
     def test_repr(self):
         f1 = MotionFactorization(
             [
-                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True),
+                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0]),
             ]
         )
 
-        self.assertEqual(repr(f1), "MotionFactorization([[t 0 0 -1] + eps[0 0 0 0], "
-                                   "[t 0 0 -2] + eps[0 0 1 0]])")
+        self.assertEqual(repr(f1), "MotionFactorization([[t, 0, 0, -1, 0, 0, 0, 0], [t, 0, 0, -2, 0, 0, 1, 0]])")
 
     def test_get_polynomials_from_factorization(self):
-        f1 = [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)]
+        f1 = [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])]
 
         t = sp.Symbol("t")
 
@@ -50,8 +52,8 @@ class TestMotionFactorization(TestCase):
     def test_get_symbolic_factors(self):
         f1 = MotionFactorization(
             [
-                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True),
+                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0]),
             ]
         )
 
@@ -64,20 +66,20 @@ class TestMotionFactorization(TestCase):
     def test_get_numerical_factors(self):
         f1 = MotionFactorization(
             [
-                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True),
+                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0]),
             ]
         )
 
         self.assertEqual(f1.get_numerical_factors(0.5),
-                         [DualQuaternion([0.5, 0, 0, -1, 0, 0, 0, 0], is_rotation=True),
-                          DualQuaternion([0.5, 0, 0, -2.0, 0, 0, 1, 0], is_rotation=True)])
+                         [DualQuaternion([0.5, 0, 0, -1, 0, 0, 0, 0]),
+                          DualQuaternion([0.5, 0, 0, -2.0, 0, 0, 1, 0])])
 
     def test_act(self):
         f1 = MotionFactorization(
             [
-                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True),
+                DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0]),
             ]
         )
 
@@ -97,22 +99,19 @@ class TestMotionFactorization(TestCase):
 
         # test with other factorization, results has to be the same
         f2 = MotionFactorization(
-            [DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0], is_rotation=True),
-             DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0], is_rotation=True)])
+            [DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+             DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
 
         act_p0_withf2 = f2.act(point0, 0.782886)
         self.assertTrue(np.allclose(act_p0_withf2.normalized_in_3d(), act_p0.normalized_in_3d()))
 
         # test with other factorizations, results has to be the same
-        h1 = DualQuaternion([0, 1, 0, 0, 0, 0, 0, 0], is_rotation=True)
-        h2 = DualQuaternion([0, 0, 3, 0, 0, 0, 0, 1], is_rotation=True)
-        h3 = DualQuaternion([0, 1, 1, 0, 0, 0, 0, -2], is_rotation=True)
-        k1 = DualQuaternion([0, 47 / 37, 23 / 37, 0, 0, 0, 0, 24 / 37],
-                            is_rotation=True)
-        k2 = DualQuaternion([0, -93 / 481, 1440 / 481, 0, 0, 0, 0, -164 / 481],
-                            is_rotation=True)
-        k3 = DualQuaternion([0, 12 / 13, 5 / 13, 0, 0, 0, 0, -17 / 13],
-                            is_rotation=True)
+        h1 = DualQuaternion([0, 1, 0, 0, 0, 0, 0, 0])
+        h2 = DualQuaternion([0, 0, 3, 0, 0, 0, 0, 1])
+        h3 = DualQuaternion([0, 1, 1, 0, 0, 0, 0, -2])
+        k1 = DualQuaternion([0, 47 / 37, 23 / 37, 0, 0, 0, 0, 24 / 37])
+        k2 = DualQuaternion([0, -93 / 481, 1440 / 481, 0, 0, 0, 0, -164 / 481])
+        k3 = DualQuaternion([0, 12 / 13, 5 / 13, 0, 0, 0, 0, -17 / 13])
 
         f1 = MotionFactorization([h1, h2, h3])
         f2 = MotionFactorization([k1, k2, k3])
@@ -122,30 +121,30 @@ class TestMotionFactorization(TestCase):
                                     f2.act(point, 0.55).normalized_in_3d()))
 
     def test_direct_kinematics(self):
-        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True)
-        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)
+        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])
+        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])
 
         f = MotionFactorization([h1, h2])
 
         points = f.direct_kinematics(0)
         self.assertTrue(np.allclose(points,
-                                    np.array([[0., 0., -0.0001], [0., 0., 0.],
-                                              [0.5, 0., -0.0001], [0.5, 0.,  0.]])))
+                                    np.array([[0., 0., 0.], [0., 0., 0.0001],
+                                              [0.5, 0., 0.], [0.5, 0.,  0.0001]])))
 
     def test_direct_kinematics_of_tool(self):
-        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True)
-        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)
+        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])
+        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])
 
         f = MotionFactorization([h1, h2])
 
         tool_pt = f.direct_kinematics_of_tool(10000000000000000000000000000000000000000,
-                                              np.array([1, 0, 0, 0]))
+                                              np.array([0, 0, 0]))
         self.assertTrue(np.allclose(tool_pt,
                                     np.array([[0, 0, 0]])))
 
     def test_joint_angle_to_t_param(self):
-        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True)
-        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)
+        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])
+        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])
 
         f = MotionFactorization([h1, h2])
 
@@ -156,8 +155,8 @@ class TestMotionFactorization(TestCase):
         self.assertTrue(np.allclose(np.array([1 / t]), np.array([0])))
 
     def test_t_param_to_joint_angle(self):
-        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True)
-        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)
+        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])
+        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])
 
         f = MotionFactorization([h1, h2])
 
@@ -168,8 +167,8 @@ class TestMotionFactorization(TestCase):
         self.assertTrue(np.allclose(np.array([angle]), np.array([0])))
 
     def test_factorize(self):
-        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True)
-        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)
+        h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])
+        h2 = DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])
 
         f = MotionFactorization([h1, h2])
 

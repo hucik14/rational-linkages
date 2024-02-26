@@ -1,4 +1,4 @@
-Python Modules
+Python Package
 ==============
 
 .. toctree::

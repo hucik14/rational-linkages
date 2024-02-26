@@ -1,8 +1,8 @@
 from unittest import TestCase
+
 import numpy as np
 
-from rational_linkages import MiniBall
-from rational_linkages import PointHomogeneous
+from rational_linkages import MiniBall, PointHomogeneous
 
 
 class TestMiniBall(TestCase):

@@ -1,7 +1,10 @@
 from unittest import TestCase
+
+import numpy as np
 import sympy as sp
 
 from rational_linkages import RationalDualQuaternion
+
 
 class Test(TestCase):
     def test_rational_dual_quaternion(self):
@@ -41,4 +44,5 @@ class Test(TestCase):
                             sp.Rational(-28 / 15), sp.Rational(38 / 5)]
         rdq = RationalDualQuaternion(rational_numbers)
 
-        self.assertEqual(rdq.array(), rational_numbers)
+        for i in range(8):
+            self.assertEqual(rdq[i], rational_numbers[i])

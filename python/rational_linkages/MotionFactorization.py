@@ -1,12 +1,13 @@
-import numpy as np
-import sympy as sp
 from typing import Union
 
+import numpy as np
+import sympy as sp
+
 from .DualQuaternion import DualQuaternion
-from .PointHomogeneous import PointHomogeneous
-from .RationalCurve import RationalCurve
 from .Linkage import Linkage
 from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
+from .RationalCurve import RationalCurve
 
 
 class MotionFactorization(RationalCurve):
@@ -14,8 +15,8 @@ class MotionFactorization(RationalCurve):
     Class representing Motion Factorization sequence
 
     Inherits from :class:`rational_linkages.RationalCurve` class. Given as set of polynomials in
-    dual quaternion space. You can find more information in the paper by Frischauf et
-    al. [#frischauf2022]_.
+    dual quaternion space. You can find more information in the paper by
+    :footcite:t:`Frischauf2023`.
 
     :param list[DualQuaternion] sequence_of_factored_dqs: list of DualQuaternions
         representing the revolute axes of the rational motion factorization
@@ -29,20 +30,20 @@ class MotionFactorization(RationalCurve):
 
     :example:
 
-    .. code-block:: python
-        :caption: Motion factorization of a 2R mechanism
+    .. testcode::
+
+        # Motion factorization of a 2R mechanism
 
         from rational_linkages import DualQuaternion
         from rational_linkages import MotionFactorization
 
 
         f1 = MotionFactorization(
-            [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0], is_rotation=True),
-             DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0], is_rotation=True)])
+            [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+             DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
 
-    .. [#frischauf2022] Frischauf, Johanna et al. (2022). A multi-Bennett 8R mechanism obtained from
-        factorization of bivariate motion polynomials. *Mechanisms and Machine Theory*.
-        DOI: 10.1016/j.mechmachtheory.2022.105143 (https://doi.org/10.1016/j.mechmachtheory.2022.105143).
+    .. footbibliography::
+
     """
 
     def __init__(self, sequence_of_factored_dqs: list[DualQuaternion]):
@@ -167,9 +168,8 @@ class MotionFactorization(RationalCurve):
                              for i in range(len(linkage_points))]
         return linkage_points_3d
 
-    def direct_kinematics_of_tool(
-        self, t_numerical: float, end_effector: np.ndarray, inverted_part=False
-    ) -> np.ndarray:
+    def direct_kinematics_of_tool(self, t_numerical: float, end_effector: np.ndarray,
+                                  inverted_part=False) -> np.ndarray:
         """
         Direct kinematics of the end effector position
 
@@ -181,7 +181,7 @@ class MotionFactorization(RationalCurve):
         :return: list of np.array - point of the tool position
         :rtype: np.ndarray
         """
-        ee_point = PointHomogeneous(end_effector)
+        ee_point = PointHomogeneous.from_3d_point(end_effector)
 
         if inverted_part:
             point_after_action = self.act(
@@ -245,7 +245,7 @@ class MotionFactorization(RationalCurve):
 
         # avoid division by zero
         if normalized_angle == 0.0:
-            normalized_angle = 0.000000000000000001
+            normalized_angle = np.finfo(float).eps
 
         sqrt_p_norm = np.sqrt(self.dq_axes[0].p.norm())
         t = sqrt_p_norm / np.tan(normalized_angle/2) + self.dq_axes[0].p[0]
@@ -268,7 +268,7 @@ class MotionFactorization(RationalCurve):
         t_param_joint0 = t_param - self.dq_axes[0].p[0]
 
         if t_param_joint0 == 0.0:
-            t_param_joint0 = 0.000000000000000001
+            t_param_joint0 = np.finfo(float).eps
 
         angle = 2 * np.arctan(np.sqrt(self.dq_axes[0].p.norm()) / t_param_joint0)
 
@@ -294,7 +294,8 @@ class MotionFactorization(RationalCurve):
         """
         Get points of the linkage of the MotionFactorization
 
-        :return: list of points of the linkage
+        :return: list of points of the linkage, the points are the nearest to origin,
+            i.e. the foot point of a line (axis)
         :rtype: list[Linkage]
         """
         return [Linkage(axis, [PointHomogeneous.from_3d_point(axis.dq2point_via_line())])
@@ -304,7 +305,7 @@ class MotionFactorization(RationalCurve):
         """
         Set points of the linkage of the MotionFactorization
 
-        :param list[Linkage] points: list of points of the linkage
+        :param list[PointHomogeneous] points: list of points of the linkage
         """
         # pair the input points
         points_pairs = []
@@ -313,6 +314,23 @@ class MotionFactorization(RationalCurve):
 
         for i in range(len(points_pairs)):
             self.linkage[i] = Linkage(self.dq_axes[i], points_pairs[i])
+
+    def set_joint_connection_points_by_parameters(self, params: list):
+        """
+        Set joint connection points based on the given line-parameters.
+
+        :param np.ndarray params: Parameters used to calculate the points
+            on the lines.
+        """
+        for i, linkage in enumerate(self.linkage):
+            if len(params[i]) == 1:
+                linkage.set_point_by_param(0, params[i][0])
+                linkage.set_point_by_param(1, params[i][0])
+            elif len(params[i]) == 2:
+                linkage.set_point_by_param(0, params[i][0])
+                linkage.set_point_by_param(1, params[i][1])
+            else:
+                raise ValueError("The parameters must be of length 1 or 2.")
 
     def joint(self, idx: int) -> tuple:
         """
@@ -325,7 +343,14 @@ class MotionFactorization(RationalCurve):
         """
         point0 = self.linkage[idx].points[0]
         point1 = self.linkage[idx].points[1]
-        joint = NormalizedLine.from_two_points(point0, point1)
+
+        if np.allclose(point0.normalized_in_3d(), point1.normalized_in_3d()):
+            # if the points are the same, add a minimal offset
+            min_point = PointHomogeneous(point0.array() + np.array([0, 0, 0, 0.0001]))
+            joint = NormalizedLine.from_two_points(point0, min_point)
+        else:
+            joint = NormalizedLine.from_two_points(point0, point1)
+
         return joint, point0, point1
 
     def link(self, idx: int) -> tuple:
@@ -354,6 +379,11 @@ class MotionFactorization(RationalCurve):
         """
         point0 = self.linkage[0].points[0]
         point1 = other_factorization_point
+
+        if np.allclose(point0.normalized_in_3d(), point1.normalized_in_3d()):
+            # if the points are the same, add a minimal offset
+            point1 = point0 + PointHomogeneous([0, 0, 0, 0.0001])
+
         link = NormalizedLine.from_two_points(point0, point1)
         return link, point0, point1
 
@@ -369,5 +399,10 @@ class MotionFactorization(RationalCurve):
         """
         point0 = self.linkage[-1].points[1]
         point1 = other_factorization_point
+
+        if np.allclose(point0.normalized_in_3d(), point1.normalized_in_3d()):
+            # if the points are the same, add a minimal offset
+            point1 = point0 + PointHomogeneous([0, 0, 0, 0.0001])
+
         link = NormalizedLine.from_two_points(point0, point1)
         return link, point0, point1

@@ -1,5 +1,5 @@
+from typing import Optional, Sequence, Union
 from warnings import warn
-from typing import Union, Optional, Sequence
 
 import numpy as np
 from sympy import Expr
@@ -27,20 +27,23 @@ class NormalizedLine:
 
     :examples:
 
-    .. code-block:: python
-        :caption: Creating a NormalizedLine from a unit screw axis
+    .. testcode::
+
+        # Creating a NormalizedLine from a unit screw axis
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine([1, 0, 0, 0, -2, 1])
 
-    .. code-block:: python
-        :caption: Creating a default NormalizedLine at the origin along the Z axis
+    .. testcode::
+
+        # Creating a default NormalizedLine at the origin along the Z axis
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine()
 
-    .. code-block:: python
-        :caption: Creating a NormalizedLine from two points
+    .. testcode::
+
+        # Creating a NormalizedLine from two points
 
         from rational_linkages import NormalizedLine
         from rational_linkages import PointHomogeneous
@@ -48,20 +51,23 @@ class NormalizedLine:
         point2 = PointHomogeneous([1, 3, 1, 1])
         line = NormalizedLine.from_two_points(point1, point2)
 
-    .. code-block:: python
-        :caption: Creating a NormalizedLine from a direction and a point
+    .. testcode::
+
+        # Creating a NormalizedLine from a direction and a point
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine.from_direction_and_point([1, 0, 0], [1, 1, 1])
 
-    .. code-block:: python
-        :caption: Creating a NormalizedLine from a direction and a moment
+    .. testcode::
+
+        # Creating a NormalizedLine from a direction and a moment
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine.from_direction_and_moment([1, 0, 0], [0, 1, -1])
 
-    .. code-block:: python
-        :caption: Creating a NormalizedLine from a DualQuaternion
+    .. testcode::
+
+        # Creating a NormalizedLine from a DualQuaternion
 
         from rational_linkages import NormalizedLine
         from rational_linkages import DualQuaternion
@@ -81,23 +87,23 @@ class NormalizedLine:
         """
         if unit_screw is None:
             # in origin along Z axis
-            self.direction = np.array([0, 0, 1])
-            self.moment = np.array([0, 0, 0])
-
+            unit_screw = np.array([0, 0, 1, 0, 0, 0])
         elif any(isinstance(element, Expr) for element in unit_screw):
-            # sympy object
-            self.direction = np.asarray(unit_screw[0:3])
-            self.moment = np.asarray(unit_screw[3:6])
+            # sympy object, try to convert it to numpy float
+            try:
+                unit_screw = np.asarray(unit_screw, dtype='float64')
+            except Exception:
+                self.direction = np.asarray(unit_screw[0:3])
+                self.moment = np.asarray(unit_screw[3:6])
 
-        else:
+        if not any(isinstance(element, Expr) for element in unit_screw):
             direction = np.asarray(unit_screw[0:3])
             moment = np.asarray(unit_screw[3:6])
-
             # Check if the direction vector is normalized
             if round(np.linalg.norm(direction), 6) == 1.0:
                 self.direction = direction
                 self.moment = moment
-            elif round(np.linalg.norm(direction), 6) > 0.0:
+            elif np.abs(np.linalg.norm(direction)) > 1e-10:
                 self.direction = direction / np.linalg.norm(direction)
                 self.moment = moment / np.linalg.norm(direction)
             else:
@@ -106,10 +112,13 @@ class NormalizedLine:
                 self.moment = np.asarray(moment)
 
         self.screw = np.concatenate((self.direction, self.moment))
-        self.as_dq_array = self.line2dq_array()
 
     def __repr__(self):
-        return f"NormalizedLine({self.screw})"
+        line = np.array2string(self.screw,
+                               precision=10,
+                               suppress_small=True,
+                               separator=", ")
+        return f"{line}"
 
     @classmethod
     def from_two_points(cls,
@@ -119,9 +128,9 @@ class NormalizedLine:
         """
         Construct NormalizedLine from two points
 
-        :param np.ndarry, list[float] pt0: PointHomogeneous or list or np.array of
+        :param np.ndarray, list[float] pt0: PointHomogeneous or list or np.array of
             shape (3,)
-        :param np.ndarry, list[float] pt1: PointHomogeneous or list or np.array of
+        :param np.ndarray, list[float] pt1: PointHomogeneous or list or np.array of
             shape (3,)
 
         :return: NormalizedLine
@@ -136,6 +145,9 @@ class NormalizedLine:
             pt0 = np.asarray(pt0)
             pt1 = np.asarray(pt1)
 
+        if np.allclose(pt0, pt1, rtol=1e-7):
+            raise ValueError("Points are the same!")
+
         direction = np.asarray(pt1 - pt0)
         moment = np.cross(-1 * direction, np.asarray(pt0))
         return cls(np.concatenate((direction, moment)))
@@ -147,8 +159,8 @@ class NormalizedLine:
         """
         Construct NormalizedLine from direction and point
 
-        :param np.ndarry, list[float] direction: list or np.array of shape (3,)
-        :param np.ndarry, list[float] point: list or np.array of shape (3,)
+        :param np.ndarray, list[float] direction: list or np.array of shape (3,)
+        :param np.ndarray, list[float] point: list or np.array of shape (3,)
 
         :return: NormalizedLine
         :rtype: NormalizedLine
@@ -165,8 +177,8 @@ class NormalizedLine:
         """
         Construct NormalizedLine from direction and moment
 
-        :param np.ndarry, list[float] direction: list or np.array of shape (3,)
-        :param np.ndarry, list[float] moment: list or np.array of shape (3,)
+        :param np.ndarray, list[float] direction: list or np.array of shape (3,)
+        :param np.ndarray, list[float] moment: list or np.array of shape (3,)
 
         :return: NormalizedLine
         :rtype: NormalizedLine
@@ -182,17 +194,10 @@ class NormalizedLine:
 
         :param DualQuaternion dq: DualQuaternion
 
-        :return: NormalizedLine
+        :return: NormalizedLine from DualQuaternion
         :rtype: NormalizedLine
         """
-        direction = dq[1:4]
-        moment = dq[5:8]
-
-        # a lines maps to dual quaternion with conjugate moment
-        # TODO: check if this is correct
-        moment = -1 * moment  # if dq.is_rotation else moment
-
-        return cls(np.concatenate((direction, moment)))
+        return cls(dq.dq2screw())
 
     def line2dq_array(self) -> np.ndarray:
         """
@@ -370,7 +375,8 @@ class NormalizedLine:
 
         t = Symbol("t")
 
-        line = [Expr(self.screw[i]).subs(t, t_param) for i in range(len(self.screw))]
+        line = [Expr(self.screw[i]).subs(t, t_param)
+                for i in range(len(self.screw))]
         line = [line[j].args[0] for j in range(len(line))]
         return NormalizedLine(np.asarray(line, dtype="float64"))
 

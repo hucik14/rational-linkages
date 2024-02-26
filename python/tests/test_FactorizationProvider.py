@@ -3,10 +3,12 @@ from unittest import TestCase
 import numpy as np
 import sympy as sp
 
-from rational_linkages import RationalCurve
-from rational_linkages import FactorizationProvider
-from rational_linkages import MotionFactorization
-from rational_linkages import RationalDualQuaternion
+from rational_linkages import (
+    FactorizationProvider,
+    MotionFactorization,
+    RationalCurve,
+    RationalDualQuaternion,
+)
 
 
 class TestFactorizationProvider(TestCase):
@@ -40,11 +42,11 @@ class TestFactorizationProvider(TestCase):
         h1 = RationalDualQuaternion([sp.Rational(0), sp.Rational(0),
                                     sp.Rational(0), sp.Rational(1),
                                     sp.Rational(0), sp.Rational(0),
-                                    sp.Rational(0), sp.Rational(0)], is_rotation=True)
+                                    sp.Rational(0), sp.Rational(0)])
         h2 = RationalDualQuaternion([sp.Rational(0), sp.Rational(0),
                                     sp.Rational(0), sp.Rational(2),
                                     sp.Rational(0), sp.Rational(0),
-                                    sp.Rational(-1), sp.Rational(0)], is_rotation=True)
+                                    sp.Rational(-1), sp.Rational(0)])
 
         f = MotionFactorization([h1, h2])
 

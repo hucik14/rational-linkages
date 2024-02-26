@@ -1,8 +1,8 @@
 from unittest import TestCase
+
 import numpy as np
 
-from rational_linkages import PointHomogeneous
-from rational_linkages import RationalBezier
+from rational_linkages import PointHomogeneous, RationalBezier
 
 
 class TestRationalBezier(TestCase):

@@ -29,8 +29,12 @@ print(sys.path)
 
 
 def get_version():
+    # Get the directory of this file
+    this_dir = os.path.dirname(os.path.realpath(__file__))
+    # Construct the path to pyproject.toml relative to this directory
+    pyproject_path = os.path.join(this_dir, '..', '..', 'pyproject.toml')
     # Load the pyproject.toml file
-    pyproject = toml.load("../../pyproject.toml")
+    pyproject = toml.load(pyproject_path)
     # Extract the version
     version = pyproject['project']['version']
     return version
@@ -51,7 +55,34 @@ release = get_version()
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'nbsphinx']
+extensions = ['sphinx.ext.autodoc',
+              'sphinx.ext.napoleon',
+              'sphinx.ext.intersphinx',
+              'nbsphinx',
+              'sphinx.ext.doctest',
+              'sphinxcontrib.bibtex']
+
+bibtex_bibfiles = ['refs.bib']
+
+nitpicky = True
+nitpick_ignore = [
+    ('py:class', 'np.ndarray'),
+    ('py:class', 'numpy.ndarray'),
+    ('py:class', 'numpy.array'),
+    ('py:class', 'np.array'),
+    ('py:class', 'sp.Symbol'),
+    ('py:class', 'sp.Poly'),
+    ('py:class', 'bq.Poly'),
+]
+
+intersphinx_mapping = {'python': ('http://docs.python.org/3', None),
+                       'numpy': ('http://docs.scipy.org/doc/numpy', None),
+                       'scipy': ('http://docs.scipy.org/doc/scipy/reference', None),
+                       'matplotlib': ('http://matplotlib.org/stable', None),
+                       'sympy': ('https://docs.sympy.org/latest/', None),
+                       'biquaternion_py': ('https://biquaternion-py.readthedocs.io/en/latest/', None),
+                       }
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

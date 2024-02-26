@@ -1,30 +1,36 @@
+from functools import wraps
+from itertools import cycle
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, TextBox
-from functools import wraps
-from itertools import cycle
 
 from .DualQuaternion import DualQuaternion
+from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
 from .PointHomogeneous import PointHomogeneous
-from .MotionFactorization import MotionFactorization
+from .RationalBezier import RationalBezier
+from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
-from .RationalCurve import RationalCurve
-from .RationalBezier import RationalBezier
 
 
 class Plotter:
-    def __init__(self, interval=(-1, 1), steps=50, interactive: bool = False,
-                 arrows_length: float = 1.0):
+    def __init__(self,
+                 interactive: bool = False,
+                 interval=(-1, 1),
+                 steps=50,
+                 arrows_length: float = 1.0,
+                 joint_range_lim: float = 1.0):
         """
         Initialize the plotter
 
+        :param interactive: activate interactive mode
         :param interval: interval for plotting
         :param steps: number of steps for plotting
-        :param interactive: activate interactive mode
         :param arrows_length: length of quiver arrows for poses and frames
+        :param joint_range_lim: limit for joint sliders, will be +/- value
         """
         # use Qt5Agg backend for interactive plotting
         matplotlib.use("Qt5Agg")
@@ -37,6 +43,11 @@ class Plotter:
         self.ax.set_zlabel("Z-axis")
         self.ax.set_aspect("equal")
 
+        # Initialize min/max variables
+        self.min_x, self.max_x = float('inf'), float('-inf')
+        self.min_y, self.max_y = float('inf'), float('-inf')
+        self.min_z, self.max_z = float('inf'), float('-inf')
+
         plt.subplots_adjust(
             top=1.0,
             bottom=0.16,
@@ -48,6 +59,7 @@ class Plotter:
         self.t_space = np.linspace(interval[0], interval[1], steps)
         self.steps = steps
         self.interactive = interactive
+        self.j_sliders_limit = joint_range_lim
 
         # length of quiver arrows for poses and frames
         self.arrows_length = arrows_length
@@ -59,8 +71,8 @@ class Plotter:
         Plot the object
 
         :param object_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-        MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
-        or RationalBezier
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
+            or RationalBezier
         :param kwargs: plotting options following matplotlib standards and syntax
 
         :return: matplotlib axis
@@ -92,11 +104,11 @@ class Plotter:
         Analyze the object to plot
 
         :param object_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-        MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
-        or RationalBezier
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
+            or RationalBezier
 
         :return: str - 'is_line', 'is_point', 'is_motion_factorization', 'is_dq' or
-        'is_rational_mechanism'
+            'is_rational_mechanism'
         """
         if isinstance(object_to_plot, RationalMechanism) and not self.interactive:
             return "is_rational_mechanism"
@@ -296,8 +308,8 @@ class Plotter:
             self._plot_motion_factorization(factorization, t=t, **kwargs)
 
         # plot end effector triangle
-        pts0 = mechanism.factorizations[0].direct_kinematics_of_tool_with_link(t, mechanism.end_effector.array())
-        pts1 = mechanism.factorizations[1].direct_kinematics_of_tool_with_link(t, mechanism.end_effector.array())[::-1]
+        pts0 = mechanism.factorizations[0].direct_kinematics_of_tool_with_link(t, mechanism.tool_frame.dq2point_via_matrix())
+        pts1 = mechanism.factorizations[1].direct_kinematics_of_tool_with_link(t, mechanism.tool_frame.dq2point_via_matrix())[::-1]
         ee_points = np.concatenate((pts0, pts1))
 
         if 'label' not in kwargs:
@@ -315,16 +327,18 @@ class Plotter:
              for i in range(self.steps)]
 
         ee_points = [mechanism.factorizations[0].direct_kinematics_of_tool(
-            t[i], mechanism.end_effector.array()) for i in range(self.steps)]
+            t[i], mechanism.tool_frame.dq2point_via_matrix()) for i in range(self.steps)]
 
-        kwargs['label'] = "motion curve"
+        kwargs['label'] = "tool path"
 
         x, y, z = zip(*ee_points)
         self.ax.plot(x, y, z, **kwargs)
 
     @_plotting_decorator
-    def _plot_interactive(self, mechanism: RationalMechanism,
-                          show_tool: bool = True, **kwargs):
+    def _plot_interactive(self,
+                          mechanism: RationalMechanism,
+                          show_tool: bool = True,
+                          **kwargs):
         """
         Plot a mechanism in interactive mode
 
@@ -353,7 +367,9 @@ class Plotter:
         # vertical sliders to control physical linkage position (connecting points)
         self.joint_sliders = []
         for i in range(mechanism.num_joints):
-            slider0, slider1 = self._init_slider(idx=i, j_sliders=self.joint_sliders)
+            slider0, slider1 = self._init_slider(idx=i,
+                                                 j_sliders=self.joint_sliders,
+                                                 slider_limit=self.j_sliders_limit)
             self.joint_sliders.append(slider0)
             self.joint_sliders.append(slider1)
 
@@ -425,12 +441,14 @@ class Plotter:
         self.move_slider.set_val(0.0)
 
     @staticmethod
-    def _init_slider(idx: int = None, j_sliders=None):
+    def _init_slider(idx: int = None, j_sliders=None, slider_limit: float = 1.0):
         """
         Initialize the slider for interactive plotting
 
         :param int idx: index of the slider, first one is added automatically as joint
-        angle slider
+            angle slider
+        :param list j_sliders: list of joint sliders
+        :param float slider_limit: limit for joint sliders, will be +/- value
 
         :return: matplotlib slider
         """
@@ -447,13 +465,12 @@ class Plotter:
 
         else:  # joint connection points sliders
             i = int(len(j_sliders) / 2)
-            j_slider_lim = 2.0
             slider0 = Slider(
                 ax=plt.axes([0.03 + i * 0.04, 0.25, 0.0225, 0.63]),
                 #label="j{}.0".format(i),
                 label="j{}".format(i),
-                valmin=-j_slider_lim,
-                valmax=j_slider_lim,
+                valmin=-slider_limit,
+                valmax=slider_limit,
                 valinit=0.0,
                 orientation="vertical",
             )
@@ -461,8 +478,8 @@ class Plotter:
                 ax=plt.axes([0.045 + i * 0.04, 0.25, 0.0225, 0.63]),
                 #label="j{}.1".format(i),
                 label="",
-                valmin=-j_slider_lim,
-                valmax=j_slider_lim,
+                valmin=-slider_limit,
+                valmax=slider_limit,
                 valinit=0.0,
                 orientation="vertical",
             )
@@ -521,7 +538,7 @@ class Plotter:
                              + [self.plotted['mechanism'].factorizations[1].direct_kinematics(t)[-1]])
             # get tool point
             tool = self.plotted['mechanism'].factorizations[0].direct_kinematics_of_tool(
-                t, self.plotted['mechanism'].end_effector.dq2point_homogeneous())
+                t, self.plotted['mechanism'].tool_frame.dq2point_via_matrix())
             # add tool point to tool triangle
             tool_triangle.insert(1, tool)
 
@@ -530,7 +547,7 @@ class Plotter:
 
             # plot tool frame
             pose_dq = DualQuaternion(self.plotted['mechanism'].evaluate(t))
-            pose_matrix = TransfMatrix(pose_dq.dq2matrix())
+            pose_matrix = TransfMatrix(pose_dq.dq2matrix()) * TransfMatrix(self.plotted['mechanism'].tool_frame.dq2matrix())
 
             x_vec, y_vec, z_vec = pose_matrix.get_plot_data()
 
@@ -543,6 +560,8 @@ class Plotter:
                                for vec, color in zip([x_vec, y_vec, z_vec],
                                                      ["red", "green", "blue"])]
 
+        self.update_limits(self.ax)
+
         # update the plot
         self.fig.canvas.draw_idle()
         self.fig.canvas.update()
@@ -552,5 +571,48 @@ class Plotter:
         """
         Show the plot
         """
+        self.update_limits(self.ax)
         plt.show()
+
+    def update_limits(self, ax):
+        """
+        Update the limits of the plot
+
+        :param ax: matplotlib axes
+        """
+        # Inner function to update the minimum and maximum values
+        def update_min_max(data):
+            # Update min and max for x and y axes
+            self.min_x, self.max_x = (min(self.min_x, np.min(data[:, 0])),
+                                      max(self.max_x, np.max(data[:, 0])))
+            self.min_y, self.max_y = (min(self.min_y, np.min(data[:, 1])),
+                                      max(self.max_y, np.max(data[:, 1])))
+            # Update min and max for z-axis if present
+            if data.shape[1] > 2:
+                self.min_z, self.max_z = (min(self.min_z, np.min(data[:, 2])),
+                                          max(self.max_z, np.max(data[:, 2])))
+
+        # Iterate over all artists in the Axes3D object
+        for artist in ax.get_children():
+            # Handle 3D scatter plots
+            if isinstance(artist, matplotlib.collections.PathCollection):
+                update_min_max(np.array(artist._offsets3d).T)
+            # Handle 3D line plots
+            elif hasattr(artist, '_verts3d'):
+                update_min_max(np.array(artist._verts3d).T)
+            # Handle 3D quiver plots
+            elif hasattr(artist, '_segments3d'):
+                for segment in artist._segments3d:
+                    update_min_max(np.array(segment))
+            # Handle other collection types (like PolyCollection for polygons)
+            elif isinstance(artist, matplotlib.collections.Collection):
+                for path in artist.get_paths():
+                    for polygon in path.to_polygons():
+                        update_min_max(np.array(polygon))
+
+        # Set the updated limits to the axes
+        ax.set_xlim3d(self.min_x, self.max_x)
+        ax.set_ylim3d(self.min_y, self.max_y)
+        ax.set_zlim3d(self.min_z, self.max_z)
+        ax.set_aspect("equal")
 
