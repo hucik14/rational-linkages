@@ -45,11 +45,6 @@ if __name__ == '__main__':
                                        pOff=links_pts[0][0] - 0.29 * joint_axes[-1],
                                        Aoff=A.rot_matrix()
                                        )
-    # gGround0 = GraphicsDataRigidLink(p0=links_pts[0][0], p1=links_pts[0][1],
-    #                                  axis0=joint_axes[-1], axis1=joint_axes[0],
-    #                                  radius=[0.5 * w, 0.5 * w],
-    #                                  thickness=w, width=[1.2 * w, 1.2 * w],
-    #                                  color=color4darkgrey)
     graphics_bodies = [gGround0]
 
     A = TransfMatrix.from_vectors(normal_x=[-0.55, 0.4, 0], approach_z=joint_axes[0])
@@ -85,6 +80,8 @@ if __name__ == '__main__':
         ObjectGround(visualization=VObjectGround(graphicsData=[gGround0])))
     bodies = [oGround]
 
+    body_markers = [None] #[mbs.AddMarker(MarkerNodeRigid(nodeNumber=mbs.GetObject(oGround)['nodeNumber']))]
+
     # other links
     for i in range(1, number_of_links):
         body = mbs.CreateRigidBody(
@@ -94,6 +91,7 @@ if __name__ == '__main__':
             graphicsDataList=[graphics_bodies[i]]
         )
         bodies.append(body)
+        body_markers.append(mbs.AddMarker(MarkerNodeRigid(nodeNumber=mbs.GetObject(body)['nodeNumber'])))
 
     # REVOLUTE JOINTS
     for i in range(number_of_links - 1):
@@ -121,6 +119,45 @@ if __name__ == '__main__':
                                   axesLength=w)
     bodies.append(body)
 
+    gContact = mbs.AddGeneralContact()
+    gContact.verboseMode = 1
+    gContact.resetSearchTreeInterval = 10000  # interval at which search tree memory is cleared
+    frictionCoeff = 0
+    gContact.SetFrictionPairings(frictionCoeff * np.eye(1))
+
+    k = 2e4 * 4
+    d = 0.002 * k
+
+    for i in range(1, number_of_links):
+        [meshPoints, meshTrigs] = GraphicsData2PointsAndTrigs(graphics_bodies[i])
+        gContact.AddTrianglesRigidBodyBased(rigidBodyMarkerIndex=body_markers[i],
+                                            contactStiffness=k,
+                                            contactDamping=d,
+                                            frictionMaterialIndex=0,
+                                            pointList=meshPoints,
+                                            triangleList=meshTrigs)
+
+    color4node = color4steelblue
+    pS0 = [0, 0, 0]
+    r = 0.1
+    gList = [GraphicsDataSphere(point=[0, 0, 0], radius=0.1, color=color4node, nTiles=24)]
+
+    RBinertia = InertiaSphere(1, r * 1)
+
+    [nMass, oMass] = AddRigidBody(mainSys=mbs, inertia=RBinertia,
+                                  # nodeType=exu.NodeType.RotationRxyz,
+                                  nodeType=exu.NodeType.RotationRotationVector,
+                                  position=[0, 0, 0.5],
+                                  rotationMatrix=np.eye(3),
+                                  gravity=[0., 0., -9.81],
+                                  graphicsDataList=gList,
+                                  )
+
+    mNode = mbs.AddMarker(MarkerNodeRigid(nodeNumber=nMass))
+    mBody = mbs.AddMarker(MarkerBodyRigid(bodyNumber=oMass, localPosition=pS0))
+    gContact.AddSphereWithMarker(mBody, radius=r, contactStiffness=k, contactDamping=d,
+                                 frictionMaterialIndex=0)
+
     mbs.Assemble()
 
     # simulation parameters:
@@ -134,7 +171,7 @@ if __name__ == '__main__':
     simulationSettings.linearSolverType = exu.LinearSolverType.EigenDense
 
     mbs.ComputeSystemDegreeOfFreedom(verbose=True, useSVD=True)
-    # mbs.systemData.Info()
+    #mbs.systemData.Info()
 
     if useGraphics:
         exu.StartRenderer()
