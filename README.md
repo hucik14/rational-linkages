@@ -2,6 +2,7 @@
 [![Documentation Status](https://readthedocs.org/projects/rational-linkages/badge/?version=latest)](https://rational-linkages.readthedocs.io/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/rational-linkages.svg)](https://pypi.org/project/rational-linkages/)
 [![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=run_tests)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
+[![GitHub issues](https://img.shields.io/github/issues/hucik14/rl-issues)](https://github.com/hucik14/rl-issues/issues)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)]()
 
 
@@ -37,10 +38,17 @@ Using pip:
 
     <code>pip install -e .</code>
 
-## Tutorials and usage
+## Tutorials, issues, usage, and contributions
 
-See the [documentation examples](https://rational-linkages.readthedocs.io/latest/general/overview.html) for more details.
+See the [documentation examples](https://rational-linkages.readthedocs.io/latest/general/overview.html) 
+for tutorials and usage examples.
 
+Since the self-hosted repository does not allow external users to create issues,
+please, use the [external issue tracker](https://github.com/hucik14/rl-issues) 
+hosted on GitHub for submitting **issues** and **feature requests**.
+
+In case of other questions or contributions, please, email the author at:
+`daniel.huczala@uibk.ac.at`
 
 ## Acknowledgements
 
