@@ -15,18 +15,17 @@ Rational Linkages Toolbox Documentation
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs
    :alt: Build Status
 
-.. image:: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=run_tests
-   :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs
-   :alt: Coverage Status
-
-.. image:: https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg
-   :target: https://www.python.org/downloads/release/python-3117/
-   :alt: Python
-
 .. image:: https://badge.fury.io/py/rational-linkages.svg
     :target: https://pypi.org/project/rational-linkages/
     :alt: PyPI
 
+.. image:: https://img.shields.io/github/issues/hucik14/rl-issues
+   :target: https://github.com/hucik14/rl-issues/issues
+   :alt: GitHub issues
+
+.. image:: https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg
+   :target: https://www.python.org/downloads/release/python-3117/
+   :alt: Python
 
 Welcome to the Rational Linkages Toolbox Documentation, which serves as a reference for
 the toolbox. The toolbox is a collection of functions for the analysis of rational
@@ -36,6 +35,13 @@ at the Unit of Geometry and Surveying, University of Innsbruck, Austria.
 
 The source code is available as `Gitlab repository`_ hosted by UIBK. The *installation
 instructions* can be found in the :ref:`installation manual<installation>`.
+
+Since the self-hosted repository does not allow external users to create issues,
+please, use the `external issue tracker`_
+hosted on Github for submitting **issues** and **feature requests**.
+
+In case of other questions or contributions, please, email the author at:
+daniel.huczala@uibk.ac.at
 
 .. toctree::
    :maxdepth: 2
@@ -76,6 +82,7 @@ their algorithms and suggestions. These people are namely:
 - **Johannes Gerstmayr**, University of Innsbruck, Austria, for the help with creating the interface to his `Exudyn`_ :footcite:p:`Gerstmayr2023` software. More on this in section :ref:`exudyn_info`.
 - **Georg Nawratil**, Technical University of Vienna, Austria,
 - and **Zijia Li**, Chinese Academy of Sciences, China, for their help with the implementation of the Combinatorial Search Algorithm of collision-free linkages :footcite:p:`Li2020`. More on this in section :ref:`combinatorial_search`.
+- **Johannes Siegele**, Austrian Academy of Sciences, Austria, for his help with the implementation of the algorithm for motion interpolation of 4 poses. More on this in section :ref:`interpolation_background`.
 
 **References**
 

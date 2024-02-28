@@ -55,7 +55,7 @@ include = ["rational_linkages*"]
 [project.urls]
 Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"
 Documentation = "http://rational-linkages.readthedocs.io/"
-Issues = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/issues"
+Issues = "https://github.com/hucik14/rl-issues/issues"
 
 [tool.black]
 line-length = 88
