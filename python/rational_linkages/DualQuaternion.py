@@ -560,7 +560,7 @@ class DualQuaternion:
 
         # if the DQ is a sympy Expression
         if any(isinstance(x, Expr) for x in dq):
-            if dq[0] == 0 and dq[4] == 0:  # if it is a line
+            if dq[0] == 0 and dq[4] == 0:  # if it is a line # TODO: rounding
                 dir = dq[1:4]
                 mom = -1 * dq[5:8]
 
