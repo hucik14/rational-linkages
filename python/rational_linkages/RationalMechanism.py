@@ -706,6 +706,30 @@ class RationalMechanism(RationalCurve):
         sa = SingularityAnalysis()
         return sa.check_singularity(self)
 
+    def smallest_polyline(self, update_design: bool = False) -> tuple[list, list, float]:
+        """
+        Obtain the smallest polyline links for the mechanism.
+
+        :param bool update_design: if True, update also the design of the mechanism
+
+        :return: list of points of the smallest polyline, list of points parameters,
+            result of the optimization
+        :rtype: list, list, float
+        """
+        from .CollisionFreeOptimization import CollisionFreeOptimization
+
+        # get smallest polyline
+        pts, points_params, res = CollisionFreeOptimization(self).smallest_polyline()
+
+        # update the design of the mechanism
+        if update_design:
+            self.factorizations[0].set_joint_connection_points_by_parameters(
+                points_params[:len(self.factorizations[0].dq_axes)])
+            self.factorizations[1].set_joint_connection_points_by_parameters(
+                points_params[len(self.factorizations[1].dq_axes):][::-1])
+
+        return pts, points_params, res
+
     def collision_free_optimization(self,
                                     method: str = None,
                                     step_length=25,
