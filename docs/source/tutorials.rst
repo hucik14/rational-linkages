@@ -6,8 +6,8 @@ Tutorials
    :caption: Contents:
 
    tutorials/loading_models
+   tutorials/plotting
    tutorials/ark2024
    tutorials/motion_interp
-   tutorials/plotting
    tutorials/exudyn_analysis
 

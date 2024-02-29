@@ -9,10 +9,17 @@ for 4 poses interpolation using cubic rational function, that yields
 3 poses interpolation using quadratic rational functions, that yields 4-revolute
 linkage, i.e. the Bennett mechanism.
 
-The 4 pose interpolation is described in more detail in :ref:`interpolation_background`.
+For motion interpolation, the input can be both, :class:`.DualQuaternion` objects
+or :class:`.TransfMatrix` objects.
 
-The input can be both, :class:`.DualQuaternion` objects or :class:`.TransfMatrix`
-objects.
+Cubic interpolation of 4 poses
+------------------------------
+
+This method does not work for any 4 poses - some geometrical constraints must be
+met. Please, refer to the original paper (:footcite:t:`Hegeds2015`) for more details,
+or see simplified description in :ref:`interpolation_background`.
+
+Here is presented an example of cubic interpolation of 4 poses.
 
 .. testcode::
 
@@ -49,6 +56,54 @@ objects.
         # show the plot
         myplt.show()
 
+The input are 4 dual quaternions, :math:`p_0, p_1, p_2, p_3`, and the output is a
+parametric rational curve :math:`C(t)` that interpolates the poses. Keep in mind that
+:math:`p_0` is the identity.
+
+.. figure:: figures/poses_cubic.svg
+    :width: 500 px
+    :align: center
+    :alt: Output static plot
+
+    4 given poses.
+
+The curve equation is then of the form:
+
+.. math::
+
+   C(t) =
+        \begin{bmatrix}
+        t^3 - 0.4375t^2 - 0.171875t, \\
+        0.25t^2 - 0.25t - 0.078125, \\
+        0.3125t^2 - 0.078125t - 0.0390625, \\
+        -0.0625t^2 + 0.109375t - 0.0390625, \\
+        0.28125t, \\
+        0.125t^2 - 0.125t - 0.0390625, \\
+        -t^2 + 0.34375t + 0.078125, \\
+        0
+        \end{bmatrix}
+
+And can be plotted as shown in the following figure.
+
+.. figure:: figures/interp_cubic.svg
+    :width: 500 px
+    :align: center
+    :alt: Output static plot
+
+    Curve :math:`C(t)` that interpolates the poses.
+
+The curve is then factorized, and the resulting mechanism is plotted.
+
+.. figure:: figures/mech_cubic.gif
+    :width: 500 px
+    :align: center
+    :alt: Output static plot
+
+    6R mechanism whose tool frame (purple link) follows the curve :math:`C(t)`.
+
+
+Quadratic interpolation of 3 poses
+----------------------------------
 
 The following example applies the method by :footcite:t:`Brunnthaler2005`.
 It is important to note that the method is providing a rational function that consists
@@ -60,6 +115,9 @@ desired motion and pass the given poses, but the visualization will however tran
 the whole mechanism by the a static transformation :math:`p_2` (or the last pose if
 named differently). To match the visualization with the originally given poses, the
 easiest way is to pre-multiply the original poses with the :math:`p_2`.
+
+To overcome this problem, it is possible to set :math:`p_0` again to the identity,
+and change the base of the whole mechanism by a static transformation.
 
 .. testcode::
 
