@@ -15,7 +15,7 @@ Rational Linkages Toolbox Documentation
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs
    :alt: Build Status
 
-.. image:: https://badge.fury.io/py/rational-linkages.svg
+.. image:: https://img.shields.io/pypi/v/rational-linkages.svg
     :target: https://pypi.org/project/rational-linkages/
     :alt: PyPI
 
