@@ -2,7 +2,7 @@ from typing import Optional, Sequence, Union
 from warnings import warn
 
 import numpy as np
-from sympy import Expr, Matrix
+from sympy import Expr, Poly, Symbol, simplify
 
 from .Quaternion import Quaternion
 
@@ -249,7 +249,8 @@ class DualQuaternion:
         dq = np.array2string(self.array(),
                              precision=10,
                              suppress_small=True,
-                             separator=', ')
+                             separator=', ',
+                             max_line_width=100000)
         return f"{dq}"
 
     def __getitem__(self, idx) -> np.ndarray:
@@ -544,36 +545,36 @@ class DualQuaternion:
 
         :return: tuple of 2 numpy arrays, 3-vector coordinates each
         :rtype: tuple
-
-        :warning: if the DQ is not a line, a warning is raised
         """
-        # if the DQ is a sympy Expression (rational number), try to convert it to float
-        if any(isinstance(x, Expr) for x in self.array()):
-            try:
-                dq = np.asarray(self.array(), dtype="float64")
-            except Exception:
-                # if it is an expression with a variable, return the expression
-                dq = self.array()
-        else:
-            # if the DQ is some numpy array, convert it to float
-            dq = np.asarray(self.array(), dtype="float64")
-
-        # if the DQ is a sympy Expression
+        dq = self.array()
         if any(isinstance(x, Expr) for x in dq):
-            if dq[0] == 0 and dq[4] == 0:  # if it is a line
-                dir = dq[1:4]
-                mom = -1 * dq[5:8]
+            try:
+                dq = np.asarray(dq, dtype="float64")
+            except Exception:
+                pass
 
-                # normalize
-                norm_dir = Matrix(dir).norm()
-                norm_dir = 1
-                moment = mom / norm_dir
-                direction = dir / norm_dir
+        if any(isinstance(x, Expr) for x in dq):
+            dq0_simple = simplify(dq[0])
+            dq4_simple = simplify(dq[4])
 
-            else:  # warn that it is not a line
-                warn("The dual quaternion is not a line, returning the expression")
-                direction = dq[1:4]
-                moment = -1 * dq[5:8]
+            if not (dq0_simple == 0 or not dq4_simple == 0):
+                t = Symbol('t')
+                coeffs = []
+                if not dq0_simple == 0:
+                    coeffs += Poly(dq0_simple, t).all_coeffs()
+                if not dq4_simple == 0:
+                    coeffs += Poly(dq4_simple, t).all_coeffs()
+
+                coeffs = np.array(coeffs, dtype="float64")
+                all_close_to_zero = all(np.isclose(coeff, 0) for coeff in coeffs)
+
+                if not all_close_to_zero:  # warn that the DQ is not a line
+                    warn("dq2line_vectors method warning: the dual quaternion has NOT "
+                         "zeros in 1st and 5th element, it is not a line.")
+
+            direction = dq[1:4]
+            moment = -1 * dq[5:8]
+            # TODO normalize the direction and moment when sympy expressions are used
 
         else:
             k = dq[0] ** 2 - dq[1] ** 2 - dq[2] ** 2 - dq[3] ** 2  # differs from Study

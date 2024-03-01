@@ -48,13 +48,24 @@ class Plotter:
         self.min_y, self.max_y = float('inf'), float('-inf')
         self.min_z, self.max_z = float('inf'), float('-inf')
 
-        plt.subplots_adjust(
-            top=1.0,
-            bottom=0.16,
-            left=0.32,
-            right=0.935,
-            hspace=0.2,
-            wspace=0.2)
+        if interactive:
+            plt.subplots_adjust(
+                top=1.0,
+                bottom=0.16,
+                left=0.32,
+                right=0.935,
+                hspace=0.2,
+                wspace=0.2
+            )
+        else:
+            plt.subplots_adjust(
+                top=1.0,
+                bottom=0.1,
+                left=0.0,
+                right=1.0,
+                hspace=0.2,
+                wspace=0.2
+            )
 
         self.t_space = np.linspace(interval[0], interval[1], steps)
         self.steps = steps
@@ -611,8 +622,8 @@ class Plotter:
                         update_min_max(np.array(polygon))
 
         # Set the updated limits to the axes
-        ax.set_xlim3d(self.min_x, self.max_x)
-        ax.set_ylim3d(self.min_y, self.max_y)
-        ax.set_zlim3d(self.min_z, self.max_z)
+        ax.set_xlim3d(float(self.min_x), float(self.max_x))
+        ax.set_ylim3d(float(self.min_y), float(self.max_y))
+        ax.set_zlim3d(float(self.min_z), float(self.max_z))
         ax.set_aspect("equal")
 

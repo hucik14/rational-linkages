@@ -58,7 +58,8 @@ class Quaternion:
         q = np.array2string(self.array(),
                             precision=10,
                             suppress_small=True,
-                            separator=', ')
+                            separator=', ',
+                            max_line_width=100000)
         return f"{self.__class__.__qualname__}({q})"
 
     def __add__(self, other):

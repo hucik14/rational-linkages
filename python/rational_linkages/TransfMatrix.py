@@ -60,7 +60,8 @@ class TransfMatrix:
         return np.array2string(self.matrix,
                                precision=10,
                                suppress_small=True,
-                               separator=', ')
+                               separator=', ',
+                               max_line_width=100000)
 
     @classmethod
     def from_rpy(cls, rpy: list[float], units: str = 'rad') -> np.array:
@@ -151,14 +152,6 @@ class TransfMatrix:
         approach_z = np.asarray(approach_z)
         origin = np.asarray(origin)
 
-        # check if vectors are normalized
-        if not np.isclose(np.linalg.norm(normal_x), 1):
-            warn("Normal vector is not normalized, normalizing...")
-            normal_x = normal_x / np.linalg.norm(normal_x)
-        if not np.isclose(np.linalg.norm(approach_z), 1):
-            warn("Approach vector is not normalized, normalizing...")
-            approach_z = approach_z / np.linalg.norm(approach_z)
-
         # check if vectors are of dimension 3
         if normal_x.shape != (3,):
             raise ValueError("Normal vector must be 3-dimensional list of floats")
@@ -167,7 +160,18 @@ class TransfMatrix:
         if origin.shape != (3,):
             raise ValueError("Origin vector must be 3-dimensional list of floats")
 
+        # check if approach vector is normalized
+        if not np.isclose(np.linalg.norm(approach_z), 1):
+            warn("Approach vector is not normalized, normalizing...")
+            approach_z = approach_z / np.linalg.norm(approach_z)
+
+        # create orthogonal
         orthogonal_y = np.cross(approach_z, normal_x)
+        normal_x = np.cross(orthogonal_y, approach_z)
+
+        # normalize orthogonal and normal vectors
+        orthogonal_y = orthogonal_y / np.linalg.norm(orthogonal_y)
+        normal_x = normal_x / np.linalg.norm(normal_x)
 
         mat = np.eye(4)
         mat[1:4, 0] = origin

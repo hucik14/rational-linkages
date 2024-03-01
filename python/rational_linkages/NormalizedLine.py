@@ -117,7 +117,8 @@ class NormalizedLine:
         line = np.array2string(self.screw,
                                precision=10,
                                suppress_small=True,
-                               separator=", ")
+                               separator=", ",
+                               max_line_width=100000)
         return f"{line}"
 
     @classmethod
