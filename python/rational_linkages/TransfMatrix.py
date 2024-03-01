@@ -60,7 +60,8 @@ class TransfMatrix:
         return np.array2string(self.matrix,
                                precision=10,
                                suppress_small=True,
-                               separator=', ')
+                               separator=', ',
+                               max_line_width=100000)
 
     @classmethod
     def from_rpy(cls, rpy: list[float], units: str = 'rad') -> np.array:
