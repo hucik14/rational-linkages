@@ -174,6 +174,14 @@ class TestTransfMatrix(TestCase):
 
         self.assertTrue(np.allclose(transf.rpy(), np.array([-np.pi/2, 0, np.pi/2])))
 
+        transf_matrix = TransfMatrix()
+        transf_matrix.n = np.array([0, 0, -1])
+        transf_matrix.o = np.array([0, 1, 0])
+        transf_matrix.a = np.array([1, 0, 0])
+        transf_matrix.t = np.array([0, 0, 0])
+        expected_rpy = np.array([0, np.pi / 2, 0])
+        np.testing.assert_array_almost_equal(transf_matrix.rpy(), expected_rpy)
+
     def test_dh_to_other_frame(self):
         t0 = TransfMatrix.from_dh_parameters(0, 0, 0, 0)
         t1 = TransfMatrix.from_dh_parameters(-90, -20, 150, 180, units="deg")

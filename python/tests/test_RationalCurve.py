@@ -3,7 +3,8 @@ from unittest import TestCase
 import numpy as np
 import sympy as sp
 
-from rational_linkages import PointHomogeneous, RationalCurve, RationalMechanism
+from rational_linkages import (PointHomogeneous, RationalCurve, RationalMechanism,
+                               DualQuaternion)
 
 
 class TestRationalCurve(TestCase):
@@ -207,6 +208,24 @@ class TestRationalCurve(TestCase):
 
         self.assertTrue(np.allclose(curve.evaluate(2), np.array([6, -2.0])))
 
+    def test_evaluate_as_matrix(self):
+        t = sp.Symbol("t")
+        curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(-3.0 * t, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(1.0, t),
+                               sp.Poly(1.0 * t, t),
+                               sp.Poly(0.0, t)])
+
+        expected_result = np.array([[1., 0., 0., 0.],
+                                    [1., 1., 0., 0.],
+                                    [0., 0., 1., 0.],
+                                    [0., 0., 0., 1.]])
+
+        self.assertTrue(np.allclose(curve.evaluate_as_matrix(0), expected_result))
+
     def test_factorize(self):
         t = sp.Symbol("t")
         curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t),
@@ -247,6 +266,38 @@ class TestRationalCurve(TestCase):
                                sp.Poly(0.0, t)])
 
         self.assertEqual(curve.curve().set_of_polynomials, curve.set_of_polynomials)
+
+    def test_get_plot_data(self):
+        curve = RationalCurve.from_coeffs(np.array(
+            [[1., 0., 2., 0., 1.],
+             [0.5, 0., -2., 0., 1.5],
+             [0., -1., 0., 3., 0.],
+             [1., 0., 2., 0., 1.]]))
+
+        x, y, z = curve.get_plot_data((0, 1), 2)
+        self.assertEqual(len(x), 2)
+        self.assertEqual(len(y), 2)
+        self.assertEqual(len(z), 2)
+
+        self.assertTrue(np.allclose(x, (1.5, 0.)))
+        self.assertTrue(np.allclose(y, (0., 0.5)))
+        self.assertTrue(np.allclose(z, (1., 1.)))
+
+        t = sp.Symbol("t")
+        curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(-3.0 * t, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(1.0, t),
+                               sp.Poly(1.0 * t, t),
+                               sp.Poly(0.0, t)])
+
+        x, y, z = curve.get_plot_data((0, 1), 2)
+
+        self.assertTrue(np.allclose(x, (1., -0.4)))
+        self.assertTrue(np.allclose(y, (0., 0.8)))
+        self.assertTrue(np.allclose(z, (0., 0.)))
 
 
 
