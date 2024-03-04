@@ -51,7 +51,6 @@ class TestRationalMechanism(TestCase):
         expected_result = np.array([-0.5, 1.5])
         np.testing.assert_allclose(result, expected_result)
 
-
     def test_smallest_polyline_points(self):
         lines = [NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0]),
                  NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0]),
@@ -87,6 +86,14 @@ class TestRationalMechanism(TestCase):
         points, params, optim_res = cfo.smallest_polyline()
 
         self.assertTrue(np.allclose(optim_res.fun, 6.0))
+
+    def test_smallest_polyline(self):
+        pts, points_params, res = bennett().smallest_polyline(update_design=True)
+
+        self.assertTrue(res.success)
+
+        expected_length = 1.322267221075116
+        self.assertAlmostEqual(res.fun, expected_length, 5)
 
 
 

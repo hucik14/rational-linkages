@@ -1,15 +1,14 @@
 from unittest import TestCase
-
 import numpy as np
-
-from rational_linkages import DualQuaternion, MotionInterpolation, RationalCurve
+from rational_linkages import (DualQuaternion, MotionInterpolation, RationalCurve,
+                               TransfMatrix)
 
 
 class TestMotionInterpolation(TestCase):
     def test_interpolate(self):
         mi = MotionInterpolation()
         # Create some dummy poses
-        p0 = DualQuaternion([0, 17, -33, -89, 0, -6, 5, -3])
+        p0 = DualQuaternion.as_rational([0, 17, -33, -89, 0, -6, 5, -3])
         p1 = DualQuaternion([0, 84, -21, -287, 0, -30, 3, -9])
         p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
 
@@ -32,3 +31,41 @@ class TestMotionInterpolation(TestCase):
         # Test with invalid number of poses (2)
         poses = [p1, p2]
         self.assertRaises(ValueError, mi.interpolate, poses)
+
+        p2 = TransfMatrix(p2.dq2matrix())
+        curve = mi.interpolate([p0, p1, p2])
+        self.assertIsInstance(curve, RationalCurve)
+
+        p2 = "invalid"
+        self.assertRaises(TypeError, mi.interpolate, [p0, p1, p2])
+
+    def test_interpolate_cubic(self):
+        p0 = DualQuaternion([1, 0, 0, 0, 0, 0, 0, 0])
+        p1 = DualQuaternion.as_rational([0, 0, 0, 1, 1, 0, 1, 0])
+        p2 = DualQuaternion.as_rational([1, 2, 0, 0, -2, 1, 0, 0])
+        p3 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
+
+        mi = MotionInterpolation()
+
+        curve = mi.interpolate([p0, p1, p2, p3])
+        self.assertIsInstance(curve, RationalCurve)
+
+        expected_coeffs = np.array([[1., -0.4375, -0.171875, 0.],
+                                    [0., 0.25, -0.25, -0.078125],
+                                    [0., 0.3125, -0.078125, -0.0390625],
+                                    [0., -0.0625, 0.109375, -0.0390625],
+                                    [0., 0., 0.28125, 0.],
+                                    [0., 0.125, -0.125, -0.0390625],
+                                    [0., -1., 0.34375, 0.078125],
+                                    [0., 0., 0., 0.]])
+
+        self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
+
+        p0 = DualQuaternion([1, 0, 0, 0, 0, 0, 0, 0])
+        p1 = DualQuaternion.as_rational([0, 5, 0, 0, 0, 0, 0, 0])
+        p2 = DualQuaternion.as_rational([0, 5, 0, 3, 0, -3, 0, 0])
+        p3 = DualQuaternion.as_rational([12, 0, 0, 3, 0, 0, 0, -10])
+
+        self.assertRaises(Exception, mi.interpolate, [p0, p1, p2, p3])
+
+

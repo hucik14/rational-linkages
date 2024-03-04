@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from rational_linkages import TransfMatrix
+from rational_linkages import TransfMatrix, DualQuaternion
 
 
 class TestTransfMatrix(TestCase):
@@ -124,6 +124,21 @@ class TestTransfMatrix(TestCase):
         self.assertTrue(np.allclose(transf.matrix, mat))
 
     def test_matrix2dq(self):
+        mat = np.array([[1, 0, 0, 0],
+                        [0, 0, -1, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 1]])
+        transf = TransfMatrix(mat)
+        expected_solution = np.array([1, 0, 0, 1, 0, 0, 0, 0])
+        self.assertTrue(np.allclose(transf.matrix2dq(), expected_solution))
+
+        # line case
+        mat = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3]).dq2matrix()
+        transf = TransfMatrix(mat)
+
+        expected_solution = np.array([0, 10, 37, -84, 0, -3, -6, -3]) / np.linalg.norm([0, 10, 37, -84])
+        self.assertTrue(np.allclose(transf.matrix2dq(), expected_solution))
+
         mat = np.array(
             [
                 [1, 0, 0, 0],
