@@ -1,7 +1,8 @@
 import unittest
 
 import numpy as np
-from biquaternion_py import BiQuaternion
+from biquaternion_py import BiQuaternion, Poly, II, KK, EE
+from sympy import Symbol
 
 from rational_linkages import (
     DualQuaternion,
@@ -207,7 +208,7 @@ class TestDualQuaternion(unittest.TestCase):
         dq = DualQuaternion([7, 0, 0, 0, 0, 4, -5, 6])
         self.assertTrue(np.allclose(dq.dq2point_homogeneous(), np.array([7, 4, -5, 6])))
 
-    def test_dq2line(self):
+    def test_dq2line_vectors(self):
         dq = DualQuaternion([0, -2, 0, 0, 0, 4, -4, 6])
         expected_direction = np.array([-1, 0, 0])
         expected_moment = np.array([-2, 2, -3])
@@ -228,6 +229,26 @@ class TestDualQuaternion(unittest.TestCase):
         direction, moment = dq.dq2line_vectors()
         self.assertTrue(np.allclose(direction, expected_direction))
         self.assertTrue(np.allclose(moment, expected_moment))
+
+        dq = DualQuaternion([0, 0, 0, 1, 0, 3, 2, -1])
+        direction, moment = dq.dq2line_vectors()
+        self.assertTrue(np.array_equal(direction, np.array([0, 0, 1])))
+        self.assertTrue(np.array_equal(moment, np.array([-3, -2, 1])))
+
+        x = Symbol('x')
+        dq = DualQuaternion([0, x, -x**3, 1, 0, 3, 2*x, -1])
+        direction, moment = dq.dq2line_vectors()
+        self.assertTrue(np.array_equal(direction, np.array([x, -x**3, 1])))
+        self.assertTrue(np.array_equal(moment, np.array([-3, -2*x, 1])))
+
+        dq = DualQuaternion([x, 0, 0, 1, x ** 2, 3, 2, 0])
+        with self.assertWarns(UserWarning):
+            dq.dq2line_vectors()
+
+        y = Symbol('y')
+        dq = DualQuaternion([x, 0, 0, 1, y, 3, 2, -1])
+        with self.assertRaises(ValueError):
+            dq.dq2line_vectors()
 
     def test_dq2screw(self):
         dq = DualQuaternion([0, -2, 0, 0, 0, 4, -4, 6])
@@ -295,13 +316,16 @@ class TestDualQuaternion(unittest.TestCase):
     def test__truediv__(self):
         dq1 = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
         dq2 = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
-        self.assertTrue(np.allclose((dq1 / dq2).array(), np.array([1, 0, 0, 0, 0, 0, 0, 0])))
+        self.assertTrue(
+            np.allclose((dq1 / dq2).array(), np.array([1, 0, 0, 0, 0, 0, 0, 0])))
 
-        self.assertTrue(np.allclose((dq1 / 2).array(), np.array([0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4])))
+        self.assertTrue(
+            np.allclose((dq1 / 2).array(), np.array([0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4])))
 
     def test__neg__(self):
         dq = DualQuaternion([1, 2, 3, 4, -5, 6, 7, 8])
-        self.assertTrue(np.allclose((-dq).array(), np.array([-1, -2, -3, -4, 5, -6, -7, -8])))
+        self.assertTrue(
+            np.allclose((-dq).array(), np.array([-1, -2, -3, -4, 5, -6, -7, -8])))
 
     def test_back_projection(self):
         dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
@@ -312,3 +336,31 @@ class TestDualQuaternion(unittest.TestCase):
         dq = DualQuaternion.random_on_study_quadric(interval=1)
         self.assertTrue(len(dq.array()) == 8)
         self.assertTrue(dq.is_on_study_quadric())
+
+    def test_from_bq_poly(self):
+        # valid input
+        t = Symbol('t')
+        h = 2 * KK + EE * II
+        poly_bq = Poly(t - h, t)
+        dq = DualQuaternion.from_bq_poly(poly_bq, indet=t)
+        self.assertIsInstance(dq, DualQuaternion)
+
+        # invalid input
+        with self.assertRaises(ValueError):
+            DualQuaternion.from_bq_poly("invalid_poly", Symbol('t'))
+
+        # invalid input
+        h = 2 * KK + EE * II
+        poly_bq = Poly((t - h) ** 2, t)
+        with self.assertRaises(ValueError):
+            DualQuaternion.from_bq_poly(poly_bq, indet=t)
+
+    def test_real(self):
+        dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+        expected_real = np.array([1, 5])
+        self.assertTrue(np.array_equal(dq.real(), expected_real))
+
+    def test_imag(self):
+        dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+        expected_imag = np.array([2, 3, 4, 6, 7, 8])
+        self.assertTrue(np.array_equal(dq.imag(), expected_imag))

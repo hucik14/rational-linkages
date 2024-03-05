@@ -1,10 +1,12 @@
 from unittest import TestCase
+import os
 
 import numpy as np
 
 from rational_linkages import (DualQuaternion, MotionFactorization, NormalizedLine,
-                               RationalMechanism, CollisionFreeOptimization)
-from rational_linkages.models import bennett_ark24 as bennett
+                               RationalMechanism, CollisionFreeOptimization,
+                               PointHomogeneous, RationalCurve)
+from rational_linkages.models import bennett_ark24
 
 
 class TestRationalMechanism(TestCase):
@@ -23,11 +25,67 @@ class TestRationalMechanism(TestCase):
         self.assertTrue(not motion.is_linkage)
 
     def test_from_saved_file(self):
-        m = bennett()
+        m = RationalMechanism.from_saved_file("python/tests/bennett")
         self.assertTrue(isinstance(m, RationalMechanism))
 
+        m = bennett_ark24()
+        self.assertTrue(isinstance(m, RationalMechanism))
         self.assertRaises(FileNotFoundError, RationalMechanism.from_saved_file,
                           "nonexistent_file.pkl")
+
+    def test_save(self):
+        # Call the save method
+        m = bennett_ark24()
+
+        m.save('test_file.pkl')
+        # Check if the file was created
+        self.assertTrue(os.path.exists('test_file.pkl'))
+
+        m.save('test_file2')
+        # Check if the file was created
+        self.assertTrue(os.path.exists('test_file2.pkl'))
+
+        m.save()
+        # Check if the file was created
+        self.assertTrue(os.path.exists('saved_mechanism.pkl'))
+
+        # Clean up after the test
+        os.remove('test_file.pkl')
+        os.remove('test_file2.pkl')
+        os.remove('saved_mechanism.pkl')
+
+    def test__determine_tool(self):
+        f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                                  DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
+
+        f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                                  DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
+        mech = RationalMechanism([f1, f2])
+
+        # Test when tool is None
+        tool = None
+        result = mech._determine_tool(tool)
+        expected_result = DualQuaternion()
+        self.assertTrue(np.allclose(result.array(), expected_result.array()))
+        self.assertIsInstance(result, DualQuaternion)
+
+        # Test when tool is a DualQuaternion instance
+        tool = DualQuaternion([1, 0, 0, 0, 0, 0, -2, 0])
+        result = mech._determine_tool(tool)
+        self.assertTrue(np.allclose(result.array(), tool.array()))
+
+        # Test when tool is 'mid_of_last_link'
+        tool = 'mid_of_last_link'
+        result = mech._determine_tool(tool)
+        expected_result = np.array([0., 0., 0.7071067812, 0.7071067812, 0.0000353553,
+                                    0.0000353553, -0.2062394778, 0.2062394778])
+        self.assertTrue(np.allclose(result.array(), expected_result))
+        self.assertIsInstance(result, DualQuaternion)
+
+        # Test when tool is not a DualQuaternion instance, None or 'mid_of_last_link'
+        tool = 'invalid_tool'
+        with self.assertRaises(ValueError):
+            mech._determine_tool(tool)
 
     def test__map_joint_segment(self):
         # Test case 1
@@ -50,7 +108,6 @@ class TestRationalMechanism(TestCase):
         result = RationalMechanism._map_joint_segment(points_params, joint_segment)
         expected_result = np.array([-0.5, 1.5])
         np.testing.assert_allclose(result, expected_result)
-
 
     def test_smallest_polyline_points(self):
         lines = [NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0]),
@@ -88,5 +145,104 @@ class TestRationalMechanism(TestCase):
 
         self.assertTrue(np.allclose(optim_res.fun, 6.0))
 
+    def test_smallest_polyline(self):
+        pts, points_params, res = bennett_ark24().smallest_polyline(update_design=True)
 
+        self.assertTrue(res.success)
+
+        expected_length = 1.322267221075116
+        self.assertAlmostEqual(res.fun, expected_length, 5)
+
+    def test_collision_check(self):
+        f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                                  DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
+        f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                                  DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
+
+        m = RationalMechanism([f1, f2], tool='mid_of_last_link')
+        res = m.collision_check(parallel=False, only_links=True)
+        expected_result = [-1.4142135623730936, -1.1102230246251565e-16,
+                           1.4142135623730936, 2.7071067811865483, 1.2928932188134519]
+        self.assertTrue(np.allclose(res, expected_result))
+
+        f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0.1]),
+                                        PointHomogeneous([1, 0, 0, 0.5]),
+                                        PointHomogeneous([1, -0.5, 0, 0.2]),
+                                        PointHomogeneous([1, -0.5, 0, 0.3])])
+        f2.set_joint_connection_points([PointHomogeneous([1, -0.16666667, 0, 0]),
+                                        PointHomogeneous([1, -0.16666667, 0, -0.1]),
+                                        PointHomogeneous([1, -0.66666667, 0, 0.1]),
+                                        PointHomogeneous([1, -0.66666667, 0, 0])])
+
+        m = RationalMechanism([f1, f2], tool='mid_of_last_link')
+
+        res = m.collision_check(parallel=False)
+        res[1] = 1/res[1]
+        #expected_result = np.array([3.885780586188048e-16, 1 / 4503599627370496.0])
+        self.assertTrue(np.allclose(res, [0, 0]))
+
+        res = m.collision_check(parallel=False, terminate_on_first=True)
+        self.assertTrue(np.allclose(res, [0]))
+
+        res = m.collision_check(parallel=True, only_links=True)
+        isnone = res is None
+        self.assertTrue(isnone)
+
+    def test_get_motion_curve(self):
+        mech = bennett_ark24()
+        curve = mech.get_motion_curve()
+        self.assertTrue(np.allclose(mech.coeffs, curve.coeffs))
+        self.assertIsInstance(curve, RationalCurve)
+
+    def test_get_screw_axes(self):
+        f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                                  DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
+        f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                                  DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
+
+        m = RationalMechanism([f1, f2], tool='mid_of_last_link')
+        screw_axes = m.get_screw_axes()
+        self.assertTrue(np.allclose(screw_axes[0].screw, [0, 0, 1, 0, 0, 0]))
+        self.assertTrue(np.allclose(screw_axes[1].screw, [0, 0, 1, 0, 0.5, 0]))
+        self.assertTrue(np.allclose(screw_axes[2].screw, [0, 0, 1, 0, 2/3, 0]))
+        self.assertTrue(np.allclose(screw_axes[3].screw, [0, 0, 1, 0, 1/6, 0]))
+
+    def test_get_design(self):
+        f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                                  DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
+        f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                                  DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
+
+        m = RationalMechanism([f1, f2], tool='mid_of_last_link')
+
+        f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0.1]),
+                                        PointHomogeneous([1, 0, 0, 0.5]),
+                                        PointHomogeneous([1, -0.5, 0, 0.2]),
+                                        PointHomogeneous([1, -0.5, 0, 0.3])])
+        f2.set_joint_connection_points([PointHomogeneous([1, -0.16666667, 0, 0]),
+                                        PointHomogeneous([1, -0.16666667, 0, -0.1]),
+                                        PointHomogeneous([1, -0.66666667, 0, 0.1]),
+                                        PointHomogeneous([1, -0.66666667, 0, 0])])
+
+        dh, design_params = m.get_design(scale=10)
+
+        expected_dh = np.array([[3.14159265, 0., 5, 0.],
+                                [0., 0., 10*1/6, 0.],
+                                [3.14159265, 0., 5, 0.],
+                                [0., 0., 10*1/6, 0.]])
+        expected_design_params = np.array([[13.5, -8.], [13., -10.],
+                                           [11., -11.], [10., -7.5]])
+
+        self.assertTrue(np.allclose(dh, expected_dh))
+        self.assertTrue(np.allclose(design_params, expected_design_params))
+
+        dh, design_params = m.get_design(unit='deg')
+        expected_dh = np.array([[180, 0., 0.5, 0.],
+                                [0., 0., 1/6, 0.],
+                                [180, 0., 0.5, 0.],
+                                [0., 0., 1/6, 0.]])
+        self.assertTrue(np.allclose(dh, expected_dh))
+
+        with self.assertRaises(ValueError):
+            m.get_design(unit='invalid_unit')
 

@@ -545,6 +545,11 @@ class DualQuaternion:
 
         :return: tuple of 2 numpy arrays, 3-vector coordinates each
         :rtype: tuple
+
+        :raises ValueError: if the dual quaternion has more than one indeterminate
+
+        :warn: if the dual quaternion has NOT zeros in 1st and 5th element, it is not
+            a line
         """
         dq = self.array()
         if any(isinstance(x, Expr) for x in dq):
@@ -557,12 +562,15 @@ class DualQuaternion:
             dq0_simple = simplify(dq[0])
             dq4_simple = simplify(dq[4])
 
-            if not (dq0_simple == 0 or not dq4_simple == 0):
-                t = Symbol('t')
+            if len((dq0_simple + dq4_simple).free_symbols) > 1:
+                raise ValueError("dq2line_vectors method error: the dual quaternion "
+                                 "has more than one indeterminate.")
+
+            if not (dq0_simple == 0 or dq4_simple == 0):
                 coeffs = []
-                if not dq0_simple == 0:
+                for t in dq0_simple.free_symbols:
                     coeffs += Poly(dq0_simple, t).all_coeffs()
-                if not dq4_simple == 0:
+                for t in dq4_simple.free_symbols:
                     coeffs += Poly(dq4_simple, t).all_coeffs()
 
                 coeffs = np.array(coeffs, dtype="float64")

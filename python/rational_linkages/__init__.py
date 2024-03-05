@@ -1,4 +1,4 @@
-from .CollisionFreeOptimization import CollisionFreeOptimization
+from .CollisionFreeOptimization import CollisionFreeOptimization, CombinatorialSearch
 from .DualQuaternion import DualQuaternion
 from .DualQuaternionAction import DualQuaternionAction
 from .ExudynAnalysis import ExudynAnalysis
