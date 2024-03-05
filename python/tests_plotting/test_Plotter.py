@@ -1,4 +1,5 @@
 import unittest
+import os
 from unittest.mock import MagicMock
 from matplotlib.testing.compare import compare_images
 
@@ -65,6 +66,8 @@ class TestPlotter(unittest.TestCase):
         self.assertTrue(compare_images('test_plot_line.png',
                                        'python/tests_plotting/baseline_images/plot_line.png',
                                        0.1))
+        os.remove('test_plot_line.png')
+        os.remove('python/tests_plotting/baseline_images/plot_line-failed-diff.png')
 
 
 if __name__ == '__main__':

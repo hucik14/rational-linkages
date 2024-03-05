@@ -87,6 +87,8 @@ class RationalMechanism(RationalCurve):
 
         :return: linkage object
         :rtype: RationalMechanism
+
+        :raises FileNotFoundError: if the file was not possible to load
         """
         # check if the filename has the .pkl extension
         if filename[-4:] != '.pkl':
@@ -96,7 +98,8 @@ class RationalMechanism(RationalCurve):
             with open(filename, 'rb') as file:
                 mechanism = pickle.load(file)
         except FileNotFoundError:
-            raise FileNotFoundError(f"File {filename} not found.")
+            raise FileNotFoundError(f"File {filename} was not found or possible "
+                                    f"to load.")
 
         return mechanism
 
@@ -108,6 +111,8 @@ class RationalMechanism(RationalCurve):
         """
         if filename is None:
             filename = 'saved_mechanism.pkl'
+        elif filename[-4:] == '.pkl':
+            pass
         else:
             filename = filename + '.pkl'
 
@@ -122,7 +127,7 @@ class RationalMechanism(RationalCurve):
         :rtype: DualQuaternion
         """
         if tool is None:
-             return DualQuaternion(self.evaluate(0, inverted_part=True))
+            return DualQuaternion(self.evaluate(0, inverted_part=True))
         elif isinstance(tool, DualQuaternion):
             return tool
         elif tool == 'mid_of_last_link':
@@ -218,6 +223,7 @@ class RationalMechanism(RationalCurve):
             connection_params[i, :] = self.factorizations[0].linkage[i].points_params
 
         for i in range(len(self.factorizations[1].linkage)):
+            # iterate from back to front
             connection_params[-1-i, :] = self.factorizations[1].linkage[i].points_params[::-1]
 
         return connection_params

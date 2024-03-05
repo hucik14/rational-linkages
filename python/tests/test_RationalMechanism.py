@@ -1,10 +1,11 @@
 from unittest import TestCase
+import os
 
 import numpy as np
 
 from rational_linkages import (DualQuaternion, MotionFactorization, NormalizedLine,
                                RationalMechanism, CollisionFreeOptimization)
-from rational_linkages.models import bennett_ark24 as bennett
+from rational_linkages.models import bennett_ark24
 
 
 class TestRationalMechanism(TestCase):
@@ -23,11 +24,67 @@ class TestRationalMechanism(TestCase):
         self.assertTrue(not motion.is_linkage)
 
     def test_from_saved_file(self):
-        m = bennett()
+        m = RationalMechanism.from_saved_file("python/tests/bennett")
         self.assertTrue(isinstance(m, RationalMechanism))
 
+        m = bennett_ark24()
+        self.assertTrue(isinstance(m, RationalMechanism))
         self.assertRaises(FileNotFoundError, RationalMechanism.from_saved_file,
                           "nonexistent_file.pkl")
+
+    def test_save(self):
+        # Call the save method
+        m = bennett_ark24()
+
+        m.save('test_file.pkl')
+        # Check if the file was created
+        self.assertTrue(os.path.exists('test_file.pkl'))
+
+        m.save('test_file2')
+        # Check if the file was created
+        self.assertTrue(os.path.exists('test_file2.pkl'))
+
+        m.save()
+        # Check if the file was created
+        self.assertTrue(os.path.exists('saved_mechanism.pkl'))
+
+        # Clean up after the test
+        os.remove('test_file.pkl')
+        os.remove('test_file2.pkl')
+        os.remove('saved_mechanism.pkl')
+
+    def test__determine_tool(self):
+        f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                                  DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
+
+        f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                                  DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
+        mech = RationalMechanism([f1, f2])
+
+        # Test when tool is None
+        tool = None
+        result = mech._determine_tool(tool)
+        expected_result = DualQuaternion()
+        self.assertTrue(np.allclose(result.array(), expected_result.array()))
+        self.assertIsInstance(result, DualQuaternion)
+
+        # Test when tool is a DualQuaternion instance
+        tool = DualQuaternion([1, 0, 0, 0, 0, 0, -2, 0])
+        result = mech._determine_tool(tool)
+        self.assertTrue(np.allclose(result.array(), tool.array()))
+
+        # Test when tool is 'mid_of_last_link'
+        tool = 'mid_of_last_link'
+        result = mech._determine_tool(tool)
+        expected_result = np.array([0., 0., 0.7071067812, 0.7071067812, 0.0000353553,
+                                    0.0000353553, -0.2062394778, 0.2062394778])
+        self.assertTrue(np.allclose(result.array(), expected_result))
+        self.assertIsInstance(result, DualQuaternion)
+
+        # Test when tool is not a DualQuaternion instance, None or 'mid_of_last_link'
+        tool = 'invalid_tool'
+        with self.assertRaises(ValueError):
+            mech._determine_tool(tool)
 
     def test__map_joint_segment(self):
         # Test case 1
@@ -88,7 +145,7 @@ class TestRationalMechanism(TestCase):
         self.assertTrue(np.allclose(optim_res.fun, 6.0))
 
     def test_smallest_polyline(self):
-        pts, points_params, res = bennett().smallest_polyline(update_design=True)
+        pts, points_params, res = bennett_ark24().smallest_polyline(update_design=True)
 
         self.assertTrue(res.success)
 
