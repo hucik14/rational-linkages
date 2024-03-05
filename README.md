@@ -52,6 +52,27 @@ you can *"watch/star"* the issue tracker package **to get notified about the upd
 In case of other questions or contributions, please, email the author at:
 `daniel.huczala@uibk.ac.at`
 
+## Preprint and citing the package
+
+For additional information, see our preprint paper, and in the case of usage, please, 
+cite it:
+
+Huczala, D., Siegele J., Thimm, D., Pfurner, M., Schröcker, H.-P. (2024). 
+Rational Linkages: From Poses to 3D-printed Prototypes. 
+Preprint **arXiv:2403.00558**, url: [https://arxiv.org/abs/2403.00558](https://arxiv.org/abs/2403.00558).
+
+```bibtex
+@misc{huczala2024linkages,
+      title={Rational Linkages: From Poses to 3D-printed Prototypes},
+      author={Daniel Huczala and Johannes Siegele and Daren A. Thimm and Martin Pfurner and Hans-Peter Schröcker},
+      year={2024},
+      eprint={2403.00558},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2403.00558}
+   }
+```
+
 ## Acknowledgements
 
 Funded by the European Union. Views and opinions expressed are however those of 

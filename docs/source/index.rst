@@ -78,7 +78,7 @@ If you use the Rational Linkages Toolbox in your research, please, cite it as fo
 
 Huczala, D., Siegele J., Thimm, D., Pfurner, M., Schröcker, H.-P. (2024).
 Rational Linkages: From Poses to 3D-printed Prototypes.
-arXiv preprint `arXiv:2403.00558 <https://arxiv.org/abs/2403.00558>`_.
+Preprint **arXiv:2403.00558**, url: `https://arxiv.org/abs/2403.00558 <https://arxiv.org/abs/2403.00558>`_.
 
 .. code-block:: text
 
