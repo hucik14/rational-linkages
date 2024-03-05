@@ -4,7 +4,8 @@ import os
 import numpy as np
 
 from rational_linkages import (DualQuaternion, MotionFactorization, NormalizedLine,
-                               RationalMechanism, CollisionFreeOptimization)
+                               RationalMechanism, CollisionFreeOptimization,
+                               PointHomogeneous, RationalCurve)
 from rational_linkages.models import bennett_ark24
 
 
@@ -152,5 +153,96 @@ class TestRationalMechanism(TestCase):
         expected_length = 1.322267221075116
         self.assertAlmostEqual(res.fun, expected_length, 5)
 
+    def test_collision_check(self):
+        f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                                  DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
+        f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                                  DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
 
+        m = RationalMechanism([f1, f2], tool='mid_of_last_link')
+        res = m.collision_check(parallel=False, only_links=True)
+        expected_result = [-1.4142135623730936, -1.1102230246251565e-16,
+                           1.4142135623730936, 2.7071067811865483, 1.2928932188134519]
+        self.assertTrue(np.allclose(res, expected_result))
+
+        f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0.1]),
+                                        PointHomogeneous([1, 0, 0, 0.5]),
+                                        PointHomogeneous([1, -0.5, 0, 0.2]),
+                                        PointHomogeneous([1, -0.5, 0, 0.3])])
+        f2.set_joint_connection_points([PointHomogeneous([1, -0.16666667, 0, 0]),
+                                        PointHomogeneous([1, -0.16666667, 0, -0.1]),
+                                        PointHomogeneous([1, -0.66666667, 0, 0.1]),
+                                        PointHomogeneous([1, -0.66666667, 0, 0])])
+
+        m = RationalMechanism([f1, f2], tool='mid_of_last_link')
+
+        res = m.collision_check(parallel=False)
+        res[1] = 1/res[1]
+        #expected_result = np.array([3.885780586188048e-16, 1 / 4503599627370496.0])
+        self.assertTrue(np.allclose(res, [0, 0]))
+
+        res = m.collision_check(parallel=False, terminate_on_first=True)
+        self.assertTrue(np.allclose(res, [0]))
+
+        res = m.collision_check(parallel=True, only_links=True)
+        isnone = res is None
+        self.assertTrue(isnone)
+
+    def test_get_motion_curve(self):
+        mech = bennett_ark24()
+        curve = mech.get_motion_curve()
+        self.assertTrue(np.allclose(mech.coeffs, curve.coeffs))
+        self.assertIsInstance(curve, RationalCurve)
+
+    def test_get_screw_axes(self):
+        f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                                  DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
+        f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                                  DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
+
+        m = RationalMechanism([f1, f2], tool='mid_of_last_link')
+        screw_axes = m.get_screw_axes()
+        self.assertTrue(np.allclose(screw_axes[0].screw, [0, 0, 1, 0, 0, 0]))
+        self.assertTrue(np.allclose(screw_axes[1].screw, [0, 0, 1, 0, 0.5, 0]))
+        self.assertTrue(np.allclose(screw_axes[2].screw, [0, 0, 1, 0, 2/3, 0]))
+        self.assertTrue(np.allclose(screw_axes[3].screw, [0, 0, 1, 0, 1/6, 0]))
+
+    def test_get_design(self):
+        f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
+                                  DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
+        f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
+                                  DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
+
+        m = RationalMechanism([f1, f2], tool='mid_of_last_link')
+
+        f1.set_joint_connection_points([PointHomogeneous([1, 0, 0, 0.1]),
+                                        PointHomogeneous([1, 0, 0, 0.5]),
+                                        PointHomogeneous([1, -0.5, 0, 0.2]),
+                                        PointHomogeneous([1, -0.5, 0, 0.3])])
+        f2.set_joint_connection_points([PointHomogeneous([1, -0.16666667, 0, 0]),
+                                        PointHomogeneous([1, -0.16666667, 0, -0.1]),
+                                        PointHomogeneous([1, -0.66666667, 0, 0.1]),
+                                        PointHomogeneous([1, -0.66666667, 0, 0])])
+
+        dh, design_params = m.get_design(scale=10)
+
+        expected_dh = np.array([[3.14159265, 0., 5, 0.],
+                                [0., 0., 10*1/6, 0.],
+                                [3.14159265, 0., 5, 0.],
+                                [0., 0., 10*1/6, 0.]])
+        expected_design_params = np.array([[13.5, -8.], [13., -10.],
+                                           [11., -11.], [10., -7.5]])
+
+        self.assertTrue(np.allclose(dh, expected_dh))
+        self.assertTrue(np.allclose(design_params, expected_design_params))
+
+        dh, design_params = m.get_design(unit='deg')
+        expected_dh = np.array([[180, 0., 0.5, 0.],
+                                [0., 0., 1/6, 0.],
+                                [180, 0., 0.5, 0.],
+                                [0., 0., 1/6, 0.]])
+        self.assertTrue(np.allclose(dh, expected_dh))
+
+        with self.assertRaises(ValueError):
+            m.get_design(unit='invalid_unit')
 

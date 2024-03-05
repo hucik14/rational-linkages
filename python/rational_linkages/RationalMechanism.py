@@ -156,7 +156,8 @@ class RationalMechanism(RationalCurve):
                              "None default motion zero configuration, "
                              "or 'mid_of_last_link'")
 
-    def get_design(self, unit: str = 'rad',
+    def get_design(self,
+                   unit: str = 'rad',
                    scale: float = 1.0,
                    joint_length: float = 20.0,
                    washer_length: float = 1.0,
@@ -297,7 +298,9 @@ class RationalMechanism(RationalCurve):
                 vec_x = vec / np.linalg.norm(vec)
 
                 # from line.dir (future Z axis) and x create an SE3 object
-                frames[i+1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[0])
+                frames[i+1] = TransfMatrix.from_vectors(vec_x,
+                                                        line.direction,
+                                                        origin=pts[0])
 
             else:  # Z axes are intersecting or coincident
                 if np.isclose(np.dot(frames[i].a, line.direction), 1):
@@ -313,7 +316,9 @@ class RationalMechanism(RationalCurve):
                     # future X axis as cross product of previous Z axis and new Z axis
                     vec_x = np.cross(frames[i].a, line.direction)
 
-                    frames[i + 1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[0])
+                    frames[i + 1] = TransfMatrix.from_vectors(vec_x,
+                                                              line.direction,
+                                                              origin=pts[0])
 
         return frames
 
@@ -337,7 +342,8 @@ class RationalMechanism(RationalCurve):
 
         return screws + branch2[::-1]
 
-    def map_connection_params(self, connection_params: np.ndarray,
+    def map_connection_params(self,
+                              connection_params: np.ndarray,
                               midpoints_distance: float) -> np.ndarray:
         """
         Map the connection parameters to the given joint length.
