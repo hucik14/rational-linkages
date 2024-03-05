@@ -194,7 +194,7 @@ class DualQuaternion:
     @classmethod
     def as_rational(cls, study_parameters: Union[list, np.ndarray] = None):
         """
-        Assembly of DualQuaternion from Sympy's rational numbers
+        Assembly of DualQuaternion from Sympy's rational numbers (Rational).
 
         :param Union[list, np.ndarray] study_parameters: list of 8 numbers
 

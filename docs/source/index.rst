@@ -1,7 +1,5 @@
 .. Rational Linkages documentation master file, created by
    sphinx-quickstart on Fri Sep  8 13:45:57 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 .. include:: refs-weblinks.rst
 
@@ -16,8 +14,8 @@ Rational Linkages Toolbox Documentation
    :alt: Build Status
 
 .. image:: https://img.shields.io/pypi/v/rational-linkages.svg
-    :target: https://pypi.org/project/rational-linkages/
-    :alt: PyPI
+   :target: https://pypi.org/project/rational-linkages/
+   :alt: PyPI
 
 .. image:: https://img.shields.io/github/issues/hucik14/rl-issues
    :target: https://github.com/hucik14/rl-issues/issues
@@ -61,6 +59,38 @@ Indices and tables
 * :ref:`search`
 
 
+Authors
+=======
+
+The toolbox is developed by the Unit of Geometry and Surveying, University of Innsbruck,
+Austria. Namely, the following people contributed to the development and writing
+documentation:
+
+- Daniel Huczala (author, maintainer)
+- Daren A. Thimm (contributor)
+- Martin Pfurner (contributor)
+- Hans-Peter Schröcker (supervisor, contributor)
+
+Citing the Package
+==================
+
+If you use the Rational Linkages Toolbox in your research, please, cite it as follows:
+
+Huczala, D., Siegele J., Thimm, D., Pfurner, M., Schröcker, H.-P. (2024).
+Rational Linkages: From Poses to 3D-printed Prototypes.
+arXiv preprint `arXiv:2403.00558 <https://arxiv.org/abs/2403.00558>`_.
+
+.. code-block:: text
+
+   @misc{huczala2024linkages,
+      title={Rational Linkages: From Poses to 3D-printed Prototypes},
+      author={Daniel Huczala and Johannes Siegele and Daren A. Thimm and Martin Pfurner and Hans-Peter Schröcker},
+      year={2024},
+      eprint={2403.00558},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2403.00558}
+   }
 
 Acknowledgements
 ================

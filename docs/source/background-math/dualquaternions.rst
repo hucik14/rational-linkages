@@ -260,31 +260,6 @@ DQ Action on a Plane
 Planes are not supported by the package yet.
 
 
-Rational Curves and Motions
-===========================
-
-The class :class:`.RationalCurve` is used to represent rational curves.
-
-A single point :math:`\mathbf{p}` on the Study quadric describes a discrete
-transformation. A curve :math:`C(t)` on the Study quadric describes a 1-parametric
-rigid body motion in SE(3). If all point trajectories are rational curves, :math:`C(t)`
-is called a rational motion parametrized by :math:`t`.
-It is given by a polynomial :math:`C(t)` with dual quaternion coefficients. An
-example of a rational motion follows
-
-.. math::
-    C(t) = \begin{bmatrix} t^2 - 2 \\ 0 \\ 0 \\ -3t \\ 0 \\ 1 \\ t \\ 0 \end{bmatrix}
-
-which is a continuous curve in the space of dual quaternions describing position and
-orientation of a rigid body. The parameter :math:`t` is a real number, and can be
-mapped to a 360 deg rotation around the z-axis, i.e. the variable angle :math:`\theta`
-of a joint axes.
-This mapping is in detail described in the section `Joint Angle to Curve Parameter`_.
-
-.. _Joint Angle to Curve Parameter: joint-angle-to-t.rst
-
-
-
 
 
 
