@@ -7,9 +7,10 @@
 
 # Rational Linkages
 
-Python-based toolbox for synthesis and rapid-prototyping of rational linkages. The 
-documentation is hosted on Read the Docs, available here: 
-[Rational Linkages Toolbox Documentation](https://rational-linkages.readthedocs.io/).
+Python-based toolbox for synthesis and rapid-prototyping of rational linkages, 
+developed by the Unit of Geometry and Surveying, University of Innsbruck, Austria. 
+The documentation is hosted on Read the Docs, available here: 
+[Rational Linkages Documentation](https://rational-linkages.readthedocs.io/).
 
 ## Intallation instuctions
 
@@ -44,7 +45,9 @@ for tutorials and usage examples.
 
 Since the self-hosted repository does not allow external users to create issues,
 please, use the [external issue tracker](https://github.com/hucik14/rl-issues) 
-hosted on GitHub for submitting **issues** and **feature requests**.
+hosted on GitHub for submitting **issues** and **feature requests**. Additionally,
+you can *"watch/star"* the issue tracker package **to get notified about the updates**
+(new releases will be also announced there).
 
 In case of other questions or contributions, please, email the author at:
 `daniel.huczala@uibk.ac.at`
