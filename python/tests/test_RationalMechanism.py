@@ -177,8 +177,8 @@ class TestRationalMechanism(TestCase):
         m = RationalMechanism([f1, f2], tool='mid_of_last_link')
 
         res = m.collision_check(parallel=False)
-        res[1] = 1/res[1]
-        #expected_result = np.array([3.885780586188048e-16, 1 / 4503599627370496.0])
+        res[1] = 1 / res[1]
+        # expected_result = np.array([3.885780586188048e-16, 1 / 4503599627370496.0])
         self.assertTrue(np.allclose(res, [0, 0]))
 
         res = m.collision_check(parallel=False, terminate_on_first=True)
@@ -204,8 +204,8 @@ class TestRationalMechanism(TestCase):
         screw_axes = m.get_screw_axes()
         self.assertTrue(np.allclose(screw_axes[0].screw, [0, 0, 1, 0, 0, 0]))
         self.assertTrue(np.allclose(screw_axes[1].screw, [0, 0, 1, 0, 0.5, 0]))
-        self.assertTrue(np.allclose(screw_axes[2].screw, [0, 0, 1, 0, 2/3, 0]))
-        self.assertTrue(np.allclose(screw_axes[3].screw, [0, 0, 1, 0, 1/6, 0]))
+        self.assertTrue(np.allclose(screw_axes[2].screw, [0, 0, 1, 0, 2 / 3, 0]))
+        self.assertTrue(np.allclose(screw_axes[3].screw, [0, 0, 1, 0, 1 / 6, 0]))
 
     def test_get_design(self):
         f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
@@ -227,9 +227,9 @@ class TestRationalMechanism(TestCase):
         dh, design_params = m.get_design(scale=10)
 
         expected_dh = np.array([[3.14159265, 0., 5, 0.],
-                                [0., 0., 10*1/6, 0.],
+                                [0., 0., 10 * 1 / 6, 0.],
                                 [3.14159265, 0., 5, 0.],
-                                [0., 0., 10*1/6, 0.]])
+                                [0., 0., 10 * 1 / 6, 0.]])
         expected_design_params = np.array([[13.5, -8.], [13., -10.],
                                            [11., -11.], [10., -7.5]])
 
@@ -238,11 +238,32 @@ class TestRationalMechanism(TestCase):
 
         dh, design_params = m.get_design(unit='deg')
         expected_dh = np.array([[180, 0., 0.5, 0.],
-                                [0., 0., 1/6, 0.],
+                                [0., 0., 1 / 6, 0.],
                                 [180, 0., 0.5, 0.],
-                                [0., 0., 1/6, 0.]])
+                                [0., 0., 1 / 6, 0.]])
         self.assertTrue(np.allclose(dh, expected_dh))
 
         with self.assertRaises(ValueError):
             m.get_design(unit='invalid_unit')
 
+    def test_collision_free_optimization(self):
+        h1 = DualQuaternion.as_rational([0, 1, 0, 0, 0, 0, 0, 0])
+        h2 = DualQuaternion.as_rational([0, 0, 3, 0, 0, 0, 0, 1])
+        h3 = DualQuaternion.as_rational([0, 1, 1, 0, 0, 0, 0, -2])
+
+        f1 = MotionFactorization([h1, h2, h3])
+
+        # find factorizations
+        factorizations = f1.factorize()
+
+        # create mechanism
+        m = RationalMechanism(factorizations)
+        m.collision_free_optimization(max_iters=10,
+                                      min_joint_segment_length=0.3,
+                                      start_iteration=4,
+                                      combinations_links=[(0, 0, 0, 1, 1, 0),
+                                                          (0, 0, 0, 1, 1, 0)],
+                                      combinations_joints=[
+                                          (-1, 1, -1, 1, -1, 1, 1, -1, 1, -1, 1, -1),
+                                          (-1, 1, 1, -1, -1, 1, 1, -1, -1, 1, 1, -1)]
+                                      )
