@@ -526,14 +526,14 @@ class RationalMechanism(RationalCurve):
                 break
         return results
 
-    def _check_given_pair(self, iters: tuple[int, int]):
+    def _check_given_pair(self, iters: tuple[int, int]) -> list[float]:
         """
         Perform collision check for a given pair of line segments and evaluate it.
 
         :param tuple iters: tuple of indices of the line segments to be checked
 
         :return: collision check result
-        :rtype: str
+        :rtype: list[float]
         """
         i = iters[0]
         j = iters[1]

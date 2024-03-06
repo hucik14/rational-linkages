@@ -42,6 +42,9 @@ linear factors, which represents simple rotations and translations. Since the
 translations are difficult to realize in engineering applications, this package
 focuses on the factorization of rotations.
 
+The factorization is handled in the background by `Biquaternion_py`_ package, whose
+author is Daren A. Thimm. Refer to the package documentation for more details.
+
 As an example, let's use the same curve as in :ref:`ark2024extended`:
 
 .. math::
@@ -79,6 +82,58 @@ The output can be visualized as shown in the following figure.
 .. figure:: ../tutorials/figures/ark_bennett_home.svg
     :align: center
     :alt: Visualization of the synthesized Bennett mechanism
+
+The dual quaternions :math:`h_1, h_2, k_1, k_2` represent the rotational joints of
+the mechanism, and are related to their Plücker coordinates.
+In the presented example, the dual quaternions have the following form:
+
+.. math::
+    h_1 =
+    \begin{bmatrix}
+        -1.38983921 \\
+        0.68767732 \\
+        -0.71589104  \\
+        0.70107044 \\
+        0 \\
+        0.279825759 \\
+        0.233347361 \\
+        -0.03619970 \\
+    \end{bmatrix}
+    h_2 =
+    \begin{bmatrix}
+        -0.45127753 \\
+        -1.18920251  \\
+        0.02617346  \\
+        -1.06457999 \\
+        0 \\
+        -0.205980947 \\
+        0.0051919116 \\
+        0.230221262 \\
+    \end{bmatrix}
+    k_1 =
+    \begin{bmatrix}
+        -0.45127753 \\
+        -1.37336934 \\
+        -0.65524381  \\
+        0.4824214 \\
+        0 \\
+        -0.11647403 \\
+        0.242442406 \\
+        -0.00228634 \\
+    \end{bmatrix}
+    k_2 =
+    \begin{bmatrix}
+        -1.38983921  \\
+        0.87184415 \\
+        -0.03447376 \\
+        -0.84593095 \\
+        0 \\
+        0.190318846 \\
+        -0.00390313 \\
+        0.1963079 \\
+    \end{bmatrix}
+
+
 
 **References:**
 
