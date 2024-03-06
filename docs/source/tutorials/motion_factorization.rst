@@ -26,20 +26,25 @@ Factorization of planar 4-bar
                                    RationalMechanism, Plotter)
 
 
-    if __name__ == '__main__':
-        f1 = MotionFactorization([DualQuaternion.as_rational([0, 0, 0, 1, 0, 0, 0, 0]),
-                                  DualQuaternion.as_rational([0, 0, 0, 2, 0, 0, -1, 0])])
+    f1 = MotionFactorization([DualQuaternion.as_rational([0, 0, 0, 1, 0, 0, 0, 0]),
+                              DualQuaternion.as_rational([0, 0, 0, 2, 0, 0, -1, 0])])
 
-        # find factorizations
-        factorizations = f1.factorize()
+    # find factorizations
+    factorizations = f1.factorize()
 
-        # create mechanism
-        m = RationalMechanism(factorizations, tool='mid_of_last_link')
+    # create mechanism
+    m = RationalMechanism(factorizations, tool='mid_of_last_link')
 
-        # plot mechanism
-        myplt = Plotter(interactive=True, steps=200, arrows_length=0.05)
-        myplt.plot(m, show_tool=True)
-        myplt.show()
+    # plot mechanism
+    myplt = Plotter(interactive=True, steps=200, arrows_length=0.05)
+    myplt.plot(m, show_tool=True)
+    myplt.show()
+
+.. testoutput::
+    :hide:
+    :options: +ELLIPSIS
+
+    ...
 
 Which results in the following plot:
 
@@ -55,26 +60,31 @@ Factorization of spatial 6R mechanism
 .. testcode::
 
     from rational_linkages import (DualQuaternion, MotionFactorization, RationalMechanism,
-                               Plotter)
+                                   Plotter)
 
 
-    if __name__ == '__main__':
-        h1 = DualQuaternion.as_rational([0, 1, 0, 0, 0, 0, 0, 0])
-        h2 = DualQuaternion.as_rational([0, 0, 3, 0, 0, 0, 0, 1])
-        h3 = DualQuaternion.as_rational([0, 1, 1, 0, 0, 0, 0, -2])
+    h1 = DualQuaternion.as_rational([0, 1, 0, 0, 0, 0, 0, 0])
+    h2 = DualQuaternion.as_rational([0, 0, 3, 0, 0, 0, 0, 1])
+    h3 = DualQuaternion.as_rational([0, 1, 1, 0, 0, 0, 0, -2])
 
-        f1 = MotionFactorization([h1, h2, h3])
+    f1 = MotionFactorization([h1, h2, h3])
 
-        # find factorizations
-        factorizations = f1.factorize()
+    # find factorizations
+    factorizations = f1.factorize()
 
-        # create mechanism
-        m = RationalMechanism(factorizations)
+    # create mechanism
+    m = RationalMechanism(factorizations)
 
-        # plot mechanism
-        myplt = Plotter(interactive=True, steps=200, arrows_length=0.2)
-        myplt.plot(m, show_tool=True)
-        myplt.show()
+    # plot mechanism
+    myplt = Plotter(interactive=True, steps=200, arrows_length=0.2)
+    myplt.plot(m, show_tool=True)
+    myplt.show()
+
+.. testoutput::
+    :hide:
+    :options: +ELLIPSIS
+
+    ...
 
 Which results in the following plot:
 
