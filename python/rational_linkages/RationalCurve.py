@@ -280,7 +280,7 @@ class RationalCurve:
         if inverted_part:
             return np.array(
                 [
-                    self.set_of_polynomials_inversed[i].subs(t, t_param)
+                    self.set_of_polynomials_inversed[i].subs(t, t_param).evalf()
                     for i in range(len(self.set_of_polynomials_inversed))
                 ],
                 dtype="float64",
@@ -288,7 +288,7 @@ class RationalCurve:
         else:
             return np.array(
                 [
-                    self.set_of_polynomials[i].subs(t, t_param)
+                    self.set_of_polynomials[i].subs(t, t_param).evalf()
                     for i in range(len(self.set_of_polynomials))
                 ],
                 dtype="float64",

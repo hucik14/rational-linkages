@@ -372,13 +372,15 @@ class NormalizedLine:
         :return: evaluated line with float elements
         :rtype: NormalizedLine
         """
-        from sympy import Expr, Symbol
+        from sympy import Expr, Symbol, Number
 
         t = Symbol("t")
 
-        line = [Expr(self.screw[i]).subs(t, t_param)
-                for i in range(len(self.screw))]
-        line = [line[j].args[0] for j in range(len(line))]
+        line_expr = [Expr(coord) if not isinstance(coord, Number) else coord
+                     for coord in self.screw]
+        line = [coord.subs(t, t_param).evalf().args[0]
+                if not isinstance(coord, Number) else coord
+                for coord in line_expr]
         return NormalizedLine(np.asarray(line, dtype="float64"))
 
 
