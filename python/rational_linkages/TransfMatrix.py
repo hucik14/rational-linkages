@@ -28,7 +28,7 @@ class TransfMatrix:
         if len(args) == 0:
             mat = np.eye(4)
         else:
-            mat = args[0]
+            mat = np.asarray(args[0])
 
         self.n = mat[1:4, 1]
         self.o = mat[1:4, 2]
@@ -167,7 +167,6 @@ class TransfMatrix:
 
         # create orthogonal
         orthogonal_y = np.cross(approach_z, normal_x)
-        normal_x = np.cross(orthogonal_y, approach_z)
 
         # normalize orthogonal and normal vectors
         orthogonal_y = orthogonal_y / np.linalg.norm(orthogonal_y)
@@ -368,9 +367,24 @@ class TransfMatrix:
         test_frame = TransfMatrix.from_dh_parameters(theta, d, a, alpha)
         if not np.allclose(self.matrix @ test_frame.matrix, other.matrix):
             warn("Frames do not fulfill the DH convention")
-            return [0., 0., 0., 0.]
-        else:
-            return [theta, d, a, alpha]
+
+        return [theta, d, a, alpha]
+
+    def inv(self):
+        """
+        Return inverse transformation matrix
+
+        :return: inverse transformation matrix
+        :rtype: TransfMatrix
+        """
+        inv_rotation = np.transpose(self.rot_matrix())
+        inv_translation = -inv_rotation @ self.t
+
+        m = np.eye(4)
+        m[1:4, 1:4] = inv_rotation
+        m[1:4, 0] = inv_translation
+        return TransfMatrix(m)
+
 
     def get_plot_data(self):
         """
