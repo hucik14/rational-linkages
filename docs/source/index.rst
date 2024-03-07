@@ -78,17 +78,16 @@ If you use the Rational Linkages Toolbox in your research, please, cite it as fo
 
 Huczala, D., Siegele J., Thimm, D., Pfurner, M., Schröcker, H.-P. (2024).
 Rational Linkages: From Poses to 3D-printed Prototypes.
+Advances in Robot Kinematics 2024. ARK 2024.
 Preprint **arXiv:2403.00558**, url: `https://arxiv.org/abs/2403.00558 <https://arxiv.org/abs/2403.00558>`_.
 
 .. code-block:: text
 
-   @misc{huczala2024linkages,
+   @inbook{huczala2024linkages,
       title={Rational Linkages: From Poses to 3D-printed Prototypes},
       author={Daniel Huczala and Johannes Siegele and Daren A. Thimm and Martin Pfurner and Hans-Peter Schröcker},
       year={2024},
-      eprint={2403.00558},
-      archivePrefix={arXiv},
-      primaryClass={cs.RO},
+      booktitle="Advances in Robot Kinematics 2024, ARK 2024",
       url={https://arxiv.org/abs/2403.00558}
    }
 
