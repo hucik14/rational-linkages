@@ -1,7 +1,5 @@
 .. Rational Linkages documentation master file, created by
    sphinx-quickstart on Fri Sep  8 13:45:57 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 .. include:: refs-weblinks.rst
 
@@ -15,9 +13,9 @@ Rational Linkages Toolbox Documentation
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs
    :alt: Build Status
 
-.. image:: https://badge.fury.io/py/rational-linkages.svg
-    :target: https://pypi.org/project/rational-linkages/
-    :alt: PyPI
+.. image:: https://img.shields.io/pypi/v/rational-linkages.svg
+   :target: https://pypi.org/project/rational-linkages/
+   :alt: PyPI
 
 .. image:: https://img.shields.io/github/issues/hucik14/rl-issues
    :target: https://github.com/hucik14/rl-issues/issues
@@ -26,6 +24,9 @@ Rational Linkages Toolbox Documentation
 .. image:: https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg
    :target: https://www.python.org/downloads/release/python-3117/
    :alt: Python
+
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fbennett_synthesis.ipynb
 
 Welcome to the Rational Linkages Toolbox Documentation, which serves as a reference for
 the toolbox. The toolbox is a collection of functions for the analysis of rational
@@ -39,6 +40,12 @@ instructions* can be found in the :ref:`installation manual<installation>`.
 Since the self-hosted repository does not allow external users to create issues,
 please, use the `external issue tracker`_
 hosted on Github for submitting **issues** and **feature requests**.
+
+Run live examples of the toolbox in your browser using the **Binder** service. Click
+on the badge below to start the Binder session:
+
+.. image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fbennett_synthesis.ipynb
 
 In case of other questions or contributions, please, email the author at:
 daniel.huczala@uibk.ac.at
@@ -61,6 +68,37 @@ Indices and tables
 * :ref:`search`
 
 
+Authors
+=======
+
+The toolbox is developed by the Unit of Geometry and Surveying, University of Innsbruck,
+Austria. Namely, the following people contributed to the development and writing
+documentation:
+
+- Daniel Huczala (author, maintainer)
+- Daren A. Thimm (contributor)
+- Martin Pfurner (contributor)
+- Hans-Peter Schröcker (supervisor, contributor)
+
+Citing the Package
+==================
+
+If you use the Rational Linkages Toolbox in your research, please, cite it as follows:
+
+Huczala, D., Siegele J., Thimm, D., Pfurner, M., Schröcker, H.-P. (2024).
+Rational Linkages: From Poses to 3D-printed Prototypes.
+Advances in Robot Kinematics 2024. ARK 2024.
+Preprint **arXiv:2403.00558**, url: `https://arxiv.org/abs/2403.00558 <https://arxiv.org/abs/2403.00558>`_.
+
+.. code-block:: text
+
+   @inbook{huczala2024linkages,
+      title={Rational Linkages: From Poses to 3D-printed Prototypes},
+      author={Daniel Huczala and Johannes Siegele and Daren A. Thimm and Martin Pfurner and Hans-Peter Schröcker},
+      year={2024},
+      booktitle="Advances in Robot Kinematics 2024, ARK 2024",
+      url={https://arxiv.org/abs/2403.00558}
+   }
 
 Acknowledgements
 ================

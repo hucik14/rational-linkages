@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Union
 
 from .RationalMechanism import RationalMechanism
 
@@ -11,11 +12,11 @@ class ExudynAnalysis:
     it manually. More information can be found in :ref:`documentation <exudyn_info>`
     or the Exudyn homepage: https://github.com/jgerstmayr/EXUDYN
     """
-    def __init__(self, gravity: np.ndarray = np.array([0, 0, -9.81])):
+    def __init__(self, gravity: Union[np.ndarray, list[float]] = np.array([0, 0, -9.81])):
         """
         Initialize ExudynAnalysis object.
 
-        :param list gravity: XYZ gravity vector
+        :param Union[np.ndarray, list[float]] gravity: XYZ gravity vector
         """
         self.gravity = gravity
 
@@ -92,7 +93,8 @@ class ExudynAnalysis:
     @staticmethod
     def _relative_links_points(links_points: list, centers_of_gravity: list) -> list:
         """
-        Get links connection points in default configuration, relative to its center of gravity.
+        Get links connection points in default configuration, relative to its center
+        of gravity.
 
         :param list links_points: list of point pairs tuples
         :param list centers_of_gravity: list of links' center of gravity positions

@@ -34,3 +34,22 @@ def collisions_free_6r() -> RationalMechanism:
     with importlib.resources.path(resource_package, resource_path) as file_path:
         with open(file_path, 'rb') as f:
             return pickle.load(f)
+
+
+def plane_fold_6r() -> RationalMechanism:
+    """
+    Returns a RationalMechanism object of a 6R mechanism that folds in plane.
+
+    Original model:
+    h1 = DualQuaternion.as_rational([0, 1, 0, 0, 0, 0, 0, 0])
+    h2 = DualQuaternion.as_rational([0, 0, 3, 0, 0, 0, 0, 1])
+    h3 = DualQuaternion.as_rational([0, 1, 1, 0, 0, 0, 0, -2])
+
+    :return: RationalMechanism object for the 6R linkage.
+    :rtype: RationalMechanism
+    """
+    resource_package = "rational_linkages.data"
+    resource_path = 'plane_fold_6r.pkl'
+    with importlib.resources.path(resource_package, resource_path) as file_path:
+        with open(file_path, 'rb') as f:
+            return pickle.load(f)

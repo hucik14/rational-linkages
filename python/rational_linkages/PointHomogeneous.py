@@ -256,11 +256,13 @@ class PointHomogeneous:
         :return: evaluated point with float elements
         :rtype: PointHomogeneous
         """
-        from sympy import Expr, Symbol
+        from sympy import Expr, Symbol, Number
 
         t = Symbol("t")
 
-        point = [Expr(self.coordinates[i]).subs(t, t_param)
-                 for i in range(len(self.coordinates))]
-        point = [point[j].args[0] for j in range(len(point))]
+        point_expr = [Expr(coord) if not isinstance(coord, Number) else coord
+                      for coord in self.coordinates]
+        point = [coord.subs(t, t_param).evalf().args[0]
+                 if not isinstance(coord, Number) else coord
+                 for coord in point_expr]
         return PointHomogeneous(np.asarray(point, dtype="float64"))

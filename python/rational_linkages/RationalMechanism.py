@@ -87,6 +87,8 @@ class RationalMechanism(RationalCurve):
 
         :return: linkage object
         :rtype: RationalMechanism
+
+        :raises FileNotFoundError: if the file was not possible to load
         """
         # check if the filename has the .pkl extension
         if filename[-4:] != '.pkl':
@@ -96,7 +98,8 @@ class RationalMechanism(RationalCurve):
             with open(filename, 'rb') as file:
                 mechanism = pickle.load(file)
         except FileNotFoundError:
-            raise FileNotFoundError(f"File {filename} not found.")
+            raise FileNotFoundError(f"File {filename} was not found or possible "
+                                    f"to load.")
 
         return mechanism
 
@@ -108,6 +111,8 @@ class RationalMechanism(RationalCurve):
         """
         if filename is None:
             filename = 'saved_mechanism.pkl'
+        elif filename[-4:] == '.pkl':
+            pass
         else:
             filename = filename + '.pkl'
 
@@ -122,7 +127,7 @@ class RationalMechanism(RationalCurve):
         :rtype: DualQuaternion
         """
         if tool is None:
-             return DualQuaternion(self.evaluate(0, inverted_part=True))
+            return DualQuaternion(self.evaluate(0, inverted_part=True))
         elif isinstance(tool, DualQuaternion):
             return tool
         elif tool == 'mid_of_last_link':
@@ -151,7 +156,8 @@ class RationalMechanism(RationalCurve):
                              "None default motion zero configuration, "
                              "or 'mid_of_last_link'")
 
-    def get_design(self, unit: str = 'rad',
+    def get_design(self,
+                   unit: str = 'rad',
                    scale: float = 1.0,
                    joint_length: float = 20.0,
                    washer_length: float = 1.0,
@@ -218,6 +224,7 @@ class RationalMechanism(RationalCurve):
             connection_params[i, :] = self.factorizations[0].linkage[i].points_params
 
         for i in range(len(self.factorizations[1].linkage)):
+            # iterate from back to front
             connection_params[-1-i, :] = self.factorizations[1].linkage[i].points_params[::-1]
 
         return connection_params
@@ -291,7 +298,9 @@ class RationalMechanism(RationalCurve):
                 vec_x = vec / np.linalg.norm(vec)
 
                 # from line.dir (future Z axis) and x create an SE3 object
-                frames[i+1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[0])
+                frames[i+1] = TransfMatrix.from_vectors(vec_x,
+                                                        line.direction,
+                                                        origin=pts[0])
 
             else:  # Z axes are intersecting or coincident
                 if np.isclose(np.dot(frames[i].a, line.direction), 1):
@@ -307,7 +316,9 @@ class RationalMechanism(RationalCurve):
                     # future X axis as cross product of previous Z axis and new Z axis
                     vec_x = np.cross(frames[i].a, line.direction)
 
-                    frames[i + 1] = TransfMatrix.from_vectors(vec_x, line.direction, origin=pts[0])
+                    frames[i + 1] = TransfMatrix.from_vectors(vec_x,
+                                                              line.direction,
+                                                              origin=pts[0])
 
         return frames
 
@@ -331,7 +342,8 @@ class RationalMechanism(RationalCurve):
 
         return screws + branch2[::-1]
 
-    def map_connection_params(self, connection_params: np.ndarray,
+    def map_connection_params(self,
+                              connection_params: np.ndarray,
                               midpoints_distance: float) -> np.ndarray:
         """
         Map the connection parameters to the given joint length.
@@ -503,9 +515,6 @@ class RationalMechanism(RationalCurve):
         :return: list of collision check results
         :rtype: list[str]
         """
-        print("--- running in non-parallel mode, set collision_check(parallel=True) to"
-              " run in parallel ---")
-
         results = []
         for val in iters:
             collsion = self._check_given_pair(val)
@@ -514,14 +523,14 @@ class RationalMechanism(RationalCurve):
                 break
         return results
 
-    def _check_given_pair(self, iters: tuple[int, int]):
+    def _check_given_pair(self, iters: tuple[int, int]) -> list[float]:
         """
         Perform collision check for a given pair of line segments and evaluate it.
 
         :param tuple iters: tuple of indices of the line segments to be checked
 
         :return: collision check result
-        :rtype: str
+        :rtype: list[float]
         """
         i = iters[0]
         j = iters[1]
@@ -734,7 +743,8 @@ class RationalMechanism(RationalCurve):
                                     method: str = None,
                                     step_length=25,
                                     min_joint_segment_length: float = 0.001,
-                                    max_iters: int = 10):
+                                    max_iters: int = 10,
+                                    **kwargs):
         """
         Perform collision-free optimization of the mechanism.
 
@@ -744,6 +754,7 @@ class RationalMechanism(RationalCurve):
             :ref:`combinatorial_search` for more detail
         :param float min_joint_segment_length: minimum length of the joint segment
         :param int max_iters: maximum number of iterations
+        :param kwargs: additional keyword arguments
 
         :return: list of collision-free points parameters
         :rtype: list
@@ -759,7 +770,8 @@ class RationalMechanism(RationalCurve):
                 results = optimizer.optimize(method=method,
                                              step_length=step_length,
                                              min_joint_segment_length=min_joint_segment_length,
-                                             max_iters=max_iters)
+                                             max_iters=max_iters,
+                                             **kwargs)
             case _:
                 raise ValueError("Invalid method.")
 

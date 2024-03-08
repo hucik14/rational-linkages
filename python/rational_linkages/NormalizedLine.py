@@ -314,12 +314,14 @@ class NormalizedLine:
             points[0] = np.cross(self.direction, self.moment)
             points[1] = np.cross(other.direction, other.moment)
 
-            vec = np.cross(self.direction, self.moment - other.moment) / (
-                np.linalg.norm(self.direction) ** 2
-            )
-            vec = np.array(vec, dtype="float64")
+            # # legacy code, not working properly
+            # vec = np.cross(self.direction, self.moment - other.moment) / (
+            #     np.linalg.norm(self.direction) ** 2
+            # )
+            # vec = np.array(vec, dtype="float64")
+            # distance = np.linalg.norm(vec)
 
-            distance = np.linalg.norm(vec)
+            distance = np.linalg.norm(points[0] - points[1])
             cos_angle = 1.0
 
         return points, distance, cos_angle
@@ -372,13 +374,15 @@ class NormalizedLine:
         :return: evaluated line with float elements
         :rtype: NormalizedLine
         """
-        from sympy import Expr, Symbol
+        from sympy import Expr, Symbol, Number
 
         t = Symbol("t")
 
-        line = [Expr(self.screw[i]).subs(t, t_param)
-                for i in range(len(self.screw))]
-        line = [line[j].args[0] for j in range(len(line))]
+        line_expr = [Expr(coord) if not isinstance(coord, Number) else coord
+                     for coord in self.screw]
+        line = [coord.subs(t, t_param).evalf().args[0]
+                if not isinstance(coord, Number) else coord
+                for coord in line_expr]
         return NormalizedLine(np.asarray(line, dtype="float64"))
 
 

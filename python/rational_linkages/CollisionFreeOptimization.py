@@ -62,7 +62,8 @@ class CollisionFreeOptimization:
                  method: str,
                  step_length: float,
                  min_joint_segment_length: float,
-                 max_iters: int):
+                 max_iters: int,
+                 **kwargs):
         """
         Optimize the mechanism for collision-free operation.
 
@@ -71,6 +72,7 @@ class CollisionFreeOptimization:
             :ref:`combinatorial_search` for more detail
         :param min_joint_segment_length: minimum length of the joint segment
         :param max_iters: maximum number of iterations
+        :param kwargs: additional keyword arguments
         """
         # initial estimation - the smallest polyline
         points, points_params, result = self.smallest_polyline()
@@ -88,7 +90,7 @@ class CollisionFreeOptimization:
                                      step_length=step_length,
                                      min_joint_segment_length=min_joint_segment_length,
                                      max_iters=max_iters)
-            coll_free_points_params = cs.combinatorial_search()
+            coll_free_points_params = cs.combinatorial_search(**kwargs)
 
         return coll_free_points_params
 
@@ -121,51 +123,63 @@ class CombinatorialSearch:
         self.min_joint_segment_length = min_joint_segment_length
         self.max_iters = max_iters + 1
 
-    def combinatorial_search(self):
+    def combinatorial_search(self, **kwargs):
         """
         Perform collision-free combinatorial search method.
 
         :return: list of collision-free points parameters
         :rtype: list
         """
-        # check design for collisions
-        init_collisions = self.mechanism.collision_check(only_links=True,
-                                                         terminate_on_first=True)
+
+        iter_start = kwargs.get('start_iteration', 1)
+        iter_end = kwargs.get('end_iteration', self.max_iters)
+        comb_links = kwargs.get('combinations_links', None)
+        comb_joints = kwargs.get('combinations_joints', None)
+
+        if comb_links is None:
+            # check design for collisions
+            init_collisions = self.mechanism.collision_check(only_links=True,
+                                                             terminate_on_first=True)
+        else:
+            # skip initial collision check if combinations are provided
+            init_collisions = []
 
         if init_collisions is not None:
-            for i in range(1, self.max_iters):
-                coll_free_links_params = self.search_links(i)
+            for i in range(iter_start, iter_end):
+                coll_free_links_params = self.search_links(i, combinations=comb_links)
 
                 if coll_free_links_params is not None:
                     print("")
                     print("Collision-free solution for links found, "
                           "starting joint search...")
-                    coll_free_params = self.search_mechanism(coll_free_links_params)
+                    coll_free_params = self.search_mechanism(coll_free_links_params,
+                                                             combinations=comb_joints)
 
                     if coll_free_params is not None:
+                        print("Search was successful, collision-free solution found.")
                         return coll_free_params
         else:
             print("Search was unsuccessful, collisions found.")
             return None
 
-    def search_links(self, iteration: int):
+    def search_links(self, iteration: int, combinations: list = None):
         """
         Search for the solution of the combinatorial search algorithm, links only.
 
         Searches for the smallest polyline that is collision free (only links).
 
         :param iteration: iteration index
+        :param list combinations: list of combinations to search links
 
         :return: list of collision-free points parameters
         :rtype: list
         """
         shift_val = iteration * self.linkage_length / self.step_length
 
-        combs = self._get_combinations_sequences(joints=False)
-        #combs = [(-1, -1, 0, 0, 0, 1),
-        #         (1, 1, 0, 0, -1, -1),
-        #         (1, 0, 1, 0, -1, 0),
-        #         (1, 0, -1, 1, -1, 0)]
+        if combinations is None:
+            combs = self._get_combinations_sequences(joints=False)
+        else:
+            combs = combinations
 
         for i, sequence in enumerate(combs):
             print("--- iteration: {}, shift_value: {}, sequence {} of {}: {}"
@@ -188,20 +202,24 @@ class CombinatorialSearch:
         print("No collision-free solution found for iteration: {}".format(iter))
         return None
 
-    def search_mechanism(self, coll_free_links_params: list):
+    def search_mechanism(self, coll_free_links_params: list, combinations: list = None):
         """
         Search for the solution of the combinatorial search algorithm, including joints.
 
         Searches for the mechanism that is collision free (including joint segments).
 
         :param list coll_free_links_params: list of collision-free points parameters
+        :param list combinations: list of combinations to search mechanism design
 
         :return: list of collision-free points parameters
         :rtype: list
         """
         shift_val = 0.5 * self.min_joint_segment_length
 
-        combs = self._get_combinations_sequences(joints=True)
+        if combinations is None:
+            combs = self._get_combinations_sequences(joints=True)
+        else:
+            combs = combinations
 
         coll_free_links_params = [item * 2 for item in coll_free_links_params]
 
@@ -260,8 +278,10 @@ class CombinatorialSearch:
             def generate_tuple(n):
                 return tuple(-1 if i % 2 == 0 else 1 for i in range(n))
 
-            tup = generate_tuple(6) + generate_tuple(6)[::-1]
-            tup2 = generate_tuple(6)[::-1] + generate_tuple(6)
+            tup = (generate_tuple(self.mechanism.num_joints)
+                   + generate_tuple(self.mechanism.num_joints)[::-1])
+            tup2 = (generate_tuple(self.mechanism.num_joints)[::-1]
+                    + generate_tuple(self.mechanism.num_joints))
 
             combs.remove(tup)
             combs.insert(0, tup)

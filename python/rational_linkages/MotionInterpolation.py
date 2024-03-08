@@ -107,7 +107,7 @@ class MotionInterpolation:
             elif isinstance(pose, DualQuaternion) and pose.is_rational:
                 rational_poses.append(pose)
             else:
-                raise ValueError('The given poses must be either TransfMatrix '
+                raise TypeError('The given poses must be either TransfMatrix '
                                  'or DualQuaternion.')
 
         # interpolate the rational poses
@@ -156,11 +156,16 @@ class MotionInterpolation:
         # get non zero solution
         nonzero_sol = None
         for sol in sols:
-            if not (sol[0] == 0 and sol[1] == 0):
+            if (not (sol[0] == 0 and sol[1] == 0)
+                    and sol[0].is_number
+                    and sol[1].is_number):
                 nonzero_sol = sol
 
         if nonzero_sol is None:
-            raise ValueError('Interpolation has no solution.')
+            raise ValueError('Interpolation Failed for the given poses.' 
+                             'Tip: if you used *nice* numbers to create poses, try to '
+                             'slightly alter them. For example, instead of offset 0.0 '
+                             'put 0.0001.')
 
         al = nonzero_sol[0]
         om = nonzero_sol[1]
@@ -188,9 +193,14 @@ class MotionInterpolation:
 
         :return: The rational motion curve.
         :rtype: list[sp.Poly]
+
+        :raises ValueError: If the interpolation has no solution, 'k' does not exist.
         """
         # obtain additional dual quaternions k1, k2
-        k = MotionInterpolation._obtain_k_dq(poses)
+        try:
+            k = MotionInterpolation._obtain_k_dq(poses)
+        except Exception:
+            raise ValueError('Interpolation has no solution.')
 
         # solve for t[i] - the parameter of the rational motion curve for i-th pose
         t_sols = MotionInterpolation._solve_for_t(poses, k)

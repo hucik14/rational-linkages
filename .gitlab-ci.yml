@@ -38,8 +38,7 @@ run_python_versions:
     script:
         - pip install .
         - pip install pytest
-        - cd python/rational_linkages
-        - python -m pytest ../tests
+        - python -m pytest python/tests
     parallel:
       matrix:
         - IMAGE: [python:3.12-bullseye, python:3.10-bullseye]

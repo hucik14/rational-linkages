@@ -28,7 +28,7 @@ class TransfMatrix:
         if len(args) == 0:
             mat = np.eye(4)
         else:
-            mat = args[0]
+            mat = np.asarray(args[0])
 
         self.n = mat[1:4, 1]
         self.o = mat[1:4, 2]
@@ -167,7 +167,6 @@ class TransfMatrix:
 
         # create orthogonal
         orthogonal_y = np.cross(approach_z, normal_x)
-        normal_x = np.cross(orthogonal_y, approach_z)
 
         # normalize orthogonal and normal vectors
         orthogonal_y = orthogonal_y / np.linalg.norm(orthogonal_y)
@@ -235,31 +234,34 @@ class TransfMatrix:
     def matrix2dq(self) -> np.array:
         """
         Convert SE(3) matrix representation to dual quaternion array
+
         :return: return 8-dimensional array of dual quaternion
+        :rtype: np.array
         """
+        conditions = [
+            (1 + self.n[0] + self.o[1] + self.a[2],
+             self.o[2] - self.a[1],
+             self.a[0] - self.n[2],
+             self.n[1] - self.o[0]),
+            (self.o[2] - self.a[1],
+             1 + self.n[0] - self.o[1] - self.a[2],
+             self.o[0] + self.n[1],
+             self.n[2] + self.a[0]),
+            (self.a[0] - self.n[2],
+             self.o[0] + self.n[1],
+             1 - self.n[0] + self.o[1] - self.a[2],
+             self.a[1] + self.o[2]),
+            (self.n[1] - self.o[0],
+             self.n[2] + self.a[0],
+             self.a[1] + self.o[2],
+             1 - self.n[0] - self.o[1] + self.a[2])
+        ]
+
         p = np.zeros(4)
-        p[0] = 1 + self.n[0] + self.o[1] + self.a[2]
-        p[1] = self.o[2] - self.a[1]
-        p[2] = self.a[0] - self.n[2]
-        p[3] = self.n[1] - self.o[0]
-
-        if p[0] == 0:
-            p[0] = self.o[2] - self.a[1]
-            p[1] = 1 + self.n[0] - self.o[1] - self.a[2]
-            p[2] = self.o[0] + self.n[1]
-            p[3] = self.n[2] + self.a[0]
-
-        if p[0] == 0:
-            p[0] = self.a[0] - self.n[2]
-            p[1] = self.o[0] + self.n[1]
-            p[2] = 1 - self.n[0] + self.o[1] - self.a[2]
-            p[3] = self.a[1] + self.o[2]
-
-        if p[0] == 0:
-            p[0] = self.n[1] - self.o[0]
-            p[1] = self.n[2] + self.a[0]
-            p[2] = self.a[1] + self.o[2]
-            p[3] = 1 - self.n[0] - self.o[1] + self.a[2]
+        for condition in conditions:
+            p[0], p[1], p[2], p[3] = condition
+            if p[0] != 0 or sum(p) != 0:
+                break
 
         d = np.zeros(4)
         d[0] = (self.t[0] * p[1] + self.t[1] * p[2] + self.t[2] * p[3]) / 2
@@ -268,8 +270,13 @@ class TransfMatrix:
         d[3] = (-self.t[2] * p[0] + self.t[1] * p[1] - self.t[0] * p[2]) / 2
 
         # normalization
-        d = d / p[0]
-        p = p / p[0]
+        if p[0] != 0:
+            d = d / p[0]
+            p = p / p[0]
+        else:
+            norm = np.linalg.norm(p)
+            d = d / norm
+            p = p / norm
 
         return np.concatenate((p, d))
 
@@ -360,9 +367,24 @@ class TransfMatrix:
         test_frame = TransfMatrix.from_dh_parameters(theta, d, a, alpha)
         if not np.allclose(self.matrix @ test_frame.matrix, other.matrix):
             warn("Frames do not fulfill the DH convention")
-            return [0., 0., 0., 0.]
-        else:
-            return [theta, d, a, alpha]
+
+        return [theta, d, a, alpha]
+
+    def inv(self):
+        """
+        Return inverse transformation matrix
+
+        :return: inverse transformation matrix
+        :rtype: TransfMatrix
+        """
+        inv_rotation = np.transpose(self.rot_matrix())
+        inv_translation = -inv_rotation @ self.t
+
+        m = np.eye(4)
+        m[1:4, 1:4] = inv_rotation
+        m[1:4, 0] = inv_translation
+        return TransfMatrix(m)
+
 
     def get_plot_data(self):
         """

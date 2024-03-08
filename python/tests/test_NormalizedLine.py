@@ -77,6 +77,11 @@ class TestNormalizedLine(TestCase):
             np.allclose(nl.screw, np.concatenate((expected_direction, expected_moment)))
         )
 
+        point1 = PointHomogeneous([1, 1, 1, 1])
+        point2 = PointHomogeneous([1, 1, 1, 1])
+        with self.assertRaises(ValueError):
+            NormalizedLine.from_two_points(point1, point2)
+
     def test_from_direction_and_point(self):
         point = np.array([1, 1, 1])
         direction = np.array([1, 0, 0])

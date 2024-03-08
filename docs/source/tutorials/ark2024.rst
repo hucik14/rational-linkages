@@ -65,10 +65,10 @@ This equation serves as the input for the following script.
         p.show()
 
 .. testoutput::
-        :hide:
+    :hide:
+    :options: +ELLIPSIS
 
-        Factorization is running...
-        Factorization ended.
+    ...
 
 
 
@@ -135,7 +135,10 @@ shown in the figure below.
     :align: center
     :alt: Visualization of the synthesized Bennett mechanism
 
-**Physical modelling of Bennett mechanism**
+.. _physical_modeling:
+
+Physical modelling of Bennett mechanism
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Since the default line model cannot be directly used for 3D printing, because the joint
 segments are too small. Therefore, the sliders on the left side of the plotter window
@@ -158,7 +161,13 @@ If there are collisions, it will return list of parameter :math:`t` values, wher
 collisions happen. This value can be passed to the plotting window at the textbox
 :code:`Set param t [-]`.
 
-.. testcode::
+.. code-block:: python
+
+        # IMPORTANT NOTE:
+        #
+        # due to Sphinx's doctest extension constraints, the following
+        # code is NOT automatically tested. In case of error, please
+        # report this issue to the developers.
 
         # Loading a mechanism, collision checking, and design generation
 
