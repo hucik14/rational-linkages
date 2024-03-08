@@ -38,6 +38,12 @@ Since the self-hosted repository does not allow external users to create issues,
 please, use the `external issue tracker`_
 hosted on Github for submitting **issues** and **feature requests**.
 
+Run live examples of the toolbox in your browser using the **Binder** service. Click
+on the badge below to start the Binder session:
+
+.. image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fbennett_synthesis.ipynb
+
 In case of other questions or contributions, please, email the author at:
 daniel.huczala@uibk.ac.at
 

@@ -49,6 +49,10 @@ hosted on GitHub for submitting **issues** and **feature requests**. Additionall
 you can *"watch/star"* the issue tracker package **to get notified about the updates**
 (new releases will be also announced there).
 
+You can test live-example of Jupyter notebook using Binder, by clicking on the 
+following badge:
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fbennett_synthesis.ipynb)
+
 In case of other questions or contributions, please, email the author at:
 `daniel.huczala@uibk.ac.at`
 
