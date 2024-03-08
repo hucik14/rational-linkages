@@ -272,8 +272,10 @@ class CombinatorialSearch:
             def generate_tuple(n):
                 return tuple(-1 if i % 2 == 0 else 1 for i in range(n))
 
-            tup = generate_tuple(6) + generate_tuple(6)[::-1]
-            tup2 = generate_tuple(6)[::-1] + generate_tuple(6)
+            tup = (generate_tuple(self.mechanism.num_joints)
+                   + generate_tuple(self.mechanism.num_joints)[::-1])
+            tup2 = (generate_tuple(self.mechanism.num_joints)[::-1]
+                    + generate_tuple(self.mechanism.num_joints))
 
             combs.remove(tup)
             combs.insert(0, tup)
