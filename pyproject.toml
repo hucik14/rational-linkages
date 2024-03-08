@@ -33,7 +33,7 @@ doc = [
     "nbsphinx",
     "sphinxcontrib-bibtex",
     "toml",
-    "pandoc",
+    "pandoc >= 2.14.2",
 ]
 dev = [
     "build",
