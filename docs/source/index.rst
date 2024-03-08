@@ -25,6 +25,9 @@ Rational Linkages Toolbox Documentation
    :target: https://www.python.org/downloads/release/python-3117/
    :alt: Python
 
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fbennett_synthesis.ipynb
+
 Welcome to the Rational Linkages Toolbox Documentation, which serves as a reference for
 the toolbox. The toolbox is a collection of functions for the analysis of rational
 linkages and their rapid prototyping. It is written in Python and uses the Numpy and
