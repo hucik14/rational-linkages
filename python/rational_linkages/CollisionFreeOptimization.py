@@ -130,14 +130,19 @@ class CombinatorialSearch:
         :return: list of collision-free points parameters
         :rtype: list
         """
-        # check design for collisions
-        init_collisions = self.mechanism.collision_check(only_links=True,
-                                                         terminate_on_first=True)
 
         iter_start = kwargs.get('start_iteration', 1)
         iter_end = kwargs.get('end_iteration', self.max_iters)
         comb_links = kwargs.get('combinations_links', None)
         comb_joints = kwargs.get('combinations_joints', None)
+
+        if comb_links is None:
+            # check design for collisions
+            init_collisions = self.mechanism.collision_check(only_links=True,
+                                                             terminate_on_first=True)
+        else:
+            # skip initial collision check if combinations are provided
+            init_collisions = []
 
         if init_collisions is not None:
             for i in range(iter_start, iter_end):
@@ -151,6 +156,7 @@ class CombinatorialSearch:
                                                              combinations=comb_joints)
 
                     if coll_free_params is not None:
+                        print("Search was successful, collision-free solution found.")
                         return coll_free_params
         else:
             print("Search was unsuccessful, collisions found.")
