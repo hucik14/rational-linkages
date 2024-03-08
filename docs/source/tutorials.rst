@@ -11,5 +11,6 @@ Tutorials
    tutorials/motion_factorization
    tutorials/motion_interp
    tutorials/combinatorial_search
+   tutorials/bennett_synthesis
    tutorials/exudyn_analysis
 

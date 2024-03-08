@@ -135,7 +135,10 @@ shown in the figure below.
     :align: center
     :alt: Visualization of the synthesized Bennett mechanism
 
-**Physical modelling of Bennett mechanism**
+.. _physical_modeling:
+
+Physical modelling of Bennett mechanism
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Since the default line model cannot be directly used for 3D printing, because the joint
 segments are too small. Therefore, the sliders on the left side of the plotter window

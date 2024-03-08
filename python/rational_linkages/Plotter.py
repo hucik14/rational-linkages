@@ -19,6 +19,7 @@ from .TransfMatrix import TransfMatrix
 class Plotter:
     def __init__(self,
                  interactive: bool = False,
+                 jupyter_notebook: bool = False,
                  interval=(-1, 1),
                  steps=50,
                  arrows_length: float = 1.0,
@@ -27,13 +28,15 @@ class Plotter:
         Initialize the plotter
 
         :param interactive: activate interactive mode
+        :param jupyter_notebook: activate jupyter notebook mode
         :param interval: interval for plotting
         :param steps: number of steps for plotting
         :param arrows_length: length of quiver arrows for poses and frames
         :param joint_range_lim: limit for joint sliders, will be +/- value
         """
         # use Qt5Agg backend for interactive plotting
-        matplotlib.use("Qt5Agg")
+        if interactive and not jupyter_notebook:
+            matplotlib.use("Qt5Agg")
 
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(projection="3d")
@@ -70,6 +73,7 @@ class Plotter:
         self.t_space = np.linspace(interval[0], interval[1], steps)
         self.steps = steps
         self.interactive = interactive
+        self.jupyter_notebook = jupyter_notebook
         self.j_sliders_limit = joint_range_lim
 
         # length of quiver arrows for poses and frames
@@ -160,7 +164,8 @@ class Plotter:
 
             # decorate the plot - set aspect ratio and update legend
             self.ax.set_aspect("equal")
-            self.ax.legend()
+            if not self.jupyter_notebook:
+                self.ax.legend()
         return _wrapper
 
     @_plotting_decorator
@@ -574,9 +579,10 @@ class Plotter:
         self.update_limits(self.ax)
 
         # update the plot
-        self.fig.canvas.draw_idle()
-        self.fig.canvas.update()
-        self.fig.canvas.flush_events()
+        if not self.jupyter_notebook:
+            self.fig.canvas.draw_idle()
+            self.fig.canvas.update()
+            self.fig.canvas.flush_events()
 
     def show(self):
         """

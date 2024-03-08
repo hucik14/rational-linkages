@@ -515,9 +515,6 @@ class RationalMechanism(RationalCurve):
         :return: list of collision check results
         :rtype: list[str]
         """
-        print("--- running in non-parallel mode, set collision_check(parallel=True) to"
-              " run in parallel ---")
-
         results = []
         for val in iters:
             collsion = self._check_given_pair(val)
