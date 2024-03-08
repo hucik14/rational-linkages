@@ -40,6 +40,11 @@ def plane_fold_6r() -> RationalMechanism:
     """
     Returns a RationalMechanism object of a 6R mechanism that folds in plane.
 
+    Original model:
+    h1 = DualQuaternion.as_rational([0, 1, 0, 0, 0, 0, 0, 0])
+    h2 = DualQuaternion.as_rational([0, 0, 3, 0, 0, 0, 0, 1])
+    h3 = DualQuaternion.as_rational([0, 1, 1, 0, 0, 0, 0, -2])
+
     :return: RationalMechanism object for the 6R linkage.
     :rtype: RationalMechanism
     """
