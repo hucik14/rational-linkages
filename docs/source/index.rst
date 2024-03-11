@@ -9,10 +9,6 @@ Rational Linkages Toolbox Documentation
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
    :alt: GitLab (self-managed)
 
-.. image:: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/pipeline.svg?job=run_tests
-   :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs
-   :alt: Build Status
-
 .. image:: https://img.shields.io/pypi/v/rational-linkages.svg
    :target: https://pypi.org/project/rational-linkages/
    :alt: PyPI
@@ -26,7 +22,7 @@ Rational Linkages Toolbox Documentation
    :alt: Python
 
 .. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fbennett_synthesis.ipynb
+   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
 
 Welcome to the Rational Linkages Toolbox Documentation, which serves as a reference for
 the toolbox. The toolbox is a collection of functions for the analysis of rational
@@ -45,7 +41,7 @@ Run live examples of the toolbox in your browser using the **Binder** service. C
 on the badge below to start the Binder session:
 
 .. image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fbennett_synthesis.ipynb
+   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
 
 In case of other questions or contributions, please, email the author at:
 daniel.huczala@uibk.ac.at
