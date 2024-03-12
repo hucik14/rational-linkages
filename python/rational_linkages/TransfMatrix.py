@@ -24,6 +24,8 @@ class TransfMatrix:
         as vectors n, o, a, and t, which can be changed independently
 
         :param *args: empty == create identity matrix, 1 argument of matrix == SE3matrix
+
+        :raises ValueError: if the matrix is not a proper rotation matrix
         """
         if len(args) == 0:
             mat = np.eye(4)
@@ -36,8 +38,9 @@ class TransfMatrix:
 
         self.t = mat[1:4, 0]
 
-        # test if the tranformation matrix has proper rotation matrix
-        self.is_rotation()
+        # test if the transformation matrix has proper rotation matrix
+        if not self.is_rotation():
+            raise ValueError("Matrix has not a proper rotation matrix")
 
     def __mul__(self, other):
         return TransfMatrix(self.matrix @ other.matrix)
@@ -167,6 +170,8 @@ class TransfMatrix:
 
         # create orthogonal
         orthogonal_y = np.cross(approach_z, normal_x)
+        # recreate normal (only approach vector can be kept so det(R) == 1)
+        normal_x = np.cross(orthogonal_y, approach_z)
 
         # normalize orthogonal and normal vectors
         orthogonal_y = orthogonal_y / np.linalg.norm(orthogonal_y)

@@ -66,8 +66,8 @@ class TestTransfMatrix(TestCase):
                                                              [2, 0, 1, 0],
                                                              [3, 1, 0, 0]])))
 
-        self.assertWarns(UserWarning, TransfMatrix.from_vectors,
-                         [0, 0, 0], [0, 0, 0], [0, 0, 0])
+        self.assertRaises(ValueError, TransfMatrix.from_vectors,
+                          [0, 0, 0], [0, 0, 0], [0, 0, 0])
         self.assertRaises(ValueError, TransfMatrix.from_vectors,
                           [0, 0], [0, 0], [0, 0])
         self.assertRaises(ValueError, TransfMatrix.from_vectors,
@@ -100,8 +100,8 @@ class TestTransfMatrix(TestCase):
                         [0, 0, -1, 0],
                         [0, -1, 0, 0],
                         [0, 0, 0, 1]])
-        transf = TransfMatrix(mat)
-        self.assertTrue(not transf.is_rotation())
+
+        self.assertRaises(ValueError, TransfMatrix, mat)
 
     def test_repr(self):
         mat = np.array([[1, 0, 0, 0],
