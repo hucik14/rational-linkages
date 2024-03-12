@@ -17,11 +17,11 @@ if __name__ == "__main__":
     p2 = DualQuaternion.as_rational([1, 2, 0, 0, -2, 1, 0, 0])
     p3 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
 
-    # t1 = TransfMatrix.from_rpy_xyz([0, 90, 0], [1, -2, 2], units="deg")
+    # t1 = TransfMatrix.from_rpy_xyz([0, 90, 0], [1, -2, 2], unit="deg")
     # p1 = DualQuaternion.as_rational(t1.matrix2dq())
-    # t2 = TransfMatrix.from_rpy_xyz([-45, 90, 0], [0, 1, 1], units="deg")
+    # t2 = TransfMatrix.from_rpy_xyz([-45, 90, 0], [0, 1, 1], unit="deg")
     # p2 = DualQuaternion.as_rational(t2.matrix2dq())
-    # t3 = TransfMatrix.from_rpy_xyz([90, 45, 0], [2, 1, 0], units="deg")
+    # t3 = TransfMatrix.from_rpy_xyz([90, 45, 0], [2, 1, 0], unit="deg")
     # p3 = DualQuaternion.as_rational(t3.matrix2dq())
 
     p0 = DualQuaternion()

@@ -67,28 +67,28 @@ class TransfMatrix:
                                max_line_width=100000)
 
     @classmethod
-    def from_rpy(cls, rpy: list[float], units: str = 'rad') -> np.array:
+    def from_rpy(cls, rpy: list[float], unit: str = 'rad') -> np.array:
         """
         Create transformation matrix from roll, pitch, yaw angles
 
         :param list rpy: 3-dimensional list of floats of roll, pitch, yaw angles,
             in radians or degrees in this order
-        :param str units: 'rad' or 'deg' for radians or degrees
+        :param str unit: 'rad' or 'deg' for radians or degrees
 
         :return: transformation matrix
         :rtype: TransfMatrix
 
-        :raises ValueError: if units is not 'rad' or 'deg' or if rpy is not
+        :raises ValueError: if unit is not 'rad' or 'deg' or if rpy is not
             3-dimensional list
         """
         if len(rpy) != 3:
             raise ValueError("Roll, pitch, yaw angles must be 3-dimensional list of "
                              "floats")
 
-        if units == 'deg':
+        if unit == 'deg':
             rpy = np.deg2rad(rpy)
-        elif units != 'rad':
-            raise ValueError("Units must be 'rad' or 'deg'")
+        elif unit != 'rad':
+            raise ValueError("Unit must be 'rad' or 'deg'")
 
         rot_x = np.array([[1, 0, 0],
                          [0, np.cos(rpy[0]), -np.sin(rpy[0])],
@@ -107,26 +107,26 @@ class TransfMatrix:
         return cls(m)
 
     @classmethod
-    def from_rpy_xyz(cls, rpy: list[float], xyz: list[float], units: str = 'rad'):
+    def from_rpy_xyz(cls, rpy: list[float], xyz: list[float], unit: str = 'rad'):
         """
         Create transformation matrix from roll, pitch, yaw angles and translation
 
         :param list rpy: 3-dimensional list of floats of roll, pitch, yaw angles,
             in radians or degrees in this order
         :param list xyz: 3-dimensional list of floats of translation
-        :param str units: 'rad' or 'deg' for radians or degrees
+        :param str unit: 'rad' or 'deg' for radians or degrees
 
         :return: transformation matrix
         :rtype: TransfMatrix
 
-        :raises ValueError: if units is not 'rad' or 'deg' or if rpy is not
+        :raises ValueError: if unit is not 'rad' or 'deg' or if rpy is not
             3-dimensional list
         """
         if len(rpy) != 3 or len(xyz) != 3:
             raise ValueError("Roll, pitch, yaw angles or XYZ valuse must "
                              "be 3-dimensional list of floats")
 
-        mat_applied_rotation = cls.from_rpy(rpy, units)
+        mat_applied_rotation = cls.from_rpy(rpy, unit)
 
         # update translation
         mat_applied_rotation.t = xyz
@@ -187,7 +187,7 @@ class TransfMatrix:
 
     @classmethod
     def from_dh_parameters(cls, theta: float, d: float, a: float, alpha: float,
-                           units: str = 'rad'):
+                           unit: str = 'rad'):
         """
         Create transformation matrix from Denavit-Hartenberg parameters
 
@@ -199,18 +199,18 @@ class TransfMatrix:
         :param float d: translation along z-axis
         :param float a: translation along x-axis
         :param float alpha: rotation around x-axis
-        :param str units: 'rad' or 'deg' for radians or degrees
+        :param str unit: 'rad' or 'deg' for radians or degrees
 
         :return: transformation matrix
         :rtype: TransfMatrix
 
-        :raises ValueError: if units is not 'rad' or 'deg'
+        :raises ValueError: if unit is not 'rad' or 'deg'
         """
-        if units == 'deg':
+        if unit == 'deg':
             theta = np.deg2rad(theta)
             alpha = np.deg2rad(alpha)
-        elif units != 'rad':
-            raise ValueError("Units must be 'rad' or 'deg'")
+        elif unit != 'rad':
+            raise ValueError("Unit must be 'rad' or 'deg'")
 
         mat = np.eye(4)
         mat[1:4, 0] = [a * np.cos(theta), a * np.sin(theta), d]

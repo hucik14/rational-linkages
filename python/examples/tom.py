@@ -14,7 +14,7 @@ from rational_linkages import (
 # be careful of the convention of the TransfMatrix class (european vs. american)
 
 # create transformation matrix from roll, pitch, yaw angles
-tf = TransfMatrix.from_rpy([0, 0, 45], units='deg')
+tf = TransfMatrix.from_rpy([0, 0, 45], unit='deg')
 # add translation
 tf.t = [3, 1, 2]
 
@@ -37,7 +37,7 @@ plt.plot(origin, label="origin")
 a = MotionApproximation([origin, tf2dq])
 """
 o = TransfMatrix()
-t = TransfMatrix.from_rpy_xyz([0, 0, -90], [2, 0, -3], units='deg')
+t = TransfMatrix.from_rpy_xyz([0, 0, -90], [2, 0, -3], unit='deg')
 print(t)
 print(o.dh_to_other_frame(t))
 

@@ -45,7 +45,7 @@ if __name__ == '__main__':
     p = Plotter(interactive=True, arrows_length=0.05, joint_range_lim=0.5)
     p.plot(m, show_tool=True)
 
-    p0 = TransfMatrix.from_rpy_xyz([-90, 0, 0], [0.15, 0, 0], units='deg')
+    p0 = TransfMatrix.from_rpy_xyz([-90, 0, 0], [0.15, 0, 0], unit='deg')
     p.plot(p0)
 
     p.show()

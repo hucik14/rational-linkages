@@ -162,7 +162,7 @@ as seen in the following example:
 
     # Create a transformation matrix from Tait-Bryan angles and translation vector,
     # use degrees instead of radians
-    T2 = TransfMatrix.from_rpy_xyz([0, -90, 0], [4, 5, 6], units='deg')
+    T2 = TransfMatrix.from_rpy_xyz([0, -90, 0], [4, 5, 6], unit='deg')
 
     # Convert the transformation matrices to dual quaternions
     T_list = [T0, T1, T2]

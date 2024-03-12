@@ -13,7 +13,7 @@ if __name__ == '__main__':
     f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
                               DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
 
-    tool_matrix = TransfMatrix.from_rpy_xyz([90, 0, 45], [-0.2, 0.5, 0], units='deg')
+    tool_matrix = TransfMatrix.from_rpy_xyz([90, 0, 45], [-0.2, 0.5, 0], unit='deg')
     tool_dq = DualQuaternion(tool_matrix.matrix2dq())
 
     m = RationalMechanism([f1, f2], tool=tool_dq)

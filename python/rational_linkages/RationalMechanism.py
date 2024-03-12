@@ -54,7 +54,7 @@ class RationalMechanism(RationalCurve):
             myplt.plot(base)
 
             # create another pose
-            p0 = TransfMatrix.from_rpy_xyz([-90, 0, 0], [0.15, 0, 0], units='deg')
+            p0 = TransfMatrix.from_rpy_xyz([-90, 0, 0], [0.15, 0, 0], unit='deg')
             myplt.plot(p0)
             ######################################
 
