@@ -43,7 +43,7 @@ if __name__ == '__main__':
     #                                 PointHomogeneous([1, -0.66666667, 0, 0.1]),
     #                                 PointHomogeneous([1, -0.66666667, 0, 0])])
     #"""
-    t = TransfMatrix.from_rpy_xyz([90, 0, 45], [-0.2, 0.5, 0], units='deg')
+    t = TransfMatrix.from_rpy_xyz([90, 0, 45], [-0.2, 0.5, 0], unit='deg')
     tdq = DualQuaternion(t.matrix2dq())
 
     m = RationalMechanism([f1, f2], tool=tdq)

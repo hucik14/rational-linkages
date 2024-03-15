@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # create two DualQuaternion objects
     identity = DualQuaternion()
     pose1 = DualQuaternion([0, 0, 1, 0, 0, -0.5, 1, 0])
-    pose2 = TransfMatrix.from_rpy_xyz([0, -90, 0], [0, 0, 0.5], units='deg')
+    pose2 = TransfMatrix.from_rpy_xyz([0, -90, 0], [0, 0, 0.5], unit='deg')
 
     # create a point with homogeneous coordinates w = 1, x = 2, y = -3, z = 1.5
     point = PointHomogeneous([1, 2, -3, 1.5])

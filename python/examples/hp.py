@@ -38,7 +38,7 @@ f1 = MotionFactorization([h1, h2])
 f2 = MotionFactorization([k1, k2])
 
 # specify tool frame (from TransfMatrix or directly as DualQuaternion)
-tool = TransfMatrix.from_rpy_xyz([45, 33, -90], [0.5, -0.1, 0.3], units='deg')
+tool = TransfMatrix.from_rpy_xyz([45, 33, -90], [0.5, -0.1, 0.3], unit='deg')
 tool_dq = DualQuaternion(tool.matrix2dq())
 
 # create a mechanism from the two factorizations, tool frame is optional, but must be an object of type DualQuaternion
