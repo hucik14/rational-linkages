@@ -269,7 +269,7 @@ class RationalMechanism(RationalCurve):
         """
         Get the frames of a linkage that follow standard Denaivt-Hartenberg convention.
 
-        It renurns n+2 frames, where n is the number of joints. The first frame is the
+        It returns n+2 frames, where n is the number of joints. The first frame is the
         base frame, and the last frame is an updated frame of the first joint that
         follows the DH convention in respect to the last joint's frame.
 
@@ -321,6 +321,21 @@ class RationalMechanism(RationalCurve):
                                                               origin=pts[0])
 
         return frames
+
+    def get_global_frames(self) -> list[TransfMatrix]:
+        """
+        Get the frames of the linkage in the global coordinate system.
+
+        :return: list of TransfMatrix objects
+        :rtype: list[TransfMatrix]
+        """
+        local_frames = self.get_frames()
+        global_frames = [TransfMatrix()]
+
+        for i in range(1, len(local_frames)):
+            global_frames.append(global_frames[i-1] * local_frames[i])
+
+        return global_frames
 
     def get_screw_axes(self) -> list[NormalizedLine]:
         """
