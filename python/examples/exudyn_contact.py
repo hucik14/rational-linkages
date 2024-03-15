@@ -37,8 +37,12 @@ if __name__ == '__main__':
                 for i in range(number_of_links)]
 
     # GRAPIHCS BODIES
+    f = m.get_frames()
+
+
     # ground link
     A = TransfMatrix.from_vectors(normal_x=[-1, -0.8, 0], approach_z=joint_axes[-1])
+    A = TransfMatrix()
     gGround0 = GraphicsDataFromSTLfile('link3.stl',
                                        color=[0.5, 0.5, 0, 1],
                                        scale=0.005,
@@ -47,30 +51,32 @@ if __name__ == '__main__':
                                        )
     graphics_bodies = [gGround0]
 
-    A = TransfMatrix.from_vectors(normal_x=[-0.55, 0.4, 0], approach_z=joint_axes[0])
+    f1 = f[1] * TransfMatrix.from_rpy([0, 0, -0.35 * np.pi])
     stlGrafics = GraphicsDataFromSTLfile('link0.stl',
-                                         color=[1, 0, 0, 1],
+                                         color=colors[0],
                                          scale=5,
-                                         pOff=rel_links_pts[1][0] - 0.04 * joint_axes[0],
-                                         Aoff=A.rot_matrix()
+                                         pOff=rel_links_pts[1][0] - joint_axes[
+                                             0] * 10.458809 / 200,
+                                         Aoff=f1.rot_matrix(),
                                          )
     graphics_bodies.append(stlGrafics)
 
-    A = TransfMatrix.from_vectors(normal_x=[0.1, 0.8, 0], approach_z=joint_axes[1])
+    f2 = f[2] * TransfMatrix.from_rpy([0, 0, 0.485 * np.pi])
     stlGrafics = GraphicsDataFromSTLfile('link1.stl',
                                          color=[0, 1, 0, 1],
                                          scale=5,
-                                         pOff=rel_links_pts[2][0] - 0.03 * joint_axes[1],
-                                         Aoff=A.rot_matrix()
+                                         pOff=rel_links_pts[2][0] + joint_axes[1] / 200,
+                                         Aoff=f2.rot_matrix(),
                                          )
     graphics_bodies.append(stlGrafics)
 
-    A = TransfMatrix.from_vectors(normal_x=[0.5, -0.3, 0], approach_z=joint_axes[2])
+    f3 = f[3] * TransfMatrix.from_rpy([0, 0, 0.72 * np.pi])
     stlGrafics = GraphicsDataFromSTLfile('link2.stl',
                                          color=[0, 0, 1, 1],
                                          scale=5,
-                                         pOff=rel_links_pts[3][0] + 0.1 * joint_axes[2],
-                                         Aoff=A.rot_matrix()
+                                         pOff=rel_links_pts[3][0] + joint_axes[
+                                             2] * 22 / 200,
+                                         Aoff=f3.rot_matrix(),
                                          )
     graphics_bodies.append(stlGrafics)
 
@@ -130,33 +136,82 @@ if __name__ == '__main__':
 
     for i in range(1, number_of_links):
         [meshPoints, meshTrigs] = GraphicsData2PointsAndTrigs(graphics_bodies[i])
-        gContact.AddTrianglesRigidBodyBased(rigidBodyMarkerIndex=body_markers[i],
-                                            contactStiffness=k,
-                                            contactDamping=d,
-                                            frictionMaterialIndex=0,
-                                            pointList=meshPoints,
-                                            triangleList=meshTrigs)
 
-    color4node = color4steelblue
-    pS0 = [0, 0, 0]
-    r = 0.1
-    gList = [GraphicsDataSphere(point=[0, 0, 0], radius=0.1, color=color4node, nTiles=24)]
+        if i == 1:
+            #[meshPoints, meshTrigs] = RefineMesh(meshPoints, meshTrigs)
+            [meshPoints2, meshTrigs2] = ShrinkMeshNormalToSurface(meshPoints, meshTrigs, 0.1 * w)
+            gCube = GraphicsDataFromPointsAndTrigs(meshPoints, meshTrigs,
+                                                   color=colors[i])
+            gList = [gCube]
 
-    RBinertia = InertiaSphere(1, r * 1)
+            # add points for contact to visualization (shrinked)
+            for p in meshPoints2:
+                gList += [GraphicsDataSphere(point=p, radius=w, color=color4red)]
 
-    [nMass, oMass] = AddRigidBody(mainSys=mbs, inertia=RBinertia,
-                                  # nodeType=exu.NodeType.RotationRxyz,
-                                  nodeType=exu.NodeType.RotationRotationVector,
-                                  position=[0, 0, 0.5],
-                                  rotationMatrix=np.eye(3),
-                                  gravity=[0., 0., -9.81],
-                                  graphicsDataList=gList,
-                                  )
+            print(len(gList))
 
-    mNode = mbs.AddMarker(MarkerNodeRigid(nodeNumber=nMass))
-    mBody = mbs.AddMarker(MarkerBodyRigid(bodyNumber=oMass, localPosition=pS0))
-    gContact.AddSphereWithMarker(mBody, radius=r, contactStiffness=k, contactDamping=d,
-                                 frictionMaterialIndex=0)
+            [nMassCube0, oMassCube0] = AddRigidBody(mainSys=mbs,
+                                                    inertia=inertias[i],
+                                                    nodeType=exu.NodeType.RotationRotationVector,
+                                                    position=rel_links_pts[i][0],
+                                                    # rotationMatrix=RotationMatrixZ(0.),
+                                                    angularVelocity=[0, 0, 0],
+                                                    gravity=g,
+                                                    graphicsDataList=gList,
+                                                    )
+
+            nCube0 = nMassCube0
+            mCube0 = mbs.AddMarker(MarkerNodeRigid(nodeNumber=nMassCube0))
+
+            gContact.AddTrianglesRigidBodyBased(rigidBodyMarkerIndex=body_markers[i],
+                                                contactStiffness=k,
+                                                contactDamping=d,
+                                                frictionMaterialIndex=1,
+                                                pointList=meshPoints,
+                                                triangleList=meshTrigs)
+
+            for p in meshPoints2:
+                mPoint = mbs.AddMarker(MarkerBodyRigid(bodyNumber=oMassCube0, localPosition=p))
+                gContact.AddSphereWithMarker(mPoint, radius=w, contactStiffness=k,
+                                             contactDamping=d, frictionMaterialIndex=1)
+        else:
+            gContact.AddTrianglesRigidBodyBased(rigidBodyMarkerIndex=body_markers[i],
+                                                contactStiffness=k,
+                                                contactDamping=d,
+                                                frictionMaterialIndex=0,
+                                                pointList=meshPoints,
+                                                triangleList=meshTrigs)
+
+    # # SPHERE
+    # color4node = color4steelblue
+    # pS0 = [0, 0, 0]
+    # r = 0.1
+    # gList = [GraphicsDataSphere(point=[0, 0, 0], radius=0.1, color=color4node, nTiles=24)]
+    #
+    # RBinertia = InertiaSphere(1, r * 1)
+    #
+    # [nMass, oMass] = AddRigidBody(mainSys=mbs, inertia=RBinertia,
+    #                               # nodeType=exu.NodeType.RotationRxyz,
+    #                               nodeType=exu.NodeType.RotationRotationVector,
+    #                               position=[0, 0, 0.5],
+    #                               rotationMatrix=np.eye(3),
+    #                               gravity=[0., 0., -9.81],
+    #                               graphicsDataList=gList,
+    #                               )
+    #
+    # mNode = mbs.AddMarker(MarkerNodeRigid(nodeNumber=nMass))
+    # mBody = mbs.AddMarker(MarkerBodyRigid(bodyNumber=oMass, localPosition=pS0))
+    # gContact.AddSphereWithMarker(mBody, radius=r, contactStiffness=k, contactDamping=d,
+    #                              frictionMaterialIndex=0)
+
+    def PreStepUserFunction(mbs, t):
+        gContact.UpdateContacts(mbs)
+        l = gContact.GetActiveContacts(exu.ContactTypeIndex.IndexSpheresMarkerBased, -1)
+        # l = gContact.GetActiveContacts(exu.ContactTypeIndex.IndexTrigsRigidBodyBased, -1)
+        print('t=', t, 'active contact spheres=', sum(l))
+        return True
+
+    mbs.SetPreStepUserFunction(PreStepUserFunction)
 
     mbs.Assemble()
 
