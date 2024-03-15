@@ -332,10 +332,14 @@ class DualQuaternion:
 
         :return: divided DualQuaternion
         :rtype: DualQuaternion
+
+        :warn: if the DualQuaternion was divided by other DualQuaternion
         """
         if isinstance(other, (int, float)):
             return DualQuaternion(self.array() / other)
         else:
+            warn("DualQuaternion was multiplied by the inverse of the other "
+                 "DualQuaternion.")
             return self * other.inv()
 
     def __neg__(self) -> "DualQuaternion":

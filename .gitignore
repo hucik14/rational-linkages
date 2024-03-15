@@ -2,6 +2,7 @@
 python/.idea/
 python/conda-env/
 .idea/
+*coordinatesSolution.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
