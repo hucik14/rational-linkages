@@ -3,8 +3,9 @@
 
 .. include:: refs-weblinks.rst
 
-Rational Linkages Toolbox Documentation
-=======================================
+Rational Linkages Documentation
+===============================
+
 .. image:: https://img.shields.io/gitlab/v/release/21918?gitlab_url=https%3A%2F%2Fgit.uibk.ac.at%2F&style=social&logo=gitlab&label=repository
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
    :alt: GitLab (self-managed)
@@ -24,7 +25,7 @@ Rational Linkages Toolbox Documentation
 .. image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
 
-Welcome to the Rational Linkages Toolbox Documentation, which serves as a reference for
+Welcome to the Rational Linkages package documentation, which serves as a reference for
 the toolbox. The toolbox is a collection of functions for the analysis of rational
 linkages and their rapid prototyping. It is written in Python and uses the Numpy and
 SymPy libraries for computations, and Matplotlib for plotting. The toolbox is developed
@@ -79,7 +80,7 @@ documentation:
 Citing the Package
 ==================
 
-If you use the Rational Linkages Toolbox in your research, please, cite it as follows:
+If you use the Rational Linkages toolbox in your research, please, cite it as follows:
 
 Huczala, D., Siegele J., Thimm, D., Pfurner, M., Schröcker, H.-P. (2024).
 Rational Linkages: From Poses to 3D-printed Prototypes.
