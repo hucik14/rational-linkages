@@ -16,8 +16,8 @@ limancon = RationalCurve([l0, l1, l2, l0])
 
 limancon_inv = limancon.inverse_curve()
 
-bezier = RationalBezier(limancon.curve2bezier(reparametrization=True))
-bezier_inv = RationalBezier(limancon_inv.curve2bezier(reparametrization=True))
+bezier = RationalBezier(limancon.curve2bezier_control_points(reparametrization=True))
+bezier_inv = RationalBezier(limancon_inv.curve2bezier_control_points(reparametrization=True))
 
 # # prepare axes to plot
 # ax = limancon.plot((-1, 1), line_style="yellow")

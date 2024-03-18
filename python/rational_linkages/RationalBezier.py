@@ -31,8 +31,9 @@ class RationalBezier(RationalCurve):
         bezier_curve = RationalBezier(control_points)
     """
 
-    def __init__(self, control_points: list[PointHomogeneous], reparametrization:
-    bool = False):
+    def __init__(self,
+                 control_points: list[PointHomogeneous],
+                 reparametrization: bool = False):
         """
         Initializes a RationalBezier object with the provided control points.
 

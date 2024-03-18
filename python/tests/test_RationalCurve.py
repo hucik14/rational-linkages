@@ -67,7 +67,7 @@ class TestRationalCurve(TestCase):
             )
         )
 
-        control_points = obj.curve2bezier(reparametrization=True)
+        control_points = obj.curve2bezier_control_points(reparametrization=True)
 
         expected_control_points = [
             PointHomogeneous(np.array([4.0, 0.0, -2.0, 4.0])),
