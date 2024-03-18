@@ -3,6 +3,7 @@ import numpy as np
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
+from .MiniBall import MiniBall
 
 
 class AffineMetric:
@@ -98,7 +99,7 @@ class AffineMetric:
 
         return [DualQuaternion(dq_1), DualQuaternion(dq_inf)]
 
-    def dist(self, a: DualQuaternion, b: DualQuaternion) -> float:
+    def distance_via_matrix(self, a: DualQuaternion, b: DualQuaternion) -> float:
         """
         Distance between two affine displacements
         """
@@ -119,21 +120,37 @@ class AffineMetric:
         """
         return np.sqrt(self.inner_product(a, b))
 
-    def inner_product(self, dq_a: DualQuaternion, dq_b: DualQuaternion):
+    def squared_distance(self, a: DualQuaternion, b: DualQuaternion) -> float:
         """
-        Inner product of two DualQuaternions
+        Squared distance between two affine displacements
 
-        :param dq_a: DualQuaternion
-        :param dq_b: DualQuaternion
+        :param DualQuaternion a: displacement
+        :param DualQuaternion b: displacement
+
+        :return: float - squared distance between a and b
+        :rtype: float
+        """
+        return self.inner_product(a, b)
+
+    def inner_product(self, a: DualQuaternion, b: DualQuaternion):
+        """
+        Inner product of two DualQuaternions in the affine space
+
+        It is calculated as the sum of usual dot products of acted points, after the two
+        dual quaternions act on the points that define the metric.
+
+        :param a: DualQuaternion
+        :param b: DualQuaternion
 
         :return: float - inner product of dq_a and dq_b
         """
         inner_product = 0
         for i in range(self.number_of_points):
-            a_point = dq_a.act(self.points[i])
-            b_point = dq_b.act(self.points[i])
+            a_point = a.act(self.points[i])
+            b_point = b.act(self.points[i])
 
-            scalar = np.dot(a_point.array() - b_point.array(), a_point.array() - b_point.array())
+            scalar = np.dot(a_point.normalized_in_3d() - b_point.normalized_in_3d(),
+                            a_point.normalized_in_3d() - b_point.normalized_in_3d())
             inner_product += scalar
 
         return inner_product
