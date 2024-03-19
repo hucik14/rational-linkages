@@ -26,5 +26,5 @@ if __name__ == '__main__':
     p = Plotter(interactive=True, arrows_length=0.5, joint_range_lim=2, steps=200)
     p.plot(m, show_tool=False)
     p.plot(c, interval=(-1, 1))
-    p.plot(b, interval=(-1, 1))
+    #p.plot(b, interval=(-1, 1))
     p.show()

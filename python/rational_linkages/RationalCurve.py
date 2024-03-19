@@ -157,8 +157,7 @@ class RationalCurve:
         # Get the symbolic variables in the form of x00, x01, ... based on degree
         # of curve and dimension of space
         points = [
-            [sp.Symbol("x%d_%d" % (i, j)) for j in range(self.dimension + 1)]  # TODO handle dimensions
-            #[sp.Symbol("x%d_%d" % (i, j)) for j in range(4)]
+            [sp.Symbol("x%d_%d" % (i, j)) for j in range(self.dimension + 1)]
             for i in range(self.degree + 1)
         ]
         points_flattened = [var for variables in points for var in variables]
@@ -182,20 +181,11 @@ class RationalCurve:
         points_sol = sp.linsolve(equations_coeffs, points_flattened)
         # Convert the solutions to numpy arrays (get points)
         points_array = np.array(points_sol.args[0], dtype="float64").reshape(
-            self.degree + 1, self.dimension + 1
-        )
+            self.degree + 1, self.dimension + 1)
 
-        if self.dimension == 7:
-            points_objects = [PointHomogeneous()] * (self.degree + 1)
-            dq_objects = [DualQuaternion()] * (self.degree + 1)
-            for i in range(self.degree + 1):
-                dq_objects[i] = DualQuaternion(points_array[i, :])
-                points_objects[i] = PointHomogeneous.from_3d_point(dq_objects[i].dq2point_via_matrix())
-
-        else:
-            points_objects = [PointHomogeneous()] * (self.degree + 1)
-            for i in range(self.degree + 1):
-                points_objects[i] = PointHomogeneous(points_array[i, :])
+        points_objects = [PointHomogeneous()] * (self.degree + 1)
+        for i in range(self.degree + 1):
+            points_objects[i] = PointHomogeneous(points_array[i, :])
 
         return points_objects
 
