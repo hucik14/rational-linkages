@@ -69,8 +69,7 @@ class RationalBezier(RationalCurve):
 
         # Calculate the Bernstein basis polynomials and construct the Bezier curve
         bernstein_basis = self.get_bernstein_polynomial_equations(
-            t, reparametrization=self.reparam, degree=degree
-        )
+            t, reparametrization=self.reparam, degree=degree)
         bezier_curve = [0] * (dimension + 1)
         for i in range(degree + 1):
             bezier_curve += bernstein_basis[i] * control_points[i].array()
@@ -141,8 +140,7 @@ class RationalBezier(RationalCurve):
             # Compute linear interpolations between adjacent control points
             for i in range(len(control_points) - 1):
                 new_points.append(
-                    control_points[i].linear_interpolation(control_points[i + 1], t)
-                )
+                    control_points[i].linear_interpolation(control_points[i + 1], t))
 
             # Append the first point of the new segment to the left curve
             left_curve.append(new_points[0])
