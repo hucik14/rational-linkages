@@ -79,6 +79,7 @@ class RationalCurve:
 
         # check if the curve is a motion curve
         self.is_motion = self.dimension == 7
+        self.is_affine_motion = self.dimension == 12
 
     @classmethod
     def from_coeffs(cls, coeffs: np.ndarray) -> "RationalCurve":
@@ -348,8 +349,6 @@ class RationalCurve:
         :return: tuple of np.ndarray - (x, y, z) coordinates of the curve
         :rtype: tuple[np.ndarray, np.ndarray, np.ndarray]
         """
-        from .DualQuaternion import DualQuaternion
-
         t = sp.Symbol("t")
 
         if interval == 'closed':
@@ -370,23 +369,27 @@ class RationalCurve:
             point = self.evaluate(t_space[i])
 
             # if it is a pose in SE3, convert it to a point via matrix mapping
-            if self.dimension == 7:
+            if self.is_motion:
                 point = DualQuaternion(point).dq2point_via_matrix()
                 point = np.concatenate((np.array([1]), point))
+            elif self.is_affine_motion:
+                point = point[:4]
 
             curve_points[i] = PointHomogeneous([point[0], point[-3], point[-2], point[-1]])
         x, y, z = zip(*[curve_points[i].normalized_in_3d() for i in range(steps)])
         return x, y, z
 
-    def get_curve_in_pr12(self):
+    def get_curve_in_pr12(self) -> "RationalCurve":
         """
         Get the representation of the curve in PR12
 
-        :return: np.ndarray of shape (13, 1)
-        :rtype: np.ndarray
+        :return: curve in PR12
+        :rtype: RationalCurve
         """
         if not self.is_motion:
             raise ValueError("The curve is not a motion curve, cannot convert to PR12")
+
+        t = sp.Symbol("t")
 
         # convert the motion curve to a dual quaternion, then map to matrix
         curve_matrix = DualQuaternion(self.symbolic).dq2matrix(normalize=False)
@@ -396,9 +399,8 @@ class RationalCurve:
         # transpose the matrix so the flatten() provides right order (vector by vector)
         curve_r12 = curve_matrix[1:4, :].T.flatten()
 
-        # create PR12 vector
+        # create PR12 vector of polynomial equations
         curve_pr12 = np.concatenate((np.array([curve_p]), curve_r12))
-        t = sp.Symbol("t")
         curve_poly = [sp.Poly(curve, t) for curve in curve_pr12]
 
         return RationalCurve(curve_poly)

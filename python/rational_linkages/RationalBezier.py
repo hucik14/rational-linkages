@@ -93,14 +93,20 @@ class RationalBezier(RationalCurve):
         # perform superclass coordinates acquisition (only the curve)
         x, y, z = super().get_plot_data(interval, steps)
 
-        # get the control points
-        if self.dimension != 7:
-            x_cp, y_cp, z_cp = zip(*[self.control_points[i].normalized_in_3d()
-                                     for i in range(self.degree + 1)])
-        else:  # extract 3D point coordinates from PR7 control points
+        if self.is_motion:
             points = [DualQuaternion(point.array()).dq2point_via_matrix()
                       for point in self.control_points]
-            x_cp, y_cp, z_cp = zip(*points)
+
+        elif self.is_affine_motion:
+            points = [point.coordinates[1:4]/point.coordinates[0]
+                      for point in self.control_points]
+
+        else:
+            points = [self.control_points[i].normalized_in_3d()
+                      for i in range(self.degree + 1)]
+
+        x_cp, y_cp, z_cp = zip(*points)
+
         return x, y, z, x_cp, y_cp, z_cp
 
     def check_for_control_points_at_infinity(self):
