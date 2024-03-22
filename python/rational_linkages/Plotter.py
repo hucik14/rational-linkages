@@ -261,11 +261,15 @@ class Plotter:
         self.ax.plot(x, y, z, **kwargs)
 
     @_plotting_decorator
-    def _plot_rational_bezier(self, bezier: RationalBezier, **kwargs):
+    def _plot_rational_bezier(self,
+                              bezier: RationalBezier,
+                              plot_control_points: bool = True,
+                              **kwargs):
         """
         Plot a rational Bezier curve
 
         :param bezier: RationalBezier
+        :param plot_control_points: plot control points
         :param kwargs: interval and matplotlib options
         """
         if 'interval' in kwargs:
@@ -280,7 +284,9 @@ class Plotter:
             kwargs['label'] = "bezier curve"
 
         self.ax.plot(x, y, z, **kwargs)
-        self.ax.plot(x_cp, y_cp, z_cp, "ro:")
+
+        if plot_control_points:
+            self.ax.plot(x_cp, y_cp, z_cp, "ro:")
 
     @_plotting_decorator
     def _plot_motion_factorization(self, factorization: MotionFactorization, **kwargs):

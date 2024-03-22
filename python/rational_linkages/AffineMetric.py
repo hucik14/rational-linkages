@@ -3,6 +3,7 @@ import numpy as np
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
+from .MiniBall import MiniBall
 
 
 class AffineMetric:
@@ -93,38 +94,63 @@ class AffineMetric:
 
         # tranformation at -1
         dq_1 = self.motion_curve.evaluate(-1)
-        # transformation at 1
-        dq_2 = self.motion_curve.evaluate(1)
         # transformation at infinity
         dq_inf = self.motion_curve.evaluate(0, inverted_part=True)
 
-        return [DualQuaternion(dq_1), DualQuaternion(dq_2), DualQuaternion(dq_inf)]
+        return [DualQuaternion(dq_1), DualQuaternion(dq_inf)]
 
-    def distance(self, a: np.ndarray, b: np.ndarray) -> float:
+    def distance_via_matrix(self, a: DualQuaternion, b: DualQuaternion) -> float:
+        """
+        Distance between two affine displacements
+        """
+        a12 = a.as_12d_vector()
+        b12 = b.as_12d_vector()
+        ab = a12 - b12
+        return np.sqrt(ab @ self.matrix @ ab)
+
+    def distance(self, a: DualQuaternion, b: DualQuaternion) -> float:
         """
         Distance between two affine displacements
 
-        :param a:
-        :param b:
+        :param DualQuaternion a: displacement
+        :param DualQuaternion b: displacement
+
         :return: float - distance between a and b
+        :rtype: float
         """
-        return np.sqrt(self.inner_product(a - b, a - b))
+        return np.sqrt(self.inner_product(a, b))
 
-    def inner_product(self, dq_a: DualQuaternion, dq_b: DualQuaternion):
+    def squared_distance(self, a: DualQuaternion, b: DualQuaternion) -> float:
         """
-        Inner product of two DualQuaternions
+        Squared distance between two affine displacements
 
-        :param dq_a: DualQuaternion
-        :param dq_b: DualQuaternion
+        :param DualQuaternion a: displacement
+        :param DualQuaternion b: displacement
+
+        :return: float - squared distance between a and b
+        :rtype: float
+        """
+        return self.inner_product(a, b)
+
+    def inner_product(self, a: DualQuaternion, b: DualQuaternion):
+        """
+        Inner product of two DualQuaternions in the affine space
+
+        It is calculated as the sum of usual dot products of acted points, after the two
+        dual quaternions act on the points that define the metric.
+
+        :param a: DualQuaternion
+        :param b: DualQuaternion
 
         :return: float - inner product of dq_a and dq_b
         """
-        inner_product = np.zeros(4)
+        inner_product = 0
         for i in range(self.number_of_points):
-            a_point = dq_a.act(self.points[i])
-            b_point = dq_b.act(self.points[i])
+            a_point = a.act(self.points[i])
+            b_point = b.act(self.points[i])
 
-            point = np.dot(a_point.array(), b_point.array())
-            inner_product += point
+            scalar = np.dot(a_point.normalized_in_3d() - b_point.normalized_in_3d(),
+                            a_point.normalized_in_3d() - b_point.normalized_in_3d())
+            inner_product += scalar
 
         return inner_product

@@ -82,7 +82,5 @@ omit = [
     "*__init__.py",
     "*Plotter.py",
     "*ButtonID.py",
-    "*AffineMatrix.py",
-    "*AffineMetric.py",
     "*MotionApproximation.py",
     ]

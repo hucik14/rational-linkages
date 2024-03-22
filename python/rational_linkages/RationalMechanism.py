@@ -11,8 +11,7 @@ from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
 from .RationalCurve import RationalCurve
 from .TransfMatrix import TransfMatrix
-
-PointHomogeneous = 'PointHomogeneous'
+from .PointHomogeneous import PointHomogeneous
 
 
 class RationalMechanism(RationalCurve):
@@ -791,3 +790,32 @@ class RationalMechanism(RationalCurve):
                 raise ValueError("Invalid method.")
 
         return results
+
+    def points_at_parameter(self,
+                            t: float,
+                            inverted_part: bool = False,
+                            only_links: bool = False) -> list[PointHomogeneous]:
+        """
+        Get the points of the mechanism at the given parameter.
+
+        :param float t: parameter value
+        :param bool inverted_part: if True, return the evaluated points for the inverted
+            part of the mechanism
+        :param bool only_links: if True, instead of two points per joint segment,
+            return only the first one
+
+        :return: list of connection points of the mechanism
+        :rtype: list[PointHomogeneous]
+        """
+
+        branch0 = self.factorizations[0].direct_kinematics(t,
+                                                           inverted_part=inverted_part)
+        branch1 = self.factorizations[1].direct_kinematics(t,
+                                                           inverted_part=inverted_part)
+
+        points = branch0 + branch1[::-1]
+
+        if only_links:
+            points = [points[i] for i in range(0, len(points), 2)]
+
+        return [PointHomogeneous.from_3d_point(p) for p in points]

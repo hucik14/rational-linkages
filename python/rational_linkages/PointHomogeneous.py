@@ -56,7 +56,7 @@ class PointHomogeneous:
         else:
             self.coordinates = np.asarray(point, dtype='float64')
 
-        if self.is_real and isclose(self.coordinates[0], 0.0):  # point at infinity
+        if self.is_real and np.allclose(np.array([self.coordinates[0]]), np.array([0.0])):  # point at infinity
             self.is_at_infinity = True
             self.coordinates_normalized = None
         elif self.is_real:

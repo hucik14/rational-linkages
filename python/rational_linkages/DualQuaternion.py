@@ -465,9 +465,14 @@ class DualQuaternion:
                            + self.p[2] * self.d[2] + self.p[3] * self.d[3])
         return np.isclose(study_condition, 0)
 
-    def dq2matrix(self):
+    def dq2matrix(self, normalize: bool = True) -> np.ndarray:
         """
         Dual Quaternion to SE(3) transformation matrix
+
+        The transformation matrix is normalized by the first element of the matrix.
+
+        :param bool normalize: if True, the transformation matrix is normalized by the
+            first element of the matrix. Defaults to True.
 
         :return: 4x4 transformation matrix
         :rtype: np.ndarray
@@ -498,17 +503,12 @@ class DualQuaternion:
         r24 = 2 * (-p0 * d2 + p1 * d3 + p2 * d0 - p3 * d1)
         r34 = 2 * (-p0 * d3 - p1 * d2 + p2 * d1 + p3 * d0)
 
-        tr = np.array(
-            [
-                [r44, 0, 0, 0],
-                [r14, r11, r12, r13],
-                [r24, r21, r22, r23],
-                [r34, r31, r32, r33],
-            ]
-        )
+        tr = np.array([[r44, 0, 0, 0],
+                       [r14, r11, r12, r13],
+                       [r24, r21, r22, r23],
+                       [r34, r31, r32, r33]])
 
-        # Normalization
-        output_matrix = tr / tr[0, 0]
+        output_matrix = tr / tr[0, 0] if normalize else tr
         return output_matrix
 
     def dq2point_via_matrix(self) -> np.ndarray:
@@ -622,6 +622,16 @@ class DualQuaternion:
         """
         direction, moment = self.dq2line_vectors()
         return np.cross(direction, moment)
+
+    def as_12d_vector(self) -> np.ndarray:
+        """
+        Return the DualQuaternion as a 12D vector of normalized transformation matrix
+
+        :return: 12D vector of the DualQuaternion
+        :rtype: np.ndarray
+        """
+        mat = self.dq2matrix()
+        return np.hstack((mat[1:4, 0], mat[1:4, 1], mat[1:4, 2], mat[1:4, 3]))
 
     def act(
         self,
