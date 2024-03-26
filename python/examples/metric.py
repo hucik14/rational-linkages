@@ -31,8 +31,6 @@ if __name__ == '__main__':
     # p.plot(m.curve(), interval='closed')
     # p.show()
 
-    #p2 = Plotter(interactive=True, arrows_length=0.5, joint_range_lim=2, steps=200)
-
     bcp = c.curve2bezier_control_points(reparametrization=True)
     b = RationalBezier(bcp, reparametrization=True)
     bcp_inv = c_inv.curve2bezier_control_points(reparametrization=True)
