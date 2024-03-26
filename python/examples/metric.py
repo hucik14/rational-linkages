@@ -14,7 +14,7 @@ from rational_linkages.models import bennett_ark24, collisions_free_6r, plane_fo
 if __name__ == '__main__':
     m = RationalMechanism.from_saved_file("johannes-interp.pkl")
     #m = bennett_ark24()
-    #m = collisions_free_6r()
+    m = collisions_free_6r()
     #m = plane_fold_6r()
 
     #m.collision_check(parallel=True, only_links=True)
@@ -63,5 +63,5 @@ if __name__ == '__main__':
         if not (bezier_curve.check_for_control_points_at_infinity() or bezier_curve.check_for_negative_weights()):
             p.plot(bezier_curve, interval=(-1, 1), plot_control_points=True)
 
-    p.plot(c_org, interval='closed')
+    #p.plot(c_org, interval='closed')
     p.show()
