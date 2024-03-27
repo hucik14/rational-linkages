@@ -405,3 +405,46 @@ class RationalCurve:
 
         return RationalCurve(curve_poly)
 
+    def split_in_beziers(self) -> list["RationalBezier"]:
+        """
+        Split the curve into Bezier curves with positive weights of control points.
+
+        :return: list of RationalBezier objects
+        :rtype: list[RationalBezier]
+        """
+        if self.is_motion:
+            curve = self.get_curve_in_pr12()
+        else:
+            raise ValueError("The curve is not a motion curve, cannot "
+                             "split into Bezier curves")
+
+        from .RationalBezier import RationalBezier
+
+        # obtain Bezier curves for the curve and its reparametrized inverse part
+        bezier_curve_segments = [
+            RationalBezier(curve.curve2bezier_control_points(reparametrization=True)),
+            RationalBezier(curve.inverse_curve().curve2bezier_control_points(
+                reparametrization=True))]
+
+        # split the Bezier curves until all control points have positive weights
+        while True:
+            new_segments = []
+            split_occurred = False
+
+            for b_curve in bezier_curve_segments:
+                if (b_curve.check_for_control_points_at_infinity()
+                        or b_curve.check_for_negative_weights()):
+                    left, right = b_curve.split_de_casteljau()
+                    new_segments.append(left)
+                    new_segments.append(right)
+                    split_occurred = True
+                else:
+                    new_segments.append(b_curve)
+
+            bezier_curve_segments = new_segments
+
+            if not split_occurred:
+                break
+
+        return bezier_curve_segments
+

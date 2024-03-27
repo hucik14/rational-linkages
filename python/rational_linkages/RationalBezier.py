@@ -34,7 +34,8 @@ class RationalBezier(RationalCurve):
 
     def __init__(self,
                  control_points: list[PointHomogeneous],
-                 reparametrization: bool = False):
+                 reparametrization: bool = False,
+                 metric: "AffineMetric" = None):
         """
         Initializes a RationalBezier object with the provided control points.
 
@@ -49,7 +50,7 @@ class RationalBezier(RationalCurve):
         self.control_points = control_points
 
         # Calculate the bounding ball of the control points
-        self.ball = MiniBall(self.control_points)
+        self.ball = MiniBall(self.control_points, metric)
 
     def get_coeffs_from_control_points(self,
                                        control_points: list[PointHomogeneous]

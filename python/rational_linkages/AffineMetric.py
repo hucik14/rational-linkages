@@ -108,6 +108,16 @@ class AffineMetric:
         ab = a12 - b12
         return np.sqrt(ab @ self.matrix @ ab)
 
+    def squared_distance_pr12_points(self, a: np.ndarray, b: np.ndarray) -> float:
+        """
+        Squared distance between two points in R12
+        """
+        a12 = a[1:]
+        b12 = b[1:]
+
+        ab = a12 - b12
+        return ab @ self.matrix @ ab
+
     def distance(self, a: DualQuaternion, b: DualQuaternion) -> float:
         """
         Distance between two affine displacements

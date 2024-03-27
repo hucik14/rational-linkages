@@ -14,6 +14,7 @@ from .RationalBezier import RationalBezier
 from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
+from .MiniBall import MiniBall
 
 
 class Plotter:
@@ -113,6 +114,8 @@ class Plotter:
                 self._plot_rational_mechanism(object_to_plot, **kwargs)
             case "is_interactive":
                 self._plot_interactive(object_to_plot, **kwargs)
+            case "is_miniball":
+                self._plot_miniball(object_to_plot, **kwargs)
 
     def analyze_object(self, object_to_plot):
         """
@@ -143,6 +146,8 @@ class Plotter:
             return "is_dq"
         elif isinstance(object_to_plot, TransfMatrix):
             return "is_transf_matrix"
+        elif isinstance(object_to_plot, MiniBall):
+            return "is_miniball"
         else:
             raise TypeError(
                 "Other types than NormalizedLine, PointHomogeneous, RationalMechanism, "
@@ -355,6 +360,19 @@ class Plotter:
 
         x, y, z = zip(*ee_points)
         self.ax.plot(x, y, z, **kwargs)
+
+    def _plot_miniball(self, ball: MiniBall, **kwargs):
+        """
+        Plot a ball
+        """
+        if 'label' not in kwargs:
+            kwargs['label'] = "Miniball of Bezier curve"
+        if 'alpha' not in kwargs:
+            kwargs['alpha'] = 0.15
+
+        x, y, z = ball.get_plot_data()
+
+        self.ax.plot_surface(x, y, z, **kwargs)
 
     @_plotting_decorator
     def _plot_interactive(self,
