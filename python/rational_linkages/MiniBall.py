@@ -6,16 +6,21 @@ from .PointHomogeneous import PointHomogeneous
 
 
 class MiniBall:
-    def __init__(self, points: list, metric: str = "euclidean"):
+    def __init__(self, points: list[PointHomogeneous], metric: "AffineMetric" = None):
         """
         Initialize the MiniBall class
-        :param points: np.ndarray - array of points in the space
+
+        :param list[PointHomogeneous] points: array of points in the space
+        :param AffineMetric metric: metric of the space
         """
         self.points = points
-        self.metric = metric
 
         self.number_of_points = len(self.points)
         self.dimension = self.points[0].coordinates.size
+
+        self.metric = 'euclidean' if metric is None else 'hofer'
+        self.metric_obj = metric
+
         self.center = np.zeros(self.dimension)
         self.radius = 10.0
 
@@ -36,17 +41,23 @@ class MiniBall:
 
         # Prepare constraint equations based on the metric
         if self.metric == "hofer":
-
             def constraint_equations(x):
                 """
                 For Hofer metric, constraint equations must satisfy the ball by:
                 r - radius of the sphere, x - one of given points,
                 c - center of the sphere
                 """
-                return NotImplemented
+                constraints = np.zeros(self.number_of_points)
+                for i in range(self.number_of_points):
+
+                    squared_distance = sum(self.metric_obj.squared_distance_pr12_points(
+                        self.points[i].normalize(), x[j])
+                        for j in range(self.dimension)
+                    )
+                    constraints[i] = x[-1] ** 2 - squared_distance
+                return constraints
 
         else:
-
             def constraint_equations(x):
                 """
                 For Euclidean metric, constraint equations must satisfy the ball by:
