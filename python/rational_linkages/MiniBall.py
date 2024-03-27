@@ -88,39 +88,27 @@ class MiniBall:
         result = minimize(objective_function, initial_guess, constraints=ineq_con)
         return result
 
-    def plot_ball(self, ax=None, color="red", alpha=0.15):
+    def get_plot_data(self) -> tuple:
         """
-        Plot the ball in 3D space
-        :param ax: matplotlib.axes.Axes object
-        :param color: color of the ball
-        :param alpha: transparency of the ball
-        """
-        # check dimension
-        if not self.dimension == 4:
-            raise ValueError(
-                "Cannot plot ball with dimension other than 3 (4 in homogenoeus coordinates)"
-            )
-        else:
-            if ax is None:
-                ax = plt.figure().add_subplot(projection="3d")
-            else:
-                ax = ax
+        Get data for plotting in 3D space
 
+        :return: x, y, z coordinates of the ball surface
+        :rtype: tuple
+
+        :raises ValueError: if the dimension is not 4 or 13
+        """
+        if self.dimension == 4 or self.dimension == 13:
             # Create the 3D sphere representing the circle
             u = np.linspace(0, 2 * np.pi, 100)
             v = np.linspace(0, np.pi, 100)
-            x = (
-                self.radius * np.outer(np.cos(u), np.sin(v))
-                + self.center.normalized_in_3d()[0]
-            )
-            y = (
-                self.radius * np.outer(np.sin(u), np.sin(v))
-                + self.center.normalized_in_3d()[1]
-            )
-            z = (
-                self.radius * np.outer(np.ones(np.size(u)), np.cos(v))
-                + self.center.normalized_in_3d()[2]
-            )
-            ax.plot_surface(x, y, z, color=color, alpha=alpha)
 
-        return ax
+            x = (self.radius * np.outer(np.cos(u), np.sin(v))
+                 + self.center.normalized_in_3d()[0])
+            y = (self.radius * np.outer(np.sin(u), np.sin(v))
+                 + self.center.normalized_in_3d()[1])
+            z = (self.radius * np.outer(np.ones(np.size(u)), np.cos(v))
+                 + self.center.normalized_in_3d()[2])
+        else:
+            raise ValueError("Cannot plot ball due to incompatible dimension.")
+
+        return x, y, z
