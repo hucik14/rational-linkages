@@ -93,8 +93,8 @@ class MotionInterpolation:
         :rtype: RationalCurve
         """
         # check number of poses
-        if not (len(poses) == 3 or len(poses) == 4):
-            raise ValueError('The number of poses must be 3 or 4.')
+        if not (2 <= len(poses) <= 4):
+            raise ValueError('The number of poses must be 2, 3 or 4.')
 
         rational_poses = []
 
@@ -114,8 +114,11 @@ class MotionInterpolation:
         if len(rational_poses) == 4:
             curve_eqs = MotionInterpolation.interpolate_cubic(rational_poses)
             return RationalCurve(curve_eqs)
-        else:
+        elif len(rational_poses) == 3:
             curve_eqs = MotionInterpolation.interpolate_quadratic(rational_poses)
+            return RationalCurve(curve_eqs)
+        elif len(rational_poses) == 2:
+            curve_eqs = MotionInterpolation.interpolate_quadratic_2poses(rational_poses)
             return RationalCurve(curve_eqs)
 
     @staticmethod
@@ -150,25 +153,29 @@ class MotionInterpolation:
         eq0 = study_norm.subs(t, 0)
         eq1 = study_norm.subs(t, 1)
 
-        # solve the equations
-        sols = sp.solve([eq0, eq1], [alpha, omega])
+        # solve the equations symbolically
+        sols = sp.solve([eq0, eq1], [alpha, omega], dict=True)
+
+        # solve the equations numerically
+        sols2 = sp.nsolve([eq0, eq1], [alpha, omega], [0.25, 0.75])
+
 
         # get non zero solution
         nonzero_sol = None
         for sol in sols:
-            if (not (sol[0] == 0 and sol[1] == 0)
-                    and sol[0].is_number
-                    and sol[1].is_number):
-                nonzero_sol = sol
+            if sol[alpha] and sol[omega]:
+                if (not (sol[alpha] == 0 and sol[omega] == 0)
+                        and sol[alpha].is_number
+                        and sol[omega].is_number):
+                    nonzero_sol = sol
 
         if nonzero_sol is None:
             raise ValueError('Interpolation Failed for the given poses.' 
-                             'Tip: if you used *nice* numbers to create poses, try to '
-                             'slightly alter them. For example, instead of offset 0.0 '
-                             'put 0.0001.')
+                             'Tip: try to slightly alter the poses. For example, '
+                             'instead of offset 0.0 put 0.0001.')
 
-        al = nonzero_sol[0]
-        om = nonzero_sol[1]
+        al = nonzero_sol[alpha]
+        om = nonzero_sol[omega]
         # obtain the interpolated curve
         c_interp = al * p0 + (p1 - al * p0 - om * p2) * t + om * p2 * t**2
 
@@ -176,6 +183,39 @@ class MotionInterpolation:
         poly = [sp.Poly(el, t) for el in c_interp]
 
         return poly
+
+    @staticmethod
+    def interpolate_quadratic_2poses(poses: list[DualQuaternion]) -> list[sp.Poly]:
+        """
+        Interpolates the given 2 rational poses by a quadratic curve in SE(3).
+
+        Adds the 3rd pose that is either identity or a random pose that returns
+        solution.
+        """
+        try:
+            return MotionInterpolation.interpolate_quadratic(
+                poses + [DualQuaternion()])
+        except ValueError:
+            for i in range(10):
+                try:
+                    random_rotation = DualQuaternion.random_on_study_quadric().array()
+                    random_rotation = DualQuaternion(
+                        list(random_rotation[0:4]) + [0, 0, 0, 0])
+                    additional_pose = (
+                                random_rotation * poses[1] - poses[0]).back_projection()
+                    print('Trying to interpolate with random pose, '
+                          'attempt: {}'.format(i + 1))
+                    print('Random pose:')
+                    print(additional_pose)
+                    return MotionInterpolation.interpolate_quadratic(
+                        poses + [additional_pose])
+                except Exception:
+                    continue
+            else:
+                raise ValueError("Failed to interpolate after 10 attempts.")
+
+
+
 
     @staticmethod
     def interpolate_cubic(poses: list[DualQuaternion]) -> list[sp.Poly]:
