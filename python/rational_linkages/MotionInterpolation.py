@@ -1,4 +1,5 @@
 from typing import Union
+from copy import deepcopy
 
 import sympy as sp
 
@@ -6,6 +7,8 @@ from .DualQuaternion import DualQuaternion
 from .RationalCurve import RationalCurve
 from .RationalDualQuaternion import RationalDualQuaternion
 from .TransfMatrix import TransfMatrix
+from .PointHomogeneous import PointHomogeneous
+from .Quaternion import Quaternion
 
 
 class MotionInterpolation:
@@ -110,6 +113,9 @@ class MotionInterpolation:
                 raise TypeError('The given poses must be either TransfMatrix '
                                  'or DualQuaternion.')
 
+        # normalize the poses on Study quadric
+        rational_poses = [pose.back_projection() for pose in rational_poses]
+
         # interpolate the rational poses
         if len(rational_poses) == 4:
             curve_eqs = MotionInterpolation.interpolate_cubic(rational_poses)
@@ -140,7 +146,6 @@ class MotionInterpolation:
         p2 = poses[2].array()
 
         c = alpha * p0 + (p1 - alpha * p0 - omega * p2) * t + omega * p2 * t**2
-
         symbolic_curve = RationalDualQuaternion(c)
 
         # apply Stydy condition, i.e. obtain epsilon norm of the curve
@@ -156,10 +161,6 @@ class MotionInterpolation:
         # solve the equations symbolically
         sols = sp.solve([eq0, eq1], [alpha, omega], dict=True)
 
-        # solve the equations numerically
-        sols2 = sp.nsolve([eq0, eq1], [alpha, omega], [0.25, 0.75])
-
-
         # get non zero solution
         nonzero_sol = None
         for sol in sols:
@@ -170,9 +171,7 @@ class MotionInterpolation:
                     nonzero_sol = sol
 
         if nonzero_sol is None:
-            raise ValueError('Interpolation Failed for the given poses.' 
-                             'Tip: try to slightly alter the poses. For example, '
-                             'instead of offset 0.0 put 0.0001.')
+            raise ValueError('Interpolation failed for the given poses.')
 
         al = nonzero_sol[alpha]
         om = nonzero_sol[omega]
@@ -194,28 +193,36 @@ class MotionInterpolation:
         """
         try:
             return MotionInterpolation.interpolate_quadratic(
-                poses + [DualQuaternion()])
-        except ValueError:
-            for i in range(10):
-                try:
-                    random_rotation = DualQuaternion.random_on_study_quadric().array()
-                    random_rotation = DualQuaternion(
-                        list(random_rotation[0:4]) + [0, 0, 0, 0])
-                    additional_pose = (
-                                random_rotation * poses[1] - poses[0]).back_projection()
-                    print('Trying to interpolate with random pose, '
-                          'attempt: {}'.format(i + 1))
-                    print('Random pose:')
-                    print(additional_pose)
-                    return MotionInterpolation.interpolate_quadratic(
-                        poses + [additional_pose])
-                except Exception:
-                    continue
-            else:
-                raise ValueError("Failed to interpolate after 10 attempts.")
+                poses + [DualQuaternion.as_rational([1, 0, 0, 0, 0, 0, 0, 0])])
+        except Exception:
+            print('Failed to interpolate with identity pose.')
 
+            try:
+                # TODO: implement better random pose generation
+                # p0 = PointHomogeneous(poses[0].dq)
+                # p1 = PointHomogeneous(poses[1].dq)
+                # mid_p = p0.linear_interpolation(p1, 0.5)
+                # mid_pose = DualQuaternion(mid_p.array())
+                # random_noise = DualQuaternion.random_on_study_quadric(0.1)
+                #
+                # additional_pose = DualQuaternion.as_rational(
+                #     (mid_pose + random_noise).array()).back_projection()
 
+                additional_pose = DualQuaternion.as_rational(
+                    DualQuaternion.random_on_study_quadric().array()).back_projection()
 
+                print('Trying to interpolate with pose:')
+                print(additional_pose)
+
+                new_poses = deepcopy(poses)
+
+                # new_poses.insert(1, additional_pose)
+                new_poses.append(additional_pose)
+
+                return MotionInterpolation.interpolate_quadratic(new_poses)
+
+            except Exception:
+                print('Failed to interpolate with random pose.')
 
     @staticmethod
     def interpolate_cubic(poses: list[DualQuaternion]) -> list[sp.Poly]:
