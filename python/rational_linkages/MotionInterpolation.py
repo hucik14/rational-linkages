@@ -201,54 +201,60 @@ class MotionInterpolation:
             return MotionInterpolation.interpolate_quadratic(
                 poses + [DualQuaternion.as_rational([1, 0, 0, 0, 0, 0, 0, 0])])
         except Exception:
-            print('Failed to interpolate with identity pose. Trying to interpolate '
-                  'with random poses...')
+            print('Failed to interpolate with identity pose. Trying to optimize '
+                  'with random pose... (this may take a few minutes)')
 
-            # Calculate the mid point between the two poses
-            p0 = PointHomogeneous(poses[0].dq)
-            p1 = PointHomogeneous(poses[1].dq)
-            mid_p = p0.linear_interpolation(p1, 0.5)
-            mid_pose = DualQuaternion(mid_p.array())
+            try:
+                return MotionInterpolation.interpolate_quadratic_2poses_optimized(poses)
+            except Exception:
+                print('Failed to interpolate with a random pose optimized for shortest '
+                      'path length. Trying to interpolate with other random poses...')
 
-            # get mean value of mid_pose coordinates
-            mean = sum(mid_pose.array()) / len(mid_pose.array())
-            # TODO: implement better random pose generation using mid_pose
+                # Calculate the mid point between the two poses
+                p0 = PointHomogeneous(poses[0].dq)
+                p1 = PointHomogeneous(poses[1].dq)
+                mid_p = p0.linear_interpolation(p1, 0.5)
+                mid_pose = DualQuaternion(mid_p.array())
 
-            shortest_curve_length = float('inf')
-            shortest_set = None
-            best_pose = None
+                # get mean value of mid_pose coordinates
+                mean = sum(mid_pose.array()) / len(mid_pose.array())
 
-            for i in range(1, 30):
-                additional_pose = DualQuaternion.as_rational(
-                    DualQuaternion.random_on_study_quadric(
-                        mean * 0.2 * i).array()).back_projection()
+                shortest_curve_length = float('inf')
+                shortest_set = None
+                best_pose = None
 
-                new_poses = deepcopy(poses)
-                new_poses.append(additional_pose)
+                for i in range(1, 30):
+                    additional_pose = DualQuaternion.as_rational(
+                        DualQuaternion.random_on_study_quadric(
+                            mean * 0.2 * i).array()).back_projection()
 
-                try:
-                    polynomial_set = MotionInterpolation.interpolate_quadratic(new_poses)
-                except Exception:
-                    polynomial_set = None
+                    new_poses = deepcopy(poses)
+                    new_poses.append(additional_pose)
 
-                # If interpolation was successful, check if it's the best so far
-                if polynomial_set is not None:
-                    new_curve_length = RationalCurve(polynomial_set).get_path_length(
-                        num_of_points=500)
-                    if new_curve_length < shortest_curve_length:
-                        shortest_set = polynomial_set
-                        best_pose = additional_pose
-                        shortest_curve_length = new_curve_length
+                    try:
+                        polynomial_set = MotionInterpolation.interpolate_quadratic(
+                            new_poses)
+                    except Exception:
+                        polynomial_set = None
 
-            if shortest_set is not None:
-                print('Chosen pose:')
-                print(best_pose)
-                print(shortest_curve_length)
+                    # If interpolation was successful, check if it's the best so far
+                    if polynomial_set is not None:
+                        new_curve_length = RationalCurve(polynomial_set).get_path_length(
+                            num_of_points=500)
+                        if new_curve_length < shortest_curve_length:
+                            shortest_set = polynomial_set
+                            best_pose = additional_pose
+                            shortest_curve_length = new_curve_length
 
-                return shortest_set
+                if shortest_set is not None:
+                    print('Chosen pose:')
+                    print(best_pose)
+                    print(shortest_curve_length)
 
-            else:  # if no solution was found
-                raise ValueError('Interpolation failed for the given poses.')
+                    return shortest_set
+
+                else:  # if no solution was found
+                    raise ValueError('Interpolation failed for the given poses.')
 
     @staticmethod
     def interpolate_quadratic_2poses_optimized(poses: list[DualQuaternion]
@@ -282,7 +288,6 @@ class MotionInterpolation:
         def objective_func(x):
             optim_pose = mid_pose_tr
             optim_pose.t = x
-            print(x)
 
             new_poses = deepcopy(poses)
             new_poses.append(DualQuaternion.as_rational(
@@ -296,11 +301,16 @@ class MotionInterpolation:
 
             return length
 
-        res = minimize(objective_func, x0)
+        res = minimize(objective_func, x0, tol=1e-3)
+
         optimal_pose = mid_pose_tr
         optimal_pose.t = res.x
+        optimal_pose_projected = DualQuaternion.as_rational(
+            optimal_pose.matrix2dq()).back_projection()
+        print('Optimal pose:')
+        print(optimal_pose_projected)
 
-        poses.append(DualQuaternion.as_rational(optimal_pose.matrix2dq()).back_projection())
+        poses.append(optimal_pose_projected)
 
         return MotionInterpolation.interpolate_quadratic(poses)
 
