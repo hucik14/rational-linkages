@@ -384,18 +384,22 @@ class DualQuaternion:
         :return: DualQuaternion
         :rtype: DualQuaternion
         """
-        primal = self.p
-        dual = self.d
+        if self.is_on_study_quadric():
+            return self
 
-        primal_2norm = 2 * primal.norm()
-        new_primal = Quaternion(np.array([primal_2norm, 0, 0, 0]))
-        new_dual = -1 * (primal * dual.conjugate() - dual * primal.conjugate())
+        else:
+            primal = self.p
+            dual = self.d
 
-        dq = (DualQuaternion.from_two_quaternions(new_primal, new_dual)
-              * DualQuaternion.from_two_quaternions(primal, Quaternion(np.zeros(4)))
-              ) / 2
+            primal_2norm = 2 * primal.norm()
+            new_primal = Quaternion(np.array([primal_2norm, 0, 0, 0]))
+            new_dual = -1 * (primal * dual.conjugate() - dual * primal.conjugate())
 
-        return dq
+            dq = (DualQuaternion.from_two_quaternions(new_primal, new_dual)
+                  * DualQuaternion.from_two_quaternions(primal, Quaternion(np.zeros(4)))
+                  ) / 2
+
+            return dq
 
     def array(self) -> np.ndarray:
         """
@@ -463,7 +467,8 @@ class DualQuaternion:
         """
         study_condition = (self.p[0] * self.d[0] + self.p[1] * self.d[1]
                            + self.p[2] * self.d[2] + self.p[3] * self.d[3])
-        return np.isclose(study_condition, 0)
+        study_condition = np.asarray(study_condition, dtype="float64")
+        return np.isclose(study_condition, 0.0)
 
     def dq2matrix(self, normalize: bool = True) -> np.ndarray:
         """
