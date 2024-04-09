@@ -74,8 +74,10 @@ class RationalMechanism(RationalCurve):
 
         self.tool_frame = self._determine_tool(tool)
 
+        self.segments = None
+
         if self.is_linkage:
-            self.segments = self._get_line_segments_of_linkage()
+            self.update_segments()
 
     @classmethod
     def from_saved_file(cls, filename: str):
@@ -441,7 +443,7 @@ class RationalMechanism(RationalCurve):
         print("Collision check started...")
 
         # update the line segments (physical realization of the linkage)
-        self.segments = self._get_line_segments_of_linkage()
+        self.update_segments()
 
         iters = []
         # iterate over all line segments
@@ -658,6 +660,12 @@ class RationalMechanism(RationalCurve):
             intersection_points[i] = PointHomogeneous.from_3d_point(inters_points[0])
 
         return intersection_points
+
+    def update_segments(self):
+        """
+        Update the line segments of the linkage.
+        """
+        self.segments = self._get_line_segments_of_linkage()
 
     def _get_line_segments_of_linkage(self) -> list:
         """

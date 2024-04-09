@@ -186,8 +186,8 @@ class LineSegment:
         belongs to
     :ivar int idx: The index of the line segment in the factorization
     """
-    def __init__(self, eqation, point0, point1, linkage_type, f_idx, idx):
-        self.equation = eqation
+    def __init__(self, equation, point0, point1, linkage_type, f_idx, idx):
+        self.equation = equation
         self.point0 = point0
         self.point1 = point1
         self.type = linkage_type
@@ -224,5 +224,31 @@ class LineSegment:
             return True
         else:
             return False
+
+    def get_plot_data(self) -> tuple:
+        """
+        Returns the plot data of the line segment.
+
+        :return: The plot data
+        :rtype: tuple
+        """
+        steps = 30
+        t_space = np.tan(np.linspace(-np.pi/2, np.pi/2, steps + 1))
+        p0 = np.array([self.point0.evaluate(t_val).normalized_in_3d() for t_val in t_space])
+        p1 = np.array([self.point1.evaluate(t_val).normalized_in_3d() for t_val in t_space])
+
+        # Separate the x, y, and z coordinates
+        x0, y0, z0 = p0[:, 0], p0[:, 1], p0[:, 2]
+        x1, y1, z1 = p1[:, 0], p1[:, 1], p1[:, 2]
+
+        # Create a meshgrid for the moving line segment
+        x = np.array([x0, x1])
+        y = np.array([y0, y1])
+        z = np.array([z0, z1])
+
+        return x, y, z
+
+
+
 
 

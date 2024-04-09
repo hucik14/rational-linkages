@@ -15,6 +15,7 @@ from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
 from .MiniBall import MiniBall
+from .Linkage import LineSegment
 
 
 class Plotter:
@@ -137,6 +138,8 @@ class Plotter:
                 self._plot_interactive(object_to_plot, **kwargs)
             case "is_miniball":
                 self._plot_miniball(object_to_plot, **kwargs)
+            case "is_line_segment":
+                self._plot_line_segment(object_to_plot, **kwargs)
 
     def analyze_object(self, object_to_plot):
         """
@@ -169,6 +172,8 @@ class Plotter:
             return "is_transf_matrix"
         elif isinstance(object_to_plot, MiniBall):
             return "is_miniball"
+        elif isinstance(object_to_plot, LineSegment):
+            return "is_line_segment"
         else:
             raise TypeError(
                 "Other types than NormalizedLine, PointHomogeneous, RationalMechanism, "
@@ -394,6 +399,18 @@ class Plotter:
         x, y, z = ball.get_plot_data()
 
         self.ax.plot_surface(x, y, z, **kwargs)
+
+    def _plot_line_segment(self, segment: LineSegment, **kwargs):
+        """
+        Plot a line segment
+        """
+        x, y, z = segment.get_plot_data()
+
+        if 'alpha' not in kwargs:
+            kwargs['alpha'] = 0.2
+
+        self.ax.plot_surface(x, y, z, **kwargs)
+
 
     @_plotting_decorator
     def _plot_interactive(self,
