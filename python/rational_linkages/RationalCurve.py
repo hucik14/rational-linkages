@@ -448,3 +448,23 @@ class RationalCurve:
 
         return bezier_curve_segments
 
+    def get_path_length(self, num_of_points: int = 100) -> float:
+        """
+        Get the length of the curve path
+
+        Evaluates the curve in the given number of points and sums the distances between.
+
+        :param int num_of_points: number of discrete points to evaluate the curve
+
+        :return: length of the curve path
+        :rtype: float
+        """
+        t_space = np.tan(np.linspace(-np.pi/2, np.pi/2, num_of_points))
+        poses = [self.evaluate(t) for t in t_space]
+
+        points = [DualQuaternion(p).dq2point_via_matrix()
+                  for p in poses]
+
+        return np.sum(np.linalg.norm(np.diff(points, axis=0), axis=1))
+
+
