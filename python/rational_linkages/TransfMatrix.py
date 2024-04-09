@@ -390,7 +390,6 @@ class TransfMatrix:
         m[1:4, 0] = inv_translation
         return TransfMatrix(m)
 
-
     def get_plot_data(self):
         """
         Return three quiver coordinates for plotting

@@ -1,4 +1,5 @@
 from typing import Union
+from copy import deepcopy
 
 import sympy as sp
 
@@ -6,6 +7,8 @@ from .DualQuaternion import DualQuaternion
 from .RationalCurve import RationalCurve
 from .RationalDualQuaternion import RationalDualQuaternion
 from .TransfMatrix import TransfMatrix
+from .PointHomogeneous import PointHomogeneous
+from .Quaternion import Quaternion
 
 
 class MotionInterpolation:
@@ -93,8 +96,8 @@ class MotionInterpolation:
         :rtype: RationalCurve
         """
         # check number of poses
-        if not (len(poses) == 3 or len(poses) == 4):
-            raise ValueError('The number of poses must be 3 or 4.')
+        if not (2 <= len(poses) <= 4):
+            raise ValueError('The number of poses must be 2, 3 or 4.')
 
         rational_poses = []
 
@@ -110,12 +113,18 @@ class MotionInterpolation:
                 raise TypeError('The given poses must be either TransfMatrix '
                                  'or DualQuaternion.')
 
+        # normalize the poses on Study quadric
+        rational_poses = [pose.back_projection() for pose in rational_poses]
+
         # interpolate the rational poses
         if len(rational_poses) == 4:
             curve_eqs = MotionInterpolation.interpolate_cubic(rational_poses)
             return RationalCurve(curve_eqs)
-        else:
+        elif len(rational_poses) == 3:
             curve_eqs = MotionInterpolation.interpolate_quadratic(rational_poses)
+            return RationalCurve(curve_eqs)
+        elif len(rational_poses) == 2:
+            curve_eqs = MotionInterpolation.interpolate_quadratic_2_poses(rational_poses)
             return RationalCurve(curve_eqs)
 
     @staticmethod
@@ -137,7 +146,6 @@ class MotionInterpolation:
         p2 = poses[2].array()
 
         c = alpha * p0 + (p1 - alpha * p0 - omega * p2) * t + omega * p2 * t**2
-
         symbolic_curve = RationalDualQuaternion(c)
 
         # apply Stydy condition, i.e. obtain epsilon norm of the curve
@@ -150,25 +158,23 @@ class MotionInterpolation:
         eq0 = study_norm.subs(t, 0)
         eq1 = study_norm.subs(t, 1)
 
-        # solve the equations
-        sols = sp.solve([eq0, eq1], [alpha, omega])
+        # solve the equations symbolically
+        sols = sp.solve([eq0, eq1], [alpha, omega], dict=True)
 
         # get non zero solution
         nonzero_sol = None
         for sol in sols:
-            if (not (sol[0] == 0 and sol[1] == 0)
-                    and sol[0].is_number
-                    and sol[1].is_number):
-                nonzero_sol = sol
+            if sol[alpha] and sol[omega]:
+                if (not (sol[alpha] == 0 and sol[omega] == 0)
+                        and sol[alpha].is_number
+                        and sol[omega].is_number):
+                    nonzero_sol = sol
 
         if nonzero_sol is None:
-            raise ValueError('Interpolation Failed for the given poses.' 
-                             'Tip: if you used *nice* numbers to create poses, try to '
-                             'slightly alter them. For example, instead of offset 0.0 '
-                             'put 0.0001.')
+            raise ValueError('Interpolation failed for the given poses.')
 
-        al = nonzero_sol[0]
-        om = nonzero_sol[1]
+        al = nonzero_sol[alpha]
+        om = nonzero_sol[omega]
         # obtain the interpolated curve
         c_interp = al * p0 + (p1 - al * p0 - om * p2) * t + om * p2 * t**2
 
@@ -176,6 +182,150 @@ class MotionInterpolation:
         poly = [sp.Poly(el, t) for el in c_interp]
 
         return poly
+
+    @staticmethod
+    def interpolate_quadratic_2_poses(poses: list[DualQuaternion]) -> list[sp.Poly]:
+        """
+        Interpolates the given 2 rational poses by a quadratic curve in SE(3).
+
+        Adds the 3rd pose that is either identity or a random pose that returns
+        solution.
+
+        :param list[DualQuaternion] poses: The rational poses to interpolate.
+
+        :return: Polynomials of rational motion curve.
+        :rtype: list[sp.Poly]
+        """
+        # Try to interpolate with identity pose
+        try:
+            return MotionInterpolation.interpolate_quadratic(
+                poses + [DualQuaternion.as_rational([1, 0, 0, 0, 0, 0, 0, 0])])
+        except Exception:
+            print('Failed to interpolate with identity pose. Trying to optimize '
+                  'with random pose... (this may take a few minutes)')
+
+            try:
+                return MotionInterpolation.interpolate_quadratic_2_poses_optimized(poses)
+            except Exception:
+                print('Failed to interpolate with a random pose optimized for shortest '
+                      'path length. Trying to interpolate with other random poses...')
+                return MotionInterpolation.interpolate_quadratic_2_poses_random(poses)
+
+    @staticmethod
+    def interpolate_quadratic_2_poses_random(poses: list[DualQuaternion]
+                                             ) -> list[sp.Poly]:
+        """
+        Interpolates the given 2 rational poses by a quadratic curve in SE(3).
+
+        Adds the 10 times 3rd pose that is random and returns the one with shortest
+        path-length.
+
+        :param list[DualQuaternion] poses: The rational poses to interpolate.
+
+        :return: Polynomials of rational motion curve.
+        :rtype: list[sp.Poly]
+        """
+        # Calculate the mid point between the two poses
+        p0 = PointHomogeneous(poses[0].dq)
+        p1 = PointHomogeneous(poses[1].dq)
+        mid_p = p0.linear_interpolation(p1, 0.5)
+        mid_pose = DualQuaternion(mid_p.array())
+
+        # get mean value of mid_pose coordinates
+        mean = sum(mid_pose.array()) / len(mid_pose.array())
+
+        shortest_curve_length = float('inf')
+        shortest_set = None
+        best_pose = None
+
+        for i in range(1, 10):
+            additional_pose = DualQuaternion.as_rational(
+                DualQuaternion.random_on_study_quadric(
+                    mean * 0.3 * i).array()).back_projection()
+
+            new_poses = deepcopy(poses)
+            new_poses.append(additional_pose)
+
+            try:
+                polynomial_set = MotionInterpolation.interpolate_quadratic(
+                    new_poses)
+            except Exception:
+                polynomial_set = None
+
+            # If interpolation was successful, check if it's the best so far
+            if polynomial_set is not None:
+                new_curve_length = RationalCurve(polynomial_set).get_path_length(
+                    num_of_points=500)
+                if new_curve_length < shortest_curve_length:
+                    shortest_set = polynomial_set
+                    best_pose = additional_pose
+                    shortest_curve_length = new_curve_length
+
+        if shortest_set is not None:
+            print('Chosen pose:')
+            print(best_pose)
+
+            return shortest_set
+
+        else:  # if no solution was found
+            raise ValueError('Interpolation failed for the given poses.')
+
+    @staticmethod
+    def interpolate_quadratic_2_poses_optimized(poses: list[DualQuaternion]
+                                                ) -> list[sp.Poly]:
+        """
+        Interpolates the given 2 rational poses by a quadratic curve in SE(3).
+
+        Adds the 3rd pose that is optimized for the shortest path-length.
+
+        :param list[DualQuaternion] poses: The rational poses to interpolate.
+
+        :return: Polynomials of rational motion curve.
+        :rtype: list[sp.Poly]
+        """
+        from scipy.optimize import minimize
+
+        poses = [DualQuaternion.as_rational(pose.array()) for pose in poses]
+
+        # # Calculate the mid point between the two poses
+        # p0 = PointHomogeneous(poses[0].dq)
+        # p1 = PointHomogeneous(poses[1].dq)
+        # mid_p = p0.linear_interpolation(p1, 0.5)
+        # mid_pose = DualQuaternion(mid_p.array())
+        # mid_pose_tr = TransfMatrix(mid_pose.dq2matrix())
+        # x0 = mid_pose_tr.t
+        # TODO: clean up here
+        mid_pose = DualQuaternion.random_on_study_quadric()
+        mid_pose_tr = TransfMatrix(mid_pose.dq2matrix())
+        x0 = mid_pose_tr.t
+
+        def objective_func(x):
+            optim_pose = mid_pose_tr
+            optim_pose.t = x
+
+            new_poses = deepcopy(poses)
+            new_poses.append(DualQuaternion.as_rational(
+                                 optim_pose.matrix2dq()).back_projection())
+
+            length = RationalCurve(
+                MotionInterpolation.interpolate_quadratic(new_poses)).get_path_length(
+                num_of_points=300
+            )
+
+            return length
+
+        res = minimize(objective_func, x0, tol=1e-3)
+
+        optimal_pose = mid_pose_tr
+        optimal_pose.t = res.x
+        optimal_pose_projected = DualQuaternion.as_rational(
+            optimal_pose.matrix2dq()).back_projection()
+        print('Optimal pose:')
+        print(optimal_pose_projected)
+
+        poses.append(optimal_pose_projected)
+
+        return MotionInterpolation.interpolate_quadratic(poses)
 
     @staticmethod
     def interpolate_cubic(poses: list[DualQuaternion]) -> list[sp.Poly]:

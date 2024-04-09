@@ -154,6 +154,9 @@ class MotionFactorization(RationalCurve):
 
         for i in range(self.number_of_factors - 1):
             if inverted_part:
+                if t_numerical == 0:  # avoid division by zero
+                    t_numerical = np.finfo(float).eps
+
                 pts_acted = [self.act(linkage_points[i + 1][j],
                                       end_idx=i, param=1/t_numerical) for j in range(2)]
             else:

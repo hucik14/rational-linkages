@@ -9,8 +9,93 @@ for 4 poses interpolation using cubic rational function, that yields
 3 poses interpolation using quadratic rational functions, that yields 4-revolute
 linkage, i.e. the Bennett mechanism.
 
+Both methods have some geometrical constraints, and therefore the interpolation is not
+always possible. For this reason, the package is also providing a method for 2 poses
+interpolation method that yields a spatial Bennett mechanism (4-revolute linkage),
+and worked in all tested cases.
+
+**Important note**: The method for quadratic interpolation of 2 or 3 poses is providing
+a rational function that consists
+of polynomials that are not monic. The implemented factorization method uses
+the produced curve but returns factors that, if multiplied, will yield a monic
+polynomial.
+In practice, this means that the synthesized mechanism will be still able to perform a
+desired motion and pass the given poses, but the visualization will however transform
+the whole mechanism by the a static transformation :math:`p_2` (or the last pose if
+named differently). To match the visualization with the originally given poses, the
+easiest way is to pre-multiply the original poses with the :math:`p_2`. To overcome
+this problem, it is possible to set :math:`p_2` to the identity,
+and later change the base of the whole mechanism by a static transformation.
+
 For motion interpolation, the input can be both, :class:`.DualQuaternion` objects
 or :class:`.TransfMatrix` objects.
+
+Quadratic interpolation of 2 poses
+----------------------------------
+
+The following example partially applies the method by :footcite:t:`Brunnthaler2005`,
+but interpolates only 2 poses. The 3rd pose is set first set to the identity. If this
+fails, the 3rd pose is than obtained by setting a random rotation and optimizing the
+position of the 3rd pose to achieve the shortest curve-path length.
+
+.. testcode::
+
+    # Quadratic interpolation of 2 poses with an optimized 3rd pose
+
+    from rational_linkages import (DualQuaternion, Plotter, MotionInterpolation,
+                                   TransfMatrix, RationalMechanism)
+
+
+    p0 = TransfMatrix.from_rpy_xyz([0, 0, 0], [0.1, 0.2, 0.1], unit='deg')
+    p1 = TransfMatrix.from_rpy_xyz([0, 0, 90], [0.15, -0.2, 0.2], unit='deg')
+
+    p0 = DualQuaternion(p0.matrix2dq())
+    p1 = DualQuaternion(p1.matrix2dq())
+
+    interpolated_curve = MotionInterpolation.interpolate([p0, p1])
+    m = RationalMechanism(interpolated_curve.factorize())
+
+    p = Plotter(interactive=True, steps=500, arrows_length=0.05)
+    p.plot(p0)
+    p.plot(p1)
+
+    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
+    p.plot(m)
+
+    p.show()
+
+.. testoutput::
+    :hide:
+    :options: +ELLIPSIS
+
+    ...
+
+
+Quadratic interpolation of 3 poses
+----------------------------------
+
+The following example applies the method by :footcite:t:`Brunnthaler2005`.
+
+
+.. testcode::
+
+    # Quadratic interpolation of 3 poses
+
+    from rational_linkages import DualQuaternion, Plotter, MotionInterpolation
+
+
+    p0 = DualQuaternion([0, 17, -33, -89, 0, -6, 5, -3])
+    p1 = DualQuaternion([0, 84, -21, -287, 0, -30, 3, -9])
+    p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
+
+    c = MotionInterpolation.interpolate([p0, p1, p2])
+
+    plt = Plotter(interactive=False, steps=500, arrows_length=0.05)
+    plt.plot(c, interval='closed')
+
+    for i, pose in enumerate([p0, p1, p2]):
+        plt.plot(pose, label='p{}'.format(i+1))
+    plt.show()
 
 Cubic interpolation of 4 poses
 ------------------------------
@@ -105,43 +190,6 @@ The curve is then factorized, and the resulting mechanism is plotted.
 
     6R mechanism whose tool frame (purple link) follows the curve :math:`C(t)`.
 
-
-Quadratic interpolation of 3 poses
-----------------------------------
-
-The following example applies the method by :footcite:t:`Brunnthaler2005`.
-It is important to note that the method is providing a rational function that consists
-of polynomials that are not monic. The implemented factorization method uses
-the produced curve but returns factors that, if multiplied, will yield a monic
-polynomial.
-In practice, this means that the synthesized mechanism will be still able to perform a
-desired motion and pass the given poses, but the visualization will however transform
-the whole mechanism by the a static transformation :math:`p_2` (or the last pose if
-named differently). To match the visualization with the originally given poses, the
-easiest way is to pre-multiply the original poses with the :math:`p_2`.
-
-To overcome this problem, it is possible to set :math:`p_0` again to the identity,
-and change the base of the whole mechanism by a static transformation.
-
-.. testcode::
-
-    # Quadratic interpolation of 3 poses
-
-    from rational_linkages import DualQuaternion, Plotter, MotionInterpolation
-
-
-    p0 = DualQuaternion([0, 17, -33, -89, 0, -6, 5, -3])
-    p1 = DualQuaternion([0, 84, -21, -287, 0, -30, 3, -9])
-    p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
-
-    c = MotionInterpolation.interpolate([p0, p1, p2])
-
-    plt = Plotter(interactive=False, steps=500, arrows_length=0.05)
-    plt.plot(c, interval='closed')
-
-    for i, pose in enumerate([p0, p1, p2]):
-        plt.plot(pose, label='p{}'.format(i+1))
-    plt.show()
 
 **References**
 

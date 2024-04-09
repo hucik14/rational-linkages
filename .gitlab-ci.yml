@@ -14,7 +14,20 @@ sast:
 include:
   - template: Jobs/SAST.gitlab-ci.yml
 
-run_tests:
+test_python311:
+    stage: test
+    image:
+      name: python:3.11-bullseye
+      entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
+    script:
+      - pip install .
+      - pip install pytest
+      - python -m pytest python/tests
+    coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+    rules:
+      - if: '$CI_COMMIT_BRANCH == "nightly"'
+
+test_coverage:
     stage: test
     image:
       name: python:3.11-bullseye
@@ -30,7 +43,7 @@ run_tests:
       - if: '$CI_COMMIT_BRANCH == "develop"'
       - if: '$CI_COMMIT_BRANCH == "main"'
 
-run_python_versions:
+python_versions:
     stage: test_python_versions
     image:
         name: $IMAGE

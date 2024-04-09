@@ -16,45 +16,16 @@ limancon = RationalCurve([l0, l1, l2, l0])
 
 limancon_inv = limancon.inverse_curve()
 
-bezier = RationalBezier(limancon.curve2bezier(reparametrization=True))
-bezier_inv = RationalBezier(limancon_inv.curve2bezier(reparametrization=True))
+bezier = RationalBezier(limancon.curve2bezier_control_points(reparametrization=True))
+bezier_inv = RationalBezier(limancon_inv.curve2bezier_control_points(reparametrization=True))
+b_left, b_right = bezier.split_de_casteljau(0.4)
+b_left_inv, b_right_inv = bezier_inv.split_de_casteljau()
 
-# # prepare axes to plot
-# ax = limancon.plot((-1, 1), line_style="yellow")
-#
-# # optional argument 'ax = ax' is passing axes from previous plot to the next one
-# #ax = limancon_inv.plot((-1, 1), ax=ax, line_style="yellow")
-#
-# if bezier.check_for_control_points_at_infinity():
-#     left, right = bezier.split_de_casteljau(
-#         0.45
-#     )  # optional ratio (0.45) is ratio of the parts, ie. one blue ball will be bigger
-#
-#     ax = left.plot((-1, 1), ax=ax, line_style="b--")
-#     ax = left.ball.plot_ball(ax=ax, color="blue")
-#     ax = right.plot((-1, 1), ax=ax, line_style="b--")
-#     ax = right.ball.plot_ball(ax=ax, color="blue")
-# else:
-#     ax = bezier.plot((-1, 1), ax=ax, line_style="r--")
-#     ax = bezier.ball.plot_ball(ax=ax)
-#
-# if bezier_inv.check_for_control_points_at_infinity():
-#     left_inv, right_inv = bezier_inv.split_de_casteljau()
-#
-#     ax = left_inv.plot((-1, 1), ax=ax, line_style="g--")
-#     ax = left_inv.ball.plot_ball(ax=ax, color="green")
-#     ax = right_inv.plot((-1, 1), ax=ax, line_style="g--")
-#     ax = right_inv.ball.plot_ball(ax=ax, color="green")
-# else:
-#     ax = bezier_inv.plot((-1, 1), ax=ax, line_style="r--")
-#     ax = bezier_inv.ball.plot_ball(ax=ax)
-#
-#
-# # Set labels and title for the plot
-# ax.set_xlabel("X-axis")
-# ax.set_ylabel("Y-axis")
-# ax.set_zlabel("Z-axis")
-#
-# # set aspect ratio
-# ax.set_aspect("equal")
-# plt.show()
+p = Plotter(interactive=False, arrows_length=0.5, joint_range_lim=2, steps=200)
+bezier_segments = [b_left, b_right, b_left_inv, b_right_inv]
+
+for bezier_curve in bezier_segments:
+    p.plot(bezier_curve, interval=(-1, 1), plot_control_points=True)
+    p.plot(bezier_curve.ball)
+
+p.show()

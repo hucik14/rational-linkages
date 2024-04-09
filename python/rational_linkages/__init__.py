@@ -1,3 +1,4 @@
+from .AffineMetric import AffineMetric
 from .CollisionFreeOptimization import CollisionFreeOptimization, CombinatorialSearch
 from .DualQuaternion import DualQuaternion
 from .DualQuaternionAction import DualQuaternionAction

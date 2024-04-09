@@ -12,11 +12,11 @@ class TestRationalCurve(TestCase):
         a = 1
         b = 0.5
         t = sp.Symbol("t")
-        l0 = sp.Poly((1 + t**2) ** 2, t)
+        l0 = sp.Poly((1 + t ** 2) ** 2, t)
         l1 = sp.Poly(
-            b * (1 - t**2) * (1 + t**2) + a * (1 - t**2) ** 2, t)
+            b * (1 - t ** 2) * (1 + t ** 2) + a * (1 - t ** 2) ** 2, t)
         l2 = sp.Poly(
-            2 * b * t * (1 + t**2) + 2 * a * t * (1 - t**2), t)
+            2 * b * t * (1 + t ** 2) + 2 * a * t * (1 - t ** 2), t)
 
         obj = RationalCurve([l0, l1, l2, l0])
         expected_coeffs = np.array(
@@ -67,7 +67,7 @@ class TestRationalCurve(TestCase):
             )
         )
 
-        control_points = obj.curve2bezier(reparametrization=True)
+        control_points = obj.curve2bezier_control_points(reparametrization=True)
 
         expected_control_points = [
             PointHomogeneous(np.array([4.0, 0.0, -2.0, 4.0])),
@@ -102,13 +102,14 @@ class TestRationalCurve(TestCase):
         expected_equations = [
             (t - 1) ** 4,
             -4 * t * (t - 1) ** 3,
-            6 * t**2 * (t - 1) ** 2,
-            4 * t**3 * (1 - t),
-            t**4,
+            6 * t ** 2 * (t - 1) ** 2,
+            4 * t ** 3 * (1 - t),
+            t ** 4,
         ]
 
         self.assertEqual(
-            obj.get_bernstein_polynomial_equations(t, reparametrization=False), expected_equations
+            obj.get_bernstein_polynomial_equations(t, reparametrization=False),
+            expected_equations
         )
 
         expected_equations = [
@@ -120,7 +121,8 @@ class TestRationalCurve(TestCase):
         ]
 
         self.assertEqual(
-            obj.get_bernstein_polynomial_equations(t, reparametrization=True), expected_equations
+            obj.get_bernstein_polynomial_equations(t, reparametrization=True),
+            expected_equations
         )
 
         expected_equations = [(1 - t) / 2, (t + 1) / 2]
@@ -144,10 +146,10 @@ class TestRationalCurve(TestCase):
 
         t = sp.Symbol("t")
         expected_equations = [
-            1.0 * t**4 + 2.0 * t**2 + 1.0,
-            0.5 * t**4 - 2.0 * t**2 + 1.5,
-            -1.0 * t**3 + 3.0 * t,
-            1.0 * t**4 + 2.0 * t**2 + 1.0,
+            1.0 * t ** 4 + 2.0 * t ** 2 + 1.0,
+            0.5 * t ** 4 - 2.0 * t ** 2 + 1.5,
+            -1.0 * t ** 3 + 3.0 * t,
+            1.0 * t ** 4 + 2.0 * t ** 2 + 1.0,
         ]
         equations, polynomials = obj.get_symbolic_expressions(obj.coeffs)
 
@@ -299,9 +301,59 @@ class TestRationalCurve(TestCase):
         self.assertTrue(np.allclose(y, (0., 0.8)))
         self.assertTrue(np.allclose(z, (0., 0.)))
 
+    def test_get_curve_in_pr12(self):
+        t = sp.Symbol("t")
+        curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(-3.0 * t, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(1.0, t),
+                               sp.Poly(1.0 * t, t),
+                               sp.Poly(0.0, t)])
 
+        self.assertTrue(curve.is_motion)
+        self.assertFalse(curve.is_affine_motion)
+        curve_pr12 = curve.get_curve_in_pr12()
+        self.assertTrue(curve_pr12.is_affine_motion)
 
+        expected_coeffs = np.array([[1., 0., 5., 0., 4.],
+                                    [0., 0., -8., 0., 4.],
+                                    [0.,-2., 0., 10., 0.],
+                                    [0., 0., 0., 0., 0.],
+                                    [1., 0., -13., 0., 4.],
+                                    [0.,-6., 0., 12., 0.],
+                                    [0., 0., 0., 0., 0.],
+                                    [0., 6., 0., -12., 0.],
+                                    [1., 0., -13., 0., 4.],
+                                    [0., 0., 0., 0., 0.],
+                                    [0., 0., 0., 0., 0.],
+                                    [0., 0., 0., 0., 0.],
+                                    [1., 0., 5., 0., 4.]])
 
+        self.assertTrue(np.allclose(curve_pr12.coeffs, expected_coeffs))
 
+        curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(0.0, t)])
+        self.assertFalse(curve.is_motion)
 
+        self.assertRaises(ValueError, curve.get_curve_in_pr12)
 
+    def test_split_in_beziers(self):
+        t = sp.Symbol("t")
+        curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(-3.0 * t, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(1.0, t),
+                               sp.Poly(1.0 * t, t),
+                               sp.Poly(0.0, t)])
+
+        bezier_segments = curve.split_in_beziers()
+        self.assertEqual(len(bezier_segments), 3)
+        self.assertTrue(all(segment.check_for_negative_weights
+                            for segment in bezier_segments))
+        self.assertTrue(all(segment.check_for_control_points_at_infinity
+                            for segment in bezier_segments))
