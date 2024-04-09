@@ -124,7 +124,7 @@ class MotionInterpolation:
             curve_eqs = MotionInterpolation.interpolate_quadratic(rational_poses)
             return RationalCurve(curve_eqs)
         elif len(rational_poses) == 2:
-            curve_eqs = MotionInterpolation.interpolate_quadratic_2poses(rational_poses)
+            curve_eqs = MotionInterpolation.interpolate_quadratic_2_poses(rational_poses)
             return RationalCurve(curve_eqs)
 
     @staticmethod
@@ -184,7 +184,7 @@ class MotionInterpolation:
         return poly
 
     @staticmethod
-    def interpolate_quadratic_2poses(poses: list[DualQuaternion]) -> list[sp.Poly]:
+    def interpolate_quadratic_2_poses(poses: list[DualQuaternion]) -> list[sp.Poly]:
         """
         Interpolates the given 2 rational poses by a quadratic curve in SE(3).
 
@@ -205,60 +205,74 @@ class MotionInterpolation:
                   'with random pose... (this may take a few minutes)')
 
             try:
-                return MotionInterpolation.interpolate_quadratic_2poses_optimized(poses)
+                return MotionInterpolation.interpolate_quadratic_2_poses_optimized(poses)
             except Exception:
                 print('Failed to interpolate with a random pose optimized for shortest '
                       'path length. Trying to interpolate with other random poses...')
-
-                # Calculate the mid point between the two poses
-                p0 = PointHomogeneous(poses[0].dq)
-                p1 = PointHomogeneous(poses[1].dq)
-                mid_p = p0.linear_interpolation(p1, 0.5)
-                mid_pose = DualQuaternion(mid_p.array())
-
-                # get mean value of mid_pose coordinates
-                mean = sum(mid_pose.array()) / len(mid_pose.array())
-
-                shortest_curve_length = float('inf')
-                shortest_set = None
-                best_pose = None
-
-                for i in range(1, 30):
-                    additional_pose = DualQuaternion.as_rational(
-                        DualQuaternion.random_on_study_quadric(
-                            mean * 0.2 * i).array()).back_projection()
-
-                    new_poses = deepcopy(poses)
-                    new_poses.append(additional_pose)
-
-                    try:
-                        polynomial_set = MotionInterpolation.interpolate_quadratic(
-                            new_poses)
-                    except Exception:
-                        polynomial_set = None
-
-                    # If interpolation was successful, check if it's the best so far
-                    if polynomial_set is not None:
-                        new_curve_length = RationalCurve(polynomial_set).get_path_length(
-                            num_of_points=500)
-                        if new_curve_length < shortest_curve_length:
-                            shortest_set = polynomial_set
-                            best_pose = additional_pose
-                            shortest_curve_length = new_curve_length
-
-                if shortest_set is not None:
-                    print('Chosen pose:')
-                    print(best_pose)
-                    print(shortest_curve_length)
-
-                    return shortest_set
-
-                else:  # if no solution was found
-                    raise ValueError('Interpolation failed for the given poses.')
+                return MotionInterpolation.interpolate_quadratic_2_poses_random(poses)
 
     @staticmethod
-    def interpolate_quadratic_2poses_optimized(poses: list[DualQuaternion]
-                                               ) -> list[sp.Poly]:
+    def interpolate_quadratic_2_poses_random(poses: list[DualQuaternion]
+                                             ) -> list[sp.Poly]:
+        """
+        Interpolates the given 2 rational poses by a quadratic curve in SE(3).
+
+        Adds the 10 times 3rd pose that is random and returns the one with shortest
+        path-length.
+
+        :param list[DualQuaternion] poses: The rational poses to interpolate.
+
+        :return: Polynomials of rational motion curve.
+        :rtype: list[sp.Poly]
+        """
+        # Calculate the mid point between the two poses
+        p0 = PointHomogeneous(poses[0].dq)
+        p1 = PointHomogeneous(poses[1].dq)
+        mid_p = p0.linear_interpolation(p1, 0.5)
+        mid_pose = DualQuaternion(mid_p.array())
+
+        # get mean value of mid_pose coordinates
+        mean = sum(mid_pose.array()) / len(mid_pose.array())
+
+        shortest_curve_length = float('inf')
+        shortest_set = None
+        best_pose = None
+
+        for i in range(1, 10):
+            additional_pose = DualQuaternion.as_rational(
+                DualQuaternion.random_on_study_quadric(
+                    mean * 0.3 * i).array()).back_projection()
+
+            new_poses = deepcopy(poses)
+            new_poses.append(additional_pose)
+
+            try:
+                polynomial_set = MotionInterpolation.interpolate_quadratic(
+                    new_poses)
+            except Exception:
+                polynomial_set = None
+
+            # If interpolation was successful, check if it's the best so far
+            if polynomial_set is not None:
+                new_curve_length = RationalCurve(polynomial_set).get_path_length(
+                    num_of_points=500)
+                if new_curve_length < shortest_curve_length:
+                    shortest_set = polynomial_set
+                    best_pose = additional_pose
+                    shortest_curve_length = new_curve_length
+
+        if shortest_set is not None:
+            print('Chosen pose:')
+            print(best_pose)
+
+            return shortest_set
+
+        else:  # if no solution was found
+            raise ValueError('Interpolation failed for the given poses.')
+
+    @staticmethod
+    def interpolate_quadratic_2_poses_optimized(poses: list[DualQuaternion]
+                                                ) -> list[sp.Poly]:
         """
         Interpolates the given 2 rational poses by a quadratic curve in SE(3).
 
@@ -297,7 +311,6 @@ class MotionInterpolation:
                 MotionInterpolation.interpolate_quadratic(new_poses)).get_path_length(
                 num_of_points=300
             )
-            print(length)
 
             return length
 
