@@ -82,16 +82,37 @@ class Plotter:
 
         self.plotted = {}
 
-    def plot(self, object_to_plot, **kwargs):
+    def plot(self, objects_to_plot, **kwargs):
+        """
+        Plot the object
+
+        :param objects_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve,
+            RationalBezier, MiniBall, or list of those
+        :param kwargs: plotting options following matplotlib standards and syntax
+        """
+        # if list of objects, plot each object separately
+        if isinstance(objects_to_plot, list):
+            # check for label list
+            label_list = kwargs.pop('label', None)
+
+            for i, obj in enumerate(objects_to_plot):
+                if label_list is not None:
+                    kwargs['label'] = label_list[i]
+                self._plot(obj, **kwargs)
+
+        # if single object, plot it
+        else:
+            self._plot(objects_to_plot, **kwargs)
+
+    def _plot(self, object_to_plot, **kwargs):
         """
         Plot the object
 
         :param object_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve, MiniBall,
             or RationalBezier
         :param kwargs: plotting options following matplotlib standards and syntax
-
-        :return: matplotlib axis
         """
         type_to_plot = self.analyze_object(object_to_plot)
 
