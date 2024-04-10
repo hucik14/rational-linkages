@@ -185,6 +185,20 @@ class PointHomogeneous:
             mat[1:3, 0] = self.coordinates_normalized[1:3]
         elif len(self.coordinates_normalized) == 4:
             mat[1:4, 0] = self.coordinates_normalized[1:4]
+
+        # affine displacement in PR12
+        elif len(self.coordinates_normalized) == 12:
+            mat[1:4, 0] = self.coordinates_normalized[0:3]
+            mat[1:4, 1] = self.coordinates_normalized[3:6]
+            mat[1:4, 2] = self.coordinates_normalized[6:9]
+            mat[1:4, 3] = self.coordinates_normalized[9:12]
+
+        # affine displacement in R12
+        elif len(self.coordinates_normalized) == 13:
+            mat[1:4, 0] = self.coordinates_normalized[1:4]
+            mat[1:4, 1] = self.coordinates_normalized[4:7]
+            mat[1:4, 2] = self.coordinates_normalized[7:10]
+            mat[1:4, 3] = self.coordinates_normalized[10:13]
         else:
             raise ValueError("PointHomogeneous: point has to be in PR2 or PR3")
 
@@ -229,6 +243,8 @@ class PointHomogeneous:
 
         return np.concatenate((point0, point1, point2, point3))
 
+
+
     def linear_interpolation(self, other, t: float = 0.5) -> "PointHomogeneous":
         """
         Linear interpolation between two points
@@ -266,3 +282,38 @@ class PointHomogeneous:
                  if not isinstance(coord, Number) else coord
                  for coord in point_expr]
         return PointHomogeneous(np.asarray(point, dtype="float64"))
+
+    def get_point_orbit(self,
+                        acting_center: "PointHomogeneous",
+                        acting_radius: float,
+                        metric: "AffineMetric",
+                        ) -> tuple[np.ndarray, float]:
+        """
+        Get point orbit
+
+        :param PointHomogeneous acting_center: center of the acting ball
+        :param float acting_radius: radius of the orbit ball
+
+        :return: point center and radius squared
+        :rtype: tuple[np.ndarray, float]
+        """
+        point_center = acting_center.point2matrix() @ self.coordinates_normalized
+
+        coords_3d = self.normalized_in_3d()
+        radius_squared = acting_radius ** 2 * (1/metric.total_mass + np.sum([(p ** 2 / metric.inertia_eigen_vals[i]) for i, p in enumerate(coords_3d)]))
+
+        return point_center, radius_squared
+
+
+class PointOrbit:
+    def __init__(self, point_center, radius):
+        self.point_center = point_center
+        self.radius = radius
+
+    def get_plot_data(self) -> np.ndarray:
+        """
+        Get data for plotting in 3D space
+
+        :return: np.ndarray of shape (3, 1)
+        """
+        return self.point_center.normalized_in_3d()
