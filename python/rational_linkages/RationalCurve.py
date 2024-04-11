@@ -456,6 +456,7 @@ class RationalCurve:
                         for part in b_curve.split_de_casteljau(metric=metric)
                     ]
                 else:
+                    bezier_curve_segments = new_segments
                     break
 
             bezier_curve_segments = new_segments
