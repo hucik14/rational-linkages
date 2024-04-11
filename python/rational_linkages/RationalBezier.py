@@ -34,8 +34,7 @@ class RationalBezier(RationalCurve):
 
     def __init__(self,
                  control_points: list[PointHomogeneous],
-                 reparametrization: bool = False,
-                 metric: "AffineMetric" = None):
+                 reparametrization: bool = False):
         """
         Initializes a RationalBezier object with the provided control points.
 
@@ -50,7 +49,7 @@ class RationalBezier(RationalCurve):
         self.control_points = control_points
 
         # Calculate the bounding ball of the control points
-        self.ball = MiniBall(self.control_points, metric)
+        self.ball = MiniBall(self.control_points, metric="euclidean")
 
     def get_coeffs_from_control_points(self,
                                        control_points: list[PointHomogeneous]
@@ -126,6 +125,25 @@ class RationalBezier(RationalCurve):
         """
         return any(point.coordinates[0] < 0 for point in self.control_points)
 
+
+class BezierSegment(RationalBezier):
+    """
+    Bezier curves that reparameterize a motion curve in split segments.
+    """
+    def __init__(self,
+                 control_points: list[PointHomogeneous],
+                 t_param: tuple[bool, list[float]],
+                 reparametrization: bool = False,
+                 metric: "AffineMetric" = None):
+        """
+        Initializes a BezierSegment object with the provided control points.
+        """
+        super().__init__(control_points, reparametrization)
+
+        self.ball = MiniBall(self.control_points, metric=metric)
+
+        self.t_param_of_motion_curve = t_param
+
     def split_de_casteljau(self, t: float = 0.5):
         """
         Split the curve at the given parameter value t
@@ -157,5 +175,12 @@ class RationalBezier(RationalCurve):
             # Update control points for the next iteration
             control_points = new_points
 
-        return (RationalBezier(left_curve, reparametrization=self.reparam),
-                RationalBezier(right_curve, reparametrization=self.reparam))
+        new_t_left = (self.t_param_of_motion_curve[0], [
+            self.t_param_of_motion_curve[1][0], self.t_param_of_motion_curve[1][1]/2])
+        new_t_right = (self.t_param_of_motion_curve[0], [
+            self.t_param_of_motion_curve[1][1]/2, self.t_param_of_motion_curve[1][1]])
+
+        return (BezierSegment(left_curve, reparametrization=self.reparam,
+                              t_param=new_t_left),
+                BezierSegment(right_curve, reparametrization=self.reparam,
+                              t_param=new_t_right))
