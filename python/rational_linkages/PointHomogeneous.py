@@ -69,6 +69,8 @@ class PointHomogeneous:
         #if len(self.coordinates_normalized) == 4:  # point in PR3
         #    self.as_dq_array = self.point2dq_array()
 
+        self.orbit = None
+
     @classmethod
     def at_origin_in_2d(cls):
         """
@@ -243,8 +245,6 @@ class PointHomogeneous:
 
         return np.concatenate((point0, point1, point2, point3))
 
-
-
     def linear_interpolation(self, other, t: float = 0.5) -> "PointHomogeneous":
         """
         Linear interpolation between two points
@@ -302,18 +302,48 @@ class PointHomogeneous:
         coords_3d = self.normalized_in_3d()
         radius_squared = acting_radius ** 2 * (1/metric.total_mass + np.sum([(p ** 2 / metric.inertia_eigen_vals[i]) for i, p in enumerate(coords_3d)]))
 
-        return point_center, radius_squared
+        radius = np.sqrt(radius_squared)
+        self.set_point_orbit(point_center, radius)
+        return point_center, radius
+
+    def set_point_orbit(self, orbit_center: "PointHomogeneous", orbit_radius: float):
+        """
+        Set the orbit of the point
+        """
+        self.orbit = PointOrbit(orbit_center, orbit_radius)
 
 
 class PointOrbit:
     def __init__(self, point_center, radius):
-        self.point_center = point_center
+        """
+
+        """
+        if not isinstance(point_center, PointHomogeneous):
+            self.center = PointHomogeneous(point_center)
+        else:
+            self.center = point_center
+
         self.radius = radius
 
-    def get_plot_data(self) -> np.ndarray:
+    def get_plot_data(self) -> tuple:
         """
         Get data for plotting in 3D space
 
-        :return: np.ndarray of shape (3, 1)
+        :return: surface coordinates
+        :rtype: tuple
         """
-        return self.point_center.normalized_in_3d()
+        if len(self.center.coordinates) == 4:
+            # Create the 3D sphere representing the circle
+            u = np.linspace(0, 2 * np.pi, 100)
+            v = np.linspace(0, np.pi, 100)
+
+            x = (self.radius * np.outer(np.cos(u), np.sin(v))
+                 + self.center.normalized_in_3d()[0])
+            y = (self.radius * np.outer(np.sin(u), np.sin(v))
+                 + self.center.normalized_in_3d()[1])
+            z = (self.radius * np.outer(np.ones(np.size(u)), np.cos(v))
+                 + self.center.normalized_in_3d()[2])
+        else:
+            raise ValueError("Cannot plot ball due to incompatible dimension.")
+
+        return x, y, z
