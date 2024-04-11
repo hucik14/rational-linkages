@@ -1,25 +1,33 @@
 import numpy as np
-from matplotlib import pyplot as plt
 from scipy.optimize import minimize
+from typing import Union
 
 from .PointHomogeneous import PointHomogeneous
 
 
 class MiniBall:
-    def __init__(self, points: list[PointHomogeneous], metric: "AffineMetric" = None):
+    def __init__(self,
+                 points: list[PointHomogeneous],
+                 metric: Union[str, "AffineMetric"] = 'euclidean'):
         """
         Initialize the MiniBall class
 
         :param list[PointHomogeneous] points: array of points in the space
-        :param AffineMetric metric: metric of the space
+        :param Union[str, AffineMetric] metric: metric to be used for the ball
         """
         self.points = points
 
         self.number_of_points = len(self.points)
         self.dimension = self.points[0].coordinates.size
 
-        self.metric = 'euclidean' if metric is None else 'hofer'
-        self.metric_obj = metric
+        self.metric = metric
+
+        if metric == "euclidean":
+            self.metric = metric
+            self.metric_obj = None
+        else:
+            metric = 'hofer'
+            self.metric_obj = metric
 
         self.center = np.zeros(self.dimension)
         self.radius = 10.0
