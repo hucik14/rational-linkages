@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Union
 
 import sympy as sp
 
@@ -33,23 +34,18 @@ class RationalBezier(RationalCurve):
     """
 
     def __init__(self,
-                 control_points: list[PointHomogeneous],
-                 reparametrization: bool = False):
+                 control_points: list[PointHomogeneous]):
         """
         Initializes a RationalBezier object with the provided control points.
 
         :param list[PointHomogeneous] control_points: control points of the curve
-        :param bool reparametrization: True if the curve is mapped to the [-1,1]
-            interval, False keeps [0,1] interval
         """
-        self.reparam = reparametrization
-
         super().__init__(self.get_coeffs_from_control_points(control_points))
 
         self.control_points = control_points
 
         # Calculate the bounding ball of the control points
-        self.ball = MiniBall(self.control_points, metric="euclidean")
+        self.ball = None
 
     def get_coeffs_from_control_points(self,
                                        control_points: list[PointHomogeneous]
@@ -68,8 +64,7 @@ class RationalBezier(RationalCurve):
         dimension = control_points[0].coordinates.size - 1
 
         # Calculate the Bernstein basis polynomials and construct the Bezier curve
-        bernstein_basis = self.get_bernstein_polynomial_equations(
-            t, reparametrization=self.reparam, degree=degree)
+        bernstein_basis = self.get_bernstein_polynomial_equations(t, degree=degree)
         bezier_curve = [0] * (dimension + 1)
         for i in range(degree + 1):
             bezier_curve += bernstein_basis[i] * control_points[i].array()
@@ -133,22 +128,24 @@ class BezierSegment(RationalBezier):
     def __init__(self,
                  control_points: list[PointHomogeneous],
                  t_param: tuple[bool, list[float]],
-                 reparametrization: bool = False,
                  metric: "AffineMetric" = None):
         """
         Initializes a BezierSegment object with the provided control points.
         """
-        super().__init__(control_points, reparametrization)
+        super().__init__(control_points)
 
         self.ball = MiniBall(self.control_points, metric=metric)
 
         self.t_param_of_motion_curve = t_param
 
-    def split_de_casteljau(self, t: float = 0.5):
+    def split_de_casteljau(self,
+                           t: float = 0.5,
+                           metric: Union[str, "AffineMetric"] = 'euclidean') -> tuple:
         """
         Split the curve at the given parameter value t
 
         :param t: float - parameter value to split the curve at
+        :metric: Union[str, AffineMetric] - metric to be used for the ball
 
         :return: tuple - two new Bezier curves
         :rtype: tuple
@@ -175,12 +172,13 @@ class BezierSegment(RationalBezier):
             # Update control points for the next iteration
             control_points = new_points
 
-        new_t_left = (self.t_param_of_motion_curve[0], [
-            self.t_param_of_motion_curve[1][0], self.t_param_of_motion_curve[1][1]/2])
-        new_t_right = (self.t_param_of_motion_curve[0], [
-            self.t_param_of_motion_curve[1][1]/2, self.t_param_of_motion_curve[1][1]])
+        mid_t = t * (self.t_param_of_motion_curve[1][0]
+                     + self.t_param_of_motion_curve[1][1])
 
-        return (BezierSegment(left_curve, reparametrization=self.reparam,
-                              t_param=new_t_left),
-                BezierSegment(right_curve, reparametrization=self.reparam,
-                              t_param=new_t_right))
+        new_t_left = (self.t_param_of_motion_curve[0],
+                      [self.t_param_of_motion_curve[1][0], mid_t])
+        new_t_right = (self.t_param_of_motion_curve[0],
+                       [mid_t, self.t_param_of_motion_curve[1][1]])
+
+        return (BezierSegment(left_curve, metric=metric, t_param=new_t_left),
+                BezierSegment(right_curve, metric=metric, t_param=new_t_right))
