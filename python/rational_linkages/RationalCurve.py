@@ -231,7 +231,9 @@ class RationalCurve:
         # Generate the polynomial expression using the Bernstein polynomials
         for i in range(degree + 1):
             polynomial_expr = sp.binomial(degree, i) * t**i * (1 - t) ** (degree - i)
-            expr.append(sp.simplify(polynomial_expr))
+            #expr.append(sp.simplify(polynomial_expr))
+            expr.append(polynomial_expr)
+            # TODO: simplify bottleneck
 
         return expr
 

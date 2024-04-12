@@ -31,23 +31,26 @@ if __name__ == '__main__':
 
     p.plot(m)
 
-    # p.plot(m.segments[4])
-    p.plot(mechanism_points[3])
-    p.plot(mechanism_points[2])
+    s = 2
+    p0 = 5
+    p1 = 6
+    p.plot(m.segments[s])
+    p.plot(mechanism_points[p0])
+    # p.plot(mechanism_points[p1])
 
     for segment in bezier_segments:
-        mechanism_points[3].get_point_orbit(
+        mechanism_points[p0].get_point_orbit(
             segment.ball.center,
             segment.ball.radius,
             metric)
-        p.plot(mechanism_points[3].orbit)
+        p.plot(mechanism_points[p0].orbit)
 
-    for segment in bezier_segments:
-        mechanism_points[2].get_point_orbit(
-            segment.ball.center,
-            segment.ball.radius,
-            metric)
-        p.plot(mechanism_points[2].orbit)
+    # for segment in bezier_segments:
+    #     mechanism_points[p1].get_point_orbit(
+    #         segment.ball.center,
+    #         segment.ball.radius,
+    #         metric)
+    #     p.plot(mechanism_points[p1].orbit)
 
     # segment = bezier_segments[0]
     # mechanism_points[2].get_point_orbit(
