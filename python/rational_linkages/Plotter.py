@@ -9,7 +9,7 @@ from matplotlib.widgets import Slider, TextBox
 from .DualQuaternion import DualQuaternion
 from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
-from .PointHomogeneous import PointHomogeneous
+from .PointHomogeneous import PointHomogeneous, PointOrbit
 from .RationalBezier import RationalBezier
 from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
@@ -140,6 +140,8 @@ class Plotter:
                 self._plot_miniball(object_to_plot, **kwargs)
             case "is_line_segment":
                 self._plot_line_segment(object_to_plot, **kwargs)
+            case "is_point_orbit":
+                self._plot_point_orbit(object_to_plot, **kwargs)
 
     def analyze_object(self, object_to_plot):
         """
@@ -174,6 +176,8 @@ class Plotter:
             return "is_miniball"
         elif isinstance(object_to_plot, LineSegment):
             return "is_line_segment"
+        elif isinstance(object_to_plot, PointOrbit):
+            return "is_point_orbit"
         else:
             raise TypeError(
                 "Other types than NormalizedLine, PointHomogeneous, RationalMechanism, "
@@ -373,6 +377,7 @@ class Plotter:
 
         self._plot_tool_path(mechanism, **kwargs)
 
+    @_plotting_decorator
     def _plot_tool_path(self, mechanism: RationalMechanism, **kwargs):
         # plot end effector path
         t_lin = np.linspace(0, 2 * np.pi, self.steps)
@@ -387,6 +392,7 @@ class Plotter:
         x, y, z = zip(*ee_points)
         self.ax.plot(x, y, z, **kwargs)
 
+    @_plotting_decorator
     def _plot_miniball(self, ball: MiniBall, **kwargs):
         """
         Plot a ball
@@ -400,6 +406,19 @@ class Plotter:
 
         self.ax.plot_surface(x, y, z, **kwargs)
 
+    @_plotting_decorator
+    def _plot_point_orbit(self, orbit: PointOrbit, **kwargs):
+        """
+        Plot a sphere of given point orbit
+        """
+        if 'alpha' not in kwargs:
+            kwargs['alpha'] = 0.15
+
+        x, y, z = orbit.get_plot_data()
+
+        self.ax.plot_surface(x, y, z, **kwargs)
+
+    @_plotting_decorator
     def _plot_line_segment(self, segment: LineSegment, **kwargs):
         """
         Plot a line segment
@@ -410,7 +429,6 @@ class Plotter:
             kwargs['alpha'] = 0.2
 
         self.ax.plot_surface(x, y, z, **kwargs)
-
 
     @_plotting_decorator
     def _plot_interactive(self,

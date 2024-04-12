@@ -14,27 +14,56 @@ from rational_linkages.models import bennett_ark24, collisions_free_6r, plane_fo
 if __name__ == '__main__':
     m = RationalMechanism.from_saved_file("johannes-interp.pkl")
     #m = collisions_free_6r()
-    #m = plane_fold_6r()
+    m = plane_fold_6r()
     #m = bennett_ark24()
+    m.update_segments()
 
     #m.collision_check(parallel=True, only_links=True)
 
     c = m.curve()
 
-    mechanism_points = m.points_at_parameter(0, inverted_part=True, only_links=True)
+    mechanism_points = m.points_at_parameter(0, inverted_part=True, only_links=False)
     metric = AffineMetric(c, mechanism_points)
 
-    p = Plotter(interactive=False, arrows_length=0.5, joint_range_lim=2, steps=200)
+    p = Plotter(interactive=True, arrows_length=0.1, joint_range_lim=2, steps=200)
 
-    bezier_segments = c.split_in_beziers()
+    bezier_segments = c.split_in_beziers(metric=metric, min_splits=20)
 
-    # for bezier_curve in bezier_segments:
-    #     p.plot(bezier_curve, interval=(-1, 1), plot_control_points=True)
-    #     p.plot(bezier_curve.ball)
+    p.plot(m)
 
-    id = 0
-    p.plot(bezier_segments[id], interval=(-1, 1), plot_control_points=True)
-    p.plot(bezier_segments[id].ball)
+    s = 2
+    p0 = 5
+    p1 = 6
+    p.plot(m.segments[s])
+    p.plot(mechanism_points[p0])
+    # p.plot(mechanism_points[p1])
 
-    p.plot(c, interval='closed')
+    for segment in bezier_segments:
+        mechanism_points[p0].get_point_orbit(
+            segment.ball.center,
+            segment.ball.radius,
+            metric)
+        p.plot(mechanism_points[p0].orbit)
+
+    # for segment in bezier_segments:
+    #     mechanism_points[p1].get_point_orbit(
+    #         segment.ball.center,
+    #         segment.ball.radius,
+    #         metric)
+    #     p.plot(mechanism_points[p1].orbit)
+
+    # segment = bezier_segments[0]
+    # mechanism_points[2].get_point_orbit(
+    #     segment.ball.center,
+    #     segment.ball.radius,
+    #     metric)
+    # p.plot(mechanism_points[2].orbit)
+    #
+    # mechanism_points[3].get_point_orbit(
+    #     segment.ball.center,
+    #     segment.ball.radius,
+    #     metric)
+    # p.plot(mechanism_points[3].orbit)
+    # p.plot(segment, plot_control_points=True)
     p.show()
+

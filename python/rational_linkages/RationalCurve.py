@@ -231,7 +231,9 @@ class RationalCurve:
         # Generate the polynomial expression using the Bernstein polynomials
         for i in range(degree + 1):
             polynomial_expr = sp.binomial(degree, i) * t**i * (1 - t) ** (degree - i)
-            expr.append(sp.simplify(polynomial_expr))
+            #expr.append(sp.simplify(polynomial_expr))
+            expr.append(polynomial_expr)
+            # TODO: simplify bottleneck
 
         return expr
 
@@ -405,9 +407,16 @@ class RationalCurve:
 
         return RationalCurve(curve_poly)
 
-    def split_in_beziers(self) -> list["RationalBezier"]:
+    def split_in_beziers(self,
+                         metric: Union[str, "AffineMetric"] = "euclidean",
+                         min_splits: int = 0) -> list["BezierSegment"]:
         """
         Split the curve into Bezier curves with positive weights of control points.
+
+        The curve is split into Bezier curves using the De Casteljau algorithm.
+
+        :param int min_splits: minimal number of splits to be performed
+        :param Union[str, AffineMetric] metric: metric for the optimization
 
         :return: list of RationalBezier objects
         :rtype: list[RationalBezier]
@@ -418,33 +427,41 @@ class RationalCurve:
             raise ValueError("The curve is not a motion curve, cannot "
                              "split into Bezier curves")
 
-        from .RationalBezier import RationalBezier
+        from .RationalBezier import BezierSegment  # method import
 
         # obtain Bezier curves for the curve and its reparametrized inverse part
         bezier_curve_segments = [
-            RationalBezier(curve.curve2bezier_control_points(reparametrization=True)),
-            RationalBezier(curve.inverse_curve().curve2bezier_control_points(
-                reparametrization=True))]
+            # reparametrize the curve from the intervals [-1, 1]
+            BezierSegment(curve.curve2bezier_control_points(reparametrization=True),
+                          metric=metric,
+                          t_param=(False, [-1.0, 1.0])),
+            BezierSegment(curve.inverse_curve().curve2bezier_control_points(
+                reparametrization=True),
+                          metric=metric,
+                          t_param=(True, [-1.0, 1.0]))
+        ]
 
         # split the Bezier curves until all control points have positive weights
         while True:
-            new_segments = []
-            split_occurred = False
+            new_segments = [
+                part for b_curve in bezier_curve_segments
+                for part in (
+                    b_curve.split_de_casteljau(metric=metric) if b_curve.check_for_control_points_at_infinity() or b_curve.check_for_negative_weights() else [b_curve])
+            ]
 
-            for b_curve in bezier_curve_segments:
-                if (b_curve.check_for_control_points_at_infinity()
-                        or b_curve.check_for_negative_weights()):
-                    left, right = b_curve.split_de_casteljau()
-                    new_segments.append(left)
-                    new_segments.append(right)
-                    split_occurred = True
+            if not any(
+                    b_curve.check_for_control_points_at_infinity() or b_curve.check_for_negative_weights()
+                    for b_curve in new_segments):
+                if len(new_segments) < min_splits:
+                    new_segments = [
+                        part for b_curve in new_segments
+                        for part in b_curve.split_de_casteljau(metric=metric)
+                    ]
                 else:
-                    new_segments.append(b_curve)
+                    bezier_curve_segments = new_segments
+                    break
 
             bezier_curve_segments = new_segments
-
-            if not split_occurred:
-                break
 
         return bezier_curve_segments
 
