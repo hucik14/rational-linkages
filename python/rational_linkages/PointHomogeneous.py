@@ -293,6 +293,7 @@ class PointHomogeneous:
 
         :param PointHomogeneous acting_center: center of the acting ball
         :param float acting_radius: radius of the orbit ball
+        :param AffineMetric metric: metric of the curve
 
         :return: point center and radius squared
         :rtype: tuple[np.ndarray, float]
