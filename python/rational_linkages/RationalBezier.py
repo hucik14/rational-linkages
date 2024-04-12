@@ -43,9 +43,16 @@ class RationalBezier(RationalCurve):
         super().__init__(self.get_coeffs_from_control_points(control_points))
 
         self.control_points = control_points
+        self._ball = None
 
-        # Calculate the bounding ball of the control points
-        self.ball = None
+    @property
+    def ball(self):
+        """
+        Get the smallest ball enclosing the control points of the curve
+        """
+        if self._ball is None:
+            self._ball = MiniBall(self.control_points)
+        return self._ball
 
     def get_coeffs_from_control_points(self,
                                        control_points: list[PointHomogeneous]
@@ -141,16 +148,27 @@ class BezierSegment(RationalBezier):
         super().__init__(control_points)
 
         self.metric = metric
-        self.ball = MiniBall(self.control_points, metric=metric)
+        self._ball = None
 
         self.t_param_of_motion_curve = t_param
 
-    def split_de_casteljau(self, t: float = 0.5) -> tuple:
+    @property
+    def ball(self):
+        """
+        Get the smallest ball enclosing the control points of the curve
+        """
+        if self._ball is None:
+            self._ball = MiniBall(self.control_points, metric=self.metric)
+        return self._ball
+
+    def split_de_casteljau(self,
+                           t: float = 0.5,
+                           metric: "AffineMetric" = None) -> tuple:
         """
         Split the curve at the given parameter value t
 
-        :param t: float - parameter value to split the curve at
-        :metric: Union[str, AffineMetric] - metric to be used for the ball
+        :param float t: parameter value to split the curve at
+        :param AffineMetric metric: metric to be used for the ball
 
         :return: tuple - two new Bezier curves
         :rtype: tuple
@@ -185,5 +203,5 @@ class BezierSegment(RationalBezier):
         new_t_right = (self.t_param_of_motion_curve[0],
                        [mid_t, self.t_param_of_motion_curve[1][1]])
 
-        return (BezierSegment(left_curve, metric=self.metric, t_param=new_t_left),
-                BezierSegment(right_curve, metric=self.metric, t_param=new_t_right))
+        return (BezierSegment(left_curve, metric=metric, t_param=new_t_left),
+                BezierSegment(right_curve, metric=metric, t_param=new_t_right))
