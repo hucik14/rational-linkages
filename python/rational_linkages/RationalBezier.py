@@ -127,20 +127,25 @@ class BezierSegment(RationalBezier):
     """
     def __init__(self,
                  control_points: list[PointHomogeneous],
-                 t_param: tuple[bool, list[float]],
+                 t_param: tuple[bool, list[float]] = (False, [0, 1]),
                  metric: "AffineMetric" = None):
         """
         Initializes a BezierSegment object with the provided control points.
+
+        :param control_points: list[PointHomogeneous] - control points of the curve
+        :param t_param: tuple[bool, list[float]] - True if the Bezier curve is
+            interpolation inverse part of reparameterized motion curve, False otherwise;
+            list of two floats representing the original parameter interval of the
+            motion curve
         """
         super().__init__(control_points)
 
+        self.metric = metric
         self.ball = MiniBall(self.control_points, metric=metric)
 
         self.t_param_of_motion_curve = t_param
 
-    def split_de_casteljau(self,
-                           t: float = 0.5,
-                           metric: Union[str, "AffineMetric"] = 'euclidean') -> tuple:
+    def split_de_casteljau(self, t: float = 0.5) -> tuple:
         """
         Split the curve at the given parameter value t
 
@@ -180,5 +185,5 @@ class BezierSegment(RationalBezier):
         new_t_right = (self.t_param_of_motion_curve[0],
                        [mid_t, self.t_param_of_motion_curve[1][1]])
 
-        return (BezierSegment(left_curve, metric=metric, t_param=new_t_left),
-                BezierSegment(right_curve, metric=metric, t_param=new_t_right))
+        return (BezierSegment(left_curve, metric=self.metric, t_param=new_t_left),
+                BezierSegment(right_curve, metric=self.metric, t_param=new_t_right))
