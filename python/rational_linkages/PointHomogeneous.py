@@ -1,5 +1,3 @@
-from math import isclose
-
 import numpy as np
 
 from .TransfMatrix import TransfMatrix
@@ -188,14 +186,14 @@ class PointHomogeneous:
         elif len(self.coordinates_normalized) == 4:
             mat[1:4, 0] = self.coordinates_normalized[1:4]
 
-        # affine displacement in PR12
+        # affine displacement in R12
         elif len(self.coordinates_normalized) == 12:
             mat[1:4, 0] = self.coordinates_normalized[0:3]
             mat[1:4, 1] = self.coordinates_normalized[3:6]
             mat[1:4, 2] = self.coordinates_normalized[6:9]
             mat[1:4, 3] = self.coordinates_normalized[9:12]
 
-        # affine displacement in R12
+        # affine displacement in PR12
         elif len(self.coordinates_normalized) == 13:
             mat[1:4, 0] = self.coordinates_normalized[1:4]
             mat[1:4, 1] = self.coordinates_normalized[4:7]
@@ -291,6 +289,8 @@ class PointHomogeneous:
         """
         Get point orbit
 
+
+
         :param PointHomogeneous acting_center: center of the acting ball
         :param float acting_radius: radius of the orbit ball
 
@@ -300,7 +300,7 @@ class PointHomogeneous:
         point_center = acting_center.point2matrix() @ self.coordinates_normalized
 
         coords_3d = self.normalized_in_3d()
-        radius_squared = acting_radius ** 2 * (1/metric.total_mass + np.sum([(p ** 2 / metric.inertia_eigen_vals[i]) for i, p in enumerate(coords_3d)]))
+        radius_squared = acting_radius ** 2 * (1/metric.total_mass + np.sum([(coord ** 2 / metric.inertia_eigen_vals[i]) for i, coord in enumerate(coords_3d)]))
 
         radius = np.sqrt(radius_squared)
         self.set_point_orbit(point_center, radius)
@@ -334,8 +334,8 @@ class PointOrbit:
         """
         if len(self.center.coordinates) == 4:
             # Create the 3D sphere representing the circle
-            u = np.linspace(0, 2 * np.pi, 100)
-            v = np.linspace(0, np.pi, 100)
+            u = np.linspace(0, 2 * np.pi, 10)
+            v = np.linspace(0, np.pi, 10)
 
             x = (self.radius * np.outer(np.cos(u), np.sin(v))
                  + self.center.normalized_in_3d()[0])

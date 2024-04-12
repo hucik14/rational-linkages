@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.optimize import minimize
-from typing import Union
 
 from .PointHomogeneous import PointHomogeneous
 
@@ -8,12 +7,12 @@ from .PointHomogeneous import PointHomogeneous
 class MiniBall:
     def __init__(self,
                  points: list[PointHomogeneous],
-                 metric: Union[str, "AffineMetric"] = 'euclidean'):
+                 metric: "AffineMetric" = None):
         """
         Initialize the MiniBall class
 
         :param list[PointHomogeneous] points: array of points in the space
-        :param Union[str, AffineMetric] metric: metric to be used for the ball
+        :param AffineMetric metric: alternative metric to be used for the ball
         """
         self.points = points
 
@@ -22,8 +21,8 @@ class MiniBall:
 
         self.metric = metric
 
-        if metric == "euclidean":
-            self.metric = metric
+        if metric is None:
+            self.metric = 'euclidean'
             self.metric_obj = None
         else:
             metric = 'hofer'
@@ -33,8 +32,8 @@ class MiniBall:
         self.radius = 10.0
 
         self.optimization_results = self.get_ball()
-        self.center = PointHomogeneous(self.optimization_results.x[: self.dimension])
-        self.radius = self.optimization_results.x[self.dimension]
+        self.center = PointHomogeneous(self.optimization_results.x[:-1])
+        self.radius = self.optimization_results.x[-1]
 
     def get_ball(self):
         """
@@ -56,15 +55,14 @@ class MiniBall:
                 c - center of the sphere
                 """
                 constraints = np.zeros(self.number_of_points)
-                for i in range(self.number_of_points):
 
+                for i in range(self.number_of_points):
                     squared_distance = sum(self.metric_obj.squared_distance_pr12_points(
                         self.points[i].normalize(), x[j])
                         for j in range(self.dimension)
                     )
                     constraints[i] = x[-1] ** 2 - squared_distance
                 return constraints
-
         else:
             def constraint_equations(x):
                 """
@@ -107,8 +105,8 @@ class MiniBall:
         """
         if self.dimension == 4 or self.dimension == 13:
             # Create the 3D sphere representing the circle
-            u = np.linspace(0, 2 * np.pi, 100)
-            v = np.linspace(0, np.pi, 100)
+            u = np.linspace(0, 2 * np.pi, 30)
+            v = np.linspace(0, np.pi, 30)
 
             x = (self.radius * np.outer(np.cos(u), np.sin(v))
                  + self.center.normalized_in_3d()[0])
