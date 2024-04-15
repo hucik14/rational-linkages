@@ -427,7 +427,7 @@ class RationalCurve:
             raise ValueError("The curve is not a motion curve, cannot "
                              "split into Bezier curves")
 
-        from .RationalBezier import BezierSegment  # method import
+        from .RationalBezier import BezierSegment  # inner import
 
         # obtain Bezier curves for the curve and its reparametrized inverse part
         bezier_curve_segments = [
