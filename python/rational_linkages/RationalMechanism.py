@@ -77,7 +77,6 @@ class RationalMechanism(RationalCurve):
         self.is_linkage = len(self.factorizations) == 2
 
         self._segments = None
-        self._metric = None
         self._relative_motions = None
 
     @property
@@ -106,7 +105,8 @@ class RationalMechanism(RationalCurve):
         """
         if self._metric is None:
             from .AffineMetric import AffineMetric  # inner import
-            mechanism_points = self.points_at_parameter(0, inverted_part=True,
+            mechanism_points = self.points_at_parameter(0,
+                                                        inverted_part=True,
                                                         only_links=False)
             self._metric = AffineMetric(self.curve(), mechanism_points)
 
