@@ -427,18 +427,20 @@ class RationalCurve:
             raise ValueError("The curve is not a motion curve, cannot "
                              "split into Bezier curves")
 
-        from .RationalBezier import BezierSegment  # inner import
+        from .RationalBezier import BezierSegmentControlPoints  # inner import
+        # timer
+        from time import time
+        start = time()
 
         # obtain Bezier curves for the curve and its reparametrized inverse part
         bezier_curve_segments = [
             # reparametrize the curve from the intervals [-1, 1]
-            BezierSegment(curve.curve2bezier_control_points(reparametrization=True),
-                          metric=metric,
-                          t_param=(False, [-1.0, 1.0])),
-            BezierSegment(curve.inverse_curve().curve2bezier_control_points(
-                reparametrization=True),
-                          metric=metric,
-                          t_param=(True, [-1.0, 1.0]))
+            BezierSegmentControlPoints(curve.curve2bezier_control_points(reparametrization=True),
+                                       metric=metric,
+                                       t_param=(False, [-1.0, 1.0])),
+            BezierSegmentControlPoints(curve.inverse_curve().curve2bezier_control_points(reparametrization=True),
+                                       metric=metric,
+                                       t_param=(True, [-1.0, 1.0]))
         ]
 
         # split the Bezier curves until all control points have positive weights
@@ -463,6 +465,9 @@ class RationalCurve:
 
             bezier_curve_segments = new_segments
 
+        print(f"Splitting took {time() - start} seconds")
+
+        bezier_curve_segments = [cps.return_as_bezier_segment() for cps in bezier_curve_segments]
         return bezier_curve_segments
 
     def get_path_length(self, num_of_points: int = 100) -> float:

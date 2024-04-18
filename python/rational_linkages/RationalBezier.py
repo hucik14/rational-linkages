@@ -144,6 +144,7 @@ class BezierSegment(RationalBezier):
             interpolation inverse part of reparameterized motion curve, False otherwise;
             list of two floats representing the original parameter interval of the
             motion curve
+        :param metric: AffineMetric - metric to be used for the ball
         """
         super().__init__(control_points)
 
@@ -160,6 +161,16 @@ class BezierSegment(RationalBezier):
         if self._ball is None:
             self._ball = MiniBall(self.control_points, metric=self.metric)
         return self._ball
+
+    def get_bezier_control_points_class(self):
+        """
+        Get the BezierSegmentControlPoints class
+
+        :return: object BezierSegmentControlPoints
+        :rtype: BezierSegmentControlPoints
+        """
+
+        return BezierSegmentControlPoints(self.control_points, t_param=self.t_param_of_motion_curve, metric=self.metric)
 
     def split_de_casteljau(self,
                            t: float = 0.5,
@@ -205,3 +216,99 @@ class BezierSegment(RationalBezier):
 
         return (BezierSegment(left_curve, metric=metric, t_param=new_t_left),
                 BezierSegment(right_curve, metric=metric, t_param=new_t_right))
+
+
+class BezierSegmentControlPoints:
+    """
+    Class representing control points of a Bezier curve segment
+    """
+    def __init__(self,
+                 control_points: list[PointHomogeneous],
+                 t_param: tuple[bool, list[float]] = (False, [0, 1]),
+                 metric: "AffineMetric" = None):
+        """
+        Initializes a BezierSegment object with the provided control points.
+
+        :param control_points: list[PointHomogeneous] - control points of the curve
+        :param t_param: tuple[bool, list[float]] - True if the Bezier curve is
+            interpolation inverse part of reparameterized motion curve, False otherwise;
+            list of two floats representing the original parameter interval of the
+            motion curve
+        :param metric: AffineMetric - metric to be used for the ball
+        """
+        self.control_points = control_points
+
+        self.metric = metric
+        self._ball = None
+
+        self.t_param_of_motion_curve = t_param
+
+    def split_de_casteljau(self,
+                           t: float = 0.5,
+                           metric: "AffineMetric" = None) -> tuple:
+        """
+        Split the curve at the given parameter value t
+
+        :param float t: parameter value to split the curve at
+        :param AffineMetric metric: metric to be used for the ball
+
+        :return: tuple - two new Bezier curves
+        :rtype: tuple
+        """
+        control_points = deepcopy(self.control_points)
+
+        left_curve = [control_points[0]]
+        right_curve = [control_points[-1]]
+
+        # Perform De Casteljau subdivision until only two points remain
+        while len(control_points) > 1:
+            new_points = []
+
+            # Compute linear interpolations between adjacent control points
+            for i in range(len(control_points) - 1):
+                new_points.append(
+                    control_points[i].linear_interpolation(control_points[i + 1], t))
+
+            # Append the first point of the new segment to the left curve
+            left_curve.append(new_points[0])
+            # Insert the last point of a new segment at the beginning of the right curve
+            right_curve.insert(0, new_points[-1])
+
+            # Update control points for the next iteration
+            control_points = new_points
+
+        mid_t = t * (self.t_param_of_motion_curve[1][0]
+                     + self.t_param_of_motion_curve[1][1])
+
+        new_t_left = (self.t_param_of_motion_curve[0],
+                      [self.t_param_of_motion_curve[1][0], mid_t])
+        new_t_right = (self.t_param_of_motion_curve[0],
+                       [mid_t, self.t_param_of_motion_curve[1][1]])
+
+        return (BezierSegmentControlPoints(left_curve, metric=metric, t_param=new_t_left),
+                BezierSegmentControlPoints(right_curve, metric=metric, t_param=new_t_right))
+
+    def check_for_control_points_at_infinity(self):
+        """
+        Check if there is a control point at infinity
+
+        :return: bool - True if there is a control point at infinity, False otherwise
+        """
+        return any(point.is_at_infinity for point in self.control_points)
+
+    def check_for_negative_weights(self):
+        """
+        Check if there are negative weights in the control points
+
+        :return: bool - True if there are negative weights, False otherwise
+        """
+        return any(point.coordinates[0] < 0 for point in self.control_points)
+
+    def return_as_bezier_segment(self):
+        """
+        Return the control points as a BezierSegment object
+
+        :return: BezierSegment - Bezier curve segment
+        :rtype: BezierSegment
+        """
+        return BezierSegment(self.control_points, t_param=self.t_param_of_motion_curve, metric=self.metric)
