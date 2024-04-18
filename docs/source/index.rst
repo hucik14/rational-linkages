@@ -26,9 +26,9 @@ Rational Linkages Documentation
    :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
 
 Welcome to the Rational Linkages package documentation, which serves as a reference for
-the toolbox. The toolbox is a collection of functions for the analysis of rational
-linkages and their rapid prototyping. It is written in Python and uses the Numpy and
-SymPy libraries for computations, and Matplotlib for plotting. The toolbox is developed
+the provided package. This toolbox is a collection of functions for the analysis of
+rational linkages and their rapid prototyping. It is written in Python and uses the
+Numpy and SymPy libraries for computations, and Matplotlib for plotting. It is developed
 at the Unit of Geometry and Surveying, University of Innsbruck, Austria.
 
 The source code is available as `Gitlab repository`_ hosted by UIBK. The *installation
@@ -38,7 +38,7 @@ Since the self-hosted repository does not allow external users to create issues,
 please, use the `external issue tracker`_
 hosted on Github for submitting **issues** and **feature requests**.
 
-Run live examples of the toolbox in your browser using the **Binder** service. Click
+Run live examples of the package in your browser using the **Binder** service. Click
 on the badge below to start the Binder session:
 
 .. image:: https://mybinder.org/badge_logo.svg
@@ -68,7 +68,7 @@ Indices and tables
 Authors
 =======
 
-The toolbox is developed by the Unit of Geometry and Surveying, University of Innsbruck,
+The package is developed by the Unit of Geometry and Surveying, University of Innsbruck,
 Austria. Namely, the following people contributed to the development and writing
 documentation:
 
@@ -80,7 +80,7 @@ documentation:
 Citing the Package
 ==================
 
-If you use the Rational Linkages toolbox in your research, please, cite it as follows:
+If you use the Rational Linkages package in your research, please, cite it as follows:
 
 Huczala, D., Siegele J., Thimm, D., Pfurner, M., Schröcker, H.-P. (2024).
 Rational Linkages: From Poses to 3D-printed Prototypes.
@@ -111,7 +111,7 @@ or the European Research Executive Agency (REA). Neither the European Union
 nor the granting authority can be held responsible for them.`
 
 We would like to thank our colleagues outside the Unit of Geometry and Surveying, who
-contributed to the development of the toolbox and helped with implementation of
+contributed to the development of the package and helped with implementation of
 their algorithms and suggestions. These people are namely:
 
 - **Johannes Gerstmayr**, University of Innsbruck, Austria, for the help with creating the interface to his `Exudyn`_ :footcite:p:`Gerstmayr2023` software. More on this in section :ref:`exudyn_info`.
