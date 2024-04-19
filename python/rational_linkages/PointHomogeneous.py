@@ -289,7 +289,8 @@ class PointHomogeneous:
         """
         Get point orbit
 
-
+        Equation from Schroecker and Webber, Guaranteed collision detection with
+        toleranced motions, 2014, eq. 4.
 
         :param PointHomogeneous acting_center: center of the acting ball
         :param float acting_radius: radius of the orbit ball
@@ -317,7 +318,7 @@ class PointHomogeneous:
 class PointOrbit:
     def __init__(self, point_center, radius):
         """
-
+        Orbit of a point (its covering ball)
         """
         if not isinstance(point_center, PointHomogeneous):
             self.center = PointHomogeneous(point_center)
