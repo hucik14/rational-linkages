@@ -167,8 +167,7 @@ class BezierSegment(RationalBezier):
         return BezierSegmentControlPoints(self.control_points,
                                           t_param=self.t_param_of_motion_curve)
 
-    def split_de_casteljau(self,
-                           t: float = 0.5) -> tuple:
+    def split_de_casteljau(self, t: float = 0.5) -> tuple:
         """
         Split the curve at the given parameter value t
 
@@ -181,7 +180,7 @@ class BezierSegment(RationalBezier):
         left_cps, right_cps = BezierSegmentControlPoints(
             self.control_points,
             t_param=self.t_param_of_motion_curve).split_de_casteljau(t)
-        return left_cps.as_bezier_segment(), right_cps.as_bezier_segment()
+        return left_cps.return_as_bezier_segment(), right_cps.return_as_bezier_segment()
 
 
 class BezierSegmentControlPoints:
