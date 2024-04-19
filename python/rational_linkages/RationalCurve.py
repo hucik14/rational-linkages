@@ -57,7 +57,7 @@ class RationalCurve:
         curve = RationalCurve.from_coeffs(np.array([[1., 0., 2., 0., 1.], [0.5, 0., -2., 0., 1.5], [0., -1., 0., 3., 0.], [1., 0., 2., 0., 1.]]))
     """
 
-    def __init__(self, polynomials: list[sp.Poly]):
+    def __init__(self, polynomials: list[sp.Poly], metric: "AffineMetric" = None):
         """
         Initializes a RationalCurve object with the provided coefficients.
 
@@ -81,7 +81,7 @@ class RationalCurve:
         self.is_motion = self.dimension == 7
         self.is_affine_motion = self.dimension == 12
 
-        self._metric = None
+        self._metric = metric
 
     @property
     def metric(self):
@@ -438,7 +438,7 @@ class RationalCurve:
         :param int min_splits: minimal number of splits to be performed
 
         :return: list of RationalBezier objects
-        :rtype: list[RationalBezier]
+        :rtype: list[BezierSegment]
         """
         if self.is_motion:
             curve = self.get_curve_in_pr12()
@@ -480,6 +480,8 @@ class RationalCurve:
             bezier_curve_segments = new_segments
 
         bezier_curve_segments = [cps.return_as_bezier_segment() for cps in bezier_curve_segments]
+        for segment in bezier_curve_segments:
+            segment.metric = self.metric
         return bezier_curve_segments
 
     def get_path_length(self, num_of_points: int = 100) -> float:

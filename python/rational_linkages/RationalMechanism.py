@@ -77,7 +77,6 @@ class RationalMechanism(RationalCurve):
         self.is_linkage = len(self.factorizations) == 2
 
         self._segments = None
-        self._relative_motions = None
 
     @property
     def segments(self):
@@ -111,18 +110,6 @@ class RationalMechanism(RationalCurve):
             self._metric = AffineMetric(self.curve(), mechanism_points)
 
         return self._metric
-
-    @property
-    def relative_motions(self):
-        """
-        Get the relative motions of the mechanism.
-
-        :return: relative motions of the mechanism
-        :rtype: list[DualQuaternion]
-        """
-        if self._relative_motions is None:
-            self._relative_motions = self.get_relative_motions()
-        return self._relative_motions
 
     @classmethod
     def from_saved_file(cls, filename: str):
@@ -842,13 +829,13 @@ class RationalMechanism(RationalCurve):
         return results
 
     def points_at_parameter(self,
-                            t: float,
+                            t_param: float,
                             inverted_part: bool = False,
                             only_links: bool = False) -> list[PointHomogeneous]:
         """
         Get the points of the mechanism at the given parameter.
 
-        :param float t: parameter value
+        :param float t_param: parameter value
         :param bool inverted_part: if True, return the evaluated points for the inverted
             part of the mechanism
         :param bool only_links: if True, instead of two points per joint segment,
@@ -857,10 +844,9 @@ class RationalMechanism(RationalCurve):
         :return: list of connection points of the mechanism
         :rtype: list[PointHomogeneous]
         """
-
-        branch0 = self.factorizations[0].direct_kinematics(t,
+        branch0 = self.factorizations[0].direct_kinematics(t_param,
                                                            inverted_part=inverted_part)
-        branch1 = self.factorizations[1].direct_kinematics(t,
+        branch1 = self.factorizations[1].direct_kinematics(t_param,
                                                            inverted_part=inverted_part)
 
         points = branch0 + branch1[::-1]

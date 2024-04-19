@@ -193,9 +193,10 @@ class LineSegment:
         self.type = linkage_type
         self.factorization_idx = f_idx
         self.idx = idx
+        self.id = f"{self.type}_{self.factorization_idx}{self.idx}"
 
     def __repr__(self):
-        return f"{self.type}_{self.factorization_idx}{self.idx}"
+        return self.id
 
     def is_point_in_segment(self, point: PointHomogeneous, t_val: float) -> bool:
         """
