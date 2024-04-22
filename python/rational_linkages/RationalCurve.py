@@ -444,26 +444,27 @@ class RationalCurve:
         :return: list of RationalBezier objects
         :rtype: list[BezierSegment]
         """
-        if self.is_motion:
-            curve = self.get_curve_in_pr12()
-        else:
-            raise ValueError("The curve is not a motion curve, cannot "
-                             "split into Bezier curves")
+        if not self.is_motion:
+            raise ValueError("Not a motion curve, cannot split into Bezier curves.")
 
-        from .RationalBezier import BezierSegmentControlPoints  # inner import
+        from .RationalBezier import BezierSegment  # inner import
+
+        curve = self.get_curve_in_pr12()
 
         # obtain Bezier curves for the curve and its reparametrized inverse part
         bezier_curve_segments = [
             # reparametrize the curve from the intervals [-1, 1]
-            BezierSegmentControlPoints(curve.curve2bezier_control_points(
+            BezierSegment(curve.curve2bezier_control_points(reparametrization=True),
+                          t_param=(False, [-1.0, 1.0]),
+                          metric=self.metric),
+            BezierSegment(curve.inverse_curve().curve2bezier_control_points(
                 reparametrization=True),
-                t_param=(False, [-1.0, 1.0])),
-            BezierSegmentControlPoints(curve.inverse_curve().curve2bezier_control_points(
-                reparametrization=True),
-                t_param=(True, [-1.0, 1.0]))
+                t_param=(True, [-1.0, 1.0]),
+                metric=self.metric)
         ]
 
         # split the Bezier curves until all control points have positive weights
+        # or no weights at infinity, or the minimal number of splits is reached
         while True:
             new_segments = [
                 part for b_curve in bezier_curve_segments
@@ -473,6 +474,8 @@ class RationalCurve:
                        or b_curve.check_for_negative_weights() else [b_curve])
             ]
 
+            # if all control points have positive weights and no weights at infinity,
+            # but the minimal number of splits is not reached, continue splitting
             if not any(
                     b_curve.check_for_control_points_at_infinity()
                     or b_curve.check_for_negative_weights()
@@ -486,8 +489,7 @@ class RationalCurve:
 
             bezier_curve_segments = new_segments
 
-        return [cps.return_as_bezier_segment(metric=self.metric)
-                for cps in bezier_curve_segments]
+        return bezier_curve_segments
 
     def get_path_length(self, num_of_points: int = 100) -> float:
         """
