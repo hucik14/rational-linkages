@@ -3,8 +3,8 @@
 
 .. include:: refs-weblinks.rst
 
-Rational Linkages Documentation
-===============================
+Rational Linkages
+=================
 
 .. image:: https://img.shields.io/gitlab/v/release/21918?gitlab_url=https%3A%2F%2Fgit.uibk.ac.at%2F&style=social&logo=gitlab&label=repository
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
@@ -26,7 +26,7 @@ Rational Linkages Documentation
    :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
 
 Welcome to the Rational Linkages package documentation, which serves as a reference for
-the provided package. This toolbox is a collection of functions for the analysis of
+the provided tools. This package is a collection of functions for the analysis of
 rational linkages and their rapid prototyping. It is written in Python and uses the
 Numpy and SymPy libraries for computations, and Matplotlib for plotting. It is developed
 at the Unit of Geometry and Surveying, University of Innsbruck, Austria.
@@ -38,8 +38,8 @@ Since the self-hosted repository does not allow external users to create issues,
 please, use the `external issue tracker`_
 hosted on Github for submitting **issues** and **feature requests**.
 
-Run live examples of the package in your browser using the **Binder** service. Click
-on the badge below to start the Binder session:
+For installation-free try-out, run live example of the package in your browser using
+the **Binder** service. Click on the badge below to start the Binder session:
 
 .. image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
@@ -69,13 +69,12 @@ Authors
 =======
 
 The package is developed by the Unit of Geometry and Surveying, University of Innsbruck,
-Austria. Namely, the following people contributed to the development and writing
-documentation:
+Austria. Namely, the following people contributed to the development:
 
 - Daniel Huczala (author, maintainer)
-- Daren A. Thimm (contributor)
-- Martin Pfurner (contributor)
 - Hans-Peter Schröcker (supervisor, contributor)
+- Martin Pfurner (contributor)
+- Daren A. Thimm (contributor)
 
 Citing the Package
 ==================
