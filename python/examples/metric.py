@@ -15,9 +15,9 @@ from rational_linkages.models import bennett_ark24, collisions_free_6r, plane_fo
 
 if __name__ == '__main__':
     m = RationalMechanism.from_saved_file("johannes-interp.pkl")
-    m = collisions_free_6r()
-    m = plane_fold_6r()
-    #m = bennett_ark24()
+    #m = collisions_free_6r()
+    #m = plane_fold_6r()
+    m = bennett_ark24()
     m.update_segments()
 
     m._relative_motions = None
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     ca = CollisionAnalyser(m)
 
-    s = 't_13'
+    s = 't_12'
     o0, o1 = ca.get_segment_orbit(s)
     p.plot(ca.segments[s])
 
