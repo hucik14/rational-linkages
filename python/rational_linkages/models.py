@@ -53,3 +53,23 @@ def plane_fold_6r() -> RationalMechanism:
     with importlib.resources.path(resource_package, resource_path) as file_path:
         with open(file_path, 'rb') as f:
             return pickle.load(f)
+
+
+def interp_4poses_6r() -> RationalMechanism:
+    """
+    Returns a RationalMechanism object of a 6R mechanism that interpolates between 4 poses.
+
+    Original poses to be interpolated:
+    p0 = DualQuaternion.as_rational()
+    p1 = DualQuaternion.as_rational([0, 0, 0, 1, 1, 0, 1, 0])
+    p2 = DualQuaternion.as_rational([1, 2, 0, 0, -2, 1, 0, 0])
+    p3 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
+
+    :return: RationalMechanism object for the 6R linkage.
+    :rtype: RationalMechanism
+    """
+    resource_package = "rational_linkages.data"
+    resource_path = 'interp_4poses_6r.pkl'
+    with importlib.resources.path(resource_package, resource_path) as file_path:
+        with open(file_path, 'rb') as f:
+            return pickle.load(f)
