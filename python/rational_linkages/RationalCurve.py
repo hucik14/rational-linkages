@@ -479,11 +479,12 @@ class RationalCurve:
 
             bezier_curve_segments = new_segments
 
-        bezier_curve_segments = [cps.return_as_bezier_segment() for cps in bezier_curve_segments]
-
-        if self.metric is not 'euclidean':
-            for segment in bezier_curve_segments:
-                segment.metric = self.metric
+        bezier_curve_segments = [cps.return_as_bezier_segment(metric=self.metric)
+                                 for cps in bezier_curve_segments]
+        #
+        # if self.metric is not 'euclidean':
+        #     for segment in bezier_curve_segments:
+        #         segment.metric = self.metric
         return bezier_curve_segments
 
     def get_path_length(self, num_of_points: int = 100) -> float:

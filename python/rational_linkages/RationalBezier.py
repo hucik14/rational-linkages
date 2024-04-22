@@ -133,7 +133,8 @@ class BezierSegment(RationalBezier):
     """
     def __init__(self,
                  control_points: list[PointHomogeneous],
-                 t_param: tuple[bool, list[float]] = (False, [0, 1])):
+                 t_param: tuple[bool, list[float]] = (False, [0, 1]),
+                 metric: "AffineMetric" = None):
         """
         Initializes a BezierSegment object with the provided control points.
 
@@ -144,18 +145,8 @@ class BezierSegment(RationalBezier):
             motion curve
         """
         super().__init__(control_points)
-
-        self._ball = None
         self.t_param_of_motion_curve = t_param
-
-    @property
-    def ball(self):
-        """
-        Get the smallest ball enclosing the control points of the curve
-        """
-        if self._ball is None:
-            self._ball = MiniBall(self.control_points, metric=self.metric)
-        return self._ball
+        self.metric = metric
 
     def simplify_to_control_points(self):
         """
@@ -180,7 +171,8 @@ class BezierSegment(RationalBezier):
         left_cps, right_cps = BezierSegmentControlPoints(
             self.control_points,
             t_param=self.t_param_of_motion_curve).split_de_casteljau(t)
-        return left_cps.return_as_bezier_segment(), right_cps.return_as_bezier_segment()
+        return (left_cps.return_as_bezier_segment(metric=self.metric),
+                right_cps.return_as_bezier_segment(metric=self.metric))
 
 
 class BezierSegmentControlPoints:
@@ -263,11 +255,13 @@ class BezierSegmentControlPoints:
         """
         return any(point.coordinates[0] < 0 for point in self.control_points)
 
-    def return_as_bezier_segment(self):
+    def return_as_bezier_segment(self, **kwargs):
         """
         Return the control points as a BezierSegment object
 
         :return: BezierSegment - Bezier curve segment
         :rtype: BezierSegment
         """
-        return BezierSegment(self.control_points, t_param=self.t_param_of_motion_curve)
+        return BezierSegment(self.control_points,
+                             t_param=self.t_param_of_motion_curve,
+                             **kwargs)
