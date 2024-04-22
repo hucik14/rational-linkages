@@ -98,9 +98,13 @@ class RationalCurve:
     @metric.setter
     def metric(self, metric: "AffineMetric"):
         from .AffineMetric import AffineMetric  # inner import
-        if not (isinstance(metric, AffineMetric) or (metric is None)):
+
+        if isinstance(metric, AffineMetric):
+            self._metric = metric
+        elif metric == "euclidean" or metric is None:
+            self._metric = None
+        else:
             raise TypeError("The 'metric' property must be of type 'AffineMetric'")
-        self._metric = metric
 
     @classmethod
     def from_coeffs(cls, coeffs: np.ndarray) -> "RationalCurve":
@@ -451,10 +455,12 @@ class RationalCurve:
         # obtain Bezier curves for the curve and its reparametrized inverse part
         bezier_curve_segments = [
             # reparametrize the curve from the intervals [-1, 1]
-            BezierSegmentControlPoints(curve.curve2bezier_control_points(reparametrization=True),
-                                       t_param=(False, [-1.0, 1.0])),
-            BezierSegmentControlPoints(curve.inverse_curve().curve2bezier_control_points(reparametrization=True),
-                                       t_param=(True, [-1.0, 1.0]))
+            BezierSegmentControlPoints(curve.curve2bezier_control_points(
+                reparametrization=True),
+                t_param=(False, [-1.0, 1.0])),
+            BezierSegmentControlPoints(curve.inverse_curve().curve2bezier_control_points(
+                reparametrization=True),
+                t_param=(True, [-1.0, 1.0]))
         ]
 
         # split the Bezier curves until all control points have positive weights
@@ -462,30 +468,26 @@ class RationalCurve:
             new_segments = [
                 part for b_curve in bezier_curve_segments
                 for part in (
-                    b_curve.split_de_casteljau() if b_curve.check_for_control_points_at_infinity() or b_curve.check_for_negative_weights() else [b_curve])
+                    b_curve.split_de_casteljau()
+                    if b_curve.check_for_control_points_at_infinity()
+                       or b_curve.check_for_negative_weights() else [b_curve])
             ]
 
             if not any(
-                    b_curve.check_for_control_points_at_infinity() or b_curve.check_for_negative_weights()
+                    b_curve.check_for_control_points_at_infinity()
+                    or b_curve.check_for_negative_weights()
                     for b_curve in new_segments):
                 if len(new_segments) < min_splits:
-                    new_segments = [
-                        part for b_curve in new_segments
-                        for part in b_curve.split_de_casteljau()
-                    ]
+                    new_segments = [part for b_curve in new_segments
+                                    for part in b_curve.split_de_casteljau()]
                 else:
                     bezier_curve_segments = new_segments
                     break
 
             bezier_curve_segments = new_segments
 
-        bezier_curve_segments = [cps.return_as_bezier_segment(metric=self.metric)
-                                 for cps in bezier_curve_segments]
-        #
-        # if self.metric is not 'euclidean':
-        #     for segment in bezier_curve_segments:
-        #         segment.metric = self.metric
-        return bezier_curve_segments
+        return [cps.return_as_bezier_segment(metric=self.metric)
+                for cps in bezier_curve_segments]
 
     def get_path_length(self, num_of_points: int = 100) -> float:
         """
