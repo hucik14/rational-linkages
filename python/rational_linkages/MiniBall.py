@@ -19,14 +19,16 @@ class MiniBall:
         self.number_of_points = len(self.points)
         self.dimension = self.points[0].coordinates.size
 
-        self.metric = metric
-
-        if metric is None:
-            self.metric = 'euclidean'
-            self.metric_obj = None
+        if metric is None or metric == 'euclidean':
+            self.metric_type = 'euclidean'
         else:
-            metric = 'hofer'
-            self.metric_obj = metric
+            from .AffineMetric import AffineMetric
+            if isinstance(metric, AffineMetric):
+                self.metric_type = 'hofer'
+            else:
+                ValueError("Invalid metric type.")
+
+        self.metric = metric
 
         self.center = np.zeros(self.dimension)
         self.radius = 10.0
@@ -47,7 +49,7 @@ class MiniBall:
             return x[-1] ** 2
 
         # Prepare constraint equations based on the metric
-        if self.metric == "hofer":
+        if self.metric_type == "hofer":
             def constraint_equations(x):
                 """
                 For Hofer metric, constraint equations must satisfy the ball by:
@@ -57,10 +59,8 @@ class MiniBall:
                 constraints = np.zeros(self.number_of_points)
 
                 for i in range(self.number_of_points):
-                    squared_distance = sum(self.metric_obj.squared_distance_pr12_points(
-                        self.points[i].normalize(), x[j])
-                        for j in range(self.dimension)
-                    )
+                    squared_distance = self.metric.squared_distance_pr12_points(
+                        self.points[i].normalize(), x[:-1])
                     constraints[i] = x[-1] ** 2 - squared_distance
                 return constraints
         else:
