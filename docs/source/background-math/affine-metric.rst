@@ -3,12 +3,18 @@
 Affine Metric and Motion Covering
 =================================
 
-As known, there exists no meaningful metric in Special Eucledian Group :math:`SE(3)`,
+For faster collision detection, the motion curve of a mechanism can be interpolated
+by Bezier curves. The Bezier curves are defined by control points, which themselves
+are 8-dimensional vectors in :math:`SE(3)`. As known, there exists no meaningful
+metric in Special Eucledian Group :math:`SE(3)`,
 which is the group of rigid body motions in 3D space. In another words, the question,
 "What is the distance between two poses?", is difficult/impossible to answer
 since translation and rotation are not comparable.
 
-However, Hofer introduced in his dissertation :footcite:p:`Hofer2004diss` and
+Affine Metric Definition
+------------------------
+
+Hofer introduced in his dissertation :footcite:p:`Hofer2004diss` and
 paper with :footcite:t:`Hofer2004` an affine metric that maps elements
 of :math:`SE(3)` to Affine Space :math:`\mathbb{R}^{12}`, where a poses is represented
 as a 12-dimensional vector. The mapping can be obtained from transformation matrix
@@ -46,6 +52,20 @@ it via :class:`.AffineMetric` object.
 
 
 
+
+
+Motion Interpolation and Bezier Splitting
+-----------------------------------------
+
+The rational motion curve can be reparametrized by Bezier curves using Bernstein
+polynomials.
+
+
+Ball Covering of Bezier Curves
+------------------------------
+
+When the metric is defined, the distance between two poses (Bezier curve control points)
+can be calculated. This is applied in covering the orbits of mechanism points.
 
 
 :footcite:t:`Schroecker2005`
