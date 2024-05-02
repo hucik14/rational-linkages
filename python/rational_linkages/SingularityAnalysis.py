@@ -2,6 +2,7 @@ from .RationalMechanism import RationalMechanism
 from .Linkage import LineSegment
 
 import sympy
+import numpy as np
 
 
 class SingularityAnalysis:
@@ -30,12 +31,33 @@ class SingularityAnalysis:
             return submatrices
 
         def sum_of_squared_determinants(matrix):
-            submatrices = get_submatrices(matrix)
+            submatrices = get_submatrices(matrix)[0:2]
             return sum(submatrix.det() ** 2 for submatrix in submatrices)
 
         sum_det = sum_of_squared_determinants(jacobian)
 
-        return sum_det
+        t = sympy.Symbol('t')
+        p = sum_det
+
+        first_derivative = sympy.diff(p, t)
+        print(first_derivative)
+
+        f = sympy.lambdify(t, first_derivative, 'numpy')
+
+        coeffs = sympy.Poly(first_derivative)
+        print(f)
+
+        second_derivative = sympy.diff(first_derivative, t)
+        # Find the critical points
+        critical_points = sympy.solve(first_derivative, t)
+
+
+        # Determine which critical points are local minima
+        local_minima = [point for point in critical_points if
+                        second_derivative.subs(t, point).evalf() > 0]
+
+        print("Local minima:", local_minima)
+        return local_minima
 
     def get_jacobian(self, segments: list[LineSegment]):
         """
@@ -52,6 +74,9 @@ class SingularityAnalysis:
 
         jacobian = sympy.Matrix.zeros(6, len(algebraic_plucker_coords))
         for i, plucker_line in enumerate(algebraic_plucker_coords):
-            jacobian[:, i] = plucker_line.screw
+            jacobian[:, i] = [eq for eq in plucker_line.screw]
 
         return jacobian
+
+
+

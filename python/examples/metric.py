@@ -18,7 +18,7 @@ if __name__ == '__main__':
     m = interp_4poses_6r()
     #m = collisions_free_6r()
     #m = plane_fold_6r()
-    m = bennett_ark24()
+    #m = bennett_ark24()
     m.update_segments()
 
     m._relative_motions = None
