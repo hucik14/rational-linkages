@@ -468,7 +468,7 @@ class DualQuaternion:
         study_condition = (self.p[0] * self.d[0] + self.p[1] * self.d[1]
                            + self.p[2] * self.d[2] + self.p[3] * self.d[3])
         study_condition = np.asarray(study_condition, dtype="float64")
-        return np.isclose(study_condition, 0.0)
+        return np.isclose(study_condition, 0.0, atol=1e-20)
 
     def dq2matrix(self, normalize: bool = True) -> np.ndarray:
         """
