@@ -145,7 +145,7 @@ class MotionInterpolation:
         p1 = poses[1].array()
         p2 = poses[2].array()
 
-        c = alpha * p0 + (p1 - alpha * p0 - omega * p2) * t + omega * p2 * t**2
+        c = alpha * p2 + (p1 - alpha * p2 - omega * p0) * t + omega * p0 * t**2
         symbolic_curve = RationalDualQuaternion(c)
 
         # apply Stydy condition, i.e. obtain epsilon norm of the curve
@@ -176,7 +176,7 @@ class MotionInterpolation:
         al = nonzero_sol[alpha]
         om = nonzero_sol[omega]
         # obtain the interpolated curve
-        c_interp = al * p0 + (p1 - al * p0 - om * p2) * t + om * p2 * t**2
+        c_interp = al * p2 + (p1 - al * p2 - om * p0) * t + om * p0 * t**2
 
         # list of polynomials
         poly = [sp.Poly(el, t) for el in c_interp]
@@ -392,7 +392,7 @@ class MotionInterpolation:
         poly = [element.subs(sols_lambda) for element in temp4]
 
         # choose one solution by setting lambda, in this case lambda = 0
-        poly = [element.subs(lam, 0) for element in poly]
+        poly = [element.subs(lam, 0).evalf() for element in poly]
 
         t = sp.Symbol("t")
         poly = [element.subs(x, t) for element in poly]
