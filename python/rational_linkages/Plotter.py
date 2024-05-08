@@ -30,10 +30,12 @@ class Plotter:
 
         :param interactive: activate interactive mode
         :param jupyter_notebook: activate jupyter notebook mode
-        :param interval: interval for plotting
         :param steps: number of steps for plotting
         :param arrows_length: length of quiver arrows for poses and frames
         :param joint_range_lim: limit for joint sliders, will be +/- value
+        :param interval: interval for plotting, in case of a curve can be specified as interval = 'closed' for
+            full parametrization
+        :with_poses: plot the poses along the curve
         """
         # use Qt5Agg backend for interactive plotting
         if interactive and not jupyter_notebook:
@@ -257,6 +259,19 @@ class Plotter:
             kwargs.pop('interval')
         else:
             interval = (0, 1)
+
+        if 'with_poses' in kwargs and kwargs['with_poses'] is True:
+            kwargs.pop('with_poses')
+
+            if interval == 'closed':
+                # tangent half-angle substitution for closed curves
+                t_space = np.tan(np.linspace(-np.pi / 2, np.pi / 2, 51))
+            else:
+                t_space = np.linspace(interval[0], interval[1], 50)
+
+            for t in t_space:
+                pose_dq = DualQuaternion(curve.evaluate(t))
+                self._plot_dual_quaternion(pose_dq)
 
         x, y, z = curve.get_plot_data(interval, self.steps)
 
