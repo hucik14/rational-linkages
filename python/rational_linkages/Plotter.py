@@ -9,12 +9,13 @@ from matplotlib.widgets import Slider, TextBox
 from .DualQuaternion import DualQuaternion
 from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
-from .PointHomogeneous import PointHomogeneous
+from .PointHomogeneous import PointHomogeneous, PointOrbit
 from .RationalBezier import RationalBezier
 from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
 from .MiniBall import MiniBall
+from .Linkage import LineSegment
 
 
 class Plotter:
@@ -84,16 +85,37 @@ class Plotter:
 
         self.plotted = {}
 
-    def plot(self, object_to_plot, **kwargs):
+    def plot(self, objects_to_plot, **kwargs):
+        """
+        Plot the object
+
+        :param objects_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve,
+            RationalBezier, MiniBall, or list of those
+        :param kwargs: plotting options following matplotlib standards and syntax
+        """
+        # if list of objects, plot each object separately
+        if isinstance(objects_to_plot, list):
+            # check for label list
+            label_list = kwargs.pop('label', None)
+
+            for i, obj in enumerate(objects_to_plot):
+                if label_list is not None:
+                    kwargs['label'] = label_list[i]
+                self._plot(obj, **kwargs)
+
+        # if single object, plot it
+        else:
+            self._plot(objects_to_plot, **kwargs)
+
+    def _plot(self, object_to_plot, **kwargs):
         """
         Plot the object
 
         :param object_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve, MiniBall,
             or RationalBezier
         :param kwargs: plotting options following matplotlib standards and syntax
-
-        :return: matplotlib axis
         """
         type_to_plot = self.analyze_object(object_to_plot)
 
@@ -118,6 +140,10 @@ class Plotter:
                 self._plot_interactive(object_to_plot, **kwargs)
             case "is_miniball":
                 self._plot_miniball(object_to_plot, **kwargs)
+            case "is_line_segment":
+                self._plot_line_segment(object_to_plot, **kwargs)
+            case "is_point_orbit":
+                self._plot_point_orbit(object_to_plot, **kwargs)
 
     def analyze_object(self, object_to_plot):
         """
@@ -150,6 +176,10 @@ class Plotter:
             return "is_transf_matrix"
         elif isinstance(object_to_plot, MiniBall):
             return "is_miniball"
+        elif isinstance(object_to_plot, LineSegment):
+            return "is_line_segment"
+        elif isinstance(object_to_plot, PointOrbit):
+            return "is_point_orbit"
         else:
             raise TypeError(
                 "Other types than NormalizedLine, PointHomogeneous, RationalMechanism, "
@@ -362,6 +392,7 @@ class Plotter:
 
         self._plot_tool_path(mechanism, **kwargs)
 
+    @_plotting_decorator
     def _plot_tool_path(self, mechanism: RationalMechanism, **kwargs):
         # plot end effector path
         t_lin = np.linspace(0, 2 * np.pi, self.steps)
@@ -376,6 +407,7 @@ class Plotter:
         x, y, z = zip(*ee_points)
         self.ax.plot(x, y, z, **kwargs)
 
+    @_plotting_decorator
     def _plot_miniball(self, ball: MiniBall, **kwargs):
         """
         Plot a ball
@@ -386,6 +418,30 @@ class Plotter:
             kwargs['alpha'] = 0.15
 
         x, y, z = ball.get_plot_data()
+
+        self.ax.plot_surface(x, y, z, **kwargs)
+
+    @_plotting_decorator
+    def _plot_point_orbit(self, orbit: PointOrbit, **kwargs):
+        """
+        Plot a sphere of given point orbit
+        """
+        if 'alpha' not in kwargs:
+            kwargs['alpha'] = 0.15
+
+        x, y, z = orbit.get_plot_data()
+
+        self.ax.plot_surface(x, y, z, **kwargs)
+
+    @_plotting_decorator
+    def _plot_line_segment(self, segment: LineSegment, **kwargs):
+        """
+        Plot a line segment
+        """
+        x, y, z = segment.get_plot_data()
+
+        if 'alpha' not in kwargs:
+            kwargs['alpha'] = 0.2
 
         self.ax.plot_surface(x, y, z, **kwargs)
 

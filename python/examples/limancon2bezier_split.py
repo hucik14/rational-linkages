@@ -1,7 +1,6 @@
-import matplotlib.pyplot as plt
 import sympy as sp
 
-from rational_linkages import Plotter, RationalBezier, RationalCurve
+from rational_linkages import Plotter, BezierSegment, RationalCurve
 
 t = sp.Symbol("t")
 
@@ -16,8 +15,8 @@ limancon = RationalCurve([l0, l1, l2, l0])
 
 limancon_inv = limancon.inverse_curve()
 
-bezier = RationalBezier(limancon.curve2bezier_control_points(reparametrization=True))
-bezier_inv = RationalBezier(limancon_inv.curve2bezier_control_points(reparametrization=True))
+bezier = BezierSegment(limancon.curve2bezier_control_points(reparametrization=True), t_param=(False, [-1, 1]))
+bezier_inv = BezierSegment(limancon_inv.curve2bezier_control_points(reparametrization=True), t_param=(True, [-1, 1]))
 b_left, b_right = bezier.split_de_casteljau(0.4)
 b_left_inv, b_right_inv = bezier_inv.split_de_casteljau()
 

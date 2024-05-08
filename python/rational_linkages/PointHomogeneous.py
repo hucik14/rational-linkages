@@ -1,5 +1,3 @@
-from math import isclose
-
 import numpy as np
 
 from .TransfMatrix import TransfMatrix
@@ -68,6 +66,8 @@ class PointHomogeneous:
 
         #if len(self.coordinates_normalized) == 4:  # point in PR3
         #    self.as_dq_array = self.point2dq_array()
+
+        self.orbit = None
 
     @classmethod
     def at_origin_in_2d(cls):
@@ -185,6 +185,20 @@ class PointHomogeneous:
             mat[1:3, 0] = self.coordinates_normalized[1:3]
         elif len(self.coordinates_normalized) == 4:
             mat[1:4, 0] = self.coordinates_normalized[1:4]
+
+        # affine displacement in R12
+        elif len(self.coordinates_normalized) == 12:
+            mat[1:4, 0] = self.coordinates_normalized[0:3]
+            mat[1:4, 1] = self.coordinates_normalized[3:6]
+            mat[1:4, 2] = self.coordinates_normalized[6:9]
+            mat[1:4, 3] = self.coordinates_normalized[9:12]
+
+        # affine displacement in PR12
+        elif len(self.coordinates_normalized) == 13:
+            mat[1:4, 0] = self.coordinates_normalized[1:4]
+            mat[1:4, 1] = self.coordinates_normalized[4:7]
+            mat[1:4, 2] = self.coordinates_normalized[7:10]
+            mat[1:4, 3] = self.coordinates_normalized[10:13]
         else:
             raise ValueError("PointHomogeneous: point has to be in PR2 or PR3")
 
@@ -266,3 +280,71 @@ class PointHomogeneous:
                  if not isinstance(coord, Number) else coord
                  for coord in point_expr]
         return PointHomogeneous(np.asarray(point, dtype="float64"))
+
+    def get_point_orbit(self,
+                        acting_center: "PointHomogeneous",
+                        acting_radius: float,
+                        metric: "AffineMetric",
+                        ) -> tuple[np.ndarray, float]:
+        """
+        Get point orbit
+
+
+
+        :param PointHomogeneous acting_center: center of the acting ball
+        :param float acting_radius: radius of the orbit ball
+        :param AffineMetric metric: metric of the curve
+
+        :return: point center and radius squared
+        :rtype: tuple[np.ndarray, float]
+        """
+        point_center = acting_center.point2matrix() @ self.coordinates_normalized
+
+        coords_3d = self.normalized_in_3d()
+        radius_squared = acting_radius ** 2 * (1/metric.total_mass + np.sum([(coord ** 2 / metric.inertia_eigen_vals[i]) for i, coord in enumerate(coords_3d)]))
+
+        radius = np.sqrt(radius_squared)
+        self.set_point_orbit(point_center, radius)
+        return point_center, radius
+
+    def set_point_orbit(self, orbit_center: "PointHomogeneous", orbit_radius: float):
+        """
+        Set the orbit of the point
+        """
+        self.orbit = PointOrbit(orbit_center, orbit_radius)
+
+
+class PointOrbit:
+    def __init__(self, point_center, radius):
+        """
+
+        """
+        if not isinstance(point_center, PointHomogeneous):
+            self.center = PointHomogeneous(point_center)
+        else:
+            self.center = point_center
+
+        self.radius = radius
+
+    def get_plot_data(self) -> tuple:
+        """
+        Get data for plotting in 3D space
+
+        :return: surface coordinates
+        :rtype: tuple
+        """
+        if len(self.center.coordinates) == 4:
+            # Create the 3D sphere representing the circle
+            u = np.linspace(0, 2 * np.pi, 10)
+            v = np.linspace(0, np.pi, 10)
+
+            x = (self.radius * np.outer(np.cos(u), np.sin(v))
+                 + self.center.normalized_in_3d()[0])
+            y = (self.radius * np.outer(np.sin(u), np.sin(v))
+                 + self.center.normalized_in_3d()[1])
+            z = (self.radius * np.outer(np.ones(np.size(u)), np.cos(v))
+                 + self.center.normalized_in_3d()[2])
+        else:
+            raise ValueError("Cannot plot ball due to incompatible dimension.")
+
+        return x, y, z
