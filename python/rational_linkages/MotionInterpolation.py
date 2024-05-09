@@ -1,14 +1,15 @@
 from typing import Union
 from copy import deepcopy
+from warnings import warn
 
 import sympy as sp
+import numpy as np
 
 from .DualQuaternion import DualQuaternion
 from .RationalCurve import RationalCurve
 from .RationalDualQuaternion import RationalDualQuaternion
 from .TransfMatrix import TransfMatrix
 from .PointHomogeneous import PointHomogeneous
-from .Quaternion import Quaternion
 
 
 class MotionInterpolation:
@@ -99,6 +100,23 @@ class MotionInterpolation:
         if not (2 <= len(poses) <= 4):
             raise ValueError('The number of poses must be 2, 3 or 4.')
 
+        p0_array = np.asarray(poses[0].array(), dtype='float64')
+
+        # check if the first pose is the identity matrix
+        if ((isinstance(poses[0], TransfMatrix)
+            and not np.allclose(p0_array, TransfMatrix().matrix))
+                or (isinstance(poses[0], DualQuaternion)
+                    and not np.allclose(p0_array, DualQuaternion().dq))):
+
+            if len(poses) == 4:
+                raise ValueError('The first pose must be the identity matrix '
+                                 'for 4-pose interpolation')
+            else:
+                warn('The first pose IS NOT the identity. The interpolation results'
+                     ' may be unstable. They will yield noninivariate polynomial which has '
+                     'to be transformed to visually interpolate the curve.',
+                     UserWarning)
+
         rational_poses = []
 
         # convert poses to rational dual quaternions
@@ -145,7 +163,7 @@ class MotionInterpolation:
         p1 = poses[1].array()
         p2 = poses[2].array()
 
-        c = alpha * p0 + (p1 - alpha * p0 - omega * p2) * t + omega * p2 * t**2
+        c = alpha * p2 + (p1 - alpha * p2 - omega * p0) * t + omega * p0 * t**2
         symbolic_curve = RationalDualQuaternion(c)
 
         # apply Stydy condition, i.e. obtain epsilon norm of the curve
@@ -176,7 +194,7 @@ class MotionInterpolation:
         al = nonzero_sol[alpha]
         om = nonzero_sol[omega]
         # obtain the interpolated curve
-        c_interp = al * p0 + (p1 - al * p0 - om * p2) * t + om * p2 * t**2
+        c_interp = al * p2 + (p1 - al * p2 - om * p0) * t + om * p0 * t**2
 
         # list of polynomials
         poly = [sp.Poly(el, t) for el in c_interp]
@@ -196,20 +214,12 @@ class MotionInterpolation:
         :return: Polynomials of rational motion curve.
         :rtype: list[sp.Poly]
         """
-        # Try to interpolate with identity pose
         try:
-            return MotionInterpolation.interpolate_quadratic(
-                poses + [DualQuaternion.as_rational([1, 0, 0, 0, 0, 0, 0, 0])])
+            return MotionInterpolation.interpolate_quadratic_2_poses_optimized(poses)
         except Exception:
-            print('Failed to interpolate with identity pose. Trying to optimize '
-                  'with random pose... (this may take a few minutes)')
-
-            try:
-                return MotionInterpolation.interpolate_quadratic_2_poses_optimized(poses)
-            except Exception:
-                print('Failed to interpolate with a random pose optimized for shortest '
-                      'path length. Trying to interpolate with other random poses...')
-                return MotionInterpolation.interpolate_quadratic_2_poses_random(poses)
+            print('Failed to interpolate with a random pose optimized for shortest '
+                  'path length. Trying to interpolate with other random poses...')
+            return MotionInterpolation.interpolate_quadratic_2_poses_random(poses)
 
     @staticmethod
     def interpolate_quadratic_2_poses_random(poses: list[DualQuaternion]
@@ -287,8 +297,6 @@ class MotionInterpolation:
         :rtype: list[sp.Poly]
         """
         from scipy.optimize import minimize
-
-        poses = [DualQuaternion.as_rational(pose.array()) for pose in poses]
 
         # # Calculate the mid point between the two poses
         # p0 = PointHomogeneous(poses[0].dq)
@@ -398,7 +406,7 @@ class MotionInterpolation:
         poly = [element.subs(sols_lambda) for element in temp4]
 
         # choose one solution by setting lambda, in this case lambda = 0
-        poly = [element.subs(lam, 0) for element in poly]
+        poly = [element.subs(lam, 0).evalf() for element in poly]
 
         t = sp.Symbol("t")
         poly = [element.subs(x, t) for element in poly]
