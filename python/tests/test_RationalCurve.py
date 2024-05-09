@@ -87,6 +87,14 @@ class TestRationalCurve(TestCase):
             )
 
     def test_get_bernstein_polynomial_equations(self):
+        def assert_equations_equal(list1, list2):
+            assert len(list1) == len(list2), "The lists have different lengths"
+
+            for eq1, eq2 in zip(list1, list2):
+                assert sp.simplify(eq1 - eq2) == 0, "The equations are not equal"
+
+            return True
+
         obj = RationalCurve.from_coeffs(
             np.array(
                 [
@@ -100,37 +108,36 @@ class TestRationalCurve(TestCase):
 
         t = sp.Symbol("t")
         expected_equations = [
-            (t - 1) ** 4,
-            -4 * t * (t - 1) ** 3,
-            6 * t ** 2 * (t - 1) ** 2,
+            (1 - t) ** 4,
+            4 * t * (1 - t) ** 3,
+            6 * t ** 2 * (1 - t) ** 2,
             4 * t ** 3 * (1 - t),
             t ** 4,
         ]
-
-        self.assertEqual(
-            obj.get_bernstein_polynomial_equations(t, reparametrization=False),
-            expected_equations
-        )
+        self.assertTrue(
+            assert_equations_equal(expected_equations,
+                                   obj.get_bernstein_polynomial_equations(
+                                       t, reparametrization=False)))
 
         expected_equations = [
-            (t - 1) ** 4 / 16,
-            (-t - 1) * (t - 1) ** 3 / 4,
-            3 * (t - 1) ** 2 * (t + 1) ** 2 / 8,
-            (1 - t) * (t + 1) ** 3 / 4,
-            (t + 1) ** 4 / 16,
+            (1/2 - t/2)**4,
+            (1/2 - t/2)**3*(2*t + 2),
+            6*(1/2 - t/2)**2*(t/2 + 1/2)**2,
+            4*(1/2 - t/2)*(t/2 + 1/2)**3,
+            (t/2 + 1/2)**4,
         ]
 
-        self.assertEqual(
-            obj.get_bernstein_polynomial_equations(t, reparametrization=True),
-            expected_equations
-        )
+        self.assertTrue(
+            assert_equations_equal(expected_equations,
+                                   obj.get_bernstein_polynomial_equations(
+                                       t, reparametrization=True)))
 
-        expected_equations = [(1 - t) / 2, (t + 1) / 2]
+        expected_equations = [1/2 - t/2, t/2 + 1/2]
 
-        self.assertEqual(
-            obj.get_bernstein_polynomial_equations(t, reparametrization=True, degree=1),
-            expected_equations,
-        )
+        self.assertTrue(
+            assert_equations_equal(expected_equations,
+                                   obj.get_bernstein_polynomial_equations(
+                                       t, reparametrization=True, degree=1)))
 
     def test_get_symbolic_expressions(self):
         obj = RationalCurve.from_coeffs(

@@ -281,14 +281,17 @@ class MotionInterpolation:
             raise ValueError('Interpolation failed for the given poses.')
 
     @staticmethod
-    def interpolate_quadratic_2_poses_optimized(poses: list[DualQuaternion]
+    def interpolate_quadratic_2_poses_optimized(poses: list[DualQuaternion],
+                                                max_iter: int = 0,
                                                 ) -> list[sp.Poly]:
         """
         Interpolates the given 2 rational poses by a quadratic curve in SE(3).
 
         Adds the 3rd pose that is optimized for the shortest path-length.
 
-        :param list[DualQuaternion] poses: The rational poses to interpolate.
+        :param list[DualQuaternion] poses: The rational poses to interpolate
+        :param int max_iter: The maximum number of iterations for the optimization,
+            if 0, the optimization will run until the tolerance is reached.
 
         :return: Polynomials of rational motion curve.
         :rtype: list[sp.Poly]
@@ -322,7 +325,10 @@ class MotionInterpolation:
 
             return length
 
-        res = minimize(objective_func, x0, tol=1e-3)
+        if max_iter == 0:
+            res = minimize(objective_func, x0, tol=1e-3)
+        else:
+            res = minimize(objective_func, x0, tol=1e-3, options={'maxiter': max_iter})
 
         optimal_pose = mid_pose_tr
         optimal_pose.t = res.x

@@ -29,8 +29,9 @@ if __name__ == '__main__':
     myplt.plot(point, label='pt')
     myplt.plot(line, label='l1')
     # or for cycle
-    for i, obj in enumerate([pose1, pose2]):
-        myplt.plot(obj, label='p{}'.format(i + 1))
+    # for i, obj in enumerate([pose1, pose2]):
+    #     myplt.plot(obj, label='p{}'.format(i + 1))
+    myplt.plot([pose1, pose2], label=['p1', 'p2'])
 
     myplt.show()
 

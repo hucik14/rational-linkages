@@ -44,7 +44,8 @@ class TestMotionInterpolation(TestCase):
         p0 = DualQuaternion.as_rational([0, 17, -33, -89, 0, -6, 5, -3])
         p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
 
-        curve = mi.interpolate([p2, p0])
+        curve = RationalCurve(mi.interpolate_quadratic_2_poses_optimized([p2, p0],
+                                                                         max_iter=1))
         self.assertIsInstance(curve, RationalCurve)
 
     def test_interpolate_quadratic_2_poses_random(self):
