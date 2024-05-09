@@ -1,14 +1,15 @@
 from typing import Union
 from copy import deepcopy
+from warnings import warn
 
 import sympy as sp
+import numpy as np
 
 from .DualQuaternion import DualQuaternion
 from .RationalCurve import RationalCurve
 from .RationalDualQuaternion import RationalDualQuaternion
 from .TransfMatrix import TransfMatrix
 from .PointHomogeneous import PointHomogeneous
-from .Quaternion import Quaternion
 
 
 class MotionInterpolation:
@@ -98,6 +99,21 @@ class MotionInterpolation:
         # check number of poses
         if not (2 <= len(poses) <= 4):
             raise ValueError('The number of poses must be 2, 3 or 4.')
+
+        # check if the first pose is the identity matrix
+        if ((isinstance(poses[0], TransfMatrix)
+            and not np.allclose(poses[0].matrix, TransfMatrix().matrix))
+                or (isinstance(poses[0], DualQuaternion)
+                    and not np.allclose(poses[0].dq, DualQuaternion().dq))):
+
+            if len(poses) == 4:
+                raise ValueError('The first pose must be the identity matrix '
+                                 'for 4-pose interpolation')
+            else:
+                warn('The first pose IS NOT the identity. The interpolation results'
+                     ' may be unstable. They will yield noninivariate polynomial which has '
+                     'to be transformed to visually interpolate the curve.',
+                     UserWarning)
 
         rational_poses = []
 
@@ -196,20 +212,12 @@ class MotionInterpolation:
         :return: Polynomials of rational motion curve.
         :rtype: list[sp.Poly]
         """
-        # Try to interpolate with identity pose
         try:
-            return MotionInterpolation.interpolate_quadratic(
-                poses + [DualQuaternion.as_rational([1, 0, 0, 0, 0, 0, 0, 0])])
+            return MotionInterpolation.interpolate_quadratic_2_poses_optimized(poses)
         except Exception:
-            print('Failed to interpolate with identity pose. Trying to optimize '
-                  'with random pose... (this may take a few minutes)')
-
-            try:
-                return MotionInterpolation.interpolate_quadratic_2_poses_optimized(poses)
-            except Exception:
-                print('Failed to interpolate with a random pose optimized for shortest '
-                      'path length. Trying to interpolate with other random poses...')
-                return MotionInterpolation.interpolate_quadratic_2_poses_random(poses)
+            print('Failed to interpolate with a random pose optimized for shortest '
+                  'path length. Trying to interpolate with other random poses...')
+            return MotionInterpolation.interpolate_quadratic_2_poses_random(poses)
 
     @staticmethod
     def interpolate_quadratic_2_poses_random(poses: list[DualQuaternion]
@@ -284,8 +292,6 @@ class MotionInterpolation:
         :rtype: list[sp.Poly]
         """
         from scipy.optimize import minimize
-
-        poses = [DualQuaternion.as_rational(pose.array()) for pose in poses]
 
         # # Calculate the mid point between the two poses
         # p0 = PointHomogeneous(poses[0].dq)
