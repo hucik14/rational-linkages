@@ -1,6 +1,14 @@
 Rational Linkages
 =================
 
+AffineMetric
+------------
+
+.. automodule:: rational_linkages.AffineMetric
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 CollisionFreeOptimization
 -------------------------
 
@@ -109,7 +117,7 @@ Rational Bezier
 ---------------
 
 .. automodule:: rational_linkages.RationalBezier
-   :members:
+   :members: RationalBezier, BezierSegment
    :undoc-members:
    :show-inheritance: rational_linkages.RationalCurve
 

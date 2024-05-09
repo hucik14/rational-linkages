@@ -3,7 +3,6 @@ import numpy as np
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
-from .MiniBall import MiniBall
 
 
 class AffineMetric:
@@ -11,11 +10,13 @@ class AffineMetric:
     Class of affine metric in R12
 
     :references:
-        - M. Hofer, "Variational Motion Design in the Presence of Obstacles",
+        M. Hofer, "Variational Motion Design in the Presence of Obstacles",
         dissertation thesis (2004), Page 7, Equation 2.4
-        - Schroecker, Weber, "Guaranteed collision detection with toleranced
+
+        Schroecker, Weber, "Guaranteed collision detection with toleranced
         motions", Computer Aided Geometric Design (2014), Equation 3. DOI:
         http://dx.doi.org/10.1016/j.cagd.2014.08.001
+
     """
     def __init__(self, motion_curve: RationalCurve, points: list[PointHomogeneous]):
         """
@@ -52,8 +53,9 @@ class AffineMetric:
         :rtype: np.ndarray
 
         :references:
-            - M. Hofer, "Variational Motion Design in the Presence of Obstacles",
+            M. Hofer, "Variational Motion Design in the Presence of Obstacles",
             dissertation thesis (2004), Page 7, Equation 2.4
+
         """
         metric_matrix = np.zeros((12, 12))
         for i in range(self.number_of_points):
@@ -71,8 +73,9 @@ class AffineMetric:
         :rtype: np.ndarray
 
         :references:
-            - M. Hofer, "Variational Motion Design in the Presence of Obstacles",
+            M. Hofer, "Variational Motion Design in the Presence of Obstacles",
             dissertation thesis (2004), Page 7, Equation 2.4
+
         """
         p = point.normalized_in_3d()
         i = np.eye(3)
