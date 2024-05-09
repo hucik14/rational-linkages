@@ -100,11 +100,13 @@ class MotionInterpolation:
         if not (2 <= len(poses) <= 4):
             raise ValueError('The number of poses must be 2, 3 or 4.')
 
+        p0_array = np.asarray(poses[0].array(), dtype='float64')
+
         # check if the first pose is the identity matrix
         if ((isinstance(poses[0], TransfMatrix)
-            and not np.allclose(poses[0].matrix, TransfMatrix().matrix))
+            and not np.allclose(p0_array, TransfMatrix().matrix))
                 or (isinstance(poses[0], DualQuaternion)
-                    and not np.allclose(poses[0].dq, DualQuaternion().dq))):
+                    and not np.allclose(p0_array, DualQuaternion().dq))):
 
             if len(poses) == 4:
                 raise ValueError('The first pose must be the identity matrix '
