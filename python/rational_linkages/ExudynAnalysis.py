@@ -1,7 +1,14 @@
 import numpy as np
 from typing import Union
 
+from .utils import is_package_installed
 from .RationalMechanism import RationalMechanism
+
+
+if not is_package_installed('exudyn'):
+    print("Warning: The Exudyn package is not installed, since it is not "
+          "a dependency. To use this functionality, please install it "
+          "manually from PyPI using 'pip install exudyn'.")
 
 
 class ExudynAnalysis:

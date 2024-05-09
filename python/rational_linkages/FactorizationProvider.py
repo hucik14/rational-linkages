@@ -112,8 +112,6 @@ class FactorizationProvider:
         norm_poly = biquaternion_py.polynomials.Poly(norm_poly.poly.scal,
                                                      *norm_poly.indets)
 
-        print('Factorization is running...')
-
         # Calculate the irreducible factors, that determine the different factorizations
         _, factors = biquaternion_py.irreducible_factors(norm_poly, domain='RR')
 
@@ -125,8 +123,6 @@ class FactorizationProvider:
 
         factorization1 = biquaternion_py.factorize_from_list(poly, factors)
         factorization2 = biquaternion_py.factorize_from_list(poly, factors[::-1])
-
-        print('Factorization ended.')
 
         return [factorization1, factorization2]
 

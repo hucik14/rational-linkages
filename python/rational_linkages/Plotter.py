@@ -9,11 +9,13 @@ from matplotlib.widgets import Slider, TextBox
 from .DualQuaternion import DualQuaternion
 from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
-from .PointHomogeneous import PointHomogeneous
+from .PointHomogeneous import PointHomogeneous, PointOrbit
 from .RationalBezier import RationalBezier
 from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
+from .MiniBall import MiniBall
+from .Linkage import LineSegment
 
 
 class Plotter:
@@ -29,10 +31,12 @@ class Plotter:
 
         :param interactive: activate interactive mode
         :param jupyter_notebook: activate jupyter notebook mode
-        :param interval: interval for plotting
         :param steps: number of steps for plotting
         :param arrows_length: length of quiver arrows for poses and frames
         :param joint_range_lim: limit for joint sliders, will be +/- value
+        :param interval: interval for plotting, in case of a curve can be specified as interval = 'closed' for
+            full parametrization
+        :with_poses: plot the poses along the curve
         """
         # use Qt5Agg backend for interactive plotting
         if interactive and not jupyter_notebook:
@@ -81,16 +85,37 @@ class Plotter:
 
         self.plotted = {}
 
-    def plot(self, object_to_plot, **kwargs):
+    def plot(self, objects_to_plot, **kwargs):
+        """
+        Plot the object
+
+        :param objects_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve,
+            RationalBezier, MiniBall, or list of those
+        :param kwargs: plotting options following matplotlib standards and syntax
+        """
+        # if list of objects, plot each object separately
+        if isinstance(objects_to_plot, list):
+            # check for label list
+            label_list = kwargs.pop('label', None)
+
+            for i, obj in enumerate(objects_to_plot):
+                if label_list is not None:
+                    kwargs['label'] = label_list[i]
+                self._plot(obj, **kwargs)
+
+        # if single object, plot it
+        else:
+            self._plot(objects_to_plot, **kwargs)
+
+    def _plot(self, object_to_plot, **kwargs):
         """
         Plot the object
 
         :param object_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
+            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve, MiniBall,
             or RationalBezier
         :param kwargs: plotting options following matplotlib standards and syntax
-
-        :return: matplotlib axis
         """
         type_to_plot = self.analyze_object(object_to_plot)
 
@@ -113,6 +138,12 @@ class Plotter:
                 self._plot_rational_mechanism(object_to_plot, **kwargs)
             case "is_interactive":
                 self._plot_interactive(object_to_plot, **kwargs)
+            case "is_miniball":
+                self._plot_miniball(object_to_plot, **kwargs)
+            case "is_line_segment":
+                self._plot_line_segment(object_to_plot, **kwargs)
+            case "is_point_orbit":
+                self._plot_point_orbit(object_to_plot, **kwargs)
 
     def analyze_object(self, object_to_plot):
         """
@@ -143,6 +174,12 @@ class Plotter:
             return "is_dq"
         elif isinstance(object_to_plot, TransfMatrix):
             return "is_transf_matrix"
+        elif isinstance(object_to_plot, MiniBall):
+            return "is_miniball"
+        elif isinstance(object_to_plot, LineSegment):
+            return "is_line_segment"
+        elif isinstance(object_to_plot, PointOrbit):
+            return "is_point_orbit"
         else:
             raise TypeError(
                 "Other types than NormalizedLine, PointHomogeneous, RationalMechanism, "
@@ -253,6 +290,19 @@ class Plotter:
         else:
             interval = (0, 1)
 
+        if 'with_poses' in kwargs and kwargs['with_poses'] is True:
+            kwargs.pop('with_poses')
+
+            if interval == 'closed':
+                # tangent half-angle substitution for closed curves
+                t_space = np.tan(np.linspace(-np.pi / 2, np.pi / 2, 51))
+            else:
+                t_space = np.linspace(interval[0], interval[1], 50)
+
+            for t in t_space:
+                pose_dq = DualQuaternion(curve.evaluate(t))
+                self._plot_dual_quaternion(pose_dq)
+
         x, y, z = curve.get_plot_data(interval, self.steps)
 
         if 'label' not in kwargs:
@@ -261,11 +311,15 @@ class Plotter:
         self.ax.plot(x, y, z, **kwargs)
 
     @_plotting_decorator
-    def _plot_rational_bezier(self, bezier: RationalBezier, **kwargs):
+    def _plot_rational_bezier(self,
+                              bezier: RationalBezier,
+                              plot_control_points: bool = True,
+                              **kwargs):
         """
         Plot a rational Bezier curve
 
         :param bezier: RationalBezier
+        :param plot_control_points: plot control points
         :param kwargs: interval and matplotlib options
         """
         if 'interval' in kwargs:
@@ -280,7 +334,9 @@ class Plotter:
             kwargs['label'] = "bezier curve"
 
         self.ax.plot(x, y, z, **kwargs)
-        self.ax.plot(x_cp, y_cp, z_cp, "ro:")
+
+        if plot_control_points:
+            self.ax.plot(x_cp, y_cp, z_cp, "ro:")
 
     @_plotting_decorator
     def _plot_motion_factorization(self, factorization: MotionFactorization, **kwargs):
@@ -336,6 +392,7 @@ class Plotter:
 
         self._plot_tool_path(mechanism, **kwargs)
 
+    @_plotting_decorator
     def _plot_tool_path(self, mechanism: RationalMechanism, **kwargs):
         # plot end effector path
         t_lin = np.linspace(0, 2 * np.pi, self.steps)
@@ -349,6 +406,44 @@ class Plotter:
 
         x, y, z = zip(*ee_points)
         self.ax.plot(x, y, z, **kwargs)
+
+    @_plotting_decorator
+    def _plot_miniball(self, ball: MiniBall, **kwargs):
+        """
+        Plot a ball
+        """
+        if 'label' not in kwargs:
+            kwargs['label'] = "Miniball of Bezier curve"
+        if 'alpha' not in kwargs:
+            kwargs['alpha'] = 0.15
+
+        x, y, z = ball.get_plot_data()
+
+        self.ax.plot_surface(x, y, z, **kwargs)
+
+    @_plotting_decorator
+    def _plot_point_orbit(self, orbit: PointOrbit, **kwargs):
+        """
+        Plot a sphere of given point orbit
+        """
+        if 'alpha' not in kwargs:
+            kwargs['alpha'] = 0.15
+
+        x, y, z = orbit.get_plot_data()
+
+        self.ax.plot_surface(x, y, z, **kwargs)
+
+    @_plotting_decorator
+    def _plot_line_segment(self, segment: LineSegment, **kwargs):
+        """
+        Plot a line segment
+        """
+        x, y, z = segment.get_plot_data()
+
+        if 'alpha' not in kwargs:
+            kwargs['alpha'] = 0.2
+
+        self.ax.plot_surface(x, y, z, **kwargs)
 
     @_plotting_decorator
     def _plot_interactive(self,

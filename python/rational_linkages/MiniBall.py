@@ -1,27 +1,39 @@
 import numpy as np
-from matplotlib import pyplot as plt
 from scipy.optimize import minimize
 
 from .PointHomogeneous import PointHomogeneous
 
 
 class MiniBall:
-    def __init__(self, points: list, metric: str = "euclidean"):
+    def __init__(self,
+                 points: list[PointHomogeneous],
+                 metric: "AffineMetric" = None):
         """
         Initialize the MiniBall class
-        :param points: np.ndarray - array of points in the space
+
+        :param list[PointHomogeneous] points: array of points in the space
+        :param AffineMetric metric: alternative metric to be used for the ball
         """
         self.points = points
-        self.metric = metric
 
         self.number_of_points = len(self.points)
         self.dimension = self.points[0].coordinates.size
+
+        self.metric = metric
+
+        if metric is None:
+            self.metric = 'euclidean'
+            self.metric_obj = None
+        else:
+            metric = 'hofer'
+            self.metric_obj = metric
+
         self.center = np.zeros(self.dimension)
         self.radius = 10.0
 
         self.optimization_results = self.get_ball()
-        self.center = PointHomogeneous(self.optimization_results.x[: self.dimension])
-        self.radius = self.optimization_results.x[self.dimension]
+        self.center = PointHomogeneous(self.optimization_results.x[:-1])
+        self.radius = self.optimization_results.x[-1]
 
     def get_ball(self):
         """
@@ -36,17 +48,22 @@ class MiniBall:
 
         # Prepare constraint equations based on the metric
         if self.metric == "hofer":
-
             def constraint_equations(x):
                 """
                 For Hofer metric, constraint equations must satisfy the ball by:
                 r - radius of the sphere, x - one of given points,
                 c - center of the sphere
                 """
-                return NotImplemented
+                constraints = np.zeros(self.number_of_points)
 
+                for i in range(self.number_of_points):
+                    squared_distance = sum(self.metric_obj.squared_distance_pr12_points(
+                        self.points[i].normalize(), x[j])
+                        for j in range(self.dimension)
+                    )
+                    constraints[i] = x[-1] ** 2 - squared_distance
+                return constraints
         else:
-
             def constraint_equations(x):
                 """
                 For Euclidean metric, constraint equations must satisfy the ball by:
@@ -77,39 +94,27 @@ class MiniBall:
         result = minimize(objective_function, initial_guess, constraints=ineq_con)
         return result
 
-    def plot_ball(self, ax=None, color="red", alpha=0.15):
+    def get_plot_data(self) -> tuple:
         """
-        Plot the ball in 3D space
-        :param ax: matplotlib.axes.Axes object
-        :param color: color of the ball
-        :param alpha: transparency of the ball
-        """
-        # check dimension
-        if not self.dimension == 4:
-            raise ValueError(
-                "Cannot plot ball with dimension other than 3 (4 in homogenoeus coordinates)"
-            )
-        else:
-            if ax is None:
-                ax = plt.figure().add_subplot(projection="3d")
-            else:
-                ax = ax
+        Get data for plotting in 3D space
 
+        :return: x, y, z coordinates of the ball surface
+        :rtype: tuple
+
+        :raises ValueError: if the dimension is not 4 or 13
+        """
+        if self.dimension == 4 or self.dimension == 13:
             # Create the 3D sphere representing the circle
-            u = np.linspace(0, 2 * np.pi, 100)
-            v = np.linspace(0, np.pi, 100)
-            x = (
-                self.radius * np.outer(np.cos(u), np.sin(v))
-                + self.center.normalized_in_3d()[0]
-            )
-            y = (
-                self.radius * np.outer(np.sin(u), np.sin(v))
-                + self.center.normalized_in_3d()[1]
-            )
-            z = (
-                self.radius * np.outer(np.ones(np.size(u)), np.cos(v))
-                + self.center.normalized_in_3d()[2]
-            )
-            ax.plot_surface(x, y, z, color=color, alpha=alpha)
+            u = np.linspace(0, 2 * np.pi, 30)
+            v = np.linspace(0, np.pi, 30)
 
-        return ax
+            x = (self.radius * np.outer(np.cos(u), np.sin(v))
+                 + self.center.normalized_in_3d()[0])
+            y = (self.radius * np.outer(np.sin(u), np.sin(v))
+                 + self.center.normalized_in_3d()[1])
+            z = (self.radius * np.outer(np.ones(np.size(u)), np.cos(v))
+                 + self.center.normalized_in_3d()[2])
+        else:
+            raise ValueError("Cannot plot ball due to incompatible dimension.")
+
+        return x, y, z

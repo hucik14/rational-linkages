@@ -9,8 +9,14 @@ class AffineMetric:
     """
     Class of affine metric in R12
 
-    For more information, see M. Hofer's dissertation thesis titled "Variational Motion
-    Design in the Presence of Obstacles", section 2.2 on page 6.
+    :references:
+        M. Hofer, "Variational Motion Design in the Presence of Obstacles",
+        dissertation thesis (2004), Page 7, Equation 2.4
+
+        Schroecker, Weber, "Guaranteed collision detection with toleranced
+        motions", Computer Aided Geometric Design (2014), Equation 3. DOI:
+        http://dx.doi.org/10.1016/j.cagd.2014.08.001
+
     """
     def __init__(self, motion_curve: RationalCurve, points: list[PointHomogeneous]):
         """
@@ -23,10 +29,17 @@ class AffineMetric:
         self.points = points
         self.number_of_points = len(points)
 
-        self.matrix = self.create_affine_metric()
+        # By Hofer
+        self.pose_distance_matrix = self.create_affine_metric()
+
+        # By Schroecker, Weber
+        self.inertia_matrix = np.sum([p[0] ** 2 * np.outer(p[1:], p[1:])
+                                      for p in self.points], axis=0)
+        self.inertia_eigen_vals = np.linalg.eigvals(self.inertia_matrix)
+        self.total_mass = np.sum([p[0] for p in self.points])
 
     def __repr__(self):
-        return f"{self.matrix}"
+        return f"{self.pose_distance_matrix}"
 
     def create_affine_metric(self) -> np.ndarray:
         """
@@ -36,11 +49,13 @@ class AffineMetric:
         the formulation from M. Hofer's dissertation thesis titled "Variational Motion
         Design in the Presence of Obstacles", specifically on page 7, equation 2.4.
 
-        :return: np.ndarray - affine metric matrix in R12x12
+        :return: affine metric matrix in R12x12
+        :rtype: np.ndarray
 
         :references:
-            - M. Hofer, "Variational Motion Design in the Presence of Obstacles",
+            M. Hofer, "Variational Motion Design in the Presence of Obstacles",
             dissertation thesis (2004), Page 7, Equation 2.4
+
         """
         metric_matrix = np.zeros((12, 12))
         for i in range(self.number_of_points):
@@ -54,11 +69,13 @@ class AffineMetric:
 
         :param point: PointHomogeneous - point in the 3D space
 
-        :return: np.ndarray - metric matrix of a single point in R12x12
+        :return: metric matrix of a single point in R12x12
+        :rtype: np.ndarray
 
         :references:
-            - M. Hofer, "Variational Motion Design in the Presence of Obstacles",
+            M. Hofer, "Variational Motion Design in the Presence of Obstacles",
             dissertation thesis (2004), Page 7, Equation 2.4
+
         """
         p = point.normalized_in_3d()
         i = np.eye(3)
@@ -88,43 +105,92 @@ class AffineMetric:
         """
         Get the transformations of the curve
 
-        :return: list[DualQuaternion] - transformations of the curve
+        :return: transformations of the curve
+        :rtype: list[DualQuaternion]
         """
 
         # tranformation at -1
         dq_1 = self.motion_curve.evaluate(-1)
-        # transformation at 1
-        dq_2 = self.motion_curve.evaluate(1)
         # transformation at infinity
         dq_inf = self.motion_curve.evaluate(0, inverted_part=True)
 
-        return [DualQuaternion(dq_1), DualQuaternion(dq_2), DualQuaternion(dq_inf)]
+        return [DualQuaternion(dq_1), DualQuaternion(dq_inf)]
 
-    def distance(self, a: np.ndarray, b: np.ndarray) -> float:
+    def distance_via_matrix(self, a: DualQuaternion, b: DualQuaternion) -> float:
         """
         Distance between two affine displacements
 
-        :param a:
-        :param b:
+        :param DualQuaternion a: displacement
+        :param DualQuaternion b: displacement
+
+        :return: distance between a and b
+        :rtype: float
+        """
+        a12 = a.as_12d_vector()
+        b12 = b.as_12d_vector()
+        ab = a12 - b12
+        return np.sqrt(ab @ self.pose_distance_matrix @ ab)
+
+    def squared_distance_pr12_points(self, a: np.ndarray, b: np.ndarray) -> float:
+        """
+        Squared distance between two points in R12
+
+        :param np.ndarray a: point in PR12
+        :param np.ndarray b: point in PR12
+
+        :return: squared distance between a and b
+        :rtype: float
+        """
+        a12 = a[1:]
+        b12 = b[1:]
+
+        ab = a12 - b12
+        return ab @ self.pose_distance_matrix @ ab
+
+    def distance(self, a: DualQuaternion, b: DualQuaternion) -> float:
+        """
+        Distance between two affine displacements
+
+        :param DualQuaternion a: displacement
+        :param DualQuaternion b: displacement
+
         :return: float - distance between a and b
+        :rtype: float
         """
-        return np.sqrt(self.inner_product(a - b, a - b))
+        return np.sqrt(self.inner_product(a, b))
 
-    def inner_product(self, dq_a: DualQuaternion, dq_b: DualQuaternion):
+    def squared_distance(self, a: DualQuaternion, b: DualQuaternion) -> float:
         """
-        Inner product of two DualQuaternions
+        Squared distance between two affine displacements
 
-        :param dq_a: DualQuaternion
-        :param dq_b: DualQuaternion
+        :param DualQuaternion a: displacement
+        :param DualQuaternion b: displacement
 
-        :return: float - inner product of dq_a and dq_b
+        :return: float - squared distance between a and b
+        :rtype: float
         """
-        inner_product = np.zeros(4)
+        return self.inner_product(a, b)
+
+    def inner_product(self, a: DualQuaternion, b: DualQuaternion):
+        """
+        Inner product of two DualQuaternions in the affine space
+
+        It is calculated as the sum of usual dot products of acted points, after the two
+        dual quaternions act on the points that define the metric.
+
+        :param DualQuaternion a: displacement
+        :param DualQuaternion b: displacement
+
+        :return: inner product of dq_a and dq_b
+        :rtype: float
+        """
+        inner_product = 0
         for i in range(self.number_of_points):
-            a_point = dq_a.act(self.points[i])
-            b_point = dq_b.act(self.points[i])
+            a_point = a.act(self.points[i])
+            b_point = b.act(self.points[i])
 
-            point = np.dot(a_point.array(), b_point.array())
-            inner_product += point
+            scalar = np.dot(a_point.normalized_in_3d() - b_point.normalized_in_3d(),
+                            a_point.normalized_in_3d() - b_point.normalized_in_3d())
+            inner_product += scalar
 
         return inner_product

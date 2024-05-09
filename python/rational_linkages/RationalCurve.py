@@ -5,6 +5,7 @@ import numpy as np
 import sympy as sp
 
 from .PointHomogeneous import PointHomogeneous
+from .DualQuaternion import DualQuaternion
 
 MotionFactorization = "MotionFactorization"
 
@@ -21,6 +22,11 @@ class RationalCurve:
     :ivar degree: The degree of the curve.
     :ivar symbolic: Symbolic expressions for the parametric equations of the curve.
     :ivar set_of_polynomials: A set of polynomials representing the curve.
+    :ivar symbolic_inversed: Symbolic expressions for the parametric equations of the
+        inversed curve.
+    :ivar set_of_polynomials_inversed: A set of polynomials representing the inversed
+        curve.
+    :ivar is_motion: True if the curve is a motion curve, False otherwise.
 
     :examples:
 
@@ -70,6 +76,10 @@ class RationalCurve:
 
         self.coeffs_inversed = self.inverse_coeffs()
         self.symbolic_inversed, self.set_of_polynomials_inversed = self.get_symbolic_expressions(self.coeffs_inversed)
+
+        # check if the curve is a motion curve
+        self.is_motion = self.dimension == 7
+        self.is_affine_motion = self.dimension == 12
 
     @classmethod
     def from_coeffs(cls, coeffs: np.ndarray) -> "RationalCurve":
@@ -140,7 +150,9 @@ class RationalCurve:
     def __repr__(self):
         return f"RationalCurve({self.symbolic})"
 
-    def curve2bezier(self, reparametrization: bool = False) -> list[PointHomogeneous]:
+    def curve2bezier_control_points(self,
+                                    reparametrization: bool = False
+                                    ) -> list[PointHomogeneous]:
         """
         Convert a curve to a Bezier curve using the Bernstein polynomials
 
@@ -178,8 +190,8 @@ class RationalCurve:
         points_sol = sp.linsolve(equations_coeffs, points_flattened)
         # Convert the solutions to numpy arrays (get points)
         points_array = np.array(points_sol.args[0], dtype="float64").reshape(
-            self.degree + 1, self.dimension + 1
-        )
+            self.degree + 1, self.dimension + 1)
+
         points_objects = [PointHomogeneous()] * (self.degree + 1)
         for i in range(self.degree + 1):
             points_objects[i] = PointHomogeneous(points_array[i, :])
@@ -219,7 +231,9 @@ class RationalCurve:
         # Generate the polynomial expression using the Bernstein polynomials
         for i in range(degree + 1):
             polynomial_expr = sp.binomial(degree, i) * t**i * (1 - t) ** (degree - i)
-            expr.append(sp.simplify(polynomial_expr))
+            #expr.append(sp.simplify(polynomial_expr))
+            expr.append(polynomial_expr)
+            # TODO: simplify bottleneck
 
         return expr
 
@@ -337,8 +351,6 @@ class RationalCurve:
         :return: tuple of np.ndarray - (x, y, z) coordinates of the curve
         :rtype: tuple[np.ndarray, np.ndarray, np.ndarray]
         """
-        from .DualQuaternion import DualQuaternion
-
         t = sp.Symbol("t")
 
         if interval == 'closed':
@@ -359,11 +371,117 @@ class RationalCurve:
             point = self.evaluate(t_space[i])
 
             # if it is a pose in SE3, convert it to a point via matrix mapping
-            if self.dimension == 7:
+            if self.is_motion:
                 point = DualQuaternion(point).dq2point_via_matrix()
                 point = np.concatenate((np.array([1]), point))
+            elif self.is_affine_motion:
+                point = point[:4]
 
             curve_points[i] = PointHomogeneous([point[0], point[-3], point[-2], point[-1]])
         x, y, z = zip(*[curve_points[i].normalized_in_3d() for i in range(steps)])
         return x, y, z
+
+    def get_curve_in_pr12(self) -> "RationalCurve":
+        """
+        Get the representation of the curve in PR12
+
+        :return: curve in PR12
+        :rtype: RationalCurve
+        """
+        if not self.is_motion:
+            raise ValueError("The curve is not a motion curve, cannot convert to PR12")
+
+        t = sp.Symbol("t")
+
+        # convert the motion curve to a dual quaternion, then map to matrix
+        curve_matrix = DualQuaternion(self.symbolic).dq2matrix(normalize=False)
+
+        # save the not normalized coordinate
+        curve_p = curve_matrix[0, 0]
+        # transpose the matrix so the flatten() provides right order (vector by vector)
+        curve_r12 = curve_matrix[1:4, :].T.flatten()
+
+        # create PR12 vector of polynomial equations
+        curve_pr12 = np.concatenate((np.array([curve_p]), curve_r12))
+        curve_poly = [sp.Poly(curve, t) for curve in curve_pr12]
+
+        return RationalCurve(curve_poly)
+
+    def split_in_beziers(self,
+                         metric: Union[str, "AffineMetric"] = "euclidean",
+                         min_splits: int = 0) -> list["BezierSegment"]:
+        """
+        Split the curve into Bezier curves with positive weights of control points.
+
+        The curve is split into Bezier curves using the De Casteljau algorithm.
+
+        :param int min_splits: minimal number of splits to be performed
+        :param Union[str, AffineMetric] metric: metric for the optimization
+
+        :return: list of RationalBezier objects
+        :rtype: list[RationalBezier]
+        """
+        if self.is_motion:
+            curve = self.get_curve_in_pr12()
+        else:
+            raise ValueError("The curve is not a motion curve, cannot "
+                             "split into Bezier curves")
+
+        from .RationalBezier import BezierSegment  # method import
+
+        # obtain Bezier curves for the curve and its reparametrized inverse part
+        bezier_curve_segments = [
+            # reparametrize the curve from the intervals [-1, 1]
+            BezierSegment(curve.curve2bezier_control_points(reparametrization=True),
+                          metric=metric,
+                          t_param=(False, [-1.0, 1.0])),
+            BezierSegment(curve.inverse_curve().curve2bezier_control_points(
+                reparametrization=True),
+                          metric=metric,
+                          t_param=(True, [-1.0, 1.0]))
+        ]
+
+        # split the Bezier curves until all control points have positive weights
+        while True:
+            new_segments = [
+                part for b_curve in bezier_curve_segments
+                for part in (
+                    b_curve.split_de_casteljau(metric=metric) if b_curve.check_for_control_points_at_infinity() or b_curve.check_for_negative_weights() else [b_curve])
+            ]
+
+            if not any(
+                    b_curve.check_for_control_points_at_infinity() or b_curve.check_for_negative_weights()
+                    for b_curve in new_segments):
+                if len(new_segments) < min_splits:
+                    new_segments = [
+                        part for b_curve in new_segments
+                        for part in b_curve.split_de_casteljau(metric=metric)
+                    ]
+                else:
+                    bezier_curve_segments = new_segments
+                    break
+
+            bezier_curve_segments = new_segments
+
+        return bezier_curve_segments
+
+    def get_path_length(self, num_of_points: int = 100) -> float:
+        """
+        Get the length of the curve path
+
+        Evaluates the curve in the given number of points and sums the distances between.
+
+        :param int num_of_points: number of discrete points to evaluate the curve
+
+        :return: length of the curve path
+        :rtype: float
+        """
+        t_space = np.tan(np.linspace(-np.pi/2, np.pi/2, num_of_points))
+        poses = [self.evaluate(t) for t in t_space]
+
+        points = [DualQuaternion(p).dq2point_via_matrix()
+                  for p in poses]
+
+        return np.sum(np.linalg.norm(np.diff(points, axis=0), axis=1))
+
 

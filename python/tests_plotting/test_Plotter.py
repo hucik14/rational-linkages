@@ -69,6 +69,15 @@ class TestPlotter(unittest.TestCase):
         os.remove('test_plot_line.png')
         os.remove('python/tests_plotting/baseline_images/plot_line-failed-diff.png')
 
+    def test_plot_list(self):
+        dq1 = DualQuaternion()
+        dq2 = TransfMatrix()
+        self.plotter._plot_dual_quaternion = MagicMock()
+        self.plotter._plot_transf_matrix = MagicMock()
+        self.plotter.plot([dq1, dq2])
+        self.plotter._plot_dual_quaternion.assert_called_once_with(dq1)
+        self.plotter._plot_transf_matrix.assert_called_once_with(dq2)
+
 
 if __name__ == '__main__':
     unittest.main()

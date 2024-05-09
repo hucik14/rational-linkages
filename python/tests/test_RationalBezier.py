@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from rational_linkages import PointHomogeneous, RationalBezier
+from rational_linkages import PointHomogeneous, RationalBezier, BezierSegment
 
 
 class TestRationalBezier(TestCase):
@@ -14,16 +14,16 @@ class TestRationalBezier(TestCase):
             PointHomogeneous(np.array([0.0, 1.0, 2.0, 0.0])),
             PointHomogeneous(np.array([4.0, 0.0, 2.0, 4.0])),
         ]
-        bezier_curve = RationalBezier(control_points, reparametrization=True)
+        bezier_curve = RationalBezier(control_points)
 
         self.assertIsInstance(bezier_curve, RationalBezier)
 
         expected_coeffs = np.array(
             [
-                [1.0, 0.0, 2.0, 0.0, 1.0],
-                [0.5, 0.0, -2.0, 0.0, 1.5],
-                [0.0, -1.0, 0.0, 3.0, 0.0],
-                [1.0, 0.0, 2.0, 0.0, 1.0],
+                [16.0, -32.0, 32.0, -16.0, 4.0],
+                [8, -16.0, 4.0, 4.0, 0.0],
+                [0.0, -8.0, 12.0, 0.0, -2.0],
+                [16.0, -32.0, 32.0, -16.0, 4.0],
             ]
         )
 
@@ -49,7 +49,7 @@ class TestRationalBezier(TestCase):
             PointHomogeneous(np.array([0.0, 1.0, 2.0, 0.0])),
             PointHomogeneous(np.array([4.0, 0.0, 2.0, 4.0])),
         ]
-        bezier_curve = RationalBezier(control_points)
+        bezier_curve = BezierSegment(control_points)
 
         expected_left_curve_control_points = [
             PointHomogeneous(np.array([4.0, 0.0, -2.0, 4.0])),

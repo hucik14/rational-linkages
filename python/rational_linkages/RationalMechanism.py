@@ -11,8 +11,7 @@ from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
 from .RationalCurve import RationalCurve
 from .TransfMatrix import TransfMatrix
-
-PointHomogeneous = 'PointHomogeneous'
+from .PointHomogeneous import PointHomogeneous
 
 
 class RationalMechanism(RationalCurve):
@@ -75,8 +74,10 @@ class RationalMechanism(RationalCurve):
 
         self.tool_frame = self._determine_tool(tool)
 
+        self.segments = None
+
         if self.is_linkage:
-            self.segments = self._get_line_segments_of_linkage()
+            self.update_segments()
 
     @classmethod
     def from_saved_file(cls, filename: str):
@@ -115,6 +116,9 @@ class RationalMechanism(RationalCurve):
             pass
         else:
             filename = filename + '.pkl'
+
+        # update the line segments (physical realization of the linkage) before saving
+        self.update_segments()
 
         with open(filename, 'wb') as file:
             pickle.dump(self, file)
@@ -442,7 +446,7 @@ class RationalMechanism(RationalCurve):
         print("Collision check started...")
 
         # update the line segments (physical realization of the linkage)
-        self.segments = self._get_line_segments_of_linkage()
+        self.update_segments()
 
         iters = []
         # iterate over all line segments
@@ -660,6 +664,12 @@ class RationalMechanism(RationalCurve):
 
         return intersection_points
 
+    def update_segments(self):
+        """
+        Update the line segments of the linkage.
+        """
+        self.segments = self._get_line_segments_of_linkage()
+
     def _get_line_segments_of_linkage(self) -> list:
         """
         Return the line segments of the linkage.
@@ -791,3 +801,32 @@ class RationalMechanism(RationalCurve):
                 raise ValueError("Invalid method.")
 
         return results
+
+    def points_at_parameter(self,
+                            t: float,
+                            inverted_part: bool = False,
+                            only_links: bool = False) -> list[PointHomogeneous]:
+        """
+        Get the points of the mechanism at the given parameter.
+
+        :param float t: parameter value
+        :param bool inverted_part: if True, return the evaluated points for the inverted
+            part of the mechanism
+        :param bool only_links: if True, instead of two points per joint segment,
+            return only the first one
+
+        :return: list of connection points of the mechanism
+        :rtype: list[PointHomogeneous]
+        """
+
+        branch0 = self.factorizations[0].direct_kinematics(t,
+                                                           inverted_part=inverted_part)
+        branch1 = self.factorizations[1].direct_kinematics(t,
+                                                           inverted_part=inverted_part)
+
+        points = branch0 + branch1[::-1]
+
+        if only_links:
+            points = [points[i] for i in range(0, len(points), 2)]
+
+        return [PointHomogeneous.from_3d_point(p) for p in points]

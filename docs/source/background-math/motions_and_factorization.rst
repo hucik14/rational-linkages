@@ -22,7 +22,11 @@ It is given by a polynomial :math:`C(t)` with dual quaternion coefficients. An
 example of a rational motion follows
 
 .. math::
-    C(t) = \begin{bmatrix} t^2 + 1 \\ 0 \\ 0 \\ 0 \\ 0 \\ 1 \\ -t \\ 0 \end{bmatrix}
+    C(t) =
+    \begin{bmatrix}
+    t^2 + 1 \\ 0 \\ 0 \\ 0 \\ 0 \\ 1 \\ -t \\ 0
+    \end{bmatrix}
+    \in SE(3)
 
 which is a continuous curve in the space of dual quaternions describing position and
 orientation of a rigid body. The parameter :math:`t` is a real number, and can be
@@ -65,15 +69,16 @@ Applying the factorization technique, the curve can be factorized into a sequenc
 following linear factors:
 
 .. math::
-    f1: (t - h_1)(t - h_2)
+    f_0: (t - \mathbf{h}_0)(t - \mathbf{h}_1)
 
-    f2: (t - k_1)(t - k_2)
+    f_1: (t - \mathbf{k}_0)(t - \mathbf{k}_1)
 
 .. math::
 
-    C(t) = f1 = f2 = (t - h_1)(t - h_2) = (t - k_1)(t - k_2)
+    C(t) = f_0 = f_1 = (t - \mathbf{h}_0)(t - \mathbf{h}_1) =
+    (t - \mathbf{k}_0)(t - \mathbf{k}_1)
 
-The two factorizations :math:`f1` and :math:`f2` represent two branches of a serial
+The two factorizations :math:`f_0` and :math:`f_1` represent two branches of a serial
 mechanism, which can be connected in the base and tool frame to create
 a single-loop (parallel) mechanism, in this case it is a 1-DoF Bennett mechanism,
 where parameter :math:`t` represents a driving joint angle (the 1-DoF).
@@ -83,12 +88,13 @@ The output can be visualized as shown in the following figure.
     :align: center
     :alt: Visualization of the synthesized Bennett mechanism
 
-The dual quaternions :math:`h_1, h_2, k_1, k_2` represent the rotational joints of
+The dual quaternions :math:`\mathbf{h}_0, \mathbf{h}_1, \mathbf{k}_0, \mathbf{k}_1`
+represent the rotational joints of
 the mechanism, and are related to their Plücker coordinates.
 In the presented example, the dual quaternions have the following form:
 
 .. math::
-    h_1 =
+    \mathbf{h}_1 =
     \begin{bmatrix}
         -1.38983921 \\
         0.68767732 \\
@@ -99,7 +105,7 @@ In the presented example, the dual quaternions have the following form:
         0.233347361 \\
         -0.03619970 \\
     \end{bmatrix}
-    h_2 =
+    \mathbf{h}_2 =
     \begin{bmatrix}
         -0.45127753 \\
         -1.18920251  \\
@@ -110,7 +116,7 @@ In the presented example, the dual quaternions have the following form:
         0.0051919116 \\
         0.230221262 \\
     \end{bmatrix}
-    k_1 =
+    \mathbf{k}_1 =
     \begin{bmatrix}
         -0.45127753 \\
         -1.37336934 \\
@@ -121,7 +127,7 @@ In the presented example, the dual quaternions have the following form:
         0.242442406 \\
         -0.00228634 \\
     \end{bmatrix}
-    k_2 =
+    \mathbf{k}_2 =
     \begin{bmatrix}
         -1.38983921  \\
         0.87184415 \\
