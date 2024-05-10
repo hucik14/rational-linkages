@@ -9,11 +9,14 @@ class AffineMetric:
     """
     Class of affine metric in R12
 
-    References: M. Hofer, "Variational Motion Design in the Presence of Obstacles",
-    dissertation thesis (2004), Page 7, Equation 2.4 :footcite:p:`Hofer2004diss`.
-    Schroecker, Weber, "Guaranteed
-    collision detection with toleranced motions", Computer Aided Geometric
-    Design (2014), Equation 3. :footcite:p:`Schroecker2014`.
+    :references:
+        M. Hofer, "Variational Motion Design in the Presence of Obstacles",
+        dissertation thesis (2004), Page 7, Equation 2.4
+
+        Schroecker, Weber, "Guaranteed collision detection with toleranced
+        motions", Computer Aided Geometric Design (2014), Equation 3. DOI:
+        http://dx.doi.org/10.1016/j.cagd.2014.08.001
+
     """
     def __init__(self, motion_curve: RationalCurve, points: list[PointHomogeneous]):
         """
@@ -44,11 +47,15 @@ class AffineMetric:
 
         This function computes the metric matrix for a homogeneous 3D point based on
         the formulation from M. Hofer's dissertation thesis titled "Variational Motion
-        Design in the Presence of Obstacles", specifically on page 7,
-        equation 2.4. :footcite:p:`Hofer2004diss`
+        Design in the Presence of Obstacles", specifically on page 7, equation 2.4.
 
         :return: affine metric matrix in R12x12
         :rtype: np.ndarray
+
+        :references:
+            M. Hofer, "Variational Motion Design in the Presence of Obstacles",
+            dissertation thesis (2004), Page 7, Equation 2.4
+
         """
         metric_matrix = np.zeros((12, 12))
         for i in range(self.number_of_points):
@@ -60,13 +67,15 @@ class AffineMetric:
         """
         Get the metric matrix of the given point
 
-        Reference: M. Hofer, "Variational Motion Design in the Presence of Obstacles",
-        dissertation thesis (2004), page 7, equation 2.4. :footcite:p:`Hofer2004diss`
-
         :param point: PointHomogeneous - point in the 3D space
 
         :return: metric matrix of a single point in R12x12
         :rtype: np.ndarray
+
+        :references:
+            M. Hofer, "Variational Motion Design in the Presence of Obstacles",
+            dissertation thesis (2004), Page 7, Equation 2.4
+
         """
         p = point.normalized_in_3d()
         i = np.eye(3)

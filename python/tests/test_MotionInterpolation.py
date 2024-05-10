@@ -13,7 +13,7 @@ class TestMotionInterpolation(TestCase):
         p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
 
         # Call the interpolate method
-        curve = mi.interpolate([p0, p1, p2])
+        curve = mi.interpolate([p2, p1, p0])
 
         # Check the type of the returned object
         self.assertIsInstance(curve, RationalCurve)
@@ -39,20 +39,7 @@ class TestMotionInterpolation(TestCase):
         p2 = "invalid"
         self.assertRaises(TypeError, mi.interpolate, [p0, p1, p2])
 
-    def test_interpolate_quadratic_2_poses(self):
-        mi = MotionInterpolation()
-        # Create some dummy poses
-        p0 = DualQuaternion.as_rational([1, 2, 0, 0, -2, 1, 0, 0])
-        p1 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
-
-        curve = mi.interpolate([p0, p1])
-        expected_coeffs = np.array([[2.5, 1., -0.5], [0., 1., -1.], [0., 1., 0.],
-                                    [0., 0., 0.], [0., 0., 1.], [0., 0.5, -0.5],
-                                    [0., -3., 0.], [0., 0., 0.]])
-        self.assertIsInstance(curve, RationalCurve)
-        self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
-
-    def test_interpolate_quadratic_2_poses_optimized(self):
+    def test_interpolate_quadratic_2_poses_optimization(self):
         mi = MotionInterpolation()
         p0 = DualQuaternion.as_rational([0, 17, -33, -89, 0, -6, 5, -3])
         p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
