@@ -9,9 +9,9 @@
 
 # Rational Linkages
 
-Python-based toolbox for synthesis and rapid-prototyping of rational linkages, 
+Python-based package for synthesis and rapid-prototyping of rational linkages, 
 developed by the Unit of Geometry and Surveying, University of Innsbruck, Austria. 
-The documentation is hosted on Read the Docs, available here: 
+The **documentation with examples** is hosted on Read the Docs, available here: 
 [Rational Linkages Documentation](https://rational-linkages.readthedocs.io/).
 
 ## Intallation instuctions
@@ -36,7 +36,7 @@ Using pip:
 
     <code>cd rational-linkages</code>
 
-3. Install the *editable* version of the pakcage using pip:
+3. Install the *editable* version of the package using pip:
 
     <code>pip install -e .</code>
 

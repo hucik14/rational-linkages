@@ -24,18 +24,22 @@ if __name__ == "__main__":
     # t3 = TransfMatrix.from_rpy_xyz([90, 45, 0], [2, 1, 0], unit="deg")
     # p3 = DualQuaternion.as_rational(t3.matrix2dq())
 
-    p0 = DualQuaternion()
+    p0 = DualQuaternion.random_on_study_quadric()
+
+    #p0 = TransfMatrix()  # for simplification, p0 is the identity matrix
+    p1 = TransfMatrix.from_rpy_xyz([-40, 0, 0], [0.030, 0.1, 0.02], unit='deg')
+    p2 = TransfMatrix.from_rpy_xyz([0, 90, 0], [0.09, -0.05, -0.02], unit='deg')
 
     c = MotionInterpolation.interpolate([p0, p1, p2, p3])
     f = c.factorize()
     m = RationalMechanism(f)
 
-    m.collision_free_optimization()
+    #m.collision_free_optimization()
 
     p = Plotter(interactive=True, steps=1000, arrows_length=0.5)
     p.plot(m, show_tool=True)
 
-    for pose in [p0, p1, p2, p3]:
+    for pose in [p0, p1, p2,]:
         p.plot(pose)
 
     p.show()

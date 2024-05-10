@@ -224,6 +224,15 @@ class TransfMatrix:
 
         return cls(mat)
 
+    def array(self) -> np.array:
+        """
+        Return transformation matrix as 4x4 numpy array
+
+        :return: 4x4 numpy array
+        :rtype: np.array
+        """
+        return self.matrix
+
     def is_rotation(self):
         """
         Check if matrix is rotation matrix with determinant equal to 1

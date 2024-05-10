@@ -64,13 +64,6 @@ This equation serves as the input for the following script.
         p.plot(m, show_tool=True)
         p.show()
 
-.. testoutput::
-    :hide:
-    :options: +ELLIPSIS
-
-    ...
-
-
 
 The curve :math:`C(t)` is of degree 2 in the variable :math:`t`, and can be factorized
 in the following form:

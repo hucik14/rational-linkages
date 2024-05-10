@@ -40,12 +40,6 @@ Factorization of planar 4-bar
     myplt.plot(m, show_tool=True)
     myplt.show()
 
-.. testoutput::
-    :hide:
-    :options: +ELLIPSIS
-
-    ...
-
 Which results in the following plot:
 
 .. figure:: figures/planar4bar.svg
@@ -79,12 +73,6 @@ Factorization of spatial 6R mechanism
     myplt = Plotter(interactive=True, steps=200, arrows_length=0.2)
     myplt.plot(m, show_tool=True)
     myplt.show()
-
-.. testoutput::
-    :hide:
-    :options: +ELLIPSIS
-
-    ...
 
 Which results in the following plot:
 

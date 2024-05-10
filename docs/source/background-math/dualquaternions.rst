@@ -13,7 +13,7 @@ real numbers.
 A dual quaternion :math:`\mathbf{p}` is defined as:
 
 .. math::
-    \mathbf{p} = \mathbf{q}_p + \epsilon \mathbf{q}_d
+    \mathbf{p} = \mathbf{q}_p + \epsilon \mathbf{q}_d \in SE(3)
 
 where :math:`\mathbf{q}_p` (primal) is the rotation quaternion, :math:`\mathbf{q}_d`
 (dual) is the translation quaternion, and :math:`\epsilon` is the dual unit with the
