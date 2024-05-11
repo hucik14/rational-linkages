@@ -741,11 +741,11 @@ class Plotter:
         :param str output_dir: directory where the frames should be saved
 
         """
-        # Check if the file_type is supported
+        # check if the file_type is supported
         if file_type not in plt.gcf().canvas.get_supported_filetypes():
             raise ValueError(f"Unsupported file type {file_type}")
 
-        # Check if the output directory exists
+        # if the output directory does not exist, create it
         if not isdir(output_dir):
             makedirs(output_dir)
 
@@ -755,9 +755,9 @@ class Plotter:
         for i, val in enumerate(t_angle):
             self.plot_slider_update(val)
 
+        # save the frames
         for i, val in enumerate(t_angle):
             self.plot_slider_update(val)
-            # Save the figure with the specified filename prefix, in the specified directory
             self.fig.savefig(
                 join(output_dir, f"{filename_prefix}{i}.{file_type}"))
 
