@@ -40,16 +40,20 @@ class SingularityAnalysis:
         p = sum_det
 
         first_derivative = sympy.diff(p, t)
-        print(first_derivative)
+        first_derivative = sympy.simplify(first_derivative)
 
         f = sympy.lambdify(t, first_derivative, 'numpy')
+        #coeffs = sympy.Poly(first_derivative).all_coeffs()
+        #print("Coeffs:", coeffs)
 
-        coeffs = sympy.Poly(first_derivative)
-        print(f)
+        t_space = np.linspace(-1, 1, 10)
+
+        y = f(t_space)
+        print("Y:", y)
 
         second_derivative = sympy.diff(first_derivative, t)
         # Find the critical points
-        critical_points = sympy.solve(first_derivative, t)
+        critical_points = sympy.nsolve(first_derivative, t)
 
 
         # Determine which critical points are local minima
