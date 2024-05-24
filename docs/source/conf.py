@@ -107,9 +107,9 @@ hoverxref_role_types = {
     'footcite': 'tooltip',
 }
 
-# hoverxref_tooltip_maxwidth = 300  # Set the maximum width of tooltips
-# hoverxref_tooltip_border_color = 'blue'  # Customize the border color
-# hoverxref_tooltip_border_width = 1  # Set the border width
+hoverxref_tooltip_maxwidth = 300  # Set the maximum width of tooltips
+hoverxref_tooltip_border_color = 'blue'  # Customize the border color
+hoverxref_tooltip_border_width = 1  # Set the border width
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
