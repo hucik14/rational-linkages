@@ -34,6 +34,7 @@ doc = [
     "sphinxcontrib-bibtex",
     "toml",
     "pandoc",
+    "sphinx-hoverxref",
 ]
 dev = [
     "build",
