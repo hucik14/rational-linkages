@@ -3,6 +3,18 @@
 
 .. include:: refs-weblinks.rst
 
+.. |image1| image:: /figures/r4.JPEG
+   :width: 24%
+.. |image2| image:: /figures/r6li.JPEG
+   :width: 24%
+.. |image3| image:: /figures/r6hp.JPEG
+   :width: 24%
+.. |image4| image:: figures/r6joh.JPEG
+   :width: 24%
+
+.. |binder_badge| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
+
 Rational Linkages
 =================
 
@@ -26,12 +38,16 @@ Rational Linkages
    :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
 
 Welcome to the Rational Linkages package documentation, which serves as a reference for
-the provided tools. This package is a collection of functions for the analysis of
-rational linkages and their rapid prototyping. It is written in Python and uses the
-Numpy and SymPy libraries for computations, and Matplotlib for plotting. It is developed
-at the Unit of Geometry and Surveying, University of Innsbruck, Austria.
+the provided tools. This package is a collection of functions for the synthesis,
+analysis, rapid prototyping of the single-loop rational linkages, allowing one to
+create 3D-printable collision-free mechanisms synthesised for a given task
+(set of poses), as in the images below.
 
-The source code is available as `Gitlab repository`_ hosted by UIBK. The *installation
+|image1| |image2| |image3| |image4|
+
+The package is developed at the Unit of Geometry and Surveying,
+University of Innsbruck, Austria. The source code is available
+as `Gitlab repository`_ hosted by UIBK. The *installation
 instructions* can be found in the :ref:`installation manual<installation>`.
 
 Since the self-hosted repository does not allow external users to create issues,
@@ -39,10 +55,8 @@ please, use the `external issue tracker`_
 hosted on Github for submitting **issues** and **feature requests**.
 
 For installation-free try-out, run live example of the package in your browser using
-the **Binder** service. Click on the badge below to start the Binder session:
-
-.. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
+the **Binder** service. Click on the badge to start
+the Jupyter Notebook: |binder_badge|
 
 In case of other questions or contributions, please, email the author at:
 daniel.huczala@uibk.ac.at

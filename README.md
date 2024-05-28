@@ -9,10 +9,37 @@
 
 # Rational Linkages
 
-Python-based package for synthesis and rapid-prototyping of rational linkages, 
-developed by the Unit of Geometry and Surveying, University of Innsbruck, Austria. 
-The **documentation with examples** is hosted on Read the Docs, available here: 
-[Rational Linkages Documentation](https://rational-linkages.readthedocs.io/).
+This Python-based package provides a collection of methods for the synthesis, 
+analysis, rapid prototyping 
+of the single-loop rational linkages, allowing one to create 3D-printable 
+collision-free mechanisms synthesised for a given task (set of poses). 
+
+<img src="/docs/source/figures/r4.JPEG" width="24%">
+<img src="/docs/source/figures/r6li.JPEG" width="24%">
+<img src="/docs/source/figures/r6hp.JPEG" width="24%">
+<img src="/docs/source/figures/r6joh.JPEG" width="24%">
+
+The package is developed as a part of the research project at the 
+Unit of Geometry and Surveying, University of Innsbruck, Austria. 
+
+## Documentation, tutorials, issues
+
+[Rational Linkages Documentation](https://rational-linkages.readthedocs.io/) is 
+hosted on Read the Docs, and provides a comprehensive overview of the package with 
+[examples and tutorials](https://rational-linkages.readthedocs.io/latest/general/overview.html).
+
+Since the self-hosted repository does not allow external users to create issues,
+please, use the [external issue tracker](https://github.com/hucik14/rl-issues) 
+hosted on GitHub for submitting **issues** and **feature requests**. Additionally,
+you can *"watch/star"* the issue tracker package **to get notified about the updates**
+(new releases will be also announced there).
+
+You can test live-example of Jupyter notebook using Binder, by clicking on the 
+following badge:
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb)
+
+In case of other questions or contributions, please, email the author at:
+`daniel.huczala@uibk.ac.at`
 
 ## Intallation instuctions
 
@@ -39,24 +66,6 @@ Using pip:
 3. Install the *editable* version of the package using pip:
 
     <code>pip install -e .</code>
-
-## Tutorials, issues, usage, and contributions
-
-See the [documentation examples](https://rational-linkages.readthedocs.io/latest/general/overview.html) 
-for tutorials and usage examples.
-
-Since the self-hosted repository does not allow external users to create issues,
-please, use the [external issue tracker](https://github.com/hucik14/rl-issues) 
-hosted on GitHub for submitting **issues** and **feature requests**. Additionally,
-you can *"watch/star"* the issue tracker package **to get notified about the updates**
-(new releases will be also announced there).
-
-You can test live-example of Jupyter notebook using Binder, by clicking on the 
-following badge:
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb)
-
-In case of other questions or contributions, please, email the author at:
-`daniel.huczala@uibk.ac.at`
 
 ## Preprint and citing the package
 
