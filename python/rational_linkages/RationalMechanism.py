@@ -187,7 +187,7 @@ class RationalMechanism(RationalCurve):
         :return: design parameters of the linkage
         :rtype: tuple (np.ndarray, np.ndarray)
         """
-        screws = self.get_screw_axes()
+        screws = deepcopy(self.get_screw_axes())
         screws.append(screws[0])
         frames = self.get_frames()[1:]
 
@@ -248,9 +248,10 @@ class RationalMechanism(RationalCurve):
         for i in range(len(self.factorizations[0].linkage)):
             connection_params[i, :] = self.factorizations[0].linkage[i].points_params
 
-        for i in range(len(self.factorizations[1].linkage)):
-            # iterate from back to front
-            connection_params[-1-i, :] = self.factorizations[1].linkage[i].points_params[::-1]
+        if len(self.factorizations) > 1:  # TODO refactor with random choice of the branch
+            for i in range(len(self.factorizations[1].linkage)):
+                # iterate from back to front
+                connection_params[-1-i, :] = self.factorizations[1].linkage[i].points_params[::-1]
 
         return connection_params
 
@@ -272,7 +273,7 @@ class RationalMechanism(RationalCurve):
         .. footbibliography::
 
         """
-        frames = self.get_frames()
+        frames = deepcopy(self.get_frames())
 
         # closed-loop mechanism - add 1st joint at the end of the list
         frames.append(frames[1])
@@ -305,7 +306,7 @@ class RationalMechanism(RationalCurve):
 
         frames = [TransfMatrix()] * (self.num_joints + 2)
 
-        screws = self.get_screw_axes()
+        screws = deepcopy(self.get_screw_axes())
 
         # add the first screw to the end of the list
         screws.append(screws[0])
