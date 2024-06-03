@@ -60,7 +60,13 @@ class MotionFactorization(RationalCurve):
         self.factors_with_parameter = self.get_symbolic_factors()
         self.number_of_factors = len(self.dq_axes)
 
-        self.linkage = self.get_joint_connection_points()
+        self._linkage = None
+
+    @property
+    def linkage(self):
+        if self._linkage is None:
+            self._linkage = self.get_joint_connection_points()
+        return self._linkage
 
     def __repr__(self):
         return f"MotionFactorization({self.factors_with_parameter})"
