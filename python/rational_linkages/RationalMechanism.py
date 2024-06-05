@@ -629,10 +629,12 @@ class RationalMechanism(RationalCurve):
 
         # convert to numpy polynomial
         expr_n = np.array(expr_coeffs, dtype="float64")
+        np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1])
+        np_poly_inversed = np.polynomial.polynomial.Polynomial(expr_n)
 
         # solve for t
-        colliding_lines_sol = np.roots(expr_n[::-1])
-        colliding_lines_sol_inversed = np.roots(expr_n)
+        colliding_lines_sol = np_poly.roots()
+        colliding_lines_sol_inversed = np_poly_inversed.roots()
         # extract real solutions
         sol_real = colliding_lines_sol.real[np.isclose(colliding_lines_sol.imag,
                                                        0, atol=1e-5)]
