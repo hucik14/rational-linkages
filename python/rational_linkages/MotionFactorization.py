@@ -14,9 +14,9 @@ class MotionFactorization(RationalCurve):
     """
     Class representing Motion Factorization sequence
 
-    Inherits from :class:`rational_linkages.RationalCurve` class. Given as set of polynomials in
-    dual quaternion space. You can find more information in the paper by
-    :footcite:t:`Frischauf2023`.
+    Inherits from :class:`rational_linkages.RationalCurve` class. Given as set of
+    polynomials in dual quaternion space. You can find more information in the paper
+    by :footcite:t:`Frischauf2023`.
 
     :param list[DualQuaternion] sequence_of_factored_dqs: list of DualQuaternions
         representing the revolute axes of the rational motion factorization
@@ -307,14 +307,18 @@ class MotionFactorization(RationalCurve):
             i.e. the foot point of a line (axis)
         :rtype: list[Linkage]
         """
-        return [Linkage(axis, [PointHomogeneous.from_3d_point(axis.dq2point_via_line())])
+        return [Linkage(axis,
+                        [PointHomogeneous.from_3d_point(axis.dq2point_via_line())])
                 for axis in self.dq_axes]
 
-    def set_joint_connection_points(self, points: list[PointHomogeneous]):
+    def set_joint_connection_points(self, points: list[PointHomogeneous]) -> None:
         """
         Set points of the linkage of the MotionFactorization
 
         :param list[PointHomogeneous] points: list of points of the linkage
+
+        :return: None
+        :rtype: None
         """
         # pair the input points
         points_pairs = []
@@ -324,12 +328,17 @@ class MotionFactorization(RationalCurve):
         for i in range(len(points_pairs)):
             self.linkage[i] = Linkage(self.dq_axes[i], points_pairs[i])
 
-    def set_joint_connection_points_by_parameters(self, params: list):
+    def set_joint_connection_points_by_parameters(self, params: list) -> None:
         """
         Set joint connection points based on the given line-parameters.
 
         :param np.ndarray params: Parameters used to calculate the points
-            on the lines.
+            on the lines. The shape is [n, 2] where n is the number of joints.
+
+        :raises ValueError: If the parameters are not of length 1 or 2.
+
+        :return: None
+        :rtype: None
         """
         for i, linkage in enumerate(self.linkage):
             if len(params[i]) == 1:
