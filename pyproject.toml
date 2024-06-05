@@ -1,6 +1,8 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+#requires = ["setuptools>=61.0", "wheel"]
+#build-backend = "setuptools.build_meta"
+requires = ["maturin >= 1.0"]
+build-backend = "maturin"
 
 [project]
 name = "rational-linkages"
@@ -44,7 +46,8 @@ dev = [
     "flake8-pyproject",
     "black",
     "isort",
-    "twine"
+    "twine",
+    "maturin",
 ]
 
 [tool.setuptools.packages.find]
@@ -85,3 +88,7 @@ omit = [
     "*ButtonID.py",
     "*MotionApproximation.py",
     ]
+
+[tool.maturin]
+python-source = "python"
+module-name = "rational_linkages._rl_rust"

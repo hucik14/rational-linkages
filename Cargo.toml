@@ -1,0 +1,13 @@
+[package]
+name = "rl_rust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+polynomen = "1.1.0"
+rayon = "1.10.0"
+pyo3 = { version = "0.21.2", features = ["extension-module"] }
+
+[lib]
+name = "rl_rust"
+crate-type = ["cdylib"]
