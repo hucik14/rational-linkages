@@ -614,22 +614,21 @@ class RationalMechanism(RationalCurve):
         """
         t = sp.Symbol("t")
 
-        # lines are colliding if expr == 0
-        expr = sp.simplify(np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction))
+        # lines are colliding when expr = 0
+        expr = np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction)
 
-        # neighbouring lines are colliding all the time (expr == 0)
-        if expr == 0:
-            return None, None
-
-        e = sp.Expr(expr).subs(t, (t + 1) / 2)
+        # reparametrize the expresion by t -> (t + 1) / 2 to interval [-1, 1]
+        e = sp.Expr(expr).subs(t, (t + 1) / 2).evalf()
 
         expr_poly = sp.Poly(e.args[0], t)
-
         expr_coeffs = expr_poly.all_coeffs()
 
         # convert to numpy polynomial
         expr_n = np.array(expr_coeffs, dtype="float64")
         np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1])
+
+        # inversing coeffs enables to solve intervals (-oo, 0) and (0, oo), that are
+        # actually mapped to [-1, 1]
         np_poly_inversed = np.polynomial.polynomial.Polynomial(expr_n)
 
         # solve for t
