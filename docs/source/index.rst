@@ -26,6 +26,10 @@ Rational Linkages
    :target: https://pypi.org/project/rational-linkages/
    :alt: PyPI
 
+.. image:: https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg
+   :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main
+   :alt: Maintenance
+
 .. image:: https://img.shields.io/github/issues/hucik14/rl-issues
    :target: https://github.com/hucik14/rl-issues/issues
    :alt: GitHub issues
