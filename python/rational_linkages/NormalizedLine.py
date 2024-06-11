@@ -292,7 +292,7 @@ class NormalizedLine:
         cross_product_norm = np.linalg.norm(cross_product)
 
         # if lines are not parallel
-        if not np.isclose(cross_product_norm, 0.0, atol=1e-5):
+        if not np.isclose(cross_product_norm, 0.0, atol=1e-4):
             # Calculate the first intersection point
             numerator1 = np.cross(
                 -self.moment, np.cross(other.direction, cross_product)

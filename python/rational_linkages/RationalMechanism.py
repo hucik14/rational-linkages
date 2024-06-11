@@ -275,9 +275,6 @@ class RationalMechanism(RationalCurve):
         """
         frames = deepcopy(self.get_frames())
 
-        # closed-loop mechanism - add 1st joint at the end of the list
-        frames.append(frames[1])
-
         dh = np.zeros((self.num_joints + 1, 4))
         for i in range(self.num_joints + 1):
             th, d, a, al = frames[i].dh_to_other_frame(frames[i+1])
@@ -323,10 +320,18 @@ class RationalMechanism(RationalCurve):
                 # normalize vec - future X axis
                 vec_x = vec / np.linalg.norm(vec)
 
-                # from line.dir (future Z axis) and x create an SE3 object
-                frames[i+1] = TransfMatrix.from_vectors(vec_x,
-                                                        line.direction,
-                                                        origin=pts[0])
+                # if parallel
+                if np.isclose(cos_angle, 1.0) or np.isclose(cos_angle, -1.0):
+                    # choose origin as footpoint of the line
+                    frames[i + 1] = TransfMatrix.from_vectors(vec_x,
+                                                              line.direction,
+                                                              origin=line.point_on_line())
+
+                else:  # if skew
+                    # from line.dir (future Z axis) and x create an SE3 object
+                    frames[i+1] = TransfMatrix.from_vectors(vec_x,
+                                                            line.direction,
+                                                            origin=pts[0])
 
             else:  # Z axes are intersecting or coincident
                 if np.isclose(np.dot(frames[i].a, line.direction), 1):
