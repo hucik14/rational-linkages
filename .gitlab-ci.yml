@@ -65,6 +65,13 @@ convert_changelog:
   stage: deploy
   image: pandoc/latex
   script:
+    # Debug: List files in the root directory
+    - echo "Listing files in the root directory:"
+    - ls -la
+    # Debug: List files in the docs/source/general directory
+    - echo "Listing files in the docs/source/general directory:"
+    - ls -la docs/source/general
+    # Convert the changelog
     - pandoc CHANGELOG.md -f markdown -t rst -o docs/source/general/changelog.rst
   artifacts:
     paths:
