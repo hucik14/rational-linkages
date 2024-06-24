@@ -2,9 +2,10 @@ General Information
 ===================
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Contents:
 
    general/installation
    general/overview
+   general/changelog
    general/contribute
