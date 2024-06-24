@@ -8,6 +8,7 @@
 stages:
 - test
 - test_python_versions
+- deploy
 
 sast:
   stage: test
@@ -59,3 +60,15 @@ python_versions:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
         - if: '$CI_COMMIT_BRANCH == "develop"'
         - if: '$CI_COMMIT_BRANCH == "main"'
+
+convert_changelog:
+  stage: deploy
+  image: pandoc/latex
+  script:
+    - pandoc CHANGELOG.md -f markdown -t rst -o docs/source/general/changelog.rst
+  artifacts:
+    paths:
+      - docs/source/general/changelog.rst
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
