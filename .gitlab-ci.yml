@@ -68,14 +68,8 @@ convert_changelog:
       name: python:3.11-bullseye
       entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
-      - pip install pandoc
-      # Debug: List files in the root directory
-      - echo "Listing files in the root directory:"
-      - ls -la
-      # Debug: List files in the docs/source/general directory
-      - echo "Listing files in the docs/source/general directory:"
-      - ls -la docs/source/general
-      # Convert the changelog
+      - apt-get update
+      - apt-get install -y pandoc
       - pandoc CHANGELOG.md -f markdown -t rst -o docs/source/general/changelog.rst
     artifacts:
       paths:
