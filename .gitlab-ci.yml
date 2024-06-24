@@ -6,9 +6,10 @@
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
+- deploy
 - test
 - test_python_versions
-- deploy
+
 
 sast:
   stage: test
@@ -63,7 +64,7 @@ python_versions:
 
 convert_changelog:
   stage: deploy
-  image: pandoc/latex
+  image: pandoc/core
   script:
     # Debug: List files in the root directory
     - echo "Listing files in the root directory:"
