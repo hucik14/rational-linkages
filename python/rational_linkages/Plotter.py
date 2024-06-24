@@ -730,12 +730,14 @@ class Plotter:
         ax.set_zlim3d(float(self.min_z), float(self.max_z))
         ax.set_aspect("equal")
 
-    def animate(self, time_steps: int = 10, file_type: str = "png",
+    def animate(self, number_of_frames: int = 10, file_type: str = "png",
                 filename_prefix: str = "frame_", output_dir: str = "animation_frames"):
         """
-        Animate the mechanism and save frames
+        Animate the mechanism and save frames in a folder.
 
-        :param int time_steps: number of time steps
+        PNG is the default file type, PDF is also supported.
+
+        :param int number_of_frames: number of time steps
         :param str file_type: file type to save the frames (pdf, png)
         :param str filename_prefix: prefix for the output filenames
         :param str output_dir: directory where the frames should be saved
@@ -749,7 +751,7 @@ class Plotter:
         if not isdir(output_dir):
             makedirs(output_dir)
 
-        t_angle = np.linspace(0, 2 * np.pi, time_steps)
+        t_angle = np.linspace(0, 2 * np.pi, number_of_frames)
 
         # perform the animation once to scale the plot for equal axes limits
         for i, val in enumerate(t_angle):
