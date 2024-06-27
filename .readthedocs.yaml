@@ -10,8 +10,7 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
-  commands:
-    - pandoc CHANGELOG.md -f markdown -t rst -o docs/source/general/changelog.rst
+
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
@@ -31,3 +30,6 @@ python:
       path: .
       extra_requirements:
         - doc
+      post_install:
+        - pandoc CHANGELOG.md -f markdown -t rst -o docs/source/general/changelog.rst
+
