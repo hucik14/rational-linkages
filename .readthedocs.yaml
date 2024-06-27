@@ -11,8 +11,6 @@ build:
   tools:
     python: "3.11"
   commands:
-    - apt-get update
-    - apt-get install -y pandoc
     - pandoc CHANGELOG.md -f markdown -t rst -o docs/source/general/changelog.rst
 
 # Build documentation in the "docs/" directory with Sphinx
