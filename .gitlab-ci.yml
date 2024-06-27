@@ -69,10 +69,17 @@ convert_changelog:
     script:
       - apt-get update
       - apt-get install -y pandoc
+      - mkdir -p docs/source/general
       - pandoc CHANGELOG.md -f markdown -t rst -o docs/source/general/changelog.rst
+      - ls -l docs/source/general
+      - cat docs/source/general/changelog.rst
     artifacts:
       paths:
       - docs/source/general/changelog.rst
     rules:
       - if: '$CI_COMMIT_BRANCH == "develop"'
       - if: '$CI_COMMIT_BRANCH == "main"'
+    cache:
+      paths:
+        - /var/lib/apt/lists
+        - /var/cache/apt/archives
