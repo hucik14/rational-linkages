@@ -6,7 +6,6 @@
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
-- deploy
 - test
 - test_python_versions
 
@@ -60,26 +59,3 @@ python_versions:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
         - if: '$CI_COMMIT_BRANCH == "develop"'
         - if: '$CI_COMMIT_BRANCH == "main"'
-
-convert_changelog:
-    stage: deploy
-    image:
-      name: python:3.11-bullseye
-      entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
-    script:
-      - apt-get update
-      - apt-get install -y pandoc
-      - mkdir -p docs/source/general
-      - pandoc CHANGELOG.md -f markdown -t rst -o docs/source/general/changelog.rst
-      - ls -l docs/source/general
-      - cat docs/source/general/changelog.rst
-    artifacts:
-      paths:
-      - docs/source/general/changelog.rst
-    rules:
-      - if: '$CI_COMMIT_BRANCH == "develop"'
-      - if: '$CI_COMMIT_BRANCH == "main"'
-    cache:
-      paths:
-        - /var/lib/apt/lists
-        - /var/cache/apt/archives
