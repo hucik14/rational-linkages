@@ -31,5 +31,6 @@ python:
       extra_requirements:
         - doc
       post_install:
-        - pandoc CHANGELOG.md -f markdown -t rst -o docs/source/general/changelog.rst
+        commands:
+          - pandoc CHANGELOG.md -f markdown -t rst -o docs/source/general/changelog.rst
 
