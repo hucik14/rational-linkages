@@ -42,6 +42,9 @@ following badge:
 In case of other questions or contributions, please, email the author at:
 `daniel.huczala@uibk.ac.at`
 
+STL files of some mechanisms may be found as
+[models on Printables.com](https://www.printables.com/@hucik14_497869/collections/443601).
+
 ## Intallation instuctions
 
 Recommended Python version is **3.11**, when it provides the smoothest plotting 

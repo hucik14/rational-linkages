@@ -53,6 +53,7 @@ The package is developed at the Unit of Geometry and Surveying,
 University of Innsbruck, Austria. The source code is available
 as `Gitlab repository`_ hosted by UIBK. The *installation
 instructions* can be found in the :ref:`installation manual<installation>`.
+STL files of some mechanisms may be found as `models on Printables.com`_.
 
 Since the self-hosted repository does not allow external users to create issues,
 please, use the `external issue tracker`_
