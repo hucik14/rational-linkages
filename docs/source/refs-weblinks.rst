@@ -4,3 +4,4 @@
 .. _external issue tracker: https://github.com/hucik14/rl-issues
 .. _Joint Angle to Curve Parameter: joint-angle-to-t.rst
 .. _Biquaternion_py: https://pypi.org/project/biquaternion-py/
+.. _models on Printables.com: https://www.printables.com/@hucik14_497869/collections/443601

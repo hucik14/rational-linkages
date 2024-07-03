@@ -7,6 +7,8 @@ bennett = bennett_ark24()
 # load the model of the 6R mechanism
 r6 = collisions_free_6r()
 
+# TODO add other models
+
 
 if __name__ == '__main__':
 

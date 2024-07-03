@@ -19,6 +19,8 @@ as :math:`(w, x, y, z)`.
 where :math:`SE(3)` is the special Euclidean group of rigid body transformations
 in 3D space.
 
+How dual quaternions act on points can be found in :ref:`dq_action_on_point`.
+
 .. _normalized-lines:
 
 Normalized Lines
@@ -33,17 +35,22 @@ The line's direction is :math:`\mathbf{g}=(g_0,g_1,g_2)`, its moment vector
 
 .. math::
 
-    \overline{\mathbf{g}} = \mathbf{q} \times \mathbf{g}
+    \overline{\mathbf{g}} = \mathbf{q} \times \mathbf{g} = - \mathbf{g} \times \mathbf{q}
 
 where :math:`\mathbf{q}` is an arbitrary point on the line. Plücker coordinates
 fulfill the Plücker condition
 
 .. math::
 
-    \mathbf{g}^T\cdot\overline{\mathbf{g}} =0
+    \mathbf{g}^T\cdot\overline{\mathbf{g}} = 0
 
 Normalized line then corresponds to Plücker coordinates with the condition, that
-:math:`||\mathbf{g}|| = 1`, i.e. the direction vector is normalized. More on Plücker
+
+.. math::
+
+    \mathbf{||g||} = 1
+
+i.e. the direction vector is normalized. More on Plücker
 coordinates can be found in :footcite:t:`Pottmann2001`.
 
 Lines can be embedded into dual quaternion space in the following way:
@@ -51,9 +58,9 @@ Lines can be embedded into dual quaternion space in the following way:
 .. math::
 
     \mathbf{l} = (g_0, g_1, g_2, g_3, g_4, g_5) \in \mathbb{R}^6
-    \rightarrow \mathbf{l'} = (0, g_0, g_1, g_2, 0, g_3, g_4, g_5) \in SE(3)
+    \rightarrow \mathbf{l'} = (0, g_0, g_1, g_2, 0, -g_3, -g_4, -g_5) \in SE(3)
 
-
+How dual quaternions act on lines can be found in :ref:`dq_action_on_line`.
 
 **References:**
 

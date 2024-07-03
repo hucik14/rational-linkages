@@ -165,7 +165,8 @@ class RationalMechanism(RationalCurve):
                    scale: float = 1.0,
                    joint_length: float = 20.0,
                    washer_length: float = 1.0,
-                   pretty_print: bool = True):
+                   update_design: bool = False,
+                   pretty_print: bool = True) -> tuple[np.ndarray, np.ndarray]:
         """
         Get the design parameters of the linkage for the CAD model.
 
@@ -179,19 +180,37 @@ class RationalMechanism(RationalCurve):
             has 1 mm thick washer between. Total length of the joint is 41 mm. It is
             used to calculate a midpoint distance between the two links that connect.
         :param float washer_length: length of the washer in mm; default is 1 mm
+        :param bool update_design: if True, update the design of the mechanism (including joint segments)
         :param bool pretty_print: if True, print the parameters in a readable form,
             otherwise return a numpy array
 
         :return: design parameters of the linkage
-        :rtype: np.ndarray
+        :rtype: tuple (np.ndarray, np.ndarray)
         """
-        screws = self.get_screw_axes()
+        screws = deepcopy(self.get_screw_axes())
         screws.append(screws[0])
         frames = self.get_frames()[1:]
 
         connection_params = self.get_segment_connections()
-        midpts_dist = (joint_length + washer_length) / scale
-        connection_params = self.map_connection_params(connection_params, midpts_dist)
+        mid_pts_dist = (joint_length + washer_length) / scale
+        connection_params = self.map_connection_params(connection_params, mid_pts_dist)
+
+        if update_design:
+            # update the connection points of the joints
+            branch0 = connection_params[:len(self.factorizations[0].dq_axes), :]
+            branch1 = connection_params[len(self.factorizations[1].dq_axes):, :][::-1]
+
+            branch0 = [[pt[0], pt[1]] for pt in branch0]
+
+            # reorder point pairs of the second branch (since it goes reversed)
+            branch1 = [[pt[1], pt[0]] for pt in branch1]
+
+            self.factorizations[0].set_joint_connection_points_by_parameters(branch0)
+            self.factorizations[1].set_joint_connection_points_by_parameters(branch1)
+
+            self.update_segments()
+
+        # add the first connection point to the end of the list
         connection_params = np.vstack((connection_params, connection_params[0, :]))
 
         design_params = np.zeros((self.num_joints, 2))
@@ -203,6 +222,8 @@ class RationalMechanism(RationalCurve):
                                    - screws[i+1].get_point_param(frames[i+1].t))
 
         design_params = design_params * scale
+
+        # ignore the first row (base frame)
         dh = self.get_dh_params(unit=unit, scale=scale)[1:]
 
         if pretty_print:
@@ -227,9 +248,10 @@ class RationalMechanism(RationalCurve):
         for i in range(len(self.factorizations[0].linkage)):
             connection_params[i, :] = self.factorizations[0].linkage[i].points_params
 
-        for i in range(len(self.factorizations[1].linkage)):
-            # iterate from back to front
-            connection_params[-1-i, :] = self.factorizations[1].linkage[i].points_params[::-1]
+        if len(self.factorizations) > 1:  # TODO refactor with random choice of the branch
+            for i in range(len(self.factorizations[1].linkage)):
+                # iterate from back to front
+                connection_params[-1-i, :] = self.factorizations[1].linkage[i].points_params[::-1]
 
         return connection_params
 
@@ -251,10 +273,7 @@ class RationalMechanism(RationalCurve):
         .. footbibliography::
 
         """
-        frames = self.get_frames()
-
-        # closed-loop mechanism - add 1st joint at the end of the list
-        frames.append(frames[1])
+        frames = deepcopy(self.get_frames())
 
         dh = np.zeros((self.num_joints + 1, 4))
         for i in range(self.num_joints + 1):
@@ -284,7 +303,7 @@ class RationalMechanism(RationalCurve):
 
         frames = [TransfMatrix()] * (self.num_joints + 2)
 
-        screws = self.get_screw_axes()
+        screws = deepcopy(self.get_screw_axes())
 
         # add the first screw to the end of the list
         screws.append(screws[0])
@@ -301,10 +320,18 @@ class RationalMechanism(RationalCurve):
                 # normalize vec - future X axis
                 vec_x = vec / np.linalg.norm(vec)
 
-                # from line.dir (future Z axis) and x create an SE3 object
-                frames[i+1] = TransfMatrix.from_vectors(vec_x,
-                                                        line.direction,
-                                                        origin=pts[0])
+                # if parallel
+                if np.isclose(cos_angle, 1.0) or np.isclose(cos_angle, -1.0):
+                    # choose origin as footpoint of the line
+                    frames[i + 1] = TransfMatrix.from_vectors(vec_x,
+                                                              line.direction,
+                                                              origin=line.point_on_line())
+
+                else:  # if skew
+                    # from line.dir (future Z axis) and x create an SE3 object
+                    frames[i+1] = TransfMatrix.from_vectors(vec_x,
+                                                            line.direction,
+                                                            origin=pts[0])
 
             else:  # Z axes are intersecting or coincident
                 if np.isclose(np.dot(frames[i].a, line.direction), 1):
@@ -592,22 +619,21 @@ class RationalMechanism(RationalCurve):
         """
         t = sp.Symbol("t")
 
-        # lines are colliding if expr == 0
-        expr = sp.simplify(np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction))
+        # lines are colliding when expr = 0
+        expr = np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction)
 
-        # neighbouring lines are colliding all the time (expr == 0)
-        if expr == 0:
-            return None, None
-
-        e = sp.Expr(expr).subs(t, (t + 1) / 2)
+        # reparametrize the expresion by t -> (t + 1) / 2 to interval [-1, 1]
+        e = sp.Expr(expr).subs(t, (t + 1) / 2).evalf()
 
         expr_poly = sp.Poly(e.args[0], t)
-
         expr_coeffs = expr_poly.all_coeffs()
 
         # convert to numpy polynomial
         expr_n = np.array(expr_coeffs, dtype="float64")
         np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1])
+
+        # inversing coeffs enables to solve intervals (-oo, 0) and (0, oo), that are
+        # actually mapped to [-1, 1]
         np_poly_inversed = np.polynomial.polynomial.Polynomial(expr_n)
 
         # solve for t

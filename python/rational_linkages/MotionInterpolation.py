@@ -112,9 +112,10 @@ class MotionInterpolation:
                 raise ValueError('The first pose must be the identity matrix '
                                  'for 4-pose interpolation')
             else:
-                warn('The first pose IS NOT the identity. The interpolation results'
-                     ' may be unstable. They will yield noninivariate polynomial which has '
-                     'to be transformed to visually interpolate the curve.',
+                warn('The first pose IS NOT the identity. The interpolation '
+                     'results may be unstable. They will yield non-univariate '
+                     'polynomial which has to be transformed to visually '
+                     'interpolate the curve.',
                      UserWarning)
 
         rational_poses = []
