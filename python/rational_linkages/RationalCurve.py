@@ -323,9 +323,12 @@ class RationalCurve:
         dq = DualQuaternion(self.evaluate(t_param, inverted_part))
         return dq.dq2matrix()
 
-    def factorize(self) -> list[MotionFactorization]:
+    def factorize(self, use_rationals: bool = False) -> list[MotionFactorization]:
         """
         Factorize the curve into motion factorizations
+
+        :param bool use_rationals: if True, force the factorization in QQ to return
+            rational numbers
 
         :return: list of MotionFactorization objects
         :rtype: list[MotionFactorization]
@@ -336,7 +339,7 @@ class RationalCurve:
 
         from .FactorizationProvider import FactorizationProvider
 
-        factorization_provider = FactorizationProvider()
+        factorization_provider = FactorizationProvider(use_rationals=use_rationals)
         return factorization_provider.factorize_motion_curve(self)
 
     def get_plot_data(self, interval: Union[str, tuple] = (0, 1), steps: int = 50) -> (
