@@ -116,6 +116,12 @@ class TestDualQuaternion(unittest.TestCase):
         dq = DualQuaternion([1., 1., -1., 1., -1.5, 1.5, 3.5, 3.5])
         self.assertTrue(dq.is_on_study_quadric())
 
+        dq = DualQuaternion([0.1406764015, 0.068970862, -0.0805350131, -0.2004608831,
+                             0.0086188156, 0.2628769664, 0.1078835504, 0.0531520746])
+
+        self.assertFalse(dq.is_on_study_quadric())
+        self.assertTrue(dq.is_on_study_quadric(approximate_sol=True))
+
     def test_from_two_quaternions(self):
         p = Quaternion([-1 / 4, 13 / 5, -213 / 5, -68 / 15])
         d = Quaternion([0, -52 / 3, -28 / 15, 38 / 5])
