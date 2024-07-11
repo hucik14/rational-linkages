@@ -1,10 +1,13 @@
+.. _dual-quaternions:
+
 Dual Quaternions Algebra
 ========================
 
 Dual quaternions are a mathematical tool used to represent rigid transformations in 3D
 space, or more concretely, the special Euclidean space SE(3). They are an extension of
 quaternions, which are used to represent rotations. For more mathematical details, see
-books by :footcite:t:`Bottema1979`, or :footcite:t:`Selig2005`,
+books by :footcite:t:`Bottema1979`, or :footcite:t:`Selig2005`. The geometrical
+basics are explained in :ref:`studys-kinematics`.
 
 Dual quaternions are composed of two quaternions, one representing the rotation and
 the other representing the translation. It is an 8-dimensional vector space over the
@@ -42,32 +45,13 @@ quaternions. A simple example of creating an identity dual quaternion is:
 
 which will create a dual quaternion :math:`\mathbf{p} = (1, 0, 0, 0, 0, 0, 0, 0)`.
 
-Study's Quadric and Study's Parameters
---------------------------------------
-
-The tuple :math:`\mathbf{p} = (p_0 : p_1 : p_2 : p_3 : p_4 : p_5 : p_6 : p_7)` of
-homogeneous coordinates in the 7-dimensional projective space :math:`\mathbb{PR}^7`
-is also known as the Study's parameters or the Study's vector, and it lies on the
-Study's quadric, named after the German mathematician Eduard Study (1862-1930).
-
-The Study's quadric is a 6-dimensional
-quadric in the 7-dimensional projective space :math:`\mathbb{PR}^7` defined by the
-equation, also known as the **Study condition**:
+A dual quaternion has to fulfill so-called Study condition to be
+a proper rigid body transformation, i.e. it has to lie on
+:ref:`study-quadric`. The **Study condition** is:
 
 .. math::
     p_0 p_4 + p_1 p_5 + p_2 p_6 + p_3 p_7 = 0
 
-A point :math:`\mathbf{p}` lies on the Study's quadric if and only if its elements
-satisfy the Study condition.
-
-There are elements of the Study's quadric that are not representing a ridig body
-transformation. They are a 3-space on the quadric that fulfills the equation:
-
-.. math::
-    p_0^2 + p_1^2 + p_2^2 + p_3^2 = 0
-
-They form a 3-dimensional space of non-rigid transformations, called the exceptional
-generator.
 
 Dual Quaternion Norms, Conjugation, and Inversion
 -------------------------------------------------
