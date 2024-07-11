@@ -1,5 +1,25 @@
 # Changelog
 
+
+## 1.7.0 (2024-07-11)
+
+### added (2 changes)
+
+- [check on Study quadric can be optionally approximate (numerics)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/8a54df3f)
+- [motion factorization has option to return rational values](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/6a5a474b)
+
+
+### changed (2 changes)
+
+- [the RationalCurve attribudes are created on call using properties](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/bad43e6e)
+- [docs: update to DQ and Study kinematics](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/a2a0a150)
+
+
+### fixed (1 change)
+
+- [sympy 1.13 poly uncompatibility fix](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/f1064b16)
+
+
 ## 1.6.0 (2024-06-27)
 
 ### added (5 changes)
