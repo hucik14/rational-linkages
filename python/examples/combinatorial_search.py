@@ -1,3 +1,5 @@
+# NOT TESTED
+
 from rational_linkages.models import bennett_ark24, collisions_free_6r
 from rational_linkages import Plotter
 
