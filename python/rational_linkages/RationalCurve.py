@@ -180,10 +180,13 @@ class RationalCurve:
                 coeffs[i, :] = np.array(self.set_of_polynomials[i].all_coeffs())
             else:  # if the degree of the equation is lower than the curve, check
                 # the difference
-                if not self.set_of_polynomials[i].all_coeffs() == [
-                    0
-                ]:  # if the equation is not zero, fill the coeffs
+                if not self.set_of_polynomials[i].all_coeffs() == [0]:
+                    # if the equation is not zero, fill the coeffs
                     degree_of_eq = self.set_of_polynomials[i].degree()
+                    print('------------')
+                    print(i)
+                    print(self.degree)
+                    print(degree_of_eq)
                     coeffs[i, self.degree - degree_of_eq :] = np.array(
                         self.set_of_polynomials[i].all_coeffs()
                     )
