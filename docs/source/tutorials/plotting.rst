@@ -236,3 +236,10 @@ The following examples show the three options.
     :width: 500 px
     :align: center
     :alt: Tool frame in the middle of the last link
+
+Generating frames for animation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is possible to generate frames for the mechanism using the
+method :meth:`.Plotter.animate` which will generate `png` files by default (`pdf`
+is an option).

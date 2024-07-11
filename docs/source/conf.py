@@ -60,7 +60,9 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.intersphinx',
               'nbsphinx',
               'sphinx.ext.doctest',
-              'sphinxcontrib.bibtex']
+              'sphinxcontrib.bibtex',
+              'hoverxref.extension',
+              ]
 
 bibtex_bibfiles = ['refs.bib']
 
@@ -83,6 +85,31 @@ intersphinx_mapping = {'python': ('http://docs.python.org/3', None),
                        'biquaternion_py': ('https://biquaternion-py.readthedocs.io/en/latest/', None),
                        }
 
+hoverxref_auto_ref = True
+hoverxref_domains = [
+    'py',  # Python domain
+    'std', # Standard domain
+    'cite', # Citation domain
+
+]
+hoverxref_role_types = {
+    'hoverxref': 'tooltip',
+    'ref': 'tooltip',
+    'numref': 'tooltip',
+    'confval': 'tooltip',
+    'term': 'tooltip',
+    'mod': 'tooltip',
+    'class': 'tooltip',
+    'meth': 'tooltip',
+    'func': 'tooltip',
+    'attr': 'tooltip',
+    'cite': 'tooltip',
+    'footcite': 'tooltip',
+}
+
+hoverxref_tooltip_maxwidth = 300  # Set the maximum width of tooltips
+hoverxref_tooltip_border_color = 'blue'  # Customize the border color
+hoverxref_tooltip_border_width = 1  # Set the border width
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

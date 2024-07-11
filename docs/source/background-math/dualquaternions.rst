@@ -229,6 +229,7 @@ An action is transformation of a point or a line by given dual quaternion. In ca
 of a general dual quaternion, it is a half-turn around a screw axis defined by the
 dual quaternion.
 
+.. _dq_action_on_point:
 
 DQ Action on a Point
 ^^^^^^^^^^^^^^^^^^^^
@@ -239,8 +240,10 @@ An action of a dual quaternion :math:`\mathbf{p}` on a point :math:`\mathbf{q}` 
 defined as:
 
 .. math::
-    \mathbf{q}_{acted} = \mathbf{p^*}_\epsilon \mathbf{q} \mathbf{p^*}
+    \mathbf{q}_{acted} = \frac{\mathbf{p^*}_\epsilon \mathbf{q} \mathbf{p^*}}{\mathbf{p}\mathbf{p^*}}
 
+
+.. _dq_action_on_line:
 
 DQ Action on a Line
 ^^^^^^^^^^^^^^^^^^^
@@ -251,7 +254,7 @@ An action of a dual quaternion :math:`\mathbf{p}` on a line :math:`\mathbf{l}` i
 defined as:
 
 .. math::
-    \mathbf{l}_{acted} = \mathbf{p} \mathbf{l} \mathbf{p^*}
+    \mathbf{l}_{acted} = \frac{\mathbf{p} \mathbf{l} \mathbf{p^*}}{\mathbf{p}\mathbf{p^*}}
 
 
 DQ Action on a Plane

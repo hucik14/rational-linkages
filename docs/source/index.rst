@@ -3,6 +3,18 @@
 
 .. include:: refs-weblinks.rst
 
+.. |image1| image:: /figures/r4.JPEG
+   :width: 24%
+.. |image2| image:: /figures/r6li.JPEG
+   :width: 24%
+.. |image3| image:: /figures/r6hp.JPEG
+   :width: 24%
+.. |image4| image:: figures/r6joh.JPEG
+   :width: 24%
+
+.. |binder_badge| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
+
 Rational Linkages
 =================
 
@@ -13,6 +25,10 @@ Rational Linkages
 .. image:: https://img.shields.io/pypi/v/rational-linkages.svg
    :target: https://pypi.org/project/rational-linkages/
    :alt: PyPI
+
+.. image:: https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg
+   :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main
+   :alt: Maintenance
 
 .. image:: https://img.shields.io/github/issues/hucik14/rl-issues
    :target: https://github.com/hucik14/rl-issues/issues
@@ -26,23 +42,27 @@ Rational Linkages
    :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
 
 Welcome to the Rational Linkages package documentation, which serves as a reference for
-the provided tools. This package is a collection of functions for the analysis of
-rational linkages and their rapid prototyping. It is written in Python and uses the
-Numpy and SymPy libraries for computations, and Matplotlib for plotting. It is developed
-at the Unit of Geometry and Surveying, University of Innsbruck, Austria.
+the provided tools. This package is a collection of functions for the synthesis,
+analysis, design, and rapid prototyping of the single-loop rational linkages,
+allowing one to
+create 3D-printable collision-free mechanisms synthesised for a given task
+(set of poses), as in the images below.
 
-The source code is available as `Gitlab repository`_ hosted by UIBK. The *installation
+|image1| |image2| |image3| |image4|
+
+The package is developed at the Unit of Geometry and Surveying,
+University of Innsbruck, Austria. The source code is available
+as `Gitlab repository`_ hosted by UIBK. The *installation
 instructions* can be found in the :ref:`installation manual<installation>`.
+STL files of some mechanisms may be found as `models on Printables.com`_.
 
 Since the self-hosted repository does not allow external users to create issues,
 please, use the `external issue tracker`_
 hosted on Github for submitting **issues** and **feature requests**.
 
 For installation-free try-out, run live example of the package in your browser using
-the **Binder** service. Click on the badge below to start the Binder session:
-
-.. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
+the **Binder** service. Click on the badge to start
+the Jupyter Notebook: |binder_badge|
 
 In case of other questions or contributions, please, email the author at:
 daniel.huczala@uibk.ac.at
@@ -76,25 +96,31 @@ Austria. Namely, the following people contributed to the development:
 - Martin Pfurner (contributor)
 - Daren A. Thimm (contributor)
 
-Citing the Package
+Citing the package
 ==================
 
 If you use the Rational Linkages package in your research, please, cite it as follows:
 
-Huczala, D., Siegele J., Thimm, D., Pfurner, M., Schröcker, H.-P. (2024).
-Rational Linkages: From Poses to 3D-printed Prototypes.
-Advances in Robot Kinematics 2024. ARK 2024.
-Preprint **arXiv:2403.00558**, url: `https://arxiv.org/abs/2403.00558 <https://arxiv.org/abs/2403.00558>`_.
+Huczala, D., Siegele, J., Thimm, D.A., Pfurner, M., Schröcker, HP. (2024).
+Rational Linkages: From Poses to 3D-Printed Prototypes.
+In: Lenarčič, J., Husty, M. (eds) Advances in Robot Kinematics 2024. ARK 2024.
+Springer Proceedings in Advanced Robotics, vol 31. Springer, Cham.
+DOI: `10.1007/978-3-031-64057-5_27 <https://doi.org/10.1007/978-3-031-64057-5_27>`_.
 
 .. code-block:: text
 
-   @inbook{huczala2024linkages,
-      title={Rational Linkages: From Poses to 3D-printed Prototypes},
-      author={Daniel Huczala and Johannes Siegele and Daren A. Thimm and Martin Pfurner and Hans-Peter Schröcker},
-      year={2024},
-      booktitle="Advances in Robot Kinematics 2024, ARK 2024",
-      url={https://arxiv.org/abs/2403.00558}
+   @inproceedings{huczala2024linkages,
+       title={Rational Linkages: From Poses to 3D-printed Prototypes},
+       author={Daniel Huczala and Johannes Siegele and Daren A. Thimm and Martin Pfurner and Hans-Peter Schröcker},
+       year={2024},
+       booktitle={Advances in Robot Kinematics 2024. ARK 2024},
+       publisher={Springer International Publishing},
+       url={https://doi.org/10.1007/978-3-031-64057-5_27},
+       doi={10.1007/978-3-031-64057-5_27},
    }
+
+**Preprint** available on Arxiv:
+`https://arxiv.org/abs/2403.00558 <https://arxiv.org/abs/2403.00558>`_.
 
 Acknowledgements
 ================
