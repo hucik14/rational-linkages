@@ -67,8 +67,6 @@ class PointHomogeneous:
         #if len(self.coordinates_normalized) == 4:  # point in PR3
         #    self.as_dq_array = self.point2dq_array()
 
-        self.orbit = None
-
     @classmethod
     def at_origin_in_2d(cls):
         """
@@ -302,17 +300,11 @@ class PointHomogeneous:
         point_center = acting_center.point2matrix() @ self.coordinates_normalized
 
         coords_3d = self.normalized_in_3d()
+
         radius_squared = acting_radius ** 2 * (1/metric.total_mass + np.sum([(coord ** 2 / metric.inertia_eigen_vals[i]) for i, coord in enumerate(coords_3d)]))
-
         radius = np.sqrt(radius_squared)
-        self.set_point_orbit(point_center, radius)
-        return point_center, radius
 
-    def set_point_orbit(self, orbit_center: "PointHomogeneous", orbit_radius: float):
-        """
-        Set the orbit of the point
-        """
-        self.orbit = PointOrbit(orbit_center, orbit_radius)
+        return point_center, radius
 
 
 class PointOrbit:
