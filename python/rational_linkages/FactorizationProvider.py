@@ -19,11 +19,16 @@ class FactorizationProvider:
 
     .. _BiQuaternions_py: https://git.uibk.ac.at/geometrie-vermessung/biquaternion_py
     """
-    def __init__(self):
+    def __init__(self, use_rationals: bool = False):
         """
         Creates a new instance of the FactorizationProvider class.
+
+        :param bool use_rationals: If True, the factorization will be performed
+            with rational numbers in QQ instead of floating point numbers in RR.
+
+        :ivar str domain: The domain of the factorization, either 'QQ' or 'RR'.
         """
-        pass
+        self.domain = 'QQ' if use_rationals else 'RR'
 
     def factorize_motion_curve(self,
                                curve: Union[RationalCurve,
@@ -93,8 +98,8 @@ class FactorizationProvider:
 
         return self.factorize_motion_curve(bi_poly)
 
-    @staticmethod
-    def factorize_polynomial(poly: biquaternion_py.polynomials.Poly) -> (
+    def factorize_polynomial(self,
+                             poly: biquaternion_py.polynomials.Poly) -> (
             list)[biquaternion_py.polynomials.Poly]:
         """
         Factorizes the given polynomial into irreducible factors.
@@ -113,7 +118,7 @@ class FactorizationProvider:
                                                      *norm_poly.indets)
 
         # Calculate the irreducible factors, that determine the different factorizations
-        _, factors = biquaternion_py.irreducible_factors(norm_poly, domain='RR')
+        _, factors = biquaternion_py.irreducible_factors(norm_poly, domain=self.domain)
 
         # The different permutations of the irreducible factors then generate
         # the different factorizations of the motion.
@@ -126,8 +131,8 @@ class FactorizationProvider:
 
         return [factorization1, factorization2]
 
-    @staticmethod
-    def factor2rotation_axis(factor: biquaternion_py.polynomials.Poly) -> (
+    def factor2rotation_axis(self,
+                             factor: biquaternion_py.polynomials.Poly) -> (
             DualQuaternion):
         """
         Converts the given factor to a dual quaternion representing the rotation axis
@@ -146,13 +151,11 @@ class FactorizationProvider:
         # subtract the parameter from the factor
         axis_h = t_dq - factor_dq
 
-        # TODO: implement return of rational axis
-        #from .RationalDualQuaternion import RationalDualQuaternion
-        #rational_dq = RationalDualQuaternion(axis_h.array())
-
-        # convert to numpy array as float64
-        axis_h = np.asarray(axis_h.array(), dtype='float64')
-        return DualQuaternion(axis_h)
+        if self.domain == 'QQ':
+            return DualQuaternion(axis_h.array())
+        else:
+            axis_h = np.asarray(axis_h.array(), dtype='float64')
+            return DualQuaternion(axis_h)
 
 
 

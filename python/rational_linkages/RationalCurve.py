@@ -72,14 +72,56 @@ class RationalCurve:
             self.degree = max(self.degree, self.set_of_polynomials[i].degree())
 
         self.coeffs = self.get_coeffs()
-        self.symbolic, _ = self.get_symbolic_expressions(self.coeffs)
+        self._symbolic = None
 
         self.coeffs_inversed = self.inverse_coeffs()
-        self.symbolic_inversed, self.set_of_polynomials_inversed = self.get_symbolic_expressions(self.coeffs_inversed)
+        self._symbolic_inversed = None
+        self._set_of_polynomials_inversed = None
 
         # check if the curve is a motion curve
         self.is_motion = self.dimension == 7
         self.is_affine_motion = self.dimension == 12
+
+    @property
+    def symbolic(self):
+        """
+        Get the vector symbolic expressions of the curve
+
+        :return: list of symbolic expressions
+        :rtype: list
+        """
+        if self._symbolic is None:
+            self._symbolic, _ = self.get_symbolic_expressions(self.coeffs)
+
+        return self._symbolic
+
+    @property
+    def symbolic_inversed(self):
+        """
+        Get the vector symbolic expressions of the inversed curve
+
+        :return: list of symbolic expressions
+        :rtype: list
+        """
+        if self._symbolic_inversed is None:
+            self._symbolic_inversed, self._set_of_polynomials_inversed \
+                = self.get_symbolic_expressions(self.coeffs_inversed)
+
+        return self._symbolic_inversed
+
+    @property
+    def set_of_polynomials_inversed(self):
+        """
+        Get the set of polynomials representing the inversed curve
+
+        :return: list of symbolic expressions
+        :rtype: list
+        """
+        if self._set_of_polynomials_inversed is None:
+            self._symbolic_inversed, self._set_of_polynomials_inversed \
+                = self.get_symbolic_expressions(self.coeffs_inversed)
+
+        return self._set_of_polynomials_inversed
 
     @classmethod
     def from_coeffs(cls, coeffs: np.ndarray) -> "RationalCurve":
@@ -138,9 +180,9 @@ class RationalCurve:
                 coeffs[i, :] = np.array(self.set_of_polynomials[i].all_coeffs())
             else:  # if the degree of the equation is lower than the curve, check
                 # the difference
-                if not self.set_of_polynomials[i].all_coeffs() == [
-                    0
-                ]:  # if the equation is not zero, fill the coeffs
+                if not (self.set_of_polynomials[i].all_coeffs() == [0.0]
+                        or self.set_of_polynomials[i].all_coeffs() == [0]):
+                    # if the equation is not zero, fill the coeffs
                     degree_of_eq = self.set_of_polynomials[i].degree()
                     coeffs[i, self.degree - degree_of_eq :] = np.array(
                         self.set_of_polynomials[i].all_coeffs()
@@ -323,9 +365,12 @@ class RationalCurve:
         dq = DualQuaternion(self.evaluate(t_param, inverted_part))
         return dq.dq2matrix()
 
-    def factorize(self) -> list[MotionFactorization]:
+    def factorize(self, use_rationals: bool = False) -> list[MotionFactorization]:
         """
         Factorize the curve into motion factorizations
+
+        :param bool use_rationals: if True, force the factorization in QQ to return
+            rational numbers
 
         :return: list of MotionFactorization objects
         :rtype: list[MotionFactorization]
@@ -336,7 +381,7 @@ class RationalCurve:
 
         from .FactorizationProvider import FactorizationProvider
 
-        factorization_provider = FactorizationProvider()
+        factorization_provider = FactorizationProvider(use_rationals=use_rationals)
         return factorization_provider.factorize_motion_curve(self)
 
     def get_plot_data(self, interval: Union[str, tuple] = (0, 1), steps: int = 50) -> (

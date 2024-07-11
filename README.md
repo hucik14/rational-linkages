@@ -11,7 +11,7 @@
 # Rational Linkages
 
 This Python-based package provides a collection of methods for the synthesis, 
-analysis, rapid prototyping 
+analysis, design, and rapid prototyping 
 of the single-loop rational linkages, allowing one to create 3D-printable 
 collision-free mechanisms synthesised for a given task (set of poses). 
 
@@ -71,7 +71,7 @@ Using pip:
 
     <code>pip install -e .</code>
 
-## Preprint and citing the package
+## Citing the package
 
 For additional information, see our preprint paper, and in the case of usage, please, 
 cite it:
@@ -87,14 +87,16 @@ DOI: [10.1007/978-3-031-64057-5_27](https://doi.org/10.1007/978-3-031-64057-5_27
     title={Rational Linkages: From Poses to 3D-printed Prototypes},
     author={Daniel Huczala and Johannes Siegele and Daren A. Thimm and Martin Pfurner and Hans-Peter Schröcker},
     year={2024},
-    booktitle = {Advances in Robot Kinematics 2024. ARK 2024},
-    publisher = {Springer International Publishing},
+    booktitle={Advances in Robot Kinematics 2024. ARK 2024},
+    publisher={Springer International Publishing},
     url={https://doi.org/10.1007/978-3-031-64057-5_27},
-    doi = {10.1007/978-3-031-64057-5_27},
+    doi={10.1007/978-3-031-64057-5_27},
 }
 ```
 
-Preprint **arXiv:2403.00558**: [https://arxiv.org/abs/2403.00558](https://arxiv.org/abs/2403.00558).
+### Preprint of the paper
+
+On **arXiv:2403.00558**: [https://arxiv.org/abs/2403.00558](https://arxiv.org/abs/2403.00558).
 
 ## Acknowledgements
 

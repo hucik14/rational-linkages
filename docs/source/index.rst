@@ -43,7 +43,8 @@ Rational Linkages
 
 Welcome to the Rational Linkages package documentation, which serves as a reference for
 the provided tools. This package is a collection of functions for the synthesis,
-analysis, rapid prototyping of the single-loop rational linkages, allowing one to
+analysis, design, and rapid prototyping of the single-loop rational linkages,
+allowing one to
 create 3D-printable collision-free mechanisms synthesised for a given task
 (set of poses), as in the images below.
 
@@ -95,7 +96,7 @@ Austria. Namely, the following people contributed to the development:
 - Martin Pfurner (contributor)
 - Daren A. Thimm (contributor)
 
-Citing the Package
+Citing the package
 ==================
 
 If you use the Rational Linkages package in your research, please, cite it as follows:
@@ -112,13 +113,14 @@ DOI: `10.1007/978-3-031-64057-5_27 <https://doi.org/10.1007/978-3-031-64057-5_27
        title={Rational Linkages: From Poses to 3D-printed Prototypes},
        author={Daniel Huczala and Johannes Siegele and Daren A. Thimm and Martin Pfurner and Hans-Peter Schröcker},
        year={2024},
-       booktitle = {Advances in Robot Kinematics 2024. ARK 2024},
-       publisher = {Springer International Publishing},
+       booktitle={Advances in Robot Kinematics 2024. ARK 2024},
+       publisher={Springer International Publishing},
        url={https://doi.org/10.1007/978-3-031-64057-5_27},
-       doi = {10.1007/978-3-031-64057-5_27},
+       doi={10.1007/978-3-031-64057-5_27},
    }
 
-Preprint **arXiv:2403.00558**, url: `https://arxiv.org/abs/2403.00558 <https://arxiv.org/abs/2403.00558>`_.
+**Preprint** available on Arxiv:
+`https://arxiv.org/abs/2403.00558 <https://arxiv.org/abs/2403.00558>`_.
 
 Acknowledgements
 ================

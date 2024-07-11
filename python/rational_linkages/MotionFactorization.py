@@ -287,16 +287,19 @@ class MotionFactorization(RationalCurve):
 
         return angle
 
-    def factorize(self) -> list['MotionFactorization']:
+    def factorize(self, use_rationals: bool = False) -> list['MotionFactorization']:
         """
         Factorize the motion curve into motion factorizations
+
+        :param bool use_rationals: if True, force the factorization in QQ to return
+            rational numbers
 
         :return: list of MotionFactorization objects
         :rtype: list[MotionFactorization]
         """
         from .FactorizationProvider import FactorizationProvider
 
-        factorization_provider = FactorizationProvider()
+        factorization_provider = FactorizationProvider(use_rationals=use_rationals)
         return factorization_provider.factorize_for_motion_factorization(self)
 
     def get_joint_connection_points(self) -> list[Linkage]:

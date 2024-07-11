@@ -458,17 +458,25 @@ class DualQuaternion:
         d = -1 * p * self.d * p
         return DualQuaternion.from_two_quaternions(p, d)
 
-    def is_on_study_quadric(self) -> bool:
+    def is_on_study_quadric(self, approximate_sol: bool = False) -> bool:
         """
         Check if the DualQuaternion is on the study quadric
+
+        :param bool approximate_sol: if True, the strong numerical condition is used
+            to check if the point is on the Study quadric. This is a problem of
+            numerics, while numerically the point is close, it is actually nearly
+            on the quadric. For an optional approximate check, set to False.
+            Defaults to False.
 
         :return: True if the DualQuaternion is on the study quadric, False otherwise
         :rtype: bool
         """
+        treshold = 1e-10 if approximate_sol else 1e-20
+
         study_condition = (self.p[0] * self.d[0] + self.p[1] * self.d[1]
                            + self.p[2] * self.d[2] + self.p[3] * self.d[3])
         study_condition = np.asarray(study_condition, dtype="float64")
-        return np.isclose(study_condition, 0.0, atol=1e-20)
+        return np.isclose(study_condition, 0.0, atol=treshold)
 
     def dq2matrix(self, normalize: bool = True) -> np.ndarray:
         """
