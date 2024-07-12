@@ -52,6 +52,17 @@ class CollisionAnalyser:
                                          metric=self.metric))
         return motions
 
+    def get_points_orbits(self):
+        """
+        Get the orbits of the mechanism points.
+        """
+        from time import time
+        start_time = time()
+        points = [p.coordinates_normalized for p in self.mechanism_points]
+
+        return [PointOrbit(*point.get_point_orbit(metric=self.metric))
+                for point in self.mechanism_points]
+
     def get_segment_orbit(self, segment_id: str):
         """
         Get the orbit of a segment.

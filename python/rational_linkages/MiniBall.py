@@ -2,6 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 from .PointHomogeneous import PointHomogeneous
+from .MiniBall2 import get_bounding_ball
 
 
 class MiniBall:
@@ -33,15 +34,27 @@ class MiniBall:
         self.center = np.zeros(self.dimension)
         self.radius = 10.0
 
-        self.optimization_results = self.get_ball()
-        self.center = PointHomogeneous(self.optimization_results.x[:-1])
-        self.radius = self.optimization_results.x[-1]
+        self.center, self.radius = self.get_ball(method='welzl')
 
-    def get_ball(self):
+    def get_ball(self, method: str = 'minimize'):
         """
         Find the smallest ball containing all given points in Euclidean metric
         """
+        #if method == 'minimize':
+        result = self.get_ball_minimize()
+        center1 = PointHomogeneous(result.x[:-1])
+        radius1 = result.x[-1]
+            # return center, radius
 
+        #elif method == 'welzl':
+        points = np.array([point.coordinates_normalized for point in self.points])
+        center, radius = get_bounding_ball(points)
+        #     return PointHomogeneous(center), radius
+        # else:
+        #     raise ValueError("Invalid method.")
+        return center1, radius1
+
+    def get_ball_minimize(self):
         def objective_function(x):
             """
             Objective function to minimize the squared radius r^2 of the ball
@@ -49,7 +62,7 @@ class MiniBall:
             return x[-1] ** 2
 
         # Prepare constraint equations based on the metric
-        if self.metric_type == "hofer":
+        if self.metric_type != "hofer":
             def constraint_equations(x):
                 """
                 For Hofer metric, constraint equations must satisfy the ball by:

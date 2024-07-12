@@ -29,6 +29,8 @@ if __name__ == '__main__':
     ca = CollisionAnalyser(m)
     print(f'{time() - start_time:.3f} sec for generating Bezier segments')
     start_time = time()
+    # orbits = ca.get_points_orbits()
+
     s = 't_12'
     o0, o1 = ca.get_segment_orbit(s)
     print(f'{time() - start_time:.3f} sec for generating orbits')
