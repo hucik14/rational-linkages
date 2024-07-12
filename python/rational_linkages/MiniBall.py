@@ -40,19 +40,27 @@ class MiniBall:
         """
         Find the smallest ball containing all given points in Euclidean metric
         """
+        # self.points = [PointHomogeneous([1, 0, 0, 0]),
+        #                PointHomogeneous([1, 1, 0, 0]),
+        #                PointHomogeneous([1, 0.5, 0, 0]),
+        #                PointHomogeneous([1, 0, 1, 0]),]
+        # self.dimension = self.points[0].coordinates.size
+        # self.number_of_points = len(self.points)
+
         #if method == 'minimize':
         result = self.get_ball_minimize()
-        center1 = PointHomogeneous(result.x[:-1])
+        center1 = result.x[:-1]
         radius1 = result.x[-1]
             # return center, radius
 
         #elif method == 'welzl':
         points = np.array([point.coordinates_normalized for point in self.points])
         center, radius = get_bounding_ball(points)
+        radius = np.sqrt(radius)
         #     return PointHomogeneous(center), radius
         # else:
         #     raise ValueError("Invalid method.")
-        return center1, radius1
+        return PointHomogeneous(center1), radius1
 
     def get_ball_minimize(self):
         def objective_function(x):
