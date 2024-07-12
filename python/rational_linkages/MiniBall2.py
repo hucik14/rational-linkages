@@ -41,7 +41,11 @@ def get_bounding_ball(points: np.ndarray,
     """
     def circle_contains(ball, point):
         center, radius_squared = ball
-        return np.sum(np.square(point - center)) <= radius_squared
+
+        if metric is None or metric == 'euclidean':
+            return np.sum(np.square(point - center)) <= radius_squared
+        else:
+            return metric.squared_distance_pr12_points(point, center) <= radius_squared
 
     def get_boundary(subset):
         if len(subset) == 0:

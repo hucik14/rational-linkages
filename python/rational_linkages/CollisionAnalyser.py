@@ -22,7 +22,7 @@ class CollisionAnalyser:
             self.segments[segment.id] = segment
 
         self.motions = self.get_motions()
-        self.bezier_splits = self.get_bezier_splits(20)
+        self.bezier_splits = self.get_bezier_splits(1000)
 
     def get_bezier_splits(self, min_splits: int = 0) -> list:
         """

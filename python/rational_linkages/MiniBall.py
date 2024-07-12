@@ -46,11 +46,11 @@ class MiniBall:
         # self.dimension = self.points[0].coordinates.size
         # self.number_of_points = len(self.points)
 
-        #if method == 'minimize':
-        result = self.get_ball_minimize()
-        center1 = result.x[:-1]
-        radius_sqared1 = np.square(result.x[-1])
-            # return center, radius
+        # #if method == 'minimize':
+        # result = self.get_ball_minimize()
+        # center1 = result.x[:-1]
+        # radius_squared1 = np.square(result.x[-1])
+        #     # return center, radius
 
         #elif method == 'welzl':
         points = np.array([point.coordinates_normalized for point in self.points])
@@ -58,7 +58,7 @@ class MiniBall:
         #     return PointHomogeneous(center), radius
         # else:
         #     raise ValueError("Invalid method.")
-        return PointHomogeneous(center1), radius_sqared1
+        return PointHomogeneous(center), radius_squared
 
     def get_ball_minimize(self):
         def objective_function(x):
