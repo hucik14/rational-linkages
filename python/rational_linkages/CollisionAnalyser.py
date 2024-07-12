@@ -93,11 +93,11 @@ class CollisionAnalyser:
         rel_bezier_splits = self.bezier_splits[split_idx]
 
         orbits0 = [PointOrbit(*p0.get_point_orbit(acting_center=split.ball.center,
-                                                  acting_radius=split.ball.radius,
+                                                  acting_radius=split.ball.radius_squared,
                                                   metric=self.metric))
                    for split in rel_bezier_splits]
         orbits1 = [PointOrbit(*p1.get_point_orbit(acting_center=split.ball.center,
-                                                  acting_radius=split.ball.radius,
+                                                  acting_radius=split.ball.radius_squared,
                                                   metric=self.metric))
                    for split in rel_bezier_splits]
 
