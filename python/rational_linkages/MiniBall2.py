@@ -6,41 +6,43 @@
 # The code has been modified to handle other than Euclidean metrics.
 
 import numpy as np
+from .AffineMetric import AffineMetric
 
 
-def get_circumsphere(points: np.ndarray, metric: 'AffineMetric' = None):
+def get_circumsphere(points: np.ndarray, metric: AffineMetric = None):
     """
     Computes the circumsphere of a set of points
+
+    :param np.ndarray points: array of points in the space
+    :param AffineMetric metric: alternative metric to be used for the ball
+
+    :return: center and the squared radius of the circumsphere
+    :rtype: (nd.array, float)
     """
     # calculate vectors from the first point to all other points (redefine origin)
     u = points[1:] - points[0]
 
-    if metric is None or metric == 'euclidean':
-        b = np.sqrt(np.sum(np.square(u), axis=1))
-    else:
-        if u.size == 0:
-            b = np.sqrt(np.sum(np.square(u), axis=1))
-        else:
-            # squared_distances = np.array([metric.squared_distance_pr12_points(points[0],
-            #                                                                   point)
-            #                               for point in points[1:]])
-            # b = np.array(np.sqrt(squared_distances))
-        b = np.sqrt(np.sum(np.square(u), axis=1))
+    # calculate squared distances from the first point to all other points
+    b = np.sqrt(np.sum(np.square(u), axis=1))
 
     # normalize the vectors and halve the lengths
     u /= b[:, None]
     b /= 2
 
     # solve the linear system to find the center of the circumsphere
-    if metric is None or metric == 'euclidean':
-        center = np.dot(np.linalg.solve(np.inner(u, u), b), u)
-    else:
-        center = np.dot(np.linalg.solve(np.inner(u, u), b), u)
-        #center = np.dot(np.linalg.solve(metric.inner_product(u, u), b), u)
+    center = np.dot(np.linalg.solve(np.inner(u, u), b), u)
 
-    radius_squared = np.square(center).sum()
-    radius_squared = metric.squared_distance_pr12_points(np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]), center)
+    # length of "center" vector is the radius of the circumsphere
+    if metric is None or metric == 'euclidean':
+        radius_squared = np.square(center).sum()
+    else:
+        radius_squared = metric.squared_distance_pr12_points(
+            np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            center)
+
+    # move the center back to the original coordinate system
     center += points[0]
+
     return center, radius_squared
 
 
