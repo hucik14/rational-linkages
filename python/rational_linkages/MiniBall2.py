@@ -8,16 +8,38 @@
 import numpy as np
 
 
-def get_circumsphere(points):
+def get_circumsphere(points: np.ndarray, metric: 'AffineMetric' = None):
     """
     Computes the circumsphere of a set of points
     """
+    # calculate vectors from the first point to all other points (redefine origin)
     u = points[1:] - points[0]
-    b = np.sqrt(np.sum(np.square(u), axis=1))
+
+    if metric is None or metric == 'euclidean':
+        b = np.sqrt(np.sum(np.square(u), axis=1))
+    else:
+        if u.size == 0:
+            b = np.sqrt(np.sum(np.square(u), axis=1))
+        else:
+            # squared_distances = np.array([metric.squared_distance_pr12_points(points[0],
+            #                                                                   point)
+            #                               for point in points[1:]])
+            # b = np.array(np.sqrt(squared_distances))
+        b = np.sqrt(np.sum(np.square(u), axis=1))
+
+    # normalize the vectors and halve the lengths
     u /= b[:, None]
     b /= 2
-    center = np.dot(np.linalg.solve(np.inner(u, u), b), u)
+
+    # solve the linear system to find the center of the circumsphere
+    if metric is None or metric == 'euclidean':
+        center = np.dot(np.linalg.solve(np.inner(u, u), b), u)
+    else:
+        center = np.dot(np.linalg.solve(np.inner(u, u), b), u)
+        #center = np.dot(np.linalg.solve(metric.inner_product(u, u), b), u)
+
     radius_squared = np.square(center).sum()
+    radius_squared = metric.squared_distance_pr12_points(np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]), center)
     center += points[0]
     return center, radius_squared
 
@@ -51,8 +73,8 @@ def get_bounding_ball(points: np.ndarray,
         if len(subset) == 0:
             return np.zeros(points.shape[1]), 0.0
         if len(subset) <= points.shape[1] + 1:
-            return get_circumsphere(points[subset])
-        center, radius_squared = get_circumsphere(points[subset[: points.shape[1] + 1]])
+            return get_circumsphere(points[subset], metric=metric)
+        center, radius_squared = get_circumsphere(points[subset[: points.shape[1] + 1]], metric=metric)
         if np.all(np.abs(np.sum(np.square(points[subset] - center), axis=1) - radius_squared) < epsilon):
             return center, radius_squared
 

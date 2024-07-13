@@ -47,9 +47,9 @@ class MiniBall:
         # self.number_of_points = len(self.points)
 
         # #if method == 'minimize':
-        # result = self.get_ball_minimize()
-        # center1 = result.x[:-1]
-        # radius_squared1 = np.square(result.x[-1])
+        result = self.get_ball_minimize()
+        center_opt = result.x[:-1]
+        radius_squared_opt = np.square(result.x[-1])
         #     # return center, radius
 
         #elif method == 'welzl':
