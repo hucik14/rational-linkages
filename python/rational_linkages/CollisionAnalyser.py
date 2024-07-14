@@ -1,6 +1,5 @@
 from .RationalMechanism import RationalMechanism
 from .RationalCurve import RationalCurve
-from .RationalBezier import RationalBezier, BezierSegment
 from .MiniBall import MiniBall
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointOrbit
@@ -22,7 +21,7 @@ class CollisionAnalyser:
             self.segments[segment.id] = segment
 
         self.motions = self.get_motions()
-        self.bezier_splits = self.get_bezier_splits(20)
+        self.bezier_splits = self.get_bezier_splits(100)
 
     def get_bezier_splits(self, min_splits: int = 0) -> list:
         """
@@ -93,11 +92,11 @@ class CollisionAnalyser:
         rel_bezier_splits = self.bezier_splits[split_idx]
 
         orbits0 = [PointOrbit(*p0.get_point_orbit(acting_center=split.ball.center,
-                                                  acting_radius=split.ball.radius,
+                                                  acting_radius=split.ball.radius_squared,
                                                   metric=self.metric))
                    for split in rel_bezier_splits]
         orbits1 = [PointOrbit(*p1.get_point_orbit(acting_center=split.ball.center,
-                                                  acting_radius=split.ball.radius,
+                                                  acting_radius=split.ball.radius_squared,
                                                   metric=self.metric))
                    for split in rel_bezier_splits]
 
