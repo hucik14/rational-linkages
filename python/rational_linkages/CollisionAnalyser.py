@@ -1,6 +1,5 @@
 from .RationalMechanism import RationalMechanism
 from .RationalCurve import RationalCurve
-from .RationalBezier import RationalBezier, BezierSegment
 from .MiniBall import MiniBall
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointOrbit

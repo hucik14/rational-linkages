@@ -8,12 +8,14 @@ from .MiniBall2 import get_bounding_ball
 class MiniBall:
     def __init__(self,
                  points: list[PointHomogeneous],
-                 metric: "AffineMetric" = None):
+                 metric: "AffineMetric" = None,
+                 method: str = 'welzl'):
         """
         Initialize the MiniBall class
 
         :param list[PointHomogeneous] points: array of points in the space
         :param AffineMetric metric: alternative metric to be used for the ball
+        :param str method: method to be used for finding the smallest ball
         """
         self.points = points
 
