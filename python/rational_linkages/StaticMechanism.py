@@ -1,5 +1,3 @@
-import numpy as np
-
 from warnings import warn
 
 from .RationalMechanism import RationalMechanism
@@ -7,7 +5,6 @@ from .MotionFactorization import MotionFactorization
 from .DualQuaternion import DualQuaternion
 from .NormalizedLine import NormalizedLine
 from .TransfMatrix import TransfMatrix
-
 
 
 class StaticMechanism(RationalMechanism):
@@ -94,16 +91,17 @@ class StaticMechanism(RationalMechanism):
         for tm in global_tm[:-1]:
             screw_axes.append(NormalizedLine.from_direction_and_point(tm.a, tm.t))
 
-        warn("If the DH parameters do no close the linkages by default, the created"
-             " mechanism will not be a closed loop - double check the last link"
-             "design parameters.", UserWarning)
+        warn("If the DH parameters do no close the linkages by default, "
+             "the created mechanism will not be a closed loop - double check the "
+             "last link design parameters.", UserWarning)
 
         return cls(screw_axes)
 
     def get_screw_axes(self) -> list[NormalizedLine]:
         """
-        Overwrites the RationalMechanism method to return the screw axes of
-        the mechanism.
+        Method override
+
+        Get the screw axes of the mechanism. Overrides the method from the parent class.
         """
         return self.screws
 
