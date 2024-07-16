@@ -85,4 +85,5 @@ omit = [
     "*Plotter.py",
     "*ButtonID.py",
     "*MotionApproximation.py",
+    "*StaticMechanism.py",
     ]
