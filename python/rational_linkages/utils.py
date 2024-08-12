@@ -3,7 +3,12 @@
 
 def sum_of_squares(list_of_values: list) -> float:
     """
-    Calculate the sum of squares of a list of values.
+    Calculate the sum of squares of values in given list.
+
+    :param list list_of_values: List of values.
+
+    :return: Sum of squares of the values.
+    :rtype: float
     """
     return sum([value**2 for value in list_of_values])
 
