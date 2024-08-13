@@ -2,6 +2,7 @@ import pickle
 from copy import deepcopy
 from time import time
 from typing import Union
+from warnings import warn
 
 import numpy as np
 import sympy as sp
@@ -931,21 +932,23 @@ class RationalMechanism(RationalCurve):
         t = sp.Symbol("t")
 
         curve = self.curve()
+        #curve = curve.inverse_curve()
         c_diff = RationalCurve(
             [element.diff(t) for element in curve.set_of_polynomials])
 
         t_val = 0.0
-        t_init_set = [-10., 10., -100., 100., -1000., 1000.]
+        t_val_min = [0.0, 1000000000000000000000000000.0]
+        t_init_set = [1/1e-16, -1., 1., -10., 10., -100., 100., -1000., 1000., 1e-16]
         t_init_set = [np.random.rand() * element for element in t_init_set]
         max_retries = len(t_init_set)
 
-        max_iterations = 30
+        max_iterations = 100
         tolerance = 1e-14
 
         for retry in range(max_retries):
             for i in range(max_iterations):
                 # error to desired pose
-                twist_to_desired = pose.array() - self.evaluate(t_val)
+                twist_to_desired = pose.array() - curve.evaluate(t_val)
 
                 c_diff_eval = c_diff.evaluate(t_val)
                 t_val += (c_diff_eval @ twist_to_desired) / sum_of_squares(c_diff_eval)
@@ -953,11 +956,14 @@ class RationalMechanism(RationalCurve):
                 if sum_of_squares(twist_to_desired) < tolerance:
                     break
             else:  # this else belongs to the for loop, not an if statement
+                if sum_of_squares(twist_to_desired) < t_val_min[1]:
+                    t_val_min = t_val, sum_of_squares(twist_to_desired)
                 t_val = np.random.rand() * t_init_set[retry]  # new random init value
                 continue
             break  # break outer loop if converged
         else:
-            raise ValueError("Numerical IK solver failed to converge.")
+            warn("Numerical IK solver found only nearest point.")
+            return t_val_min[0]
 
         return t_val
 
