@@ -250,7 +250,11 @@ class MotionFactorization(RationalCurve):
         elif unit != 'rad':
             raise ValueError("unit must be 'rad' or 'deg'")
 
-        normalized_angle = joint_angle % (2 * np.pi)
+        # normalize angle to [0, 2*pi]
+        if joint_angle >= 0:
+            normalized_angle = joint_angle % (2 * np.pi)
+        else:
+            normalized_angle = (joint_angle % (2 * np.pi)) - np.pi
 
         # avoid division by zero
         if normalized_angle == 0.0:
