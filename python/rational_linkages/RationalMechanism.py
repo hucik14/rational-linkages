@@ -877,5 +877,87 @@ class RationalMechanism(RationalCurve):
 
         return DualQuaternion(self.evaluate(t)) * self.tool_frame
 
+    def inverse_kinematics(self,
+                           pose: Union[DualQuaternion, TransfMatrix],
+                           unit: str = 'rad',
+                           method: str = 'gauss-newton'
+                           ) -> float:
+        """
+        Calculate inverse kinematics for given pose. Returns the joint angle in radians.
 
+        :param Union[DualQuaternion, TransfMatrix] pose: pose of the mechanism
+        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+        :param str method: numerically for 'gauss-newton' or 'algebraic'; 'algebraic'
+            requires the input pose to be "achievable" by the mechanism, i.e. the pose
+            must be on Study quadric and the mechanism must be able to reach it
+
+        :return: joint angle in radians or degrees
+        :rtype: float
+        """
+        if isinstance(pose, TransfMatrix):
+            pose = DualQuaternion(pose.matrix2dq())
+        elif not isinstance(pose, DualQuaternion):
+            raise ValueError("pose must be either DualQuaternion or TransfMatrix")
+
+        if unit != 'rad' and unit != 'deg':
+            raise ValueError("unit must be deg or rad")
+
+        if method == 'algebraic':
+            # TODO: implement algebraic method
+            raise NotImplementedError("Algebraic method is not implemented yet.")
+        elif method == 'gauss-newton':
+            t = self._ik_gauss_newton(pose)
+        else:
+            raise ValueError("method must be either 'algebraic' or 'gauss-newton")
+
+        joint_angle = self.factorizations[0].t_param_to_joint_angle(t)
+
+        if unit == 'deg':
+            joint_angle = np.rad2deg(joint_angle)
+
+        return joint_angle
+
+    def _ik_gauss_newton(self, pose: DualQuaternion) -> float:
+        """
+        Calculate inverse kinematics using Gauss-Newton method.
+
+        :param DualQuaternion pose: pose of the mechanism
+
+        :return: parameter value
+        :rtype: float
+        """
+        from rational_linkages.utils import sum_of_squares
+
+        t = sp.Symbol("t")
+
+        curve = self.curve()
+        c_diff = RationalCurve(
+            [element.diff(t) for element in curve.set_of_polynomials])
+
+        t_val = 0.0
+        t_init_set = [-10., 10., -100., 100., -1000., 1000.]
+        t_init_set = [np.random.rand() * element for element in t_init_set]
+        max_retries = len(t_init_set)
+
+        max_iterations = 30
+        tolerance = 1e-14
+
+        for retry in range(max_retries):
+            for i in range(max_iterations):
+                # error to desired pose
+                twist_to_desired = pose.array() - self.evaluate(t_val)
+
+                c_diff_eval = c_diff.evaluate(t_val)
+                t_val += (c_diff_eval @ twist_to_desired) / sum_of_squares(c_diff_eval)
+
+                if sum_of_squares(twist_to_desired) < tolerance:
+                    break
+            else:  # this else belongs to the for loop, not an if statement
+                t_val = np.random.rand() * t_init_set[retry]  # new random init value
+                continue
+            break  # break outer loop if converged
+        else:
+            raise ValueError("Numerical IK solver failed to converge.")
+
+        return t_val
 
