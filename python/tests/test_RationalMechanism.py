@@ -267,3 +267,43 @@ class TestRationalMechanism(TestCase):
                                           (-1, 1, -1, 1, -1, 1, 1, -1, 1, -1, 1, -1),
                                           (-1, 1, 1, -1, -1, 1, 1, -1, -1, 1, 1, -1)]
                                       )
+
+    def test_inverse_kinematics(self):
+        m = bennett_ark24()
+        joint_angle_expected = 0.0
+
+        ik_res = m.inverse_kinematics(DualQuaternion())
+        self.assertTrue(np.allclose(ik_res, joint_angle_expected))
+
+    def test_forward_kinematics(self):
+        m = bennett_ark24()
+
+        joint_angle = 0.0
+        fk_res = m.forward_kinematics(joint_angle)
+        self.assertTrue(np.allclose(fk_res.array() / fk_res[0],
+                                    DualQuaternion().array()))
+
+        joint_angle = 1.5707963267948966
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, joint_angle))
+
+        joint_angle = 3.141592653589793
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, joint_angle))
+
+        joint_angle = 2.0
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, joint_angle))
+
+        joint_angle = -2.0
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, (joint_angle % (2 * np.pi)) - np.pi))
+
+        joint_angle = 4.0
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, (joint_angle % (2 * np.pi))))

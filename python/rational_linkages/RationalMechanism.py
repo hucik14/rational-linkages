@@ -927,43 +927,56 @@ class RationalMechanism(RationalCurve):
         :return: parameter value
         :rtype: float
         """
-        from rational_linkages.utils import sum_of_squares
+        from rational_linkages.utils import sum_of_squares  # inner import
 
         t = sp.Symbol("t")
 
-        curve = self.curve()
-        #curve = curve.inverse_curve()
-        c_diff = RationalCurve(
-            [element.diff(t) for element in curve.set_of_polynomials])
-
-        t_val = 0.0
-        t_val_min = [0.0, 1000000000000000000000000000.0]
-        t_init_set = [1/1e-16, -1., 1., -10., 10., -100., 100., -1000., 1000., 1e-16]
-        t_init_set = [np.random.rand() * element for element in t_init_set]
-        max_retries = len(t_init_set)
-
+        curves = [self.curve(), self.curve().inverse_curve()]
+        success = False
+        inversed_part = False
+        t_min = [None, float('inf')]
+        t_init_set = [0., -0.5, 0.5]
+        t_res = None
         max_iterations = 100
-        tolerance = 1e-14
+        tol = 1e-14
 
-        for retry in range(max_retries):
-            for i in range(max_iterations):
-                # error to desired pose
-                twist_to_desired = pose.array() - curve.evaluate(t_val)
+        for inv, curve in enumerate(curves):
+            if inv == 1:
+                inversed_part = True
 
-                c_diff_eval = c_diff.evaluate(t_val)
-                t_val += (c_diff_eval @ twist_to_desired) / sum_of_squares(c_diff_eval)
+            c_diff = RationalCurve(
+                [element.diff(t) for element in curve.set_of_polynomials])
 
-                if sum_of_squares(twist_to_desired) < tolerance:
+            for t_val in t_init_set:
+                for i in range(max_iterations):
+                    # error to desired pose
+                    twist_to_desired = pose.array() - curve.evaluate(t_val)
+
+                    c_diff_eval = c_diff.evaluate(t_val)
+                    t_val += (c_diff_eval @ twist_to_desired) / sum_of_squares(c_diff_eval)
+
+                    square_dist_to_desired = sum_of_squares(twist_to_desired)
+                    if square_dist_to_desired < tol:
+                        success = True
+                        t_res = t_val
+                        break
+
+                if square_dist_to_desired < t_min[1]:
+                    t_min = [t_val, sum_of_squares(twist_to_desired)]
+
+                if success:
                     break
-            else:  # this else belongs to the for loop, not an if statement
-                if sum_of_squares(twist_to_desired) < t_val_min[1]:
-                    t_val_min = t_val, sum_of_squares(twist_to_desired)
-                t_val = np.random.rand() * t_init_set[retry]  # new random init value
-                continue
-            break  # break outer loop if converged
-        else:
-            warn("Numerical IK solver found only nearest point.")
-            return t_val_min[0]
+            if success:
+                break
 
-        return t_val
+        if not success:
+            warn("Gauss-Newton method did not converge. Returning the best result.")
+            t_res = t_min[0]
+
+        if inversed_part:
+            if t_res == 0.0:
+                t_res = np.finfo(np.float64).tiny
+            t_res = 1 / t_res
+
+        return t_res
 
