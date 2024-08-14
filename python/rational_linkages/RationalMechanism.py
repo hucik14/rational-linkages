@@ -980,3 +980,104 @@ class RationalMechanism(RationalCurve):
 
         return t_res
 
+    @staticmethod
+    def traj_p2p_joint_space(joint_angle_start: float,
+                             joint_angle_end: float,
+                             unit: str = 'rad',
+                             time_sec: float = 1.0,
+                             num_points: int = 100,
+                             method: str = 'quintic') -> np.ndarray:
+        """
+        Generate point to point straight line joint space trajectory.
+
+        This method originates from book Modern Robotics :footcite:p:`Lynch2017`
+        by Kevin M. Lynch
+        and Frank C. Park, and related software package published under MIT
+        licence and available at: https://github.com/NxRLab/ModernRobotics
+
+        .. footbibliography::
+
+        :param float joint_angle_start: start parameter value
+        :param float joint_angle_end: end parameter value
+        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+        :param float time_sec: time of the trajectory [seconds]
+        :param int num_points: number of discrete points in the trajectory
+        :param str method: method of trajectory generation, can be 'quintic' or 'cubic'
+
+        :return: list of joint angles
+        :rtype: np.ndarray
+
+        :raises: ValueError: if unit is not 'rad' or 'deg'
+        :raises: ValueError: if method is not 'quintic' or 'cubic'
+
+        :example:
+
+        .. testcode::
+
+            from rational_linkages import RationalCurve, RationalMechanism
+            import numpy as np
+            import matplotlib.pyplot as plt
+
+            coeffs = np.array([[0, 0, 0],
+                               [4440, 39870, 22134],
+                               [16428, 9927, -42966],
+                               [-37296,-73843,-115878],
+                               [0, 0, 0],
+                               [-1332, -14586, -7812],
+                               [-2664, -1473, 6510],
+                               [-1332, -1881, -3906]])
+            c = RationalCurve.from_coeffs(coeffs)
+            m = RationalMechanism(c.factorize())
+
+            time = 3  # seconds
+            n_steps = 100
+            t0 = 0
+            t1 = np.pi/4
+            method = 'quintic'
+            #method = 'cubic'
+
+            traj = m.traj_p2p_joint_space(joint_angle_start=t0,
+                                          joint_angle_end=t1,
+                                          time_sec=time,
+                                          method=method,
+                                          num_points=n_steps)
+
+            vel = np.diff(traj, axis=0) / (time / (n_steps - 1))
+            acc = np.diff(vel, axis=0) / (time / (n_steps - 1))
+
+            # plot the trajectory
+            plt.plot(traj)
+            plt.plot(vel)
+            plt.plot(acc)
+            plt.xlabel('Time [sec]')
+            plt.legend(['Position [rad]', 'Velocity [rad/s]', 'Acceleration [rad/s^2]'])
+            plt.grid()
+            plt.show()
+
+        """
+        if unit == 'deg':
+            joint_angle_start = np.deg2rad(joint_angle_start)
+            joint_angle_end = np.deg2rad(joint_angle_end)
+        elif unit != 'rad':
+            raise ValueError("unit must be deg or rad")
+
+        def cubic_time_scaling(tot_time, step):
+            return 3 * (1.0 * step / tot_time) ** 2 - 2 * (1.0 * step / tot_time) ** 3
+
+        def quintic_time_scaling(tot_time, step):
+            return (10 * (1.0 * step / tot_time) ** 3
+                    - 15 * (1.0 * step / tot_time) ** 4
+                    + 6 * (1.0 * step / tot_time) ** 5)
+
+        time_gap = time_sec / (num_points - 1.0)
+        traj = np.zeros(num_points)
+        for i in range(num_points):
+            if method == 'cubic':
+                scaling = cubic_time_scaling(time_sec, time_gap * i)
+            elif method == 'quintic':
+                scaling = quintic_time_scaling(time_sec, time_gap * i)
+            else:
+                raise ValueError("method must be either 'cubic' or 'quintic'")
+            traj[i] = (scaling * np.array(joint_angle_end)
+                       + (1 - scaling) * np.array(joint_angle_start))
+        return traj
