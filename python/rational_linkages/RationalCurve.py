@@ -532,7 +532,7 @@ class RationalCurve:
         return np.sum(np.linalg.norm(np.diff(points, axis=0), axis=1))
 
     def split_in_equal_segments(self,
-                                interval: list[float, float],
+                                interval: list[float],
                                 point_to_act_on: PointHomogeneous = PointHomogeneous(),
                                 n_segments: int = 10,) -> list[float]:
         """
@@ -541,7 +541,7 @@ class RationalCurve:
         Perform the arc length parameterization of the curve to split it into equal
         segments. The method uses the bisection method to find the t values.
 
-        :param list[float, float] interval: interval of the parameter t
+        :param list[float] interval: interval of the parameter t
         :param PointHomogeneous point_to_act_on: point to act on
         :param int n_segments: number of segments to split the curve into
 
@@ -550,11 +550,14 @@ class RationalCurve:
 
         :raises ValueError: if the interval is not in the form [a, b] where a < b
         :raises ValueError: if the interval values are identical
+        :raises ValueError: if the number of segments is less than 1
         """
         if interval[0] > interval[1]:
             raise ValueError("The interval must be in the form [a, b] where a < b")
         elif interval[0] == interval[1]:
             raise ValueError("The interval values are identical")
+        elif n_segments < 2:
+            raise ValueError("The number of segments must be greater than 1")
 
         t = sp.Symbol('t')
 
