@@ -1073,6 +1073,13 @@ class RationalMechanism(RationalCurve):
                     - 15 * (1.0 * step / tot_time) ** 4
                     + 6 * (1.0 * step / tot_time) ** 5)
 
+        def quadratic_time_scaling_with_velocity(t, T, theta_0, theta_f, v_0, v_f):
+            a_0 = theta_0
+            a_1 = v_0
+            a_2 = (v_f - v_0) / (2 * T)
+
+            return a_0 + a_1 * t + a_2 * t ** 2
+
         def cubic_time_scaling_with_velocity(t, T, theta_0, theta_f, v_0, v_f):
             a_0 = theta_0
             a_1 = v_0
@@ -1108,6 +1115,8 @@ class RationalMechanism(RationalCurve):
                     raise ValueError("method must be either 'cubic' or 'quintic'")
                 traj[i] = (scaling * np.array(joint_angle_end)
                            + (1 - scaling) * np.array(joint_angle_start))
+            elif method == 'quadratic_with_velocity':
+                traj[i] = quadratic_time_scaling_with_velocity(time_gap * i, time_sec, joint_angle_start, joint_angle_end, velocity_start, velocity_end)
             elif method == 'quintic_with_velocity':
                 traj[i] = quintic_time_scaling_with_velocity(time_gap * i, time_sec, joint_angle_start, joint_angle_end, velocity_start, velocity_end)
             elif method == 'cubic_with_velocity':
@@ -1143,29 +1152,33 @@ class RationalMechanism(RationalCurve):
         joint_angles = [self.factorizations[0].t_param_to_joint_angle(x)
                         for x in t_vals]
 
-        segment_time = time_sec / 140
+        #return joint_angles
 
-        joint_traj = []
-        joint_traj.append(self.traj_p2p_joint_space(joint_angles[0],
-                                                    joint_angles[1],
-                                                    velocity_start=0.0,
-                                                    velocity_end=-35.,
-                                                    time_sec=segment_time,
-                                                    method='cubic_with_velocity',
-                                                    num_points=int(0.2 * num_points)))
+        segment_time = 20 * time_sec / 140
+        segment_time = 0.1227
 
-        joint_traj.append(joint_angles[2:-2])
+        vel = (joint_angles[1] - joint_angles[2]) / segment_time
 
-        joint_traj.append(self.traj_p2p_joint_space(joint_angles[-2],
+        seg1 = self.traj_p2p_joint_space(joint_angles[0],
+                                        joint_angles[1],
+                                        velocity_start=0.0,
+                                        velocity_end=-1.425,
+                                        time_sec=segment_time,
+                                        method='quadratic_with_velocity',
+                                        num_points=5)
+
+        joint_traj = list(seg1) + joint_angles[2:-2]
+
+        segment_time = 0.18
+
+        seg2 = self.traj_p2p_joint_space(joint_angles[-2],
                                                     joint_angles[-1],
-                                                    velocity_start=-35.0,
-                                                    velocity_end=-0.1,
+                                                    velocity_start=-1.285,
+                                                    velocity_end=0.0,
                                                     time_sec=segment_time,
-                                                    method='quintic_with_velocity',
-                                                    num_points=int(0.2 * num_points)))
+                                                    method='quadratic_with_velocity',
+                                                    num_points=5)
 
-        # flatten and return as np array
-        joint_traj = np.array([item for sublist in joint_traj for item in sublist])
-
+        joint_traj += list(seg2)
 
         return joint_traj
