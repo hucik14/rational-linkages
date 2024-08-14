@@ -983,6 +983,8 @@ class RationalMechanism(RationalCurve):
     @staticmethod
     def traj_p2p_joint_space(joint_angle_start: float,
                              joint_angle_end: float,
+                             velocity_start: float = 0.0,
+                             velocity_end: float = 0.0,
                              unit: str = 'rad',
                              time_sec: float = 1.0,
                              num_points: int = 100,
@@ -999,6 +1001,8 @@ class RationalMechanism(RationalCurve):
 
         :param float joint_angle_start: start parameter value
         :param float joint_angle_end: end parameter value
+        :param float velocity_start: start velocity
+        :param float velocity_end: end velocity
         :param str unit: unit of the joint angle, can be 'rad' or 'deg'
         :param float time_sec: time of the trajectory [seconds]
         :param int num_points: number of discrete points in the trajectory
@@ -1069,15 +1073,99 @@ class RationalMechanism(RationalCurve):
                     - 15 * (1.0 * step / tot_time) ** 4
                     + 6 * (1.0 * step / tot_time) ** 5)
 
+        def cubic_time_scaling_with_velocity(t, T, theta_0, theta_f, v_0, v_f):
+            a_0 = theta_0
+            a_1 = v_0
+            a_2 = (3 * (theta_f - theta_0) - (2 * v_0 + v_f) * T) / T ** 2
+            a_3 = (2 * (theta_0 - theta_f) + (v_0 + v_f) * T) / T ** 3
+
+            return a_0 + a_1 * t + a_2 * t ** 2 + a_3 * t ** 3
+
+        def quintic_time_scaling_with_velocity(t, T, theta_0, theta_f, v_0, v_f):
+            T2 = T ** 2
+            T3 = T ** 3
+            T4 = T ** 4
+            T5 = T ** 5
+
+            a_0 = theta_0
+            a_1 = v_0
+            a_2 = 0
+            a_3 = (20 * (theta_f - theta_0) - (8 * v_f + 12 * v_0) * T) / (2 * T3)
+            a_4 = (30 * (theta_0 - theta_f) + (14 * v_f + 16 * v_0) * T) / (2 * T4)
+            a_5 = (12 * (theta_f - theta_0) - (6 * v_f + 6 * v_0) * T) / (2 * T5)
+
+            return a_0 + a_1 * t + a_2 * t ** 2 + a_3 * t ** 3 + a_4 * t ** 4 + a_5 * t ** 5
+
         time_gap = time_sec / (num_points - 1.0)
         traj = np.zeros(num_points)
         for i in range(num_points):
-            if method == 'cubic':
-                scaling = cubic_time_scaling(time_sec, time_gap * i)
-            elif method == 'quintic':
-                scaling = quintic_time_scaling(time_sec, time_gap * i)
-            else:
-                raise ValueError("method must be either 'cubic' or 'quintic'")
-            traj[i] = (scaling * np.array(joint_angle_end)
-                       + (1 - scaling) * np.array(joint_angle_start))
+            if method == 'cubic' or method == 'quintic':
+                if method == 'cubic':
+                    scaling = cubic_time_scaling(time_sec, time_gap * i)
+                elif method == 'quintic':
+                    scaling = quintic_time_scaling(time_sec, time_gap * i)
+                else:
+                    raise ValueError("method must be either 'cubic' or 'quintic'")
+                traj[i] = (scaling * np.array(joint_angle_end)
+                           + (1 - scaling) * np.array(joint_angle_start))
+            elif method == 'quintic_with_velocity':
+                traj[i] = quintic_time_scaling_with_velocity(time_gap * i, time_sec, joint_angle_start, joint_angle_end, velocity_start, velocity_end)
+            elif method == 'cubic_with_velocity':
+                traj[i] = cubic_time_scaling_with_velocity(time_gap * i, time_sec, joint_angle_start, joint_angle_end, velocity_start, velocity_end)
+
         return traj
+
+    def traj_smooth_tool(self,
+                         joint_angle_start: float,
+                         joint_angle_end: float,
+                         time_sec: float,
+                         unit: str = 'rad',
+                         num_points: int = 100
+                         ):
+        """
+        Generate smooth trajectory for the tool of the mechanism.
+        """
+        if unit == 'deg':
+            joint_angle_start = np.deg2rad(joint_angle_start)
+            joint_angle_end = np.deg2rad(joint_angle_end)
+        elif unit != 'rad':
+            raise ValueError("unit must be deg or rad")
+
+        t_start = self.factorizations[0].joint_angle_to_t_param(joint_angle_start)
+        t_end = self.factorizations[0].joint_angle_to_t_param(joint_angle_end)
+
+        ee_point = PointHomogeneous(self.tool_frame.dq2point_homogeneous())
+
+        t_vals = self.split_in_equal_segments(interval=[t_start, t_end],
+                                              point_to_act_on=ee_point,
+                                              num_segments=num_points)
+
+        joint_angles = [self.factorizations[0].t_param_to_joint_angle(x)
+                        for x in t_vals]
+
+        segment_time = time_sec / 140
+
+        joint_traj = []
+        joint_traj.append(self.traj_p2p_joint_space(joint_angles[0],
+                                                    joint_angles[1],
+                                                    velocity_start=0.0,
+                                                    velocity_end=-35.,
+                                                    time_sec=segment_time,
+                                                    method='cubic_with_velocity',
+                                                    num_points=int(0.2 * num_points)))
+
+        joint_traj.append(joint_angles[2:-2])
+
+        joint_traj.append(self.traj_p2p_joint_space(joint_angles[-2],
+                                                    joint_angles[-1],
+                                                    velocity_start=-35.0,
+                                                    velocity_end=-0.1,
+                                                    time_sec=segment_time,
+                                                    method='quintic_with_velocity',
+                                                    num_points=int(0.2 * num_points)))
+
+        # flatten and return as np array
+        joint_traj = np.array([item for sublist in joint_traj for item in sublist])
+
+
+        return joint_traj

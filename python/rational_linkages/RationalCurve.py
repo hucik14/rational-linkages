@@ -534,7 +534,7 @@ class RationalCurve:
     def split_in_equal_segments(self,
                                 interval: list[float],
                                 point_to_act_on: PointHomogeneous = PointHomogeneous(),
-                                n_segments: int = 10,) -> list[float]:
+                                num_segments: int = 10,) -> list[float]:
         """
         Find the t values that split the curve into equal segments in given interval
 
@@ -543,7 +543,7 @@ class RationalCurve:
 
         :param list[float] interval: interval of the parameter t
         :param PointHomogeneous point_to_act_on: point to act on
-        :param int n_segments: number of segments to split the curve into
+        :param int num_segments: number of segments to split the curve into
 
         :return: list of t values that split the curve into equal segments
         :rtype: list[float]
@@ -556,7 +556,7 @@ class RationalCurve:
             raise ValueError("The interval must be in the form [a, b] where a < b")
         elif interval[0] == interval[1]:
             raise ValueError("The interval values are identical")
-        elif n_segments < 2:
+        elif num_segments < 2:
             raise ValueError("The number of segments must be greater than 1")
 
         t = sp.Symbol('t')
@@ -572,21 +572,22 @@ class RationalCurve:
         integrand_func = sp.lambdify(t, integrand, 'numpy')
 
         arc_length, _ = quad(integrand_func, interval[0], interval[1])
-        desired_segment_length = arc_length / n_segments
+        desired_segment_length = arc_length / num_segments
 
         t_vals = [interval[0]]
-        for i in range(n_segments):
+        for i in range(num_segments - 1):
             b = self._bisection_find_t(t_vals[-1],
                                        interval,
                                        desired_segment_length,
                                        integrand_func)
             t_vals.append(b)
+        t_vals.append(interval[1])
 
         return t_vals
 
     @staticmethod
     def _bisection_find_t(section_start: float,
-                          curve_interval: list[float, float],
+                          curve_interval: list[float],
                           segment_length_target: float,
                           integrand_func: callable,
                           tolerance: float = 1e-14):
@@ -594,7 +595,7 @@ class RationalCurve:
         Find the t value that splits the curve into given segment length using bisection
 
         :param float section_start: start of the section
-        :param list[float, float] curve_interval: interval of the parameter t
+        :param list[float] curve_interval: interval of the parameter t
         :param float segment_length_target: target segment length
         :param callable integrand_func: integrand function
         :param float tolerance: tolerance of the bisection method
