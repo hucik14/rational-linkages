@@ -1163,6 +1163,12 @@ class RationalMechanism(RationalCurve):
 
         ee_point = PointHomogeneous(self.tool_frame.dq2point_homogeneous())
 
+        # check if the t vals are in the correct order
+        flip = False
+        if t_start > t_end:
+            flip = True
+            t_start, t_end = t_end, t_start
+
         t_vals = self.split_in_equal_segments(interval=[t_start, t_end],
                                               point_to_act_on=ee_point,
                                               num_segments=num_points)
@@ -1170,33 +1176,37 @@ class RationalMechanism(RationalCurve):
         joint_angles = [self.factorizations[0].t_param_to_joint_angle(x)
                         for x in t_vals]
 
-        #return joint_angles
+        # flip the joint angles back if needed
+        if flip:
+            joint_angles = joint_angles[::-1]
 
-        segment_time = 20 * time_sec / 140
-        segment_time = 0.1227
+        return joint_angles
 
-        vel = (joint_angles[1] - joint_angles[2]) / segment_time
-
-        seg1 = self.traj_p2p_joint_space(joint_angles[0],
-                                        joint_angles[1],
-                                        velocity_start=0.0,
-                                        velocity_end=-1.425,
-                                        time_sec=segment_time,
-                                        method='quadratic_with_velocity',
-                                        num_points=5)
-
-        joint_traj = list(seg1) + joint_angles[2:-2]
-
-        segment_time = 0.18
-
-        seg2 = self.traj_p2p_joint_space(joint_angles[-2],
-                                                    joint_angles[-1],
-                                                    velocity_start=-1.285,
-                                                    velocity_end=0.0,
-                                                    time_sec=segment_time,
-                                                    method='quadratic_with_velocity',
-                                                    num_points=5)
-
-        joint_traj += list(seg2)
-
-        return joint_traj
+        # segment_time = 20 * time_sec / 140
+        # segment_time = 0.1227
+        #
+        # vel = (joint_angles[1] - joint_angles[2]) / segment_time
+        #
+        # seg1 = self.traj_p2p_joint_space(joint_angles[0],
+        #                                 joint_angles[1],
+        #                                 velocity_start=0.0,
+        #                                 velocity_end=-1.425,
+        #                                 time_sec=segment_time,
+        #                                 method='quadratic_with_velocity',
+        #                                 num_points=5)
+        #
+        # joint_traj = list(seg1) + joint_angles[2:-2]
+        #
+        # segment_time = 0.18
+        #
+        # seg2 = self.traj_p2p_joint_space(joint_angles[-2],
+        #                                             joint_angles[-1],
+        #                                             velocity_start=-1.285,
+        #                                             velocity_end=0.0,
+        #                                             time_sec=segment_time,
+        #                                             method='quadratic_with_velocity',
+        #                                             num_points=5)
+        #
+        # joint_traj += list(seg2)
+        #
+        # return joint_traj
