@@ -964,9 +964,9 @@ class RationalMechanism(RationalCurve):
                     square_dist_to_desired = np.sum(twist_to_desired ** 2)
 
                     if square_dist_to_desired > previous_error:
-                        step_size *= 0.8  # Decrease step size if error increases
+                        step_size *= 0.2
                     else:
-                        step_size *= 1.2
+                        step_size *= 1.5
 
                     c_diff_eval = c_diff.evaluate(t_val)
                     t_val += (step_size * (c_diff_eval @ twist_to_desired)
