@@ -275,6 +275,27 @@ class TestRationalMechanism(TestCase):
         ik_res = m.inverse_kinematics(DualQuaternion())
         self.assertTrue(np.allclose(ik_res, joint_angle_expected))
 
+        coeffs = np.array([[0, 0, 0],
+                           [4440, 39870, 22134],
+                           [16428, 9927, -42966],
+                           [-37296, -73843, -115878],
+                           [0, 0, 0],
+                           [-1332, -14586, -7812],
+                           [-2664, -1473, 6510],
+                           [-1332, -1881, -3906]])
+        c = RationalCurve.from_coeffs(coeffs)
+        m = RationalMechanism(c.factorize())
+
+        expexted_t = -5.
+        fk_angle = m.factorizations[0].t_param_to_joint_angle(expexted_t)
+        fk = m.forward_kinematics(fk_angle)
+        fk_expected = DualQuaternion(m.evaluate(expexted_t))
+        self.assertTrue(np.allclose(fk.array(), fk_expected.array()))
+
+        ik_angle = m.inverse_kinematics(fk)
+        ik_t = m.factorizations[0].joint_angle_to_t_param(ik_angle)
+        self.assertTrue(np.allclose(ik_t, expexted_t))
+
     def test_forward_kinematics(self):
         m = bennett_ark24()
 

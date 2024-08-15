@@ -948,21 +948,39 @@ class RationalMechanism(RationalCurve):
                 [element.diff(t) for element in curve.set_of_polynomials])
 
             for t_val in t_init_set:
+                step_size = 1.0
+                previous_error = float('inf')
                 for i in range(max_iterations):
+                    target_pose = pose.array()
+                    current_pose = curve.evaluate(t_val)
+
                     # error to desired pose
-                    twist_to_desired = pose.array() - curve.evaluate(t_val)
+                    if target_pose[0] == 0. or current_pose[0] == 0.:
+                        twist_to_desired = target_pose - current_pose
+                    else:
+                        twist_to_desired = (target_pose / target_pose[0]
+                                            - current_pose / current_pose[0])
+
+                    square_dist_to_desired = np.sum(twist_to_desired ** 2)
+
+                    if square_dist_to_desired > previous_error:
+                        step_size *= 0.8  # Decrease step size if error increases
+                    else:
+                        step_size *= 1.2
 
                     c_diff_eval = c_diff.evaluate(t_val)
-                    t_val += (c_diff_eval @ twist_to_desired) / sum_of_squares(c_diff_eval)
+                    t_val += (step_size * (c_diff_eval @ twist_to_desired)
+                              / np.sum(c_diff_eval ** 2))
 
-                    square_dist_to_desired = sum_of_squares(twist_to_desired)
+                    previous_error = square_dist_to_desired
+
                     if square_dist_to_desired < tol:
                         success = True
                         t_res = t_val
                         break
 
                 if square_dist_to_desired < t_min[1]:
-                    t_min = [t_val, sum_of_squares(twist_to_desired)]
+                    t_min = [t_val, square_dist_to_desired]
 
                 if success:
                     break
