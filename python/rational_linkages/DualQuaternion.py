@@ -430,6 +430,18 @@ class DualQuaternion:
         dual_part_eps_c = -1 * self.d.array()
         return DualQuaternion(np.concatenate((self.p.array(), dual_part_eps_c)))
 
+    def normalize(self) -> "DualQuaternion":
+        """
+        Normalize the DualQuaternion by the first element
+
+        :return: normalized DualQuaternion
+        :rtype: DualQuaternion
+        """
+        if np.allclose(self.array()[0], 0.):
+            raise ValueError("DualQuaternion: the first element is zero, "
+                             "cannot normalize the DualQuaternion.")
+        return DualQuaternion(self.array() / self.array()[0])
+
     def norm(self) -> "DualQuaternion":
         """
         Dual Quaternion norm as dual number (8-vector of study parameters), primal norm
