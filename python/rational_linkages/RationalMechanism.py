@@ -981,35 +981,13 @@ class RationalMechanism(RationalCurve):
 
                     square_dist_to_desired = np.sum(twist_to_desired ** 2)
 
-                    t_temp = t_val + (step_size * (c_diff_eval @ twist_to_desired)
+                    t_val += (step_size * (c_diff_eval @ twist_to_desired)
                               / np.sum(c_diff_eval ** 2))
 
                     if square_dist_to_desired > previous_error:
                         step_size *= 0.5
                     else:
                         step_size = 1.0
-
-                    # while square_dist_to_desired > previous_error:
-                    #     step_size *= 0.5
-                    #     current_pose = curve.evaluate(t_temp)
-                    #     c_diff_eval = np.array([element.subs(t, t_temp).evalf()
-                    #                             for element in c_diff])
-                    #
-                    #     # error to desired pose
-                    #     if (target_pose[0] == 0. or current_pose[0] == 0.):
-                    #         twist_to_desired = target_pose - current_pose
-                    #     else:
-                    #         twist_to_desired = (target_pose / target_pose[0]
-                    #                             - current_pose / current_pose[0])
-                    #
-                    #     square_dist_to_desired = np.sum(twist_to_desired ** 2)
-                    #
-                    #     t_temp = t_val + (step_size * (c_diff_eval @ twist_to_desired)
-                    #                       / np.sum(c_diff_eval ** 2))
-
-                    #step_size = 1.0
-                    t_val = t_temp
-                    #previous_error = deepcopy(square_dist_to_desired)
 
                     if square_dist_to_desired < tol:
                         success = True
