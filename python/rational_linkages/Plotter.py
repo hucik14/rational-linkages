@@ -526,7 +526,12 @@ class Plotter:
         def submit_angle(text):
             """Event handler for the text box"""
             val = float(text)
-            val = val % (2 * np.pi)
+
+            # normalize angle to [0, 2*pi]
+            if val >= 0:
+                val = val % (2 * np.pi)
+            else:
+                val = (val % (2 * np.pi)) - np.pi
             self.move_slider.set_val(val)
 
         def submit_parameter(text):
