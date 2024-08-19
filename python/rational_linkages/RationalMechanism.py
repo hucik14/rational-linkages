@@ -881,7 +881,8 @@ class RationalMechanism(RationalCurve):
     def inverse_kinematics(self,
                            pose: Union[DualQuaternion, TransfMatrix],
                            unit: str = 'rad',
-                           method: str = 'gauss-newton'
+                           method: str = 'gauss-newton',
+                           robust: bool = False
                            ) -> float:
         """
         Calculate inverse kinematics for given pose. Returns the joint angle in radians.
@@ -891,6 +892,8 @@ class RationalMechanism(RationalCurve):
         :param str method: numerically for 'gauss-newton' or 'algebraic'; 'algebraic'
             requires the input pose to be "achievable" by the mechanism, i.e. the pose
             must be on Study quadric and the mechanism must be able to reach it
+        :param bool robust: if True, use the Gauss-Newton method with
+            many initial guesses
 
         :return: joint angle in radians or degrees
         :rtype: float
@@ -907,7 +910,7 @@ class RationalMechanism(RationalCurve):
             # TODO: implement algebraic method
             raise NotImplementedError("Algebraic method is not implemented yet.")
         elif method == 'gauss-newton':
-            t = self._ik_gauss_newton(pose)
+            t = self._ik_gauss_newton(pose, robust=robust)
         else:
             raise ValueError("method must be either 'algebraic' or 'gauss-newton")
 
@@ -918,44 +921,59 @@ class RationalMechanism(RationalCurve):
 
         return joint_angle
 
-    def _ik_gauss_newton(self, pose: DualQuaternion) -> float:
+    def _ik_gauss_newton(self,
+                         pose: DualQuaternion,
+                         robust: bool = False) -> float:
         """
         Calculate inverse kinematics using Gauss-Newton method.
 
         :param DualQuaternion pose: pose of the mechanism
+        :param bool robust: if True, use many initial guesses
 
         :return: parameter value
         :rtype: float
         """
-        from rational_linkages.utils import sum_of_squares  # inner import
-
         t = sp.Symbol("t")
 
         curves = [self.curve(), self.curve().inverse_curve()]
         success = False
         inversed_part = False
         t_min = [None, float('inf')]
-        t_init_set = [0., -0.5, 0.5]
+        t_init_set = [0., -0.999999999, 0.999999999, -0.5, 0.5]
         t_res = None
-        max_iterations = 100
-        tol = 1e-14
+        max_iterations = 10
+        tol = 1e-10
+
+        if robust:
+            t_init_set = np.linspace(-1.0, 1.0, 30)
+            max_iterations = 50
 
         for inv, curve in enumerate(curves):
             if inv == 1:
                 inversed_part = True
 
-            c_diff = RationalCurve(
-                [element.diff(t) for element in curve.set_of_polynomials])
+            norm_curve = [element / curve.set_of_polynomials[0]
+                          for element in curve.set_of_polynomials]
+
+            c_diff = [element.diff(t) for element in norm_curve]
 
             for t_val in t_init_set:
                 step_size = 1.0
                 previous_error = float('inf')
+
                 for i in range(max_iterations):
+
+                    if not robust:
+                        if t_val > 1.0 or t_val < -1.0:
+                            break
+
                     target_pose = pose.array()
                     current_pose = curve.evaluate(t_val)
+                    c_diff_eval = np.array([element.subs(t, t_val).evalf()
+                                            for element in c_diff])
 
                     # error to desired pose
-                    if target_pose[0] == 0. or current_pose[0] == 0.:
+                    if (target_pose[0] == 0. or current_pose[0] == 0.):
                         twist_to_desired = target_pose - current_pose
                     else:
                         twist_to_desired = (target_pose / target_pose[0]
@@ -963,20 +981,40 @@ class RationalMechanism(RationalCurve):
 
                     square_dist_to_desired = np.sum(twist_to_desired ** 2)
 
-                    if square_dist_to_desired > previous_error:
-                        step_size *= 0.2
-                    else:
-                        step_size *= 1.5
-
-                    c_diff_eval = c_diff.evaluate(t_val)
-                    t_val += (step_size * (c_diff_eval @ twist_to_desired)
+                    t_temp = t_val + (step_size * (c_diff_eval @ twist_to_desired)
                               / np.sum(c_diff_eval ** 2))
 
-                    previous_error = square_dist_to_desired
+                    if square_dist_to_desired > previous_error:
+                        step_size *= 0.5
+                    else:
+                        step_size = 1.0
+
+                    # while square_dist_to_desired > previous_error:
+                    #     step_size *= 0.5
+                    #     current_pose = curve.evaluate(t_temp)
+                    #     c_diff_eval = np.array([element.subs(t, t_temp).evalf()
+                    #                             for element in c_diff])
+                    #
+                    #     # error to desired pose
+                    #     if (target_pose[0] == 0. or current_pose[0] == 0.):
+                    #         twist_to_desired = target_pose - current_pose
+                    #     else:
+                    #         twist_to_desired = (target_pose / target_pose[0]
+                    #                             - current_pose / current_pose[0])
+                    #
+                    #     square_dist_to_desired = np.sum(twist_to_desired ** 2)
+                    #
+                    #     t_temp = t_val + (step_size * (c_diff_eval @ twist_to_desired)
+                    #                       / np.sum(c_diff_eval ** 2))
+
+                    #step_size = 1.0
+                    t_val = t_temp
+                    #previous_error = deepcopy(square_dist_to_desired)
 
                     if square_dist_to_desired < tol:
                         success = True
                         t_res = t_val
+                        print(f"Success in {i} iterations.")
                         break
 
                 if square_dist_to_desired < t_min[1]:
