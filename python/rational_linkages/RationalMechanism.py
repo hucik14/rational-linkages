@@ -1022,7 +1022,8 @@ class RationalMechanism(RationalCurve):
                              unit: str = 'rad',
                              time_sec: float = 1.0,
                              num_points: int = 100,
-                             method: str = 'quintic') -> np.ndarray:
+                             method: str = 'quintic',
+                             generate_csv: bool = False) -> np.ndarray:
         """
         Generate point to point straight line joint space trajectory.
 
@@ -1041,6 +1042,7 @@ class RationalMechanism(RationalCurve):
         :param float time_sec: time of the trajectory [seconds]
         :param int num_points: number of discrete points in the trajectory
         :param str method: method of trajectory generation, can be 'quintic' or 'cubic'
+        :param bool generate_csv: if True, generate a CSV file with the trajectory
 
         :return: list of joint angles
         :rtype: np.ndarray
@@ -1137,7 +1139,7 @@ class RationalMechanism(RationalCurve):
 
             return a_0 + a_1 * t + a_2 * t ** 2 + a_3 * t ** 3 + a_4 * t ** 4 + a_5 * t ** 5
 
-        time_gap = time_sec / (num_points - 1.0)
+        time_gap = time_sec / num_points
         traj = np.zeros(num_points)
         for i in range(num_points):
             if method == 'cubic' or method == 'quintic':
@@ -1156,7 +1158,33 @@ class RationalMechanism(RationalCurve):
             elif method == 'cubic_with_velocity':
                 traj[i] = cubic_time_scaling_with_velocity(time_gap * i, time_sec, joint_angle_start, joint_angle_end, velocity_start, velocity_end)
 
+        if generate_csv:
+            RationalMechanism._generate_csv(traj, time_gap)
+
         return traj
+
+    @staticmethod
+    def _generate_csv(traj, time_gap):
+        """
+        Generate a CSV file with the trajectory.
+
+        :param traj: trajectory
+        :param time_gap: time gap
+        """
+        time_space = np.arange(0, len(traj) * time_gap, time_gap)
+        pos = traj
+        vel = np.diff(traj, axis=0) / time_gap
+        vel = np.append(np.array([0.0]), vel)  # add .0 to equalize the array length
+        # TODO: check if this is correct
+        acc = np.diff(vel, axis=0) / time_gap
+        acc = np.append(acc, np.array([0.0]))  # add .0 to equalize the array length
+
+        # Stack the arrays horizontally to create a 2D array with 4 columns
+        data = np.column_stack((time_space, pos, vel, acc))
+
+        # Save the stacked array to a CSV file
+        np.savetxt('trajectory.csv', data, delimiter=',', fmt='%1.6f')
+
 
     def traj_smooth_tool(self,
                          joint_angle_start: float,
