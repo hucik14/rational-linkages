@@ -1175,9 +1175,11 @@ class RationalMechanism(RationalCurve):
         pos = traj
         vel = np.diff(traj, axis=0) / time_gap
         vel = np.append(np.array([0.0]), vel)  # add .0 to equalize the array length
+        #vel = np.append(vel, vel[-1] * 1.1)
         # TODO: check if this is correct
         acc = np.diff(vel, axis=0) / time_gap
         acc = np.append(acc, np.array([0.0]))  # add .0 to equalize the array length
+        #acc = np.append(acc, acc[-1])
 
         # Stack the arrays horizontally to create a 2D array with 4 columns
         data = np.column_stack((time_space, pos, vel, acc))
@@ -1191,10 +1193,20 @@ class RationalMechanism(RationalCurve):
                          joint_angle_end: float,
                          time_sec: float,
                          unit: str = 'rad',
-                         num_points: int = 100
-                         ):
+                         num_points: int = 100,
+                         generate_csv: bool = False) -> list[float]:
         """
         Generate smooth trajectory for the tool of the mechanism.
+
+        :param float joint_angle_start: start parameter value
+        :param float joint_angle_end: end parameter value
+        :param float time_sec: time of the trajectory [seconds]
+        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+        :param int num_points: number of discrete points in the trajectory
+        :param bool generate_csv: if True, generate a CSV file with the trajectory
+
+        :return: list of joint angles
+        :rtype: list[float]
         """
         if unit == 'deg':
             joint_angle_start = np.deg2rad(joint_angle_start)
@@ -1223,6 +1235,10 @@ class RationalMechanism(RationalCurve):
         # flip the joint angles back if needed
         if flip:
             joint_angles = joint_angles[::-1]
+
+        if generate_csv:
+            time_gap = time_sec / num_points
+            RationalMechanism._generate_csv(joint_angles, time_gap)
 
         return joint_angles
 
