@@ -1102,42 +1102,21 @@ class RationalMechanism(RationalCurve):
             raise ValueError("unit must be deg or rad")
 
         def cubic_time_scaling(tot_time, step):
-            return 3 * (1.0 * step / tot_time) ** 2 - 2 * (1.0 * step / tot_time) ** 3
+            return 3 * (step / tot_time) ** 2 - 2 * (step / tot_time) ** 3
 
         def quintic_time_scaling(tot_time, step):
-            return (10 * (1.0 * step / tot_time) ** 3
-                    - 15 * (1.0 * step / tot_time) ** 4
-                    + 6 * (1.0 * step / tot_time) ** 5)
+            return (10 * (step / tot_time) ** 3
+                    - 15 * (step / tot_time) ** 4
+                    + 6 * (step / tot_time) ** 5)
 
-        def quadratic_time_scaling_with_velocity(t, T, theta_0, theta_f, v_0, v_f):
-            a_0 = theta_0
-            a_1 = v_0
-            a_2 = (v_f - v_0) / (2 * T)
-
-            return a_0 + a_1 * t + a_2 * t ** 2
-
-        def cubic_time_scaling_with_velocity(t, T, theta_0, theta_f, v_0, v_f):
-            a_0 = theta_0
-            a_1 = v_0
-            a_2 = (3 * (theta_f - theta_0) - (2 * v_0 + v_f) * T) / T ** 2
-            a_3 = (2 * (theta_0 - theta_f) + (v_0 + v_f) * T) / T ** 3
-
-            return a_0 + a_1 * t + a_2 * t ** 2 + a_3 * t ** 3
-
-        def quintic_time_scaling_with_velocity(t, T, theta_0, theta_f, v_0, v_f):
-            T2 = T ** 2
-            T3 = T ** 3
-            T4 = T ** 4
-            T5 = T ** 5
-
-            a_0 = theta_0
-            a_1 = v_0
-            a_2 = 0
-            a_3 = (20 * (theta_f - theta_0) - (8 * v_f + 12 * v_0) * T) / (2 * T3)
-            a_4 = (30 * (theta_0 - theta_f) + (14 * v_f + 16 * v_0) * T) / (2 * T4)
-            a_5 = (12 * (theta_f - theta_0) - (6 * v_f + 6 * v_0) * T) / (2 * T5)
-
-            return a_0 + a_1 * t + a_2 * t ** 2 + a_3 * t ** 3 + a_4 * t ** 4 + a_5 * t ** 5
+        def quintic_time_scaling_with_velocity(t, tot_time, th_0, th_f, v_0, v_f):
+            t3, t4, t5 = tot_time ** 3, tot_time ** 4, tot_time ** 5
+            a_0, a_1, a_2 = th_0, v_0, 0
+            a_3 = (20 * (th_f - th_0) - (8 * v_f + 12 * v_0) * tot_time) / (2 * t3)
+            a_4 = (30 * (th_0 - th_f) + (14 * v_f + 16 * v_0) * tot_time) / (2 * t4)
+            a_5 = (12 * (th_f - th_0) - (6 * v_f + 6 * v_0) * tot_time) / (2 * t5)
+            return (a_0 + a_1 * t + a_2 * t ** 2 + a_3 * t ** 3
+                    + a_4 * t ** 4 + a_5 * t ** 5)
 
         time_gap = time_sec / num_points
         traj = np.zeros(num_points)
@@ -1147,46 +1126,24 @@ class RationalMechanism(RationalCurve):
                     scaling = cubic_time_scaling(time_sec, time_gap * i)
                 elif method == 'quintic':
                     scaling = quintic_time_scaling(time_sec, time_gap * i)
-                else:
-                    raise ValueError("method must be either 'cubic' or 'quintic'")
+
                 traj[i] = (scaling * np.array(joint_angle_end)
                            + (1 - scaling) * np.array(joint_angle_start))
-            elif method == 'quadratic_with_velocity':
-                traj[i] = quadratic_time_scaling_with_velocity(time_gap * i, time_sec, joint_angle_start, joint_angle_end, velocity_start, velocity_end)
             elif method == 'quintic_with_velocity':
-                traj[i] = quintic_time_scaling_with_velocity(time_gap * i, time_sec, joint_angle_start, joint_angle_end, velocity_start, velocity_end)
-            elif method == 'cubic_with_velocity':
-                traj[i] = cubic_time_scaling_with_velocity(time_gap * i, time_sec, joint_angle_start, joint_angle_end, velocity_start, velocity_end)
+                traj[i] = quintic_time_scaling_with_velocity(time_gap * i,
+                                                             time_sec,
+                                                             joint_angle_start,
+                                                             joint_angle_end,
+                                                             velocity_start,
+                                                             velocity_end)
+            else:
+                raise ValueError("method must be either 'cubic', 'quintic', "
+                                 "or 'quintic_with_velocity'")
 
         if generate_csv:
             RationalMechanism._generate_csv(traj, time_gap)
 
         return traj
-
-    @staticmethod
-    def _generate_csv(traj, time_gap):
-        """
-        Generate a CSV file with the trajectory.
-
-        :param traj: trajectory
-        :param time_gap: time gap
-        """
-        time_space = np.arange(0, len(traj) * time_gap, time_gap)
-        pos = traj
-        vel = np.diff(traj, axis=0) / time_gap
-        vel = np.append(np.array([0.0]), vel)  # add .0 to equalize the array length
-        #vel = np.append(vel, vel[-1] * 1.1)
-        # TODO: check if this is correct
-        acc = np.diff(vel, axis=0) / time_gap
-        acc = np.append(acc, np.array([0.0]))  # add .0 to equalize the array length
-        #acc = np.append(acc, acc[-1])
-
-        # Stack the arrays horizontally to create a 2D array with 4 columns
-        data = np.column_stack((time_space, pos, vel, acc))
-
-        # Save the stacked array to a CSV file
-        np.savetxt('trajectory.csv', data, delimiter=',', fmt='%1.6f')
-
 
     def traj_smooth_tool(self,
                          joint_angle_start: float,
@@ -1242,31 +1199,26 @@ class RationalMechanism(RationalCurve):
 
         return joint_angles
 
-        # segment_time = 20 * time_sec / 140
-        # segment_time = 0.1227
-        #
-        # vel = (joint_angles[1] - joint_angles[2]) / segment_time
-        #
-        # seg1 = self.traj_p2p_joint_space(joint_angles[0],
-        #                                 joint_angles[1],
-        #                                 velocity_start=0.0,
-        #                                 velocity_end=-1.425,
-        #                                 time_sec=segment_time,
-        #                                 method='quadratic_with_velocity',
-        #                                 num_points=5)
-        #
-        # joint_traj = list(seg1) + joint_angles[2:-2]
-        #
-        # segment_time = 0.18
-        #
-        # seg2 = self.traj_p2p_joint_space(joint_angles[-2],
-        #                                             joint_angles[-1],
-        #                                             velocity_start=-1.285,
-        #                                             velocity_end=0.0,
-        #                                             time_sec=segment_time,
-        #                                             method='quadratic_with_velocity',
-        #                                             num_points=5)
-        #
-        # joint_traj += list(seg2)
-        #
-        # return joint_traj
+    @staticmethod
+    def _generate_csv(traj, time_gap):
+        """
+        Generate a CSV file with the trajectory.
+
+        :param traj: trajectory
+        :param time_gap: time gap
+        """
+        time_space = np.arange(0, len(traj) * time_gap, time_gap)
+        pos = traj
+        vel = np.diff(traj, axis=0) / time_gap
+        vel = np.append(np.array([0.0]), vel)  # add .0 to equalize the array length
+        #vel = np.append(vel, vel[-1] * 1.1)
+        # TODO: check if this is correct
+        acc = np.diff(vel, axis=0) / time_gap
+        acc = np.append(acc, np.array([0.0]))  # add .0 to equalize the array length
+        #acc = np.append(acc, acc[-1])
+
+        # Stack the arrays horizontally to create a 2D array with 4 columns
+        data = np.column_stack((time_space, pos, vel, acc))
+
+        # Save the stacked array to a CSV file
+        np.savetxt('trajectory.csv', data, delimiter=',', fmt='%1.6f')
