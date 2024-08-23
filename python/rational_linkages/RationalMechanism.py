@@ -944,6 +944,9 @@ class RationalMechanism(RationalCurve):
         max_iterations = 10
         tol = 1e-10
 
+        # add tool frame to the pose
+        pose = pose * self.tool_frame.inv()
+
         if robust:
             t_init_set = np.linspace(-1.0, 1.0, 30)
             max_iterations = 50
@@ -1212,12 +1215,12 @@ class RationalMechanism(RationalCurve):
         time_space = np.arange(0, len(traj) * time_gap, time_gap)
         pos = traj
         vel = np.diff(traj, axis=0) / time_gap
-        vel = np.append(np.array([0.0]), vel)  # add .0 to equalize the array length
-        #vel = np.append(vel, vel[-1] * 1.1)
+        #vel = np.append(np.array([0.0]), vel)  # add .0 to equalize the array length
+        vel = np.append(vel, vel[-1])
         # TODO: check if this is correct
         acc = np.diff(vel, axis=0) / time_gap
-        acc = np.append(acc, np.array([0.0]))  # add .0 to equalize the array length
-        #acc = np.append(acc, acc[-1])
+        #acc = np.append(acc, np.array([0.0]))  # add .0 to equalize the array length
+        acc = np.append(acc, acc[-1])
 
         # Stack the arrays horizontally to create a 2D array with 4 columns
         data = np.column_stack((time_space, pos, vel, acc))
