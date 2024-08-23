@@ -944,7 +944,7 @@ class RationalMechanism(RationalCurve):
         max_iterations = 10
         tol = 1e-10
 
-        # add tool frame to the pose
+        # map pose to the motion curve of identity frame
         pose = pose * self.tool_frame.inv()
 
         if robust:
