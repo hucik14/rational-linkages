@@ -992,7 +992,6 @@ class RationalMechanism(RationalCurve):
                     if square_dist_to_desired < tol:
                         success = True
                         t_res = t_val
-                        print(f"Success in {i} iterations.")
                         break
 
                 if square_dist_to_desired < t_min[1]:
@@ -1023,7 +1022,7 @@ class RationalMechanism(RationalCurve):
                              time_sec: float = 1.0,
                              num_points: int = 100,
                              method: str = 'quintic',
-                             generate_csv: bool = False) -> np.ndarray:
+                             generate_csv: bool = False) -> tuple:
         """
         Generate point to point straight line joint space trajectory.
 
@@ -1044,8 +1043,8 @@ class RationalMechanism(RationalCurve):
         :param str method: method of trajectory generation, can be 'quintic' or 'cubic'
         :param bool generate_csv: if True, generate a CSV file with the trajectory
 
-        :return: list of joint angles
-        :rtype: np.ndarray
+        :return: tuple of joint position (angle), velocity, and acceleration
+        :rtype: tuple
 
         :raises: ValueError: if unit is not 'rad' or 'deg'
         :raises: ValueError: if method is not 'quintic' or 'cubic'
@@ -1076,17 +1075,14 @@ class RationalMechanism(RationalCurve):
             method = 'quintic'
             #method = 'cubic'
 
-            traj = m.traj_p2p_joint_space(joint_angle_start=t0,
-                                          joint_angle_end=t1,
-                                          time_sec=time,
-                                          method=method,
-                                          num_points=n_steps)
-
-            vel = np.diff(traj, axis=0) / (time / (n_steps - 1))
-            acc = np.diff(vel, axis=0) / (time / (n_steps - 1))
+            pos, vel, acc = m.traj_p2p_joint_space(joint_angle_start=t0,
+                                                   joint_angle_end=t1,
+                                                   time_sec=time,
+                                                   method=method,
+                                                   num_points=n_steps)
 
             # plot the trajectory
-            plt.plot(traj)
+            plt.plot(pos)
             plt.plot(vel)
             plt.plot(acc)
             plt.xlabel('Time [sec]')
@@ -1143,7 +1139,10 @@ class RationalMechanism(RationalCurve):
         if generate_csv:
             RationalMechanism._generate_csv(traj, time_gap)
 
-        return traj
+        vel = np.diff(traj, axis=0) * num_points / time_sec
+        acc = np.diff(vel, axis=0) * num_points / time_sec
+
+        return traj, vel, acc
 
     def traj_smooth_tool(self,
                          joint_angle_start: float,
@@ -1151,7 +1150,7 @@ class RationalMechanism(RationalCurve):
                          time_sec: float,
                          unit: str = 'rad',
                          num_points: int = 100,
-                         generate_csv: bool = False) -> list[float]:
+                         generate_csv: bool = False) -> tuple:
         """
         Generate smooth trajectory for the tool of the mechanism.
 
@@ -1162,8 +1161,8 @@ class RationalMechanism(RationalCurve):
         :param int num_points: number of discrete points in the trajectory
         :param bool generate_csv: if True, generate a CSV file with the trajectory
 
-        :return: list of joint angles
-        :rtype: list[float]
+        :return: tuple of joint position (angle), velocity, and acceleration
+        :rtype: tuple
         """
         if unit == 'deg':
             joint_angle_start = np.deg2rad(joint_angle_start)
@@ -1197,7 +1196,10 @@ class RationalMechanism(RationalCurve):
             time_gap = time_sec / num_points
             RationalMechanism._generate_csv(joint_angles, time_gap)
 
-        return joint_angles
+        vel = np.diff(joint_angles, axis=0) * num_points / time_sec
+        acc = np.diff(vel, axis=0) * num_points / time_sec
+
+        return joint_angles, vel, acc
 
     @staticmethod
     def _generate_csv(traj, time_gap):

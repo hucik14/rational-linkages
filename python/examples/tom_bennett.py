@@ -1,28 +1,12 @@
-from rational_linkages import (NormalizedLine, MotionFactorization, DualQuaternion,
-                               RationalCurve, RationalMechanism, Plotter,
-                               TransfMatrix, MotionInterpolation, PointHomogeneous,
-                               StaticMechanism)
+from rational_linkages import (RationalMechanism,
+                               Plotter,
+                               TransfMatrix,
+                               MotionInterpolation)
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-# sm = StaticMechanism.from_dh_parameters(theta=[0, 0], d=[0, 0], a=[0.2, 0.3], alpha=[np.deg2rad(180-36.86989898989898), np.deg2rad(90)])
-#
-# a0 = NormalizedLine.from_direction_and_point([0, 0, -1],
-#                                              [0, 0.36, 0.08])
-# a1 = NormalizedLine.from_direction_and_point([0.70710678, 0., 0.70710678],
-#                                              [0, 0.160, 0])
-#
-# a0 = NormalizedLine([0, 0, 1, 0, 0, 0])
-# a1 = NormalizedLine([0., -0.6, -0.8,  0.,  0.16, -0.12])
-#
-# fp = MotionFactorization([DualQuaternion.as_rational(a0.line2dq_array()),
-#                           DualQuaternion.as_rational(a1.line2dq_array())])
-#
-# # c2 = fp.factorize()
-# c2 = RationalCurve(fp.set_of_polynomials)
-
-
+# define poses as input for Bennett synthesis
 t0 = TransfMatrix()
 t1 = TransfMatrix.from_vectors(approach_z=[-0.0362862, 0.400074, 0.915764],
                                normal_x=[0.988751, -0.118680, 0.0910266],
@@ -31,78 +15,88 @@ t2 = TransfMatrix.from_vectors(approach_z=[-0.0463679, -0.445622, 0.894020],
                                normal_x=[0.985161, 0.127655, 0.114724],
                                origin=[-0.0477573, 0.00438766, -0.0701082])
 poses = [t0, t1, t2]
+print('Poses (using European convention; projective coordinates are on'
+      'first line and translation vector is in the left column):')
+for pose in poses:
+    print(pose)
+print('')  # empty line
 
+# construct C(t) from poses
 c = MotionInterpolation.interpolate(poses)
+
+# factorize C(t) and obtain mechanism
 m = RationalMechanism(c.factorize())
+print('C(t):')
+print(m.symbolic)
+print('')  # empty line
+print('DH parameters of the mechanism (length scaled by 1000 to milimeters):')
+m.get_design(unit='deg', scale=1000)
+print('')  # empty line
 
+# visualize the mechanism and the poses
+p = Plotter(interactive=True, steps=500, arrows_length=0.05, joint_range_lim=0.1)
+p.plot(m, show_tool=True)
+p.plot(t0, label='origin')
+p.plot(t1, label='p1')
+p.plot(t2, label='p2')
+p.show()
 
-# p = Plotter(interactive=True, steps=500, arrows_length=0.05, joint_range_lim=0.1)
-# #p.ax.init_view(elev=120, azim=0, roll=-150)
-# #p.plot(m, show_tool=True)
-# p.plot(t0, label='origin')
-# p.plot(t1, label='p1')
-# p.plot(t2, label='p2')
-# p.plot(c, label='Motion path of origin', interval='closed')
-# # p.plot(c2, label='Bad', interval='closed')
-# # p.plot(a0, label='a0', interval=(-0.1, 0.1))
-# # p.plot(a1, label='a1', interval=(-0.1, 0.1))
-
-# p.show()
-
-#########################################################
-# Control
-
-m.factorizations[0].t_param_to_joint_angle(1.0)
-
+# inverse kinematics
 theta1 = m.inverse_kinematics(t1)
 theta2 = m.inverse_kinematics(t2)
+print('Joint angle for pose 1 in rad:', theta1)
+print('Joint angle for pose 2 in rad:', theta2)
+print('')  # empty line
 
-theta_corr = theta2 - theta1
+# direct (forward) kinematics
+pose1_as_dq = m.forward_kinematics(theta1)
+pose2_as_dq = m.forward_kinematics(theta2)
 
-pose1 = m.forward_kinematics(theta1).normalize()
-pose2 = m.forward_kinematics(theta2).normalize()
+# check if the poses are the same
+pose1_dk = pose1_as_dq.dq2matrix()
+pose2_dk = pose2_as_dq.dq2matrix()
 
-total_time = 4.
-frequency = 20
-num_points = int(total_time * frequency)
+error_pose1 = np.linalg.norm(pose1_dk - t1.array())
+error_pose2 = np.linalg.norm(pose2_dk - t2.array())
+print('Error in direct kinematics for pose 1:', error_pose1)
+print('Error in direct kinematics for pose 2:', error_pose2)
 
-traj = m.traj_p2p_joint_space(joint_angle_start=theta1,
-                              joint_angle_end=theta2,
-                              time_sec=total_time,
-                              num_points=num_points,
-                              generate_csv=False)
+# motion planning
+total_time_of_motion = 4.  # seconds
+frequency = 20  # Hz
+num_points = int(total_time_of_motion * frequency)
 
-# traj = m.traj_smooth_tool(joint_angle_start=theta1,
-#                           joint_angle_end=theta2,
-#                           time_sec=total_time,
-#                           num_points=num_points,
-#                           generate_csv=False)
+# joint-space point-to-point trajectory
+pos, vel, acc = m.traj_p2p_joint_space(joint_angle_start=theta1,
+                                       joint_angle_end=theta2,
+                                       time_sec=total_time_of_motion,
+                                       num_points=num_points,
+                                       generate_csv=False)
 
-
-# p = Plotter(interactive=True, steps=500, arrows_length=0.05, joint_range_lim=0.1)
-# #p.ax.init_view(elev=120, azim=0, roll=-150)
-# p.plot(m, show_tool=True)
-# p.plot(t0, label='origin')
-# p.plot(t1, label='p1')
-# p.plot(t2, label='p2')
-# #p.plot(c, label='Motion path of origin', interval='closed')
-#
-# p.show()
-
-
-
-# plot the trajectory
-vel = np.diff(traj, axis=0) * frequency
-#vel = np.append(vel, vel[-1])
-acc = np.diff(vel, axis=0) * frequency
-#acc = np.append(acc, acc[-1])
-
-plt.plot(traj)
+plt.figure()
+plt.plot(pos)
 plt.plot(vel)
 plt.plot(acc)
 plt.xlabel('Time-step')
 plt.ylabel('Joint pos [rad], vel [rad/s], acc [rad/s^2]')
 plt.title('Smooth joint-space trajectory')
+plt.legend(['Position [rad]', 'Velocity [rad/s]', 'Acceleration [rad/s^2]'])
+plt.grid()
+plt.show()
+
+pos, vel, acc = m.traj_smooth_tool(joint_angle_start=theta1,
+                                   joint_angle_end=theta2,
+                                   time_sec=total_time_of_motion,
+                                   num_points=num_points,
+                                   generate_csv=False)
+
+plt.figure()
+plt.plot(pos)
+plt.plot(vel)
+plt.plot(acc)
+plt.xlabel('Time-step')
+plt.ylabel('Joint pos [rad], vel [rad/s], acc [rad/s^2]')
+plt.title('Smooth tool motion trajectory')
 plt.legend(['Position [rad]', 'Velocity [rad/s]', 'Acceleration [rad/s^2]'])
 plt.grid()
 plt.show()
