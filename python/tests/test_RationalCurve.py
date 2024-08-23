@@ -378,13 +378,13 @@ class TestRationalCurve(TestCase):
 
         t_segments = curve.split_in_equal_segments([0., 1.],
                                                     point_to_act_on=PointHomogeneous(),
-                                                    n_segments=2)
+                                                    num_segments=2)
         t_expected = [0.0, 0.4158727722922215, 1.0000000000000007]
         self.assertTrue(np.allclose(t_segments, t_expected))
 
         t_segments = curve.split_in_equal_segments([0., 1.],
                                                    point_to_act_on=PointHomogeneous([1., -2., 30., 1.]),
-                                                   n_segments=3)
+                                                   num_segments=3)
         t_expected = [0.0, 0.2822342075439117, 0.599861883170928, 0.9999999999999916]
         self.assertTrue(np.allclose(t_segments, t_expected))
 
@@ -392,4 +392,4 @@ class TestRationalCurve(TestCase):
         self.assertRaises(ValueError, curve.split_in_equal_segments, [1., 0.])
         self.assertRaises(ValueError,
                           curve.split_in_equal_segments, [0., 2.],
-                          n_segments=-2)
+                          num_segments=-2)
