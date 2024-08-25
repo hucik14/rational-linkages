@@ -1,7 +1,6 @@
-from rational_linkages import (RationalMechanism,
-                               Plotter,
-                               TransfMatrix,
-                               MotionInterpolation)
+from rational_linkages import (RationalMechanism, DualQuaternion, Plotter,
+                               TransfMatrix, MotionInterpolation,
+                               PointHomogeneous)
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -26,6 +25,7 @@ c = MotionInterpolation.interpolate(poses)
 
 # factorize C(t) and obtain mechanism
 m = RationalMechanism(c.factorize())
+
 print('C(t):')
 print(m.symbolic)
 print('')  # empty line
@@ -73,14 +73,17 @@ pos, vel, acc = m.traj_p2p_joint_space(joint_angle_start=theta1,
                                        num_points=num_points,
                                        generate_csv=False)
 
+# animate the motion
+#p.animate_angles(pos, sleep_time=0.2)
+
 plt.figure()
 plt.plot(pos)
 plt.plot(vel)
 plt.plot(acc)
 plt.xlabel('Time-step')
 plt.ylabel('Joint pos [rad], vel [rad/s], acc [rad/s^2]')
+plt.legend(['Pos (origin)', 'Vel (origin)', 'Acc (origin)'])
 plt.title('Smooth joint-space trajectory')
-plt.legend(['Position [rad]', 'Velocity [rad/s]', 'Acceleration [rad/s^2]'])
 plt.grid()
 plt.show()
 
@@ -90,13 +93,31 @@ pos, vel, acc = m.traj_smooth_tool(joint_angle_start=theta1,
                                    num_points=num_points,
                                    generate_csv=False)
 
+# new tool is translated along the z-axis by 110 mm
+t_new_tool = PointHomogeneous([1, 0, 0, 0.11])
+
+pos2, vel2, acc2 = m.traj_smooth_tool(joint_angle_start=theta1,
+                                      joint_angle_end=theta2,
+                                      time_sec=total_time_of_motion,
+                                      point_of_interest=t_new_tool,
+                                      num_points=num_points,
+                                      generate_csv=True)
+
 plt.figure()
-plt.plot(pos)
-plt.plot(vel)
-plt.plot(acc)
+plt.plot(pos, 'C0')
+plt.plot(vel, 'C1')
+plt.plot(acc, 'C2')
+plt.plot(pos2, 'C0', linestyle=':')
+plt.plot(vel2, 'C1', linestyle=':')
+plt.plot(acc2, 'C2', linestyle=':')
 plt.xlabel('Time-step')
 plt.ylabel('Joint pos [rad], vel [rad/s], acc [rad/s^2]')
 plt.title('Smooth tool motion trajectory')
-plt.legend(['Position [rad]', 'Velocity [rad/s]', 'Acceleration [rad/s^2]'])
+plt.legend(['Pos (origin)', 'Vel (origin)', 'Acc (origin)',
+            'Pos (new tool)', 'Vel (new tool)', 'Acc (new tool)'])
 plt.grid()
 plt.show()
+
+
+# animate the motion
+#p.animate_angles(pos, sleep_time=0.2)

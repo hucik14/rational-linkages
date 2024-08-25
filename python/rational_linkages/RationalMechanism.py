@@ -1151,6 +1151,7 @@ class RationalMechanism(RationalCurve):
                          joint_angle_start: float,
                          joint_angle_end: float,
                          time_sec: float,
+                         point_of_interest: PointHomogeneous = None,
                          unit: str = 'rad',
                          num_points: int = 100,
                          generate_csv: bool = False) -> tuple:
@@ -1160,6 +1161,7 @@ class RationalMechanism(RationalCurve):
         :param float joint_angle_start: start parameter value
         :param float joint_angle_end: end parameter value
         :param float time_sec: time of the trajectory [seconds]
+        :param PointHomogeneous point_of_interest: point that will be moved smoothly
         :param str unit: unit of the joint angle, can be 'rad' or 'deg'
         :param int num_points: number of discrete points in the trajectory
         :param bool generate_csv: if True, generate a CSV file with the trajectory
@@ -1176,7 +1178,11 @@ class RationalMechanism(RationalCurve):
         t_start = self.factorizations[0].joint_angle_to_t_param(joint_angle_start)
         t_end = self.factorizations[0].joint_angle_to_t_param(joint_angle_end)
 
-        ee_point = PointHomogeneous(self.tool_frame.dq2point_homogeneous())
+        if point_of_interest is None:
+            ee_point = PointHomogeneous.from_3d_point(
+                self.tool_frame.dq2point_via_matrix())
+        else:
+            ee_point = point_of_interest
 
         # check if the t vals are in the correct order
         flip = False
