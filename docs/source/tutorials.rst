@@ -13,5 +13,6 @@ Tutorials
    tutorials/combinatorial_search
    tutorials/control
    tutorials/synthesis_bennett
+   tutorials/trajectory_planning
    tutorials/exudyn_analysis
 
