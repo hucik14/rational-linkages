@@ -1,6 +1,8 @@
 from copy import deepcopy
 from typing import Union
 
+from scipy.integrate import quad
+
 import numpy as np
 import sympy as sp
 
@@ -529,4 +531,98 @@ class RationalCurve:
 
         return np.sum(np.linalg.norm(np.diff(points, axis=0), axis=1))
 
+    def split_in_equal_segments(self,
+                                interval: list[float],
+                                point_to_act_on: PointHomogeneous = PointHomogeneous(),
+                                num_segments: int = 10,) -> list[float]:
+        """
+        Find the t values that split the curve into equal segments in given interval
 
+        Perform the arc length parameterization of the curve to split it into equal
+        segments. The method uses the bisection method to find the t values.
+
+        :param list[float] interval: interval of the parameter t
+        :param PointHomogeneous point_to_act_on: point to act on
+        :param int num_segments: number of segments to split the curve into
+
+        :return: list of t values that split the curve into equal segments
+        :rtype: list[float]
+
+        :raises ValueError: if the interval is not in the form [a, b] where a < b
+        :raises ValueError: if the interval values are identical
+        :raises ValueError: if the number of segments is less than 1
+        """
+        if interval[0] > interval[1]:
+            raise ValueError("The interval must be in the form [a, b] where a < b")
+        elif interval[0] == interval[1]:
+            raise ValueError("The interval values are identical")
+        elif num_segments < 2:
+            raise ValueError("The number of segments must be greater than 1")
+
+        t = sp.Symbol('t')
+
+        curve_dq = DualQuaternion(self.symbolic)
+        point_path = curve_dq.act(point_to_act_on)
+
+        dx_dt = sp.diff(point_path[1] / point_path[0], t)
+        dy_dt = sp.diff(point_path[2] / point_path[0], t)
+        dz_dt = sp.diff(point_path[3] / point_path[0], t)
+
+        integrand = sp.sqrt(dx_dt ** 2 + dy_dt ** 2 + dz_dt ** 2)
+        integrand_func = sp.lambdify(t, integrand, 'numpy')
+
+        arc_length, _ = quad(integrand_func, interval[0], interval[1])
+        desired_segment_length = arc_length / num_segments
+
+        t_vals = [interval[0]]
+        for i in range(num_segments - 1):
+            b = self._bisection_find_t(t_vals[-1],
+                                       interval,
+                                       desired_segment_length,
+                                       integrand_func)
+            t_vals.append(b)
+        t_vals.append(interval[1])
+
+        return t_vals
+
+    @staticmethod
+    def _bisection_find_t(section_start: float,
+                          curve_interval: list[float],
+                          segment_length_target: float,
+                          integrand_func: callable,
+                          tolerance: float = 1e-14):
+        """
+        Find the t value that splits the curve into given segment length using bisection
+
+        :param float section_start: start of the section
+        :param list[float] curve_interval: interval of the parameter t
+        :param float segment_length_target: target segment length
+        :param callable integrand_func: integrand function
+        :param float tolerance: tolerance of the bisection method
+
+        :return: t value that splits the curve into given segment length
+        :rtype: float
+        """
+        # initial lower and upper bounds
+        low = section_start
+        high = curve_interval[1]  # start with the upper bound
+
+        # ensure the segment length at 'high' is greater than the target
+        while True:
+            segment_length_high, _ = quad(integrand_func, section_start, high)
+            if segment_length_high >= segment_length_target:
+                break
+            high += 0.1 * (curve_interval[1] - curve_interval[0])
+
+        # bisection
+        while high - low > tolerance:
+            mid = (low + high) / 2
+            segment_length_mid, _ = quad(integrand_func, section_start, mid)
+
+            if segment_length_mid < segment_length_target:
+                low = mid
+            else:
+                high = mid
+
+        t_val = (low + high) / 2
+        return t_val

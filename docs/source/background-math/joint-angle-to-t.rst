@@ -21,37 +21,35 @@ specified) and returns the curve parameter :math:`t`.
 The relation between the joint angle and the curve parameter is obtained from
 the relation between the joint angle and rotational quaternion (primal quaternonion of
 the dual quaternion representing the joint). In general, a quaternion with given
-rotation angle :math:`\phi` around axis vector :math:`\vec{u}` is defined as:
+rotation angle :math:`\theta` around axis vector :math:`\vec{u}` is defined as:
 
 .. math::
-   q = \mathrm{cos}(\frac{\phi}{2}) + \mathrm{sin}(\frac{\phi}{2})\vec{u} =
-   \mathrm{cos}(\frac{\phi}{2}) + \mathrm{sin}(\frac{\phi}{2})(q_1\mathbf{i} +
+   \mathbf{q} = \mathrm{cos}(\frac{\theta}{2}) + \mathrm{sin}(\frac{\theta}{2})\vec{u} =
+   \mathrm{cos}(\frac{\theta}{2}) + \mathrm{sin}(\frac{\theta}{2})(q_1\mathbf{i} +
    q_2\mathbf{j} + q_3\mathbf{k})
 
 where :math:`\mathbf{i}, \mathbf{j}, \mathbf{k}` are the basis vectors of the quaternion
-space. The quaternion is represented as a vector with 4 elements :math:`q = [q_0, q_1, q_2, q_3]`.
+space. The quaternion is represented as a vector with 4 elements
+:math:`q = [q_0, q_1, q_2, q_3]`. The element :math:`q_0` is the real part
+of the quaternion and equals to :math:`\mathrm{cos}(\frac{\theta}{2})`.
 
-We can view the :math:`t` parameter as a vector, too, and in the case of pure rotation
-it will then be :math:`t = [t_0, 0, 0, 0]`. If we plug this in
+We can view the :math:`\mathbf{t}` parameter as a vector, too, and in the case of pure rotation
+it will then be :math:`\mathbf{t} = [t, 0, 0, 0]`. If we plug this in
 the quaternion equation, we get:
 
 .. math::
-   t - q = t_0 - \mathrm{cos}(\frac{\phi}{2})
-   - \mathrm{sin}(\frac{\phi}{2})(q_1\mathbf{i} + q_2\mathbf{j} + q_3\mathbf{k})
+   \mathbf{t} - \mathbf{q} = t - \mathrm{cos}(\frac{\theta}{2})
+   - \mathrm{sin}(\frac{\theta}{2})(q_1\mathbf{i} + q_2\mathbf{j} + q_3\mathbf{k})
 
-We put the right side equal to zero and solve for :math:`t_0`:
-
-.. math::
-   t_0 = \mathrm{cos}(\frac{\phi}{2}) + \mathrm{sin}(\frac{\phi}{2})(q_1\mathbf{i} +
-   q_2\mathbf{j} + q_3\mathbf{k})
-
-The right-hand side we can simplify to:
+This equation can be derived into the form:
 
 .. math::
-   t_0 = \sqrt{q q^*} \mathrm{cotan}(\frac{\phi}{2}) + q_0
+    t = \frac{\sqrt{q_1^2 + q_2^2 + q_3^2}}{\mathrm{tan}(\frac{\theta}{2})} + q_0
 
 Which is the equation used in the function
-:meth:`.MotionFactorization.joint_angle_to_t_param`. :math:`q q^*` is the norm of
-the quaternion :math:`q` and :math:`q_0` is its real part. There exists an inverse
+:meth:`.MotionFactorization.joint_angle_to_t_param`. The inverse
 method :meth:`.MotionFactorization.t_param_to_joint_angle` which takes the curve
-parameter as an argument and returns the joint angle.
+parameter as an argument and returns the joint angle
+
+.. math::
+   \theta = 2\mathrm{arctan}\Bigg(\frac{\sqrt{q_1^2 + q_2^2 + q_3^2}}{t - q_0}\Bigg)

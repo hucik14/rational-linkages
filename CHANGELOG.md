@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.8.0 (2024-08-28)
+
+### added (11 changes)
+
+- [updates to docs, jupyter notebook example on DK IK](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5d278a60)
+- [generate csv with desired trajectory](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/684d6c5d)
+- [method to normalize DQ by first element](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/764e1aaa)
+- [traj planning for smooth end-effector velocity](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5026d78d)
+- [p2p trajectory planning in joint space](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/e95cfd5e)
+- [finding t for splitting curve in equal segments](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/3c1df8ce)
+- [numerical ik is for curve and curve.inverse due to numerical stability](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9a5051d4)
+- [calculate numerically inverse kinematics of linkage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/33cbcdbd)
+- [calculate forward/direct kinematics of linkage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/599609c8)
+- [animate mech passing through given angles](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/beceb7f6)
+- [util to calculate sum of squares in the list](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9e6480fa)
+
+
+### fixed (5 changes)
+
+- [ik debug, didn't take into account tool](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1c00eb59)
+- [reparameterization of theta driving angle to t must use pluecker norm](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/7bca690f)
+- [negative angle plotting debug](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/36d19a66)
+- [ik solver issues with convergence, added normalization](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/c890e818)
+- [bug for negative angle](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1f1f3337)
 
 ## 1.7.0 (2024-07-11)
 

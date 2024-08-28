@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "1.7.0"
+version = "1.8.0"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -85,4 +85,5 @@ omit = [
     "*Plotter.py",
     "*ButtonID.py",
     "*MotionApproximation.py",
+    "*StaticMechanism.py",
     ]

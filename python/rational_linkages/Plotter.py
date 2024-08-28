@@ -526,7 +526,12 @@ class Plotter:
         def submit_angle(text):
             """Event handler for the text box"""
             val = float(text)
-            val = val % (2 * np.pi)
+
+            # normalize angle to [0, 2*pi]
+            if val >= 0:
+                val = val % (2 * np.pi)
+            else:
+                val = (val % (2 * np.pi)) - np.pi
             self.move_slider.set_val(val)
 
         def submit_parameter(text):
@@ -764,3 +769,19 @@ class Plotter:
                 join(output_dir, f"{filename_prefix}{i}.{file_type}"))
 
         print("Animation frames saved successfully in folder: ", output_dir)
+
+    def animate_angles(self, list_of_angles: list, sleep_time: float = 1.0):
+        """
+        Animate the mechanism passing through a list of joint angles
+
+        :param list list_of_angles: list of joint angles
+        :param float sleep_time: time to wait between each frame
+        """
+        from time import sleep  # inner import
+
+        t_angle = list_of_angles
+
+        for i, val in enumerate(t_angle):
+            self.plot_slider_update(val)
+            sleep(sleep_time)
+

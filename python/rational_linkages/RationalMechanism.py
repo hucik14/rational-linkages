@@ -2,6 +2,7 @@ import pickle
 from copy import deepcopy
 from time import time
 from typing import Union
+from warnings import warn
 
 import numpy as np
 import sympy as sp
@@ -856,3 +857,396 @@ class RationalMechanism(RationalCurve):
             points = [points[i] for i in range(0, len(points), 2)]
 
         return [PointHomogeneous.from_3d_point(p) for p in points]
+
+    def forward_kinematics(self,
+                           joint_angle: float,
+                           unit: str = 'rad') -> DualQuaternion:
+        """
+        Calculate forward (direct) kinematics of the mechanism. Radians are default.
+
+        :param float joint_angle: angle of the joint
+        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+
+        :return: tool frame of the mechanism
+        :rtype: DualQuaternion
+        """
+        if unit == 'deg':
+            joint_angle = np.deg2rad(joint_angle)
+        elif unit != 'rad':
+            raise ValueError("unit must be deg or rad")
+
+        t = self.factorizations[0].joint_angle_to_t_param(joint_angle)
+
+        return DualQuaternion(self.evaluate(t)) * self.tool_frame
+
+    def direct_kinematics(self,
+                          joint_angle: float,
+                          unit: str = 'rad') -> DualQuaternion:
+        """
+        Calculate direct (forward) kinematics of the mechanism. Radians are default.
+
+        Calls the forward_kinematics method.
+
+        :param float joint_angle: angle of the joint
+        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+
+        :return: tool frame of the mechanism
+        :rtype: DualQuaternion
+        """
+        return self.forward_kinematics(joint_angle, unit)
+
+    def inverse_kinematics(self,
+                           pose: Union[DualQuaternion, TransfMatrix],
+                           unit: str = 'rad',
+                           method: str = 'gauss-newton',
+                           robust: bool = False
+                           ) -> float:
+        """
+        Calculate inverse kinematics for given pose. Returns the joint angle in radians.
+
+        :param Union[DualQuaternion, TransfMatrix] pose: pose of the mechanism
+        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+        :param str method: numerically for 'gauss-newton' or 'algebraic'; 'algebraic'
+            requires the input pose to be "achievable" by the mechanism, i.e. the pose
+            must be on Study quadric and the mechanism must be able to reach it
+        :param bool robust: if True, use the Gauss-Newton method with
+            many initial guesses
+
+        :return: joint angle in radians or degrees
+        :rtype: float
+        """
+        if isinstance(pose, TransfMatrix):
+            pose = DualQuaternion(pose.matrix2dq())
+        elif not isinstance(pose, DualQuaternion):
+            raise ValueError("pose must be either DualQuaternion or TransfMatrix")
+
+        if unit != 'rad' and unit != 'deg':
+            raise ValueError("unit must be deg or rad")
+
+        if method == 'algebraic':
+            # TODO: implement algebraic method
+            raise NotImplementedError("Algebraic method is not implemented yet.")
+        elif method == 'gauss-newton':
+            t = self._ik_gauss_newton(pose, robust=robust)
+        else:
+            raise ValueError("method must be either 'algebraic' or 'gauss-newton")
+
+        joint_angle = self.factorizations[0].t_param_to_joint_angle(t)
+
+        if unit == 'deg':
+            joint_angle = np.rad2deg(joint_angle)
+
+        return joint_angle
+
+    def _ik_gauss_newton(self,
+                         pose: DualQuaternion,
+                         robust: bool = False) -> float:
+        """
+        Calculate inverse kinematics using Gauss-Newton method.
+
+        :param DualQuaternion pose: pose of the mechanism
+        :param bool robust: if True, use many initial guesses
+
+        :return: parameter value
+        :rtype: float
+        """
+        t = sp.Symbol("t")
+
+        curves = [self.curve(), self.curve().inverse_curve()]
+        success = False
+        inversed_part = False
+        t_min = [None, float('inf')]
+        t_init_set = [0., -0.999999999, 0.999999999, -0.5, 0.5]
+        t_res = None
+        max_iterations = 10
+        tol = 1e-10
+
+        # map pose to the motion curve of identity frame
+        pose = pose * self.tool_frame.inv()
+
+        if robust:
+            t_init_set = np.linspace(-1.0, 1.0, 30)
+            max_iterations = 50
+
+        for inv, curve in enumerate(curves):
+            if inv == 1:
+                inversed_part = True
+
+            norm_curve = [element / curve.set_of_polynomials[0]
+                          for element in curve.set_of_polynomials]
+
+            c_diff = [element.diff(t) for element in norm_curve]
+
+            for t_val in t_init_set:
+                step_size = 1.0
+                previous_error = float('inf')
+
+                for i in range(max_iterations):
+
+                    if not robust:
+                        if t_val > 1.0 or t_val < -1.0:
+                            break
+
+                    target_pose = pose.array()
+                    current_pose = curve.evaluate(t_val)
+                    c_diff_eval = np.array([element.subs(t, t_val).evalf()
+                                            for element in c_diff])
+
+                    # error to desired pose
+                    if (target_pose[0] == 0. or current_pose[0] == 0.):
+                        twist_to_desired = target_pose - current_pose
+                    else:
+                        twist_to_desired = (target_pose / target_pose[0]
+                                            - current_pose / current_pose[0])
+
+                    square_dist_to_desired = np.sum(twist_to_desired ** 2)
+
+                    t_val += (step_size * (c_diff_eval @ twist_to_desired)
+                              / np.sum(c_diff_eval ** 2))
+
+                    if square_dist_to_desired > previous_error:
+                        step_size *= 0.5
+                    else:
+                        step_size = 1.0
+
+                    if square_dist_to_desired < tol:
+                        success = True
+                        t_res = t_val
+                        break
+
+                if square_dist_to_desired < t_min[1]:
+                    t_min = [t_val, square_dist_to_desired]
+
+                if success:
+                    break
+            if success:
+                break
+
+        if not success:
+            warn("Gauss-Newton method did not converge. Returning the best result.")
+            t_res = t_min[0]
+
+        if inversed_part:
+            if t_res == 0.0:
+                t_res = np.finfo(np.float64).tiny
+            t_res = 1 / t_res
+
+        return t_res
+
+    @staticmethod
+    def traj_p2p_joint_space(joint_angle_start: float,
+                             joint_angle_end: float,
+                             velocity_start: float = 0.0,
+                             velocity_end: float = 0.0,
+                             unit: str = 'rad',
+                             time_sec: float = 1.0,
+                             num_points: int = 100,
+                             method: str = 'quintic',
+                             generate_csv: bool = False) -> tuple:
+        """
+        Generate point to point straight line joint space trajectory.
+
+        This method originates from book Modern Robotics :footcite:p:`Lynch2017`
+        by Kevin M. Lynch
+        and Frank C. Park, and related software package published under MIT
+        licence and available at: https://github.com/NxRLab/ModernRobotics
+
+        .. footbibliography::
+
+        :param float joint_angle_start: start parameter value
+        :param float joint_angle_end: end parameter value
+        :param float velocity_start: start velocity
+        :param float velocity_end: end velocity
+        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+        :param float time_sec: time of the trajectory [seconds]
+        :param int num_points: number of discrete points in the trajectory
+        :param str method: method of trajectory generation, can be 'quintic' or 'cubic'
+        :param bool generate_csv: if True, generate a CSV file with the trajectory
+
+        :return: tuple of joint position (angle), velocity, and acceleration
+        :rtype: tuple
+
+        :raises: ValueError: if unit is not 'rad' or 'deg'
+        :raises: ValueError: if method is not 'quintic' or 'cubic'
+
+        :example:
+
+        .. testcode::
+
+            from rational_linkages import RationalCurve, RationalMechanism
+            import numpy as np
+            import matplotlib.pyplot as plt
+
+            coeffs = np.array([[0, 0, 0],
+                               [4440, 39870, 22134],
+                               [16428, 9927, -42966],
+                               [-37296,-73843,-115878],
+                               [0, 0, 0],
+                               [-1332, -14586, -7812],
+                               [-2664, -1473, 6510],
+                               [-1332, -1881, -3906]])
+            c = RationalCurve.from_coeffs(coeffs)
+            m = RationalMechanism(c.factorize())
+
+            time = 3  # seconds
+            n_steps = 100
+            t0 = 0
+            t1 = np.pi/4
+            method = 'quintic'
+            #method = 'cubic'
+
+            pos, vel, acc = m.traj_p2p_joint_space(joint_angle_start=t0,
+                                                   joint_angle_end=t1,
+                                                   time_sec=time,
+                                                   method=method,
+                                                   num_points=n_steps)
+
+            # plot the trajectory
+            plt.plot(pos)
+            plt.plot(vel)
+            plt.plot(acc)
+            plt.xlabel('Time [sec]')
+            plt.legend(['Position [rad]', 'Velocity [rad/s]', 'Acceleration [rad/s^2]'])
+            plt.grid()
+            plt.show()
+
+        """
+        if unit == 'deg':
+            joint_angle_start = np.deg2rad(joint_angle_start)
+            joint_angle_end = np.deg2rad(joint_angle_end)
+        elif unit != 'rad':
+            raise ValueError("unit must be deg or rad")
+
+        def cubic_time_scaling(tot_time, step):
+            return 3 * (step / tot_time) ** 2 - 2 * (step / tot_time) ** 3
+
+        def quintic_time_scaling(tot_time, step):
+            return (10 * (step / tot_time) ** 3
+                    - 15 * (step / tot_time) ** 4
+                    + 6 * (step / tot_time) ** 5)
+
+        def quintic_time_scaling_with_velocity(t, tot_time, th_0, th_f, v_0, v_f):
+            t3, t4, t5 = tot_time ** 3, tot_time ** 4, tot_time ** 5
+            a_0, a_1, a_2 = th_0, v_0, 0
+            a_3 = (20 * (th_f - th_0) - (8 * v_f + 12 * v_0) * tot_time) / (2 * t3)
+            a_4 = (30 * (th_0 - th_f) + (14 * v_f + 16 * v_0) * tot_time) / (2 * t4)
+            a_5 = (12 * (th_f - th_0) - (6 * v_f + 6 * v_0) * tot_time) / (2 * t5)
+            return (a_0 + a_1 * t + a_2 * t ** 2 + a_3 * t ** 3
+                    + a_4 * t ** 4 + a_5 * t ** 5)
+
+        time_gap = time_sec / num_points
+        traj = np.zeros(num_points)
+        for i in range(num_points):
+            if method == 'cubic' or method == 'quintic':
+                if method == 'cubic':
+                    scaling = cubic_time_scaling(time_sec, time_gap * i)
+                elif method == 'quintic':
+                    scaling = quintic_time_scaling(time_sec, time_gap * i)
+
+                traj[i] = (scaling * np.array(joint_angle_end)
+                           + (1 - scaling) * np.array(joint_angle_start))
+            elif method == 'quintic_with_velocity':
+                traj[i] = quintic_time_scaling_with_velocity(time_gap * i,
+                                                             time_sec,
+                                                             joint_angle_start,
+                                                             joint_angle_end,
+                                                             velocity_start,
+                                                             velocity_end)
+            else:
+                raise ValueError("method must be either 'cubic', 'quintic', "
+                                 "or 'quintic_with_velocity'")
+
+        if generate_csv:
+            RationalMechanism._generate_csv(traj, time_gap)
+
+        vel = np.diff(traj, axis=0) * num_points / time_sec
+        acc = np.diff(vel, axis=0) * num_points / time_sec
+
+        return traj, vel, acc
+
+    def traj_smooth_tool(self,
+                         joint_angle_start: float,
+                         joint_angle_end: float,
+                         time_sec: float,
+                         point_of_interest: PointHomogeneous = None,
+                         unit: str = 'rad',
+                         num_points: int = 100,
+                         generate_csv: bool = False) -> tuple:
+        """
+        Generate smooth trajectory for the tool of the mechanism.
+
+        :param float joint_angle_start: start parameter value
+        :param float joint_angle_end: end parameter value
+        :param float time_sec: time of the trajectory [seconds]
+        :param PointHomogeneous point_of_interest: point that will be moved smoothly
+        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+        :param int num_points: number of discrete points in the trajectory
+        :param bool generate_csv: if True, generate a CSV file with the trajectory
+
+        :return: tuple of joint position (angle), velocity, and acceleration
+        :rtype: tuple
+        """
+        if unit == 'deg':
+            joint_angle_start = np.deg2rad(joint_angle_start)
+            joint_angle_end = np.deg2rad(joint_angle_end)
+        elif unit != 'rad':
+            raise ValueError("unit must be deg or rad")
+
+        t_start = self.factorizations[0].joint_angle_to_t_param(joint_angle_start)
+        t_end = self.factorizations[0].joint_angle_to_t_param(joint_angle_end)
+
+        if point_of_interest is None:
+            ee_point = PointHomogeneous.from_3d_point(
+                self.tool_frame.dq2point_via_matrix())
+        else:
+            ee_point = point_of_interest
+
+        # check if the t vals are in the correct order
+        flip = False
+        if t_start > t_end:
+            flip = True
+            t_start, t_end = t_end, t_start
+
+        t_vals = self.split_in_equal_segments(interval=[t_start, t_end],
+                                              point_to_act_on=ee_point,
+                                              num_segments=num_points)
+
+        joint_angles = [self.factorizations[0].t_param_to_joint_angle(x)
+                        for x in t_vals]
+
+        # flip the joint angles back if needed
+        if flip:
+            joint_angles = joint_angles[::-1]
+
+        if generate_csv:
+            time_gap = time_sec / num_points
+            RationalMechanism._generate_csv(joint_angles, time_gap)
+
+        vel = np.diff(joint_angles, axis=0) * num_points / time_sec
+        acc = np.diff(vel, axis=0) * num_points / time_sec
+
+        return joint_angles, vel, acc
+
+    @staticmethod
+    def _generate_csv(traj, time_gap):
+        """
+        Generate a CSV file with the trajectory.
+
+        :param traj: trajectory
+        :param time_gap: time gap
+        """
+        time_space = np.arange(0, len(traj) * time_gap, time_gap)
+        pos = traj
+        vel = np.diff(traj, axis=0) / time_gap
+        #vel = np.append(np.array([0.0]), vel)  # add .0 to equalize the array length
+        vel = np.append(vel, vel[-1])
+        # TODO: check if this is correct
+        acc = np.diff(vel, axis=0) / time_gap
+        #acc = np.append(acc, np.array([0.0]))  # add .0 to equalize the array length
+        acc = np.append(acc, acc[-1])
+
+        # Stack the arrays horizontally to create a 2D array with 4 columns
+        data = np.column_stack((time_space, pos, vel, acc))
+
+        # Save the stacked array to a CSV file
+        np.savetxt('trajectory.csv', data, delimiter=',', fmt='%1.6f')

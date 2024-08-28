@@ -67,6 +67,15 @@ the Jupyter Notebook: |binder_badge|
 In case of other questions or contributions, please, email the author at:
 daniel.huczala@uibk.ac.at
 
+Main Features:
+--------------
+
+- Synthesis of single-loop rational linkages for a given task (set of poses),
+- search of full-cycle collision-free design of the linkages,
+- design of 3D-printable mechanisms,
+- basic control algorithms for velocity motion planning.
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
@@ -77,8 +86,8 @@ daniel.huczala@uibk.ac.at
    background-math
 
 
-Indices and tables
-==================
+Indices and Tables:
+-------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
@@ -86,7 +95,7 @@ Indices and tables
 
 
 Authors
-=======
+-------
 
 The package is developed by the Unit of Geometry and Surveying, University of Innsbruck,
 Austria. Namely, the following people contributed to the development:
@@ -96,8 +105,8 @@ Austria. Namely, the following people contributed to the development:
 - Martin Pfurner (contributor)
 - Daren A. Thimm (contributor)
 
-Citing the package
-==================
+Citing the Package
+------------------
 
 If you use the Rational Linkages package in your research, please, cite it as follows:
 
