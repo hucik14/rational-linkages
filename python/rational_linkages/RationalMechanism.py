@@ -858,7 +858,8 @@ class RationalMechanism(RationalCurve):
 
         return [PointHomogeneous.from_3d_point(p) for p in points]
 
-    def forward_kinematics(self, joint_angle: float,
+    def forward_kinematics(self,
+                           joint_angle: float,
                            unit: str = 'rad') -> DualQuaternion:
         """
         Calculate forward (direct) kinematics of the mechanism. Radians are default.
@@ -877,6 +878,22 @@ class RationalMechanism(RationalCurve):
         t = self.factorizations[0].joint_angle_to_t_param(joint_angle)
 
         return DualQuaternion(self.evaluate(t)) * self.tool_frame
+
+    def direct_kinematics(self,
+                          joint_angle: float,
+                          unit: str = 'rad') -> DualQuaternion:
+        """
+        Calculate direct (forward) kinematics of the mechanism. Radians are default.
+
+        Calls the forward_kinematics method.
+
+        :param float joint_angle: angle of the joint
+        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+
+        :return: tool frame of the mechanism
+        :rtype: DualQuaternion
+        """
+        return self.forward_kinematics(joint_angle, unit)
 
     def inverse_kinematics(self,
                            pose: Union[DualQuaternion, TransfMatrix],
