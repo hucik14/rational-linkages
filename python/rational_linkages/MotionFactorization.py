@@ -250,14 +250,18 @@ class MotionFactorization(RationalCurve):
         elif unit != 'rad':
             raise ValueError("unit must be 'rad' or 'deg'")
 
-        normalized_angle = joint_angle % (2 * np.pi)
+        # normalize angle to [0, 2*pi]
+        if joint_angle >= 0:
+            normalized_angle = joint_angle % (2 * np.pi)
+        else:
+            normalized_angle = (joint_angle % (2 * np.pi)) - np.pi
 
         # avoid division by zero
         if normalized_angle == 0.0:
             normalized_angle = np.finfo(float).eps
 
-        sqrt_p_norm = np.sqrt(self.dq_axes[0].p.norm())
-        t = sqrt_p_norm / np.tan(normalized_angle/2) + self.dq_axes[0].p[0]
+        t = (np.linalg.norm(self.dq_axes[0].p[1:]) / np.tan(normalized_angle/2)
+             + self.dq_axes[0].p[0])
 
         return t
 
@@ -279,7 +283,8 @@ class MotionFactorization(RationalCurve):
         if t_param_joint0 == 0.0:
             t_param_joint0 = np.finfo(float).eps
 
-        angle = 2 * np.arctan(np.sqrt(self.dq_axes[0].p.norm()) / t_param_joint0)
+        angle = 2 * np.arctan(np.float64(
+            np.linalg.norm(self.dq_axes[0].p[1:]) / t_param_joint0))
 
         # normalize angle to [0, 2*pi]
         if angle < 0:

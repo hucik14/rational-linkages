@@ -242,10 +242,10 @@ class TestDualQuaternion(unittest.TestCase):
         self.assertTrue(np.array_equal(moment, np.array([-3, -2, 1])))
 
         x = Symbol('x')
-        dq = DualQuaternion([0, x, -x**3, 1, 0, 3, 2*x, -1])
+        dq = DualQuaternion([0, x, -x ** 3, 1, 0, 3, 2 * x, -1])
         direction, moment = dq.dq2line_vectors()
-        self.assertTrue(np.array_equal(direction, np.array([x, -x**3, 1])))
-        self.assertTrue(np.array_equal(moment, np.array([-3, -2*x, 1])))
+        self.assertTrue(np.array_equal(direction, np.array([x, -x ** 3, 1])))
+        self.assertTrue(np.array_equal(moment, np.array([-3, -2 * x, 1])))
 
         dq = DualQuaternion([x, 0, 0, 1, x ** 2, 3, 2, 0])
         with self.assertWarns(UserWarning):
@@ -343,7 +343,7 @@ class TestDualQuaternion(unittest.TestCase):
         self.assertTrue(len(dq.array()) == 8)
 
         # TODO: solve numerical issues
-        #self.assertTrue(dq.is_on_study_quadric())
+        # self.assertTrue(dq.is_on_study_quadric())
 
     def test_from_bq_poly(self):
         # valid input
@@ -372,3 +372,21 @@ class TestDualQuaternion(unittest.TestCase):
         dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
         expected_imag = np.array([2, 3, 4, 6, 7, 8])
         self.assertTrue(np.array_equal(dq.imag(), expected_imag))
+
+
+    def test_normalize(self):
+        dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+        normalized_dq = dq.normalize()
+        self.assertTrue(np.allclose(normalized_dq.array(), dq.array()))
+
+        dq = DualQuaternion([-2, 2, 3, -4, 5, 6, 7, 8])
+        normalized_dq = dq.normalize()
+        expected_dq = np.array([1, -1, -1.5, 2, -2.5, -3, -3.5, -4])
+        self.assertTrue(np.allclose(normalized_dq.array(), expected_dq))
+
+        dq = DualQuaternion([0, 2, 3, 4, 5, 6, 7, 8])
+        self.assertRaises(ValueError, dq.normalize)
+
+
+
+

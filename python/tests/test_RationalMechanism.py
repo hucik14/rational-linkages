@@ -6,7 +6,7 @@ import numpy as np
 from rational_linkages import (DualQuaternion, MotionFactorization, NormalizedLine,
                                RationalMechanism, CollisionFreeOptimization,
                                PointHomogeneous, RationalCurve)
-from rational_linkages.models import bennett_ark24
+from rational_linkages.models import bennett_ark24, collisions_free_6r
 
 
 class TestRationalMechanism(TestCase):
@@ -267,3 +267,115 @@ class TestRationalMechanism(TestCase):
                                           (-1, 1, -1, 1, -1, 1, 1, -1, 1, -1, 1, -1),
                                           (-1, 1, 1, -1, -1, 1, 1, -1, -1, 1, 1, -1)]
                                       )
+
+    def test_inverse_kinematics(self):
+        m = bennett_ark24()
+        joint_angle_expected = 0.0
+
+        ik_res = m.inverse_kinematics(DualQuaternion())
+        self.assertTrue(np.allclose(ik_res, joint_angle_expected))
+
+        coeffs = np.array([[0, 0, 0],
+                           [4440, 39870, 22134],
+                           [16428, 9927, -42966],
+                           [-37296, -73843, -115878],
+                           [0, 0, 0],
+                           [-1332, -14586, -7812],
+                           [-2664, -1473, 6510],
+                           [-1332, -1881, -3906]])
+        c = RationalCurve.from_coeffs(coeffs)
+        m = RationalMechanism(c.factorize())
+
+        expexted_t = -5.
+        fk_angle = m.factorizations[0].t_param_to_joint_angle(expexted_t)
+        fk = m.forward_kinematics(fk_angle)
+        fk_expected = DualQuaternion(m.evaluate(expexted_t))
+        self.assertTrue(np.allclose(fk.array(), fk_expected.array()))
+
+        ik_angle = m.inverse_kinematics(fk)
+        ik_t = m.factorizations[0].joint_angle_to_t_param(ik_angle)
+        self.assertTrue(np.allclose(ik_t, expexted_t))
+
+    def test_forward_kinematics(self):
+        m = bennett_ark24()
+
+        joint_angle = 0.0
+        fk_res = m.forward_kinematics(joint_angle)
+        self.assertTrue(np.allclose(fk_res.array() / fk_res[0],
+                                    DualQuaternion().array()))
+
+        joint_angle = 2 * np.pi
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(fk_res.array() / fk_res[0],
+                                    DualQuaternion().array()))
+        self.assertTrue(np.allclose(ik_res, 0.0))
+
+        joint_angle = 1.5707963267948966
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, joint_angle))
+
+        joint_angle = np.pi
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, joint_angle))
+
+        joint_angle = 2.0
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, joint_angle))
+
+        joint_angle = -2.0
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, (joint_angle % (2 * np.pi)) - np.pi))
+
+        joint_angle = 4.0
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, (joint_angle % (2 * np.pi))))
+
+        m = collisions_free_6r()
+
+        joint_angle = 0.0
+        fk_res = m.forward_kinematics(joint_angle)
+        self.assertTrue(np.allclose(fk_res.array() / fk_res[0],
+                                    DualQuaternion().array()))
+
+        joint_angle = 2 * np.pi
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(fk_res.array() / fk_res[0],
+                                    DualQuaternion().array()))
+        self.assertTrue(np.allclose(ik_res, joint_angle) or np.allclose(ik_res, 0.0))
+
+        joint_angle = 1.5707963267948966
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, joint_angle))
+
+        joint_angle = np.pi
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, joint_angle))
+
+        joint_angle = 2.0
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, joint_angle))
+
+        joint_angle = -2.0
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, (joint_angle % (2 * np.pi)) - np.pi))
+
+        joint_angle = 4.0
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res)
+        self.assertTrue(np.allclose(ik_res, (joint_angle % (2 * np.pi))))
+
+        joint_angle = 0.8965364160300774
+        fk_res = m.forward_kinematics(joint_angle)
+        ik_res = m.inverse_kinematics(fk_res, robust=True)
+        self.assertTrue(np.allclose(ik_res, joint_angle))

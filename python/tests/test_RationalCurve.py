@@ -120,11 +120,11 @@ class TestRationalCurve(TestCase):
                                        t, reparametrization=False)))
 
         expected_equations = [
-            (1/2 - t/2)**4,
-            (1/2 - t/2)**3*(2*t + 2),
-            6*(1/2 - t/2)**2*(t/2 + 1/2)**2,
-            4*(1/2 - t/2)*(t/2 + 1/2)**3,
-            (t/2 + 1/2)**4,
+            (1 / 2 - t / 2) ** 4,
+            (1 / 2 - t / 2) ** 3 * (2 * t + 2),
+            6 * (1 / 2 - t / 2) ** 2 * (t / 2 + 1 / 2) ** 2,
+            4 * (1 / 2 - t / 2) * (t / 2 + 1 / 2) ** 3,
+            (t / 2 + 1 / 2) ** 4,
         ]
 
         self.assertTrue(
@@ -132,7 +132,7 @@ class TestRationalCurve(TestCase):
                                    obj.get_bernstein_polynomial_equations(
                                        t, reparametrization=True)))
 
-        expected_equations = [1/2 - t/2, t/2 + 1/2]
+        expected_equations = [1 / 2 - t / 2, t / 2 + 1 / 2]
 
         self.assertTrue(
             assert_equations_equal(expected_equations,
@@ -326,10 +326,10 @@ class TestRationalCurve(TestCase):
 
         expected_coeffs = np.array([[1., 0., 5., 0., 4.],
                                     [0., 0., -8., 0., 4.],
-                                    [0.,-2., 0., 10., 0.],
+                                    [0., -2., 0., 10., 0.],
                                     [0., 0., 0., 0., 0.],
                                     [1., 0., -13., 0., 4.],
-                                    [0.,-6., 0., 12., 0.],
+                                    [0., -6., 0., 12., 0.],
                                     [0., 0., 0., 0., 0.],
                                     [0., 6., 0., -12., 0.],
                                     [1., 0., -13., 0., 4.],
@@ -364,3 +364,32 @@ class TestRationalCurve(TestCase):
                             for segment in bezier_segments))
         self.assertTrue(all(segment.check_for_control_points_at_infinity
                             for segment in bezier_segments))
+
+    def test_split_in_equal_segments(self):
+        t = sp.Symbol("t")
+        curve = RationalCurve([sp.Poly(1.0 * t ** 2 - 2.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(-3.0 * t, t),
+                               sp.Poly(0.0, t),
+                               sp.Poly(1.0, t),
+                               sp.Poly(1.0 * t, t),
+                               sp.Poly(0.0, t)])
+
+        t_segments = curve.split_in_equal_segments([0., 1.],
+                                                    point_to_act_on=PointHomogeneous(),
+                                                    num_segments=2)
+        t_expected = [0.0, 0.4158727722922215, 1.0000000000000007]
+        self.assertTrue(np.allclose(t_segments, t_expected))
+
+        t_segments = curve.split_in_equal_segments([0., 1.],
+                                                   point_to_act_on=PointHomogeneous([1., -2., 30., 1.]),
+                                                   num_segments=3)
+        t_expected = [0.0, 0.2822342075439117, 0.599861883170928, 0.9999999999999916]
+        self.assertTrue(np.allclose(t_segments, t_expected))
+
+        self.assertRaises(ValueError, curve.split_in_equal_segments, [1., 1.])
+        self.assertRaises(ValueError, curve.split_in_equal_segments, [1., 0.])
+        self.assertRaises(ValueError,
+                          curve.split_in_equal_segments, [0., 2.],
+                          num_segments=-2)
