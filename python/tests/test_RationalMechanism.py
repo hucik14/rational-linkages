@@ -305,7 +305,7 @@ class TestRationalMechanism(TestCase):
                                     DualQuaternion().array()))
 
         joint_angle = 2 * np.pi
-        fk_res = m.forward_kinematics(joint_angle)
+        fk_res = m.direct_kinematics(joint_angle)
         ik_res = m.inverse_kinematics(fk_res)
         self.assertTrue(np.allclose(fk_res.array() / fk_res[0],
                                     DualQuaternion().array()))
@@ -377,5 +377,5 @@ class TestRationalMechanism(TestCase):
 
         joint_angle = 0.8965364160300774
         fk_res = m.forward_kinematics(joint_angle)
-        ik_res = m.inverse_kinematics(fk_res, robust=True)
+        ik_res = m.inverse_kinematics(fk_res)
         self.assertTrue(np.allclose(ik_res, joint_angle))
