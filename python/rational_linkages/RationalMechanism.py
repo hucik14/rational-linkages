@@ -910,7 +910,7 @@ class RationalMechanism(RationalCurve):
             requires the input pose to be "achievable" by the mechanism, i.e. the pose
             must be on Study quadric and the mechanism must be able to reach it
         :param bool robust: if True, use the Gauss-Newton method with
-            many initial guesses
+            many initial guesses and more iteration steps
 
         :return: joint angle in radians or degrees
         :rtype: float
