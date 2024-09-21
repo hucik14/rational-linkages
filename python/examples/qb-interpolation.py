@@ -1,8 +1,8 @@
 import numpy as np
 
-from NormalizedLine import DualQuaternion
 from rational_linkages import (Quaternion, PointHomogeneous, RationalBezier, Plotter,
-                               RationalMechanism, RationalCurve, DualQuaternion)
+                               RationalMechanism, RationalCurve, DualQuaternion,
+                               MotionInterpolation)
 
 q0 = PointHomogeneous([1, 0, 0, 0])
 q1 = PointHomogeneous([1, 1, 0, -2])
@@ -51,8 +51,12 @@ cp2 = PointHomogeneous(np.concatenate((u2.array(), (p2*u2).array())))
 cp = [cp0, cp1, cp2]
 
 b = RationalBezier([cp2, cp1, cp0])
+
+i = MotionInterpolation.interpolate(pts)
+print(i)
 c = RationalCurve(b.set_of_polynomials)
-m = RationalMechanism(c.factorize())
+print(c)
+m = RationalMechanism(i.factorize())
 
 p = Plotter(interactive=True, steps=500)
 # p.plot(m, show_tool=True)
