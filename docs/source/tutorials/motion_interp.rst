@@ -205,10 +205,17 @@ transformation.
     interpolated_curve = MotionInterpolation.interpolate(points)
     m = RationalMechanism(interpolated_curve.factorize())
 
-    p = Plotter(interactive=True, steps=500, arrows_length=0.05)
+    # due to non-monic solution, to transform the given points and plot them in mechanism
+    # path, get static transform 'rebase' and uncomment the line in for loop bellow
+    rebase = DualQuaternion(interpolated_curve.evaluate(1e12)).normalize()
+
+    p = Plotter(interactive=True, steps=500, arrows_length=0.5)
+
     p.plot(interpolated_curve, interval='closed', label='interpolated curve')
-    p.plot(m)
+    p.plot(m)  # plot the mechanism
+
     for i, pt in enumerate(points):
+        # pt = rebase.inv().act(pt)  # uncomment to plot the points in the mechanism path
         p.plot(pt, label=f'a{i}')
 
     p.show()
