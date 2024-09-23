@@ -30,7 +30,7 @@ class TestMotionInterpolation(TestCase):
         self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
 
         # Test with invalid number of poses
-        poses = [p1, p2, p1, p2, p1]
+        poses = [p1, p2, p1, p2, p1, p1]
         self.assertRaises(ValueError, mi.interpolate, poses)
 
         p2 = TransfMatrix(p2.dq2matrix())

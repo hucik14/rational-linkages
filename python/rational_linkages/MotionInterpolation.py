@@ -106,15 +106,13 @@ class MotionInterpolation:
         p0_array = np.asarray(poses_or_points[0].array(), dtype='float64')
 
         # check if the first pose is the identity matrix
-        if (((isinstance(poses_or_points[0], TransfMatrix)
+        if ((isinstance(poses_or_points[0], TransfMatrix)
             and not np.allclose(p0_array, TransfMatrix().matrix))
                 or (isinstance(poses_or_points[0], DualQuaternion)
-                    and not np.allclose(p0_array, DualQuaternion().dq)))
-                or not (isinstance(poses_or_points[0], PointHomogeneous))):
+                    and not np.allclose(p0_array, DualQuaternion().dq))):
 
             if len(poses_or_points) == 4:
-                raise ValueError('The first pose must be the identity matrix '
-                                 'for 4-pose interpolation')
+                raise ValueError('The first pose must be the identity matrix')
             else:
                 warn('The first pose IS NOT the identity. The interpolation '
                      'results may be unstable. They will yield non-univariate '
