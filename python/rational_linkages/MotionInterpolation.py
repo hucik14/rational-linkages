@@ -113,7 +113,7 @@ class MotionInterpolation:
 
             if len(poses_or_points) == 4:
                 raise ValueError('The first pose must be the identity matrix')
-            else:
+            elif len(poses_or_points) == 3:
                 warn('The first pose IS NOT the identity. The interpolation '
                      'results may be unstable. They will yield non-univariate '
                      'polynomial which has to be transformed to visually '

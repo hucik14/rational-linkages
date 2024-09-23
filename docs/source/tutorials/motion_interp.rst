@@ -190,7 +190,7 @@ transformation.
 
     # Quadratic interpolation of 5 points
 
-    from rational_linkages import (Plotter, MotionInterpolation,
+    from rational_linkages import (Plotter, MotionInterpolation, PointHomogeneous,
                                    TransfMatrix, RationalMechanism)
 
 
@@ -220,11 +220,7 @@ transformation.
 
     p.show()
 
-.. testoutput::
-    :hide:
-    :options: +ELLIPSIS
 
-    ...
 
 
 **References**
