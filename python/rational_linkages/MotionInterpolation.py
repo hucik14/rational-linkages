@@ -543,6 +543,14 @@ class MotionInterpolation:
         # map to Quaternions, divide by -2 (Study mapping from 3D)
         # and add 0 to the real part
 
+        if not all(isinstance(p, PointHomogeneous) for p in points):
+            raise TypeError('The given points must be PointHomogeneous.')
+
+        if len(points) != 5:
+            raise ValueError('The number of points must be 5.')
+
+        points = [p if p[0] == 1 else PointHomogeneous(p.normalize()) for p in points]
+
         a0, a1, a2, a3, a4 = [Quaternion([0,
                                           p.array()[1] / -2,
                                           p.array()[2] / -2,
