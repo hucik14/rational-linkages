@@ -57,7 +57,8 @@ class FactorizationProvider:
         poly_coeffs = bi_poly.all_coeffs()
         for i in range(len(poly_coeffs)):
             for j in range(len(poly_coeffs[i].args)):
-                if not isinstance(poly_coeffs[i].args[j], sp.Rational):
+                if (not isinstance(poly_coeffs[i].args[j], sp.Rational)
+                        and self.domain == 'QQ'):
                     warn('The given curve has not only rational numbers as input. The factorization will be performed with floating point numbers, but may be instable.')
                     break
 
