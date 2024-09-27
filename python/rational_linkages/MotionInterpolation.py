@@ -615,7 +615,7 @@ class MotionInterpolation:
         f16 = 3
         f18 = -15
         f22 = 9
-        f24 = 9
+        f24 = -9
         f26 = -3
         f28 = 3
         f32 = -5
@@ -640,21 +640,19 @@ class MotionInterpolation:
         e24 = q_prod(c12, c14, c22, c24)
         e26 = q_prod(c12, c16, c22, c26)
         e28 = q_prod(c12, c18, c22, c28)
-        e34 = q_prod(c12, c14, c32, c24)
-        e36 = q_prod(c12, c14, c32, c26)
-        e38 = q_prod(c12, c14, c32, c28)
+        e34 = q_prod(c12, c14, c32, c34)
+        e36 = q_prod(c12, c16, c32, c36)
+        e38 = q_prod(c12, c18, c32, c38)
 
-        r44 = q_prod(e26, e24, e36, e34)
-        r48 = q_prod(e26, e28, e36, e38)
-        r56 = q_prod(e24, e26, e34, e36)
-        r58 = q_prod(e24, e28, e34, e38)
+        r24 = q_prod(e26, e24, e36, e34)
+        r28 = q_prod(e26, e28, e36, e38)
+        r36 = q_prod(e24, e26, e34, e36)
+        r38 = q_prod(e24, e28, e34, e38)
 
         w0 = Quaternion()
-
-        w4 = r44.inv() * r48
-        w6 = r56.inv() * r58
-
-        w2 = c18 - c14 * w4 - c16 * w6
+        w4 = r24.inv() * r28
+        w6 = r36.inv() * r38
+        w2 = c12.inv() * (c18 - c14 * w4 - c16 * w6)
 
         w_c0 = w0
         a_c0 = a0
@@ -667,10 +665,8 @@ class MotionInterpolation:
 
         # get the control points of Bezier curve from constructed dual quaternions
         cp0 = PointHomogeneous(np.concatenate((w_c0.array(), (a_c0 * w_c0).array())))
-        cp1 = PointHomogeneous(np.concatenate((w_c1.array(),
-                                               (a_c1 * w_c1).array())))
-        cp2 = PointHomogeneous(np.concatenate((w_c2.array(),
-                                               (a_c2 * w_c2).array())))
+        cp1 = PointHomogeneous(np.concatenate((w_c1.array(), (a_c1 * w_c1).array())))
+        cp2 = PointHomogeneous(np.concatenate((w_c2.array(), (a_c2 * w_c2).array())))
         cp3 = PointHomogeneous(np.concatenate((w_c3.array(), (a_c3 * w_c3).array())))
 
         return RationalBezier([cp0, cp1, cp2, cp3]).set_of_polynomials, [cp0, cp1, cp2, cp3]
