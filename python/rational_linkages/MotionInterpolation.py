@@ -538,9 +538,6 @@ class MotionInterpolation:
         :return: The rational motion curve.
         :rtype: list[sp.Poly]
         """
-        # map to Quaternions, divide by -2 (Study mapping from 3D)
-        # and add 0 to the real part
-
         if not all(isinstance(p, PointHomogeneous) for p in points):
             raise TypeError('The given points must be PointHomogeneous.')
 
@@ -549,6 +546,8 @@ class MotionInterpolation:
 
         points = [p if p[0] == 1 else PointHomogeneous(p.normalize()) for p in points]
 
+        # map to Quaternions, divide by -2 (Study mapping from 3D)
+        # and add 0 to the real part
         a0, a1, a2, a3, a4 = [Quaternion([0,
                                           p.array()[1] / -2,
                                           p.array()[2] / -2,
@@ -581,4 +580,97 @@ class MotionInterpolation:
         cp1 = PointHomogeneous(np.concatenate((w_mid.array(), (a_mid * w_mid).array())))
         cp2 = PointHomogeneous(np.concatenate((w4.array(), (a4 * w4).array())))
 
-        return RationalBezier([cp2, cp1, cp0]).set_of_polynomials
+        return RationalBezier([cp0, cp1, cp2]).set_of_polynomials
+
+    @staticmethod
+    def interpolate_points_cubic(points: list[PointHomogeneous]) -> list[sp.Poly]:
+        """
+        Interpolates the given 7 points by a quadratic curve in SE(3).
+
+        :param list[PointHomogeneous] points: The points to interpolate.
+
+        :return: The rational motion curve.
+        :rtype: list[sp.Poly]
+        """
+        if not all(isinstance(p, PointHomogeneous) for p in points):
+            raise TypeError('The given points must be PointHomogeneous.')
+
+        if len(points) != 7:
+            raise ValueError('The number of points must be 7.')
+
+        points = [p if p[0] == 1 else PointHomogeneous(p.normalize()) for p in points]
+
+        # map to Quaternions, divide by -2 (Study mapping from 3D)
+        # and add 0 to the real part
+        a0, a1, a2, a3, a4, a5, a6  = [Quaternion([0,
+                                                   p.array()[1] / -2,
+                                                   p.array()[2] / -2,
+                                                   p.array()[3] / -2]) for p in points]
+
+        def q_prod(q0, q1, q2, q3):
+            return q0.inv() * q1 - q2.inv() * q3
+
+        f12 = 15
+        f14 = 5
+        f16 = 3
+        f18 = -15
+        f22 = 9
+        f24 = 9
+        f26 = -3
+        f28 = 3
+        f32 = -5
+        f34 = -15
+        f36 = 15
+        f38 = -3
+
+        c12 = f12 * (a2 - a1)
+        c14 = f14 * (a4 - a1)
+        c16 = f16 * (a6 - a1)
+        c22 = f22 * (a2 - a3)
+        c24 = f24 * (a4 - a3)
+        c26 = f26 * (a6 - a3)
+        c32 = f32 * (a2 - a5)
+        c34 = f34 * (a4 - a5)
+        c36 = f36 * (a6 - a5)
+
+        c18 = f18 * (a1 - a0)
+        c28 = f28 * (a3 - a0)
+        c38 = f38 * (a5 - a0)
+
+        e24 = q_prod(c12, c14, c22, c24)
+        e26 = q_prod(c12, c16, c22, c26)
+        e28 = q_prod(c12, c18, c22, c28)
+        e34 = q_prod(c12, c14, c32, c24)
+        e36 = q_prod(c12, c14, c32, c26)
+        e38 = q_prod(c12, c14, c32, c28)
+
+        r44 = q_prod(e26, e24, e36, e34)
+        r48 = q_prod(e26, e28, e36, e38)
+        r56 = q_prod(e24, e26, e34, e36)
+        r58 = q_prod(e24, e28, e34, e38)
+
+        w0 = Quaternion()
+
+        w4 = r44.inv() * r48
+        w6 = r56.inv() * r58
+
+        w2 = c18 - c14 * w4 - c16 * w6
+
+        w_c0 = w0
+        a_c0 = a0
+        w_c1 = (-2) * (1 / 27) * (8 * w0 + 12 * w2 + 6 * w4 + 1 * w6)
+        a_c1 = (-2) * (1 / 27) * (8 * a0 * w0 + 12 * a2 * w2 + 6 * a4 * w4 + 1 * a6 * w6) * w_c1.inv()
+        w_c2 = (-2) * (1 / 27) * (1 * w0 + 6 * w2 + 12 * w4 + 8 * w6)
+        a_c2 = (-2) * (1 / 27) * (1 * a0 * w0 + 6 * a2 * w2 + 12 * a4 * w4 + 8 * a6 * w6) * w_c2.inv()
+        w_c3 = w6
+        a_c3 = a6
+
+        # get the control points of Bezier curve from constructed dual quaternions
+        cp0 = PointHomogeneous(np.concatenate((w_c0.array(), (a_c0 * w_c0).array())))
+        cp1 = PointHomogeneous(np.concatenate((w_c1.array(),
+                                               (a_c1 * w_c1).array())))
+        cp2 = PointHomogeneous(np.concatenate((w_c2.array(),
+                                               (a_c2 * w_c2).array())))
+        cp3 = PointHomogeneous(np.concatenate((w_c3.array(), (a_c3 * w_c3).array())))
+
+        return RationalBezier([cp0, cp1, cp2, cp3]).set_of_polynomials, [cp0, cp1, cp2, cp3]
