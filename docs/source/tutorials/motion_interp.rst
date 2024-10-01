@@ -179,8 +179,8 @@ position of the 3rd pose to achieve the shortest curve-path length.
     ...
 
 
-Quadratic interpolation of 5 3D points
---------------------------------------
+Quadratic interpolation of 5 points
+-----------------------------------
 
 The following example applies the method by :footcite:t:`Zube2018`. The result is
 non-monic polynomial, i.e. the factorized mechanism will be transformed by a static
@@ -191,7 +191,7 @@ transformation.
     # Quadratic interpolation of 5 points
 
     from rational_linkages import (Plotter, MotionInterpolation, PointHomogeneous,
-                                   TransfMatrix, RationalMechanism)
+                                   DualQuaternion, RationalMechanism)
 
 
     # Define 5 points in PR3 space (1st coordinate is projective, then x, y, z)
@@ -221,6 +221,69 @@ transformation.
     p.show()
 
 
+The resulting curve is plotted in the following figure.
+
+.. figure:: figures/interp_5pts.svg
+    :width: 500 px
+    :align: center
+    :alt: Rational quadratic curve that interpolates 5 points.
+
+    Rational quadratic curve that interpolates 5 points.
+
+
+Cubic interpolation of 7 points
+-------------------------------
+
+The follwoing example applies the extended method by :footcite:t:`Zube2018`
+and interpolates 7 points (3D points) with a cubic rational motion. The result is
+again non-monic polynomial, i.e. the factorized mechanism will be transformed
+by a static transformation.
+
+.. testcode::
+
+    # Cubic interpolation of 7 points
+
+    from rational_linkages import (Plotter, MotionInterpolation, PointHomogeneous,
+                                   DualQuaternion, RationalMechanism)
+
+
+    # Define 5 points in PR3 space (1st coordinate is projective, then x, y, z)
+    a0 = PointHomogeneous([1, 0, 0, 0])
+    a1 = PointHomogeneous([1, 1, 0, -2])
+    a2 = PointHomogeneous([1, 2, -1, 0])
+    a3 = PointHomogeneous([1, -3, 0, 3])
+    a4 = PointHomogeneous([1, 2, 1, -1])
+    a5 = PointHomogeneous([1, 2, 3, -3])
+    a6 = PointHomogeneous([1, 1, 1, 1])
+    points = [a0, a1, a2, a3, a4, a5, a6]
+
+    interpolated_curve = MotionInterpolation.interpolate(points)
+    m = RationalMechanism(interpolated_curve.factorize())
+
+    # due to non-monic solution, to transform the given points and plot them in mechanism
+    # path, get static transform 'rebase' and uncomment the line in for loop bellow
+    rebase = DualQuaternion(interpolated_curve.evaluate(1e12)).normalize()
+
+    p = Plotter(interactive=True, steps=1000, arrows_length=0.5)
+
+    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
+    # p.plot(m)  # plot the mechanism
+
+    for i, pt in enumerate(points):
+        # pt = rebase.inv().act(pt)  # uncomment to plot the points in the mechanism path
+        p.plot(pt, label=f'a{i}')
+
+    p.show()
+
+
+The resulting curve is plotted in the following figure.
+
+.. figure:: figures/interp_7pts.svg
+    :width: 500 px
+    :align: center
+    :alt: Rational cubic curve that interpolates 7 points.
+
+    Rational cubic curve that interpolates 7 points.
 
 
 **References**
