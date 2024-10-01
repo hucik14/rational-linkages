@@ -10,17 +10,13 @@ for 4 poses interpolation using cubic rational function, that yields
 linkage, i.e. the Bennett mechanism.
 
 The previous methods interpolate poses (trasformations) in 3D space. The method by
-:footcite:t:`Zube2018` is interpolating 5 points in 3D space, and yields a quadratic
-rational function that represents a 4R (Bennett) linkage.
+:footcite:t:`Zube2018` is interpolating 5 or 7 points in 3D space, and yields
+a quadratic or cubic rational function that represents a 4R (Bennett) or
+6R linkage.
 
 All methods have some geometrical constraints, and therefore the interpolation is not
 always possible. The package is also providing a method for 2 poses
 interpolation method that yields a spatial Bennett mechanism (4-revolute linkage).
-
-**Important note**: The method for quadratic interpolation of 2 or 3 poses is providing
-a rational function by :footcite:t:`Brunnthaler2005` does not provide monic polynomials
-by default. This implementation alters the method in the paper above in a way, that
-a monic polynomial is obtained, **if** the first input pose **is the identity**.
 
 For motion interpolation, the input can be both, :class:`.DualQuaternion` objects
 or :class:`.TransfMatrix` objects.
