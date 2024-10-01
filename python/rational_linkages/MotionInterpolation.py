@@ -100,8 +100,8 @@ class MotionInterpolation:
         :rtype: RationalCurve
         """
         # check number of poses
-        if not (2 <= len(poses_or_points) <= 5):
-            raise ValueError('The number of poses or points must be from 2 to 5.')
+        if not ((2 <= len(poses_or_points) <= 5) or len(poses_or_points) == 7):
+            raise ValueError('Only 2-4 poses or 5 or 7 points can be interpolated.')
 
         p0_array = np.asarray(poses_or_points[0].array(), dtype='float64')
 
@@ -137,7 +137,7 @@ class MotionInterpolation:
                                  ' DualQuaternion, or PointHomogeneous.')
 
         # normalize the DQ poses on Study quadric
-        if len(rational_poses) != 5:
+        if len(rational_poses) != 5 and len(rational_poses) != 7:
             rational_poses = [pose.back_projection() for pose in rational_poses]
 
         # interpolate the rational poses
@@ -152,6 +152,9 @@ class MotionInterpolation:
             return RationalCurve(curve_eqs)
         elif len(rational_poses) == 5:
             curve_eqs = MotionInterpolation.interpolate_points_quadratic(rational_poses)
+            return RationalCurve(curve_eqs)
+        elif len(rational_poses) == 7:
+            curve_eqs = MotionInterpolation.interpolate_points_cubic(rational_poses)
             return RationalCurve(curve_eqs)
 
     @staticmethod
@@ -572,8 +575,8 @@ class MotionInterpolation:
         w4 = (-1 * d21.inv() * d41 - 3 * d23.inv() * d43).inv() * (
                     3 * d21.inv() * d10 + d23.inv() * d30) * w0
 
-        w_mid = (-1 / 2) * (w0 + 2 * w2 + w4)
-        a_mid = (-1 / 2) * (a0 * w0 + 2 * a2 * w2 + a4 * w4) * w_mid.inv()
+        w_mid = -2 * (1 / 4) * (w0 + 2 * w2 + w4)
+        a_mid = -2 * (1 / 4) * (a0 * w0 + 2 * a2 * w2 + a4 * w4) * w_mid.inv()
 
         # get the control points of Bezier curve from constructed dual quaternions
         cp0 = PointHomogeneous(np.concatenate((w0.array(), (a0 * w0).array())))
@@ -585,7 +588,7 @@ class MotionInterpolation:
     @staticmethod
     def interpolate_points_cubic(points: list[PointHomogeneous]) -> list[sp.Poly]:
         """
-        Interpolates the given 7 points by a quadratic curve in SE(3).
+        Interpolates the given 7 points by a cubic curve in SE(3).
 
         :param list[PointHomogeneous] points: The points to interpolate.
 
@@ -654,13 +657,13 @@ class MotionInterpolation:
         w6 = r36.inv() * r38
         w2 = c12.inv() * (c18 - c14 * w4 - c16 * w6)
 
-        w_c0 = w0
+        w_c0 = (-2/9) * w0
         a_c0 = a0
-        w_c1 = (-2) * (1 / 27) * (8 * w0 + 12 * w2 + 6 * w4 + 1 * w6)
-        a_c1 = (-2) * (1 / 27) * (8 * a0 * w0 + 12 * a2 * w2 + 6 * a4 * w4 + 1 * a6 * w6) * w_c1.inv()
-        w_c2 = (-2) * (1 / 27) * (1 * w0 + 6 * w2 + 12 * w4 + 8 * w6)
-        a_c2 = (-2) * (1 / 27) * (1 * a0 * w0 + 6 * a2 * w2 + 12 * a4 * w4 + 8 * a6 * w6) * w_c2.inv()
-        w_c3 = w6
+        w_c1 = (5/27) * w0 + (2/9) * w2 + (1/9) * w4 + (2/27) * w6
+        a_c1 = ((5/27) * a0 * w0 + (2/9) * a2 * w2 + (1/9) * a4 * w4 + (2/27) * a6 * w6) * w_c1.inv()
+        w_c2 = (-2/27) * w0 + (-1/9) * w2 + (-2/9) * w4 + (-5/27) * w6
+        a_c2 = ((-2/27) * a0 * w0 + (-1/9) * a2 * w2 + (-2/9) * a4 * w4 + (-5/27) * a6 * w6) * w_c2.inv()
+        w_c3 = (2/9) * w6
         a_c3 = a6
 
         # get the control points of Bezier curve from constructed dual quaternions
@@ -669,4 +672,4 @@ class MotionInterpolation:
         cp2 = PointHomogeneous(np.concatenate((w_c2.array(), (a_c2 * w_c2).array())))
         cp3 = PointHomogeneous(np.concatenate((w_c3.array(), (a_c3 * w_c3).array())))
 
-        return RationalBezier([cp0, cp1, cp2, cp3]).set_of_polynomials, [cp0, cp1, cp2, cp3]
+        return RationalBezier([cp0, cp1, cp2, cp3]).set_of_polynomials
