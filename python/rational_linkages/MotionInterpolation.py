@@ -575,8 +575,8 @@ class MotionInterpolation:
         w4 = (-1 * d21.inv() * d41 - 3 * d23.inv() * d43).inv() * (
                     3 * d21.inv() * d10 + d23.inv() * d30) * w0
 
-        w_mid = -2 * (1 / 4) * (w0 + 2 * w2 + w4)
-        a_mid = -2 * (1 / 4) * (a0 * w0 + 2 * a2 * w2 + a4 * w4) * w_mid.inv()
+        w_mid = (-1/2) * (w0 + 2 * w2 + w4)
+        a_mid = (-1/2) * (a0 * w0 + 2 * a2 * w2 + a4 * w4) * w_mid.inv()
 
         # get the control points of Bezier curve from constructed dual quaternions
         cp0 = PointHomogeneous(np.concatenate((w0.array(), (a0 * w0).array())))

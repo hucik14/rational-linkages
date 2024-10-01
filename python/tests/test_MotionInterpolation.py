@@ -98,22 +98,23 @@ class TestMotionInterpolation(TestCase):
 
         p4d = PointHomogeneous([-2, -4, -2, 2])
 
-        expected_coeffs = np.array([[ 3.66914104, -3.09968187,  0.43054083],
-                                    [ 0.5980912 , -0.70307529,  0.10498409],
-                                    [ 2.62990456, -3.26829268,  0.63838812],
-                                    [ 0.68716861, -0.95864263,  0.27147402],
-                                    [ 0.28844115, -0.57688229,  0.28844115],
-                                    [-2.5068929 ,  3.39236479, -0.8854719 ],
-                                    [ 0.76564157, -0.87433722,  0.10869565],
-                                    [-2.28844115,  2.65906681, -0.37062566]])
+        expected_coeffs = np.array([[ 3.66914104, -4.23860021,  1.        ],
+                                    [ 0.5980912,  -0.4931071,   0.        ],
+                                    [ 2.62990456, -1.99151644, 0.        ],
+                                    [ 0.68716861, -0.41569459,  0.        ],
+                                    [ 0.28844115,  0.,          0.        ],
+                                    [-2.5068929,  1.621421,  0.        ],
+                                    [ 0.76564157, -0.65694592,  0.        ],
+                                    [-2.28844115,  1.91781548,  0.        ]])
 
         # Call the interpolate_points_quadratic method
         curve = mi.interpolate([p0, p1, p2, p3, p4])
-
         self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
 
-        curve = mi.interpolate_points_quadratic([p0, p1, p2, p3, p4d])
+        tm_point = DualQuaternion(curve.evaluate(0.5)).dq2point_via_matrix()
+        self.assertTrue(np.allclose(tm_point, p2.normalized_in_3d()))
 
+        curve = mi.interpolate_points_quadratic([p0, p1, p2, p3, p4d])
         self.assertTrue(np.allclose(RationalCurve(curve).coeffs, expected_coeffs))
 
         # Check the type of the returned object
@@ -136,4 +137,34 @@ class TestMotionInterpolation(TestCase):
 
         self.assertRaises(Exception,
                           mi.interpolate_points_quadratic, [p0, p1, p2, p3, p4])
+
+    def test_interpolate_points_cubic(self):
+        mi = MotionInterpolation()
+
+        # Create some dummy points
+        p0 = PointHomogeneous([1, 0, 0, 0])
+        p1 = PointHomogeneous([1, 1, 0, -2])
+        p2 = PointHomogeneous([1, 2, -1, 0])
+        p3 = PointHomogeneous([1, -3, 0, 3])
+        p4 = PointHomogeneous([1, 2, 1, -1])
+        p5 = PointHomogeneous([1, 2, 1, 1])
+        p6 = PointHomogeneous([1, 2, 1, 2])
+
+        expected_coeffs = np.array(
+            [[1.71501779e+00, -2.35682088e+00, 1.21285884e+00, -2.22222222e-01],
+             [-6.60877817e-01, -1.10557533e-01, 2.52521418e-01, 0.00000000e+00],
+             [2.52621590e-01, -8.86832740e-01, 4.04607882e-01, 0.00000000e+00],
+             [-2.02514828e-01, 1.24792408e-01, 1.77250560e-02, 0.00000000e+00],
+             [-1.37224199e+00, 6.78529063e-01, -5.72458747e-17, 0.00000000e+00],
+             [-1.81580071e+00, 1.49750890e+00, -2.30146303e-01, 0.00000000e+00],
+             [2.07231317e+00, -2.35492289e+00, 5.67109529e-01, 0.00000000e+00],
+             [-3.11032028e+00, 3.89134045e+00, -1.15970739e+00, 0.00000000e+00]])
+
+        # Call the interpolate_points_quadratic method
+        curve = mi.interpolate([p0, p1, p2, p3, p4, p5, p6])
+
+        self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
+
+        tm_point = DualQuaternion(curve.evaluate(0.5)).dq2point_via_matrix()
+        self.assertTrue(np.allclose(tm_point, p3.normalized_in_3d()))
 
