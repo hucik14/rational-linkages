@@ -8,6 +8,7 @@ import sympy as sp
 
 from .PointHomogeneous import PointHomogeneous
 from .DualQuaternion import DualQuaternion
+from .Quaternion import Quaternion
 
 MotionFactorization = "MotionFactorization"
 
@@ -136,6 +137,37 @@ class RationalCurve:
         :rtype: RationalCurve
         """
         _, polynomials = cls.get_symbolic_expressions(coeffs)
+        return cls(polynomials)
+
+    @classmethod
+    def from_two_quaternions(cls,
+                             rot: Quaternion,
+                             transl: Quaternion) -> "RationalCurve":
+        """
+        Construct rational curve from rotational and transl. parts given as equations.
+
+        The rotation and translation has to be given as vectorial quaternions, i.e.
+        the real parts are zero.
+
+        :rot: Quaternion - rotation part of the
+        :transl: Quaternion - translational part of the curve
+
+        :returns: RationalCurve object from rotational and translational parts
+        :rtype: RationalCurve
+
+        :raises ValueError: if the rotation and translation parts are not quaternionic
+        """
+        if len(rot.array()) != 4 or len(transl.array()) != 4:
+            raise ValueError("The rotation and translation parts have to be "
+                             "quaternionic polynomials")
+
+        t = sp.Symbol('t')
+
+        polynomials = np.concatenate((rot.array(), (-1/2) * (transl * rot).array()))
+
+        # if one of the elements is not a sympy object, convert it
+        polynomials = [sp.Poly(poly, t) for poly in polynomials]
+
         return cls(polynomials)
 
     @staticmethod
