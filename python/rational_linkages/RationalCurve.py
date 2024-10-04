@@ -658,3 +658,24 @@ class RationalCurve:
 
         t_val = (low + high) / 2
         return t_val
+
+    def is_on_study_quadric(self):
+        """
+        Check if the curve is a motion curve on the study quadric
+
+        :return: True if the curve is a motion curve, False otherwise
+        :rtype: bool
+        """
+        ts = np.linspace(-1, 1, 200)
+
+        for t_val in ts:
+            dq = DualQuaternion(self.evaluate(t_val))
+            dq_inv = DualQuaternion(self.evaluate(t_val, inverted_part=True))
+            if not dq.is_on_study_quadric(approximate_sol=True):
+                return False
+            if not dq_inv.is_on_study_quadric(approximate_sol=True):
+                return False
+        else:
+            return True
+
+
