@@ -666,7 +666,7 @@ class RationalCurve:
         :return: True if the curve is a motion curve, False otherwise
         :rtype: bool
         """
-        ts = np.linspace(-1, 1, 200)
+        ts = np.linspace(-1, 1, 30)
 
         for t_val in ts:
             dq = DualQuaternion(self.evaluate(t_val))
