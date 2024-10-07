@@ -24,19 +24,21 @@ class Plotter:
     def __init__(self,
                  interactive: bool = False,
                  jupyter_notebook: bool = False,
-                 interval=(-1, 1),
-                 steps=50,
+                 show_legend: bool = False,
+                 interval: tuple = (-1, 1),
+                 steps: int = 50,
                  arrows_length: float = 1.0,
                  joint_range_lim: float = 1.0):
         """
         Initialize the plotter
 
-        :param interactive: activate interactive mode
-        :param jupyter_notebook: activate jupyter notebook mode
-        :param steps: number of steps for plotting
+        :param bool interactive: activate interactive mode
+        :param bool jupyter_notebook: activate jupyter notebook mode
+        :param bool show_legend: show the legend
+        :param int steps: number of steps for plotting
         :param arrows_length: length of quiver arrows for poses and frames
-        :param joint_range_lim: limit for joint sliders, will be +/- value
-        :param interval: interval for plotting, in case of a curve can be specified as interval = 'closed' for
+        :param float joint_range_lim: limit for joint sliders, will be +/- value
+        :param float tuple interval: interval for plotting, in case of a curve can be specified as interval = 'closed' for
             full parametrization
         :with_poses: plot the poses along the curve
         """
@@ -78,6 +80,7 @@ class Plotter:
 
         self.t_space = np.linspace(interval[0], interval[1], steps)
         self.steps = steps
+        self.legend = show_legend
         self.interactive = interactive
         self.jupyter_notebook = jupyter_notebook
         self.j_sliders_limit = joint_range_lim
@@ -203,7 +206,9 @@ class Plotter:
 
             # decorate the plot - set aspect ratio and update legend
             self.ax.set_aspect("equal")
-            if not self.jupyter_notebook:
+
+            # show legend
+            if self.legend:
                 self.ax.legend()
         return _wrapper
 
@@ -526,7 +531,12 @@ class Plotter:
         def submit_angle(text):
             """Event handler for the text box"""
             val = float(text)
-            val = val % (2 * np.pi)
+
+            # normalize angle to [0, 2*pi]
+            if val >= 0:
+                val = val % (2 * np.pi)
+            else:
+                val = (val % (2 * np.pi)) - np.pi
             self.move_slider.set_val(val)
 
         def submit_parameter(text):
@@ -764,3 +774,19 @@ class Plotter:
                 join(output_dir, f"{filename_prefix}{i}.{file_type}"))
 
         print("Animation frames saved successfully in folder: ", output_dir)
+
+    def animate_angles(self, list_of_angles: list, sleep_time: float = 1.0):
+        """
+        Animate the mechanism passing through a list of joint angles
+
+        :param list list_of_angles: list of joint angles
+        :param float sleep_time: time to wait between each frame
+        """
+        from time import sleep  # inner import
+
+        t_angle = list_of_angles
+
+        for i, val in enumerate(t_angle):
+            self.plot_slider_update(val)
+            sleep(sleep_time)
+

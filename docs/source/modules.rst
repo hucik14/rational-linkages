@@ -1,5 +1,5 @@
-Python Package
-==============
+Rational Linkages Package Reference
+===================================
 
 .. toctree::
    :maxdepth: 4

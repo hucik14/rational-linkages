@@ -1,7 +1,10 @@
+from warnings import warn
+
 from .RationalMechanism import RationalMechanism
 from .MotionFactorization import MotionFactorization
 from .DualQuaternion import DualQuaternion
 from .NormalizedLine import NormalizedLine
+from .TransfMatrix import TransfMatrix
 
 
 class StaticMechanism(RationalMechanism):
@@ -54,10 +57,52 @@ class StaticMechanism(RationalMechanism):
         self.factorizations[0].dq_axes = [DualQuaternion(axis.line2dq_array())
                                           for axis in screw_axes]
 
+    @classmethod
+    def from_dh_parameters(cls, theta, d, a, alpha):
+        """
+        Create a StaticMechanism from the DH parameters.
+
+        :param list theta: The joint angles
+        :param list d: The joint offsets
+        :param list a: The link lengths
+        :param list alpha: The link twists
+
+        :warning: If the DH parameters do no close the linkages by default, the created
+            mechanism will not be a closed loop - double check the last link design
+            parameters.
+
+        :return: A StaticMechanism object
+        :rtype: StaticMechanism
+        """
+        n_joints = len(theta)
+
+        local_tm = []
+        for i in range(n_joints):
+            local_tm.append(TransfMatrix.from_dh_parameters(theta[i],
+                                                            d[i],
+                                                            a[i],
+                                                            alpha[i]))
+        global_tm = [local_tm[0]]
+        for i in range(1, len(local_tm)):
+            global_tm.append(global_tm[i-1] * local_tm[i])
+
+        # get list of screws
+        screw_axes = [NormalizedLine()]
+        for tm in global_tm[:-1]:
+            screw_axes.append(NormalizedLine.from_direction_and_point(tm.a, tm.t))
+
+        warn("If the DH parameters do no close the linkages by default, "
+             "the created mechanism will not be a closed loop - double check the "
+             "last link design parameters.", UserWarning)
+
+        return cls(screw_axes)
+
     def get_screw_axes(self) -> list[NormalizedLine]:
         """
-        Overwrites the RationalMechanism method to return the screw axes of
-        the mechanism.
+        Method override
+
+        Get the screw axes of the mechanism. Overrides the method from the parent class.
         """
         return self.screws
+
 

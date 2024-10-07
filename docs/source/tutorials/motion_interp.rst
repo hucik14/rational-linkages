@@ -9,54 +9,17 @@ for 4 poses interpolation using cubic rational function, that yields
 3 poses interpolation using quadratic rational functions, that yields 4-revolute
 linkage, i.e. the Bennett mechanism.
 
-Both methods have some geometrical constraints, and therefore the interpolation is not
-always possible. For this reason, the package is also providing a method for 2 poses
-interpolation method that yields a spatial Bennett mechanism (4-revolute linkage).
+The previous methods interpolate poses (trasformations) in 3D space. The method by
+:footcite:t:`Zube2018` is interpolating 5 or 7 points in 3D space, and yields
+a quadratic or cubic rational function that represents a 4R (Bennett) or
+6R linkage.
 
-**Important note**: The method for quadratic interpolation of 2 or 3 poses is providing
-a rational function by :footcite:t:`Brunnthaler2005` does not provide monic polynomials
-by default. This implementation alters the method in the paper above in a way, that
-a monic polynomial is obtained, **if** the first input pose **is the identity**.
+All methods have some geometrical constraints, and therefore the interpolation is not
+always possible. The package is also providing a method for 2 poses
+interpolation method that yields a spatial Bennett mechanism (4-revolute linkage).
 
 For motion interpolation, the input can be both, :class:`.DualQuaternion` objects
 or :class:`.TransfMatrix` objects.
-
-Quadratic interpolation of 2 poses
-----------------------------------
-
-The following example partially applies the method by :footcite:t:`Brunnthaler2005`,
-but interpolates only 2 poses. The 3rd pose is set first set to the identity. If this
-fails, the 3rd pose is than obtained by setting a random rotation and optimizing the
-position of the 3rd pose to achieve the shortest curve-path length.
-
-.. testcode::
-
-    # Quadratic interpolation of 2 poses with an optimized 3rd pose
-
-    from rational_linkages import (Plotter, MotionInterpolation,
-                                   TransfMatrix, RationalMechanism)
-
-
-    p0 = TransfMatrix()  # identity
-    p1 = TransfMatrix.from_rpy_xyz([0, 0, 90], [0.15, -0.2, 0.2], unit='deg')
-
-    interpolated_curve = MotionInterpolation.interpolate([p0, p1])
-    m = RationalMechanism(interpolated_curve.factorize())
-
-    p = Plotter(interactive=True, steps=500, arrows_length=0.05)
-    p.plot(p0)
-    p.plot(p1)
-
-    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
-    p.plot(m)
-
-    p.show()
-
-.. testoutput::
-    :hide:
-    :options: +ELLIPSIS
-
-    ...
 
 
 Quadratic interpolation of 3 poses
@@ -172,6 +135,151 @@ The curve is then factorized, and the resulting mechanism is plotted.
     :alt: Output static plot
 
     6R mechanism whose tool frame (purple link) follows the curve :math:`C(t)`.
+
+
+Quadratic interpolation of 2 poses
+----------------------------------
+
+The following example partially applies the method by :footcite:t:`Brunnthaler2005`,
+but interpolates only 2 poses. The 3rd pose is set first set to the identity. If this
+fails, the 3rd pose is than obtained by setting a random rotation and optimizing the
+position of the 3rd pose to achieve the shortest curve-path length.
+
+.. testcode::
+
+    # Quadratic interpolation of 2 poses with an optimized 3rd pose
+
+    from rational_linkages import (Plotter, MotionInterpolation,
+                                   TransfMatrix, RationalMechanism)
+
+
+    p0 = TransfMatrix()  # identity
+    p1 = TransfMatrix.from_rpy_xyz([0, 0, 90], [0.15, -0.2, 0.2], unit='deg')
+
+    interpolated_curve = MotionInterpolation.interpolate([p0, p1])
+    m = RationalMechanism(interpolated_curve.factorize())
+
+    p = Plotter(interactive=True, steps=500, arrows_length=0.05)
+    p.plot(p0)
+    p.plot(p1)
+
+    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
+    p.plot(m)
+
+    p.show()
+
+.. testoutput::
+    :hide:
+    :options: +ELLIPSIS
+
+    ...
+
+
+Quadratic interpolation of 5 points
+-----------------------------------
+
+The following example applies the method by :footcite:t:`Zube2018`. The result is
+non-monic polynomial, i.e. the factorized mechanism will be transformed by a static
+transformation.
+
+.. testcode::
+
+    # Quadratic interpolation of 5 points
+
+    from rational_linkages import (Plotter, MotionInterpolation, PointHomogeneous,
+                                   DualQuaternion, RationalMechanism)
+
+
+    # Define 5 points in PR3 space (1st coordinate is projective, then x, y, z)
+    a0 = PointHomogeneous([1, 0, 0, 0])
+    a1 = PointHomogeneous([1, 1, 0, -2])
+    a2 = PointHomogeneous([1, 2, -1, 0])
+    a3 = PointHomogeneous([1, -3, 0, 3])
+    a4 = PointHomogeneous([1, 2, 1, -1])
+    points = [a0, a1, a2, a3, a4]
+
+    interpolated_curve = MotionInterpolation.interpolate(points)
+    m = RationalMechanism(interpolated_curve.factorize())
+
+    # due to non-monic solution, to transform the given points and plot them in mechanism
+    # path, get static transform 'rebase' and uncomment the line in for loop bellow
+    rebase = DualQuaternion(interpolated_curve.evaluate(1e12)).normalize()
+
+    p = Plotter(interactive=True, steps=500, arrows_length=0.5)
+
+    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
+    p.plot(m)  # plot the mechanism
+
+    for i, pt in enumerate(points):
+        # pt = rebase.inv().act(pt)  # uncomment to plot the points in the mechanism path
+        p.plot(pt, label=f'a{i}')
+
+    p.show()
+
+
+The resulting curve is plotted in the following figure.
+
+.. figure:: figures/interp_5pts.svg
+    :width: 500 px
+    :align: center
+    :alt: Rational quadratic curve that interpolates 5 points.
+
+    Rational quadratic curve that interpolates 5 points.
+
+
+Cubic interpolation of 7 points
+-------------------------------
+
+The follwoing example applies the extended method by :footcite:t:`Zube2018`
+and interpolates 7 points (3D points) with a cubic rational motion. The result is
+again non-monic polynomial, i.e. the factorized mechanism will be transformed
+by a static transformation.
+
+.. testcode::
+
+    # Cubic interpolation of 7 points
+
+    from rational_linkages import (Plotter, MotionInterpolation, PointHomogeneous,
+                                   DualQuaternion, RationalMechanism)
+
+
+    # Define 5 points in PR3 space (1st coordinate is projective, then x, y, z)
+    a0 = PointHomogeneous([1, 0, 0, 0])
+    a1 = PointHomogeneous([1, 1, 0, -2])
+    a2 = PointHomogeneous([1, 2, -1, 0])
+    a3 = PointHomogeneous([1, -3, 0, 3])
+    a4 = PointHomogeneous([1, 2, 1, -1])
+    a5 = PointHomogeneous([1, 2, 3, -3])
+    a6 = PointHomogeneous([1, 1, 1, 1])
+    points = [a0, a1, a2, a3, a4, a5, a6]
+
+    interpolated_curve = MotionInterpolation.interpolate(points)
+    m = RationalMechanism(interpolated_curve.factorize())
+
+    # due to non-monic solution, to transform the given points and plot them in mechanism
+    # path, get static transform 'rebase' and uncomment the line in for loop bellow
+    rebase = DualQuaternion(interpolated_curve.evaluate(1e12)).normalize()
+
+    p = Plotter(interactive=True, steps=1000, arrows_length=0.5)
+
+    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
+    # p.plot(m)  # plot the mechanism
+
+    for i, pt in enumerate(points):
+        # pt = rebase.inv().act(pt)  # uncomment to plot the points in the mechanism path
+        p.plot(pt, label=f'a{i}')
+
+    p.show()
+
+
+The resulting curve is plotted in the following figure.
+
+.. figure:: figures/interp_7pts.svg
+    :width: 500 px
+    :align: center
+    :alt: Rational cubic curve that interpolates 7 points.
+
+    Rational cubic curve that interpolates 7 points.
 
 
 **References**
