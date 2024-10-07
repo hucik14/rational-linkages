@@ -32,7 +32,7 @@ if __name__ == '__main__':
     # orbits = ca.get_points_orbits()
 
     s = 't_12'
-    o0, o1 = ca.get_segment_orbit(s)
+    o0, o1, io = ca.get_segment_orbit(s)
     print(f'{time() - start_time:.3f} sec for generating orbits')
 
 
@@ -42,10 +42,16 @@ if __name__ == '__main__':
 
     p.plot(ca.segments[s])
 
-    for orbit in o0:
-        p.plot(orbit)
-    for orbit in o1:
-        p.plot(orbit)
+    p.plot(o0[0])
+    p.plot(o1[0])
+    p.plot(io)
+
+    # for orbit in o0:
+    #     p.plot(orbit)
+    # for orbit in o1:
+    #     p.plot(orbit)
+    # for orbit in io:
+    #     p.plot(orbit)
 
     p.show()
 

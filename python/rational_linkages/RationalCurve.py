@@ -281,7 +281,7 @@ class RationalCurve:
 
         # Get the coefficients of the equations
         equations_coeffs = [
-            sp.Poly((bernstein_basis[i] - self.symbolic[i]), t).all_coeffs()
+            sp.Poly((bernstein_basis[i] - self.symbolic[i]), t, greedy=False).all_coeffs()
             for i in range(self.dimension + 1)
         ]
         # Flatten the list

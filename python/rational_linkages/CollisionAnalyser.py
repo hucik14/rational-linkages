@@ -100,7 +100,23 @@ class CollisionAnalyser:
                                                   metric=self.metric))
                    for split in rel_bezier_splits]
 
-        return orbits0, orbits1
+        inner_orbits = []
+        # for i in range(len(orbits0)):
+        for i in range(1):
+            dist = numpy.linalg.norm(orbits0[i].center.normalized_in_3d() - orbits1[i].center.normalized_in_3d())
+            radius_sum = orbits0[i].radius + orbits1[i].radius
+            if dist > radius_sum:
+                add_balls = dist / radius_sum - 1
+                num_steps = int(add_balls) + 3
+
+                # linear interpolation from smaller ball to bigger ball
+                for j in range(1, num_steps):
+                    new_center = orbits0[i].center + j * (orbits1[i].center - orbits0[i].center) / num_steps
+                    new_radius = orbits0[i].radius + j * (orbits1[i].radius - orbits0[i].radius) / num_steps
+                    inner_orbits.append(PointOrbit(new_center, new_radius))
+
+
+        return orbits0, orbits1, inner_orbits
 
     def check_two_objects(self, obj0, obj1):
         """
