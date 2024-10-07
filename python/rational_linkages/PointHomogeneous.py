@@ -135,6 +135,29 @@ class PointHomogeneous:
         """
         return PointHomogeneous(self.coordinates + other.coordinates)
 
+    def __mul__(self, other):
+        """
+        Multiply point by scalar
+        :param other: float
+        :return: array of floats
+        """
+        if isinstance(other, PointHomogeneous):
+            raise ValueError("PointHomogeneous: cannot multiply two points")
+        return PointHomogeneous(self.coordinates * other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __truediv__(self, other):
+        """
+        Divide point by scalar
+        :param other: float
+        :return: array of floats
+        """
+        if isinstance(other, PointHomogeneous):
+            raise ValueError("PointHomogeneous: cannot divide two points")
+        return PointHomogeneous(self.coordinates / other)
+
     def __sub__(self, other):
         """
         Subtract two points
