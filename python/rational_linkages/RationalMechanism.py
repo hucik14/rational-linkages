@@ -79,6 +79,8 @@ class RationalMechanism(RationalCurve):
 
         self._segments = None
 
+        self._metric = None
+
     @property
     def segments(self):
         """
@@ -1287,3 +1289,33 @@ class RationalMechanism(RationalCurve):
 
         # Save the stacked array to a CSV file
         np.savetxt('trajectory.csv', data, delimiter=',', fmt='%1.6f')
+
+    def update_metric(self):
+        """
+        Update the metric of the mechanism.
+
+        Set to none so that the metric is recalculated when needed.
+        """
+        self._metric = None
+
+    def update_segments(self):
+        """
+        Update the line segments of the linkage.
+        """
+        self._segments = self._get_line_segments_of_linkage()
+
+    def get_relative_motions(self):
+        """
+        Get the relative motions of the mechanism.
+        """
+        sequence = DualQuaternion()
+        branch0 = [sequence := sequence * factor for factor in
+                   self.factorizations[0].factors_with_parameter]
+
+        sequence = DualQuaternion()
+        branch1 = [sequence := sequence * factor for factor in
+                   self.factorizations[1].factors_with_parameter]
+
+        relative_motions = branch0 + branch1[::-1]
+        return relative_motions
+
