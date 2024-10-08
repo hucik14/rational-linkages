@@ -21,7 +21,7 @@ class CollisionAnalyser:
             self.segments[segment.id] = segment
 
         self.motions = self.get_motions()
-        self.bezier_splits = self.get_bezier_splits(100)
+        self.bezier_splits = self.get_bezier_splits(50)
 
     def get_bezier_splits(self, min_splits: int = 0) -> list:
         """
@@ -85,16 +85,23 @@ class CollisionAnalyser:
 
         p0 = self.mechanism_points[p0_idx]
         p1 = self.mechanism_points[p1_idx]
-        rel_bezier_splits = self.bezier_splits[split_idx]
 
-        orbits0 = [PointOrbit(*p0.get_point_orbit(acting_center=split.ball.center,
-                                                  acting_radius=split.ball.radius_squared,
-                                                  metric=self.metric))
-                   for split in rel_bezier_splits]
-        orbits1 = [PointOrbit(*p1.get_point_orbit(acting_center=split.ball.center,
-                                                  acting_radius=split.ball.radius_squared,
-                                                  metric=self.metric))
-                   for split in rel_bezier_splits]
+        if segment.type != 'b':
+            rel_bezier_splits = self.bezier_splits[split_idx]
+
+            orbits0 = [PointOrbit(*p0.get_point_orbit(acting_center=split.ball.center,
+                                                      acting_radius=split.ball.radius_squared,
+                                                      metric=self.metric))
+                       for split in rel_bezier_splits]
+            orbits1 = [PointOrbit(*p1.get_point_orbit(acting_center=split.ball.center,
+                                                      acting_radius=split.ball.radius_squared,
+                                                      metric=self.metric))
+                       for split in rel_bezier_splits]
+        else:
+            radius = numpy.linalg.norm(p0.coordinates - p1.coordinates) / 20
+            orbits0 = [PointOrbit(point_center=p0, radius=radius)]
+            orbits1 = [PointOrbit(point_center=p1, radius=radius)]
+
 
         inner_orbits = []
         # for i in range(len(orbits0)):
