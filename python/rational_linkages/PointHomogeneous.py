@@ -331,7 +331,7 @@ class PointHomogeneous:
 
 
 class PointOrbit:
-    def __init__(self, point_center, radius):
+    def __init__(self, point_center, radius, t_interval):
         """
         Orbit of a point (its covering ball)
         """
@@ -341,6 +341,8 @@ class PointOrbit:
             self.center = point_center
 
         self.radius = radius
+
+        self.t_interval = t_interval
 
     def get_plot_data(self) -> tuple:
         """

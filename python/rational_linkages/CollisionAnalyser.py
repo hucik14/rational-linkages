@@ -16,12 +16,13 @@ class CollisionAnalyser:
                                                               only_links=False)
         self.metric = mechanism.metric
 
+        self.segment_orbits = {}
         self.segments = {}
         for segment in mechanism.segments:
             self.segments[segment.id] = segment
 
         self.motions = self.get_motions()
-        self.bezier_splits = self.get_bezier_splits(50)
+        self.bezier_splits = self.get_bezier_splits(100)
 
     def get_bezier_splits(self, min_splits: int = 0) -> list:
         """
@@ -91,47 +92,76 @@ class CollisionAnalyser:
 
             orbits0 = [PointOrbit(*p0.get_point_orbit(acting_center=split.ball.center,
                                                       acting_radius=split.ball.radius_squared,
-                                                      metric=self.metric))
+                                                      metric=self.metric),
+                                  t_interval=split.t_param_of_motion_curve)
                        for split in rel_bezier_splits]
             orbits1 = [PointOrbit(*p1.get_point_orbit(acting_center=split.ball.center,
                                                       acting_radius=split.ball.radius_squared,
-                                                      metric=self.metric))
+                                                      metric=self.metric),
+                                  t_interval=split.t_param_of_motion_curve)
                        for split in rel_bezier_splits]
         else:
             radius = numpy.linalg.norm(p0.coordinates - p1.coordinates) / 20
-            orbits0 = [PointOrbit(point_center=p0, radius=radius)]
-            orbits1 = [PointOrbit(point_center=p1, radius=radius)]
+            orbits0 = [PointOrbit(point_center=p0, radius=radius, t_interval=(None, [-1,1]))]
+            orbits1 = [PointOrbit(point_center=p1, radius=radius, t_interval=(None, [-1,1]))]
 
 
-        inner_orbits = []
-        # for i in range(len(orbits0)):
-        for i in range(1):
+        all_orbits = []
+        for i in range(len(orbits0)):
+            orbits_for_t = [orbits0[i].t_interval, orbits0[i]]
             dist = numpy.linalg.norm(orbits0[i].center.normalized_in_3d() - orbits1[i].center.normalized_in_3d())
             radius_sum = orbits0[i].radius + orbits1[i].radius
-            radius_ratio = orbits0[i].radius / orbits1[i].radius
             if dist > radius_sum:
-                add_balls = dist / radius_sum - 1
-                num_steps = int(add_balls) + 3
+                add_balls = dist / radius_sum
+                num_steps = int(add_balls) * 2 + 1
 
                 # linear interpolation from smaller ball to bigger ball
                 radii = 0
                 for j in range(1, num_steps):
                     new_radius = orbits0[i].radius + j * (orbits1[i].radius - orbits0[i].radius) / num_steps
                     radii += new_radius
-                    new_center = orbits0[i].center + 2 * radii * (orbits1[i].center - orbits0[i].center) / (dist + radius_sum)
-                    inner_orbits.append(PointOrbit(new_center, new_radius))
+                    new_center = orbits0[i].center + 2 * radii * (orbits1[i].center - orbits0[i].center) / (dist * 2)
+                    orbits_for_t.append(PointOrbit(new_center, new_radius, orbits0[i].t_interval))
+            orbits_for_t.append(orbits1[i])
+            all_orbits.append(orbits_for_t)
 
-        return orbits0, orbits1, inner_orbits
+        return all_orbits
 
-    def check_two_objects(self, obj0, obj1):
+    def check_two_segments(self, segment0: str, segment1: str, t_interval):
         """
-        Check if two objects collide.
+        Check if two segments collide.
         """
-        obj0_type = self.get_object_type(obj0)
-        obj1_type = self.get_object_type(obj1)
+        if not segment0 in self.segment_orbits:
+            self.segment_orbits[segment0] = self.get_segment_orbit(segment0)
 
-        if obj0_type == 'is_miniball' and obj1_type == 'is_miniball':
-            return self.check_two_miniballs(obj0, obj1)
+        if not segment1 in self.segment_orbits:
+            self.segment_orbits[segment1] = self.get_segment_orbit(segment1)
+
+        seg_orb0 = self.segment_orbits[segment0]
+        seg_orb1 = self.segment_orbits[segment1]
+
+        if isinstance(t_interval[1], float):
+            for i, interval in enumerate(seg_orb0):
+                start, end = interval[0][1][0], interval[0][1][1]
+                if start <= t_interval[1] <= end and (t_interval[0] == interval[0][0] or interval[0][0] is None):  # None for base
+                    link_balls_0 = seg_orb0[i][1:]
+                else:
+                    ValueError('Given interval is not valid')
+
+            for i, interval in enumerate(seg_orb1):
+                start, end = interval[0][1][0], interval[0][1][1]
+                if start <= t_interval[1] <= end and (t_interval[0] == interval[0][0] or interval[0][0] is None):
+                    link_balls_1 = seg_orb1[i][1:]
+                else:
+                    ValueError('Given interval is not valid')
+
+            for ball0 in link_balls_0:
+                for ball1 in link_balls_1:
+                    if self.check_two_miniballs(ball0, ball1):
+                        print('Collision detected!')
+
+
+
 
     @staticmethod
     def get_object_type(obj):
