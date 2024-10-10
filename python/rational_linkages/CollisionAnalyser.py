@@ -1,3 +1,5 @@
+from sympy.plotting.intervalmath import interval
+
 from .RationalMechanism import RationalMechanism
 from .RationalCurve import RationalCurve
 from .MiniBall import MiniBall
@@ -22,7 +24,7 @@ class CollisionAnalyser:
             self.segments[segment.id] = segment
 
         self.motions = self.get_motions()
-        self.bezier_splits = self.get_bezier_splits(100)
+        self.bezier_splits = self.get_bezier_splits(50)
 
     def get_bezier_splits(self, min_splits: int = 0) -> list:
         """
@@ -63,6 +65,8 @@ class CollisionAnalyser:
         """
         Get the orbit of a segment.
         """
+        import time
+
         segment = self.segments[segment_id]
 
         if segment.type == 'l' or segment.type == 't' or segment.type == 'b':
@@ -105,7 +109,7 @@ class CollisionAnalyser:
             orbits0 = [PointOrbit(point_center=p0, radius=radius, t_interval=(None, [-1,1]))]
             orbits1 = [PointOrbit(point_center=p1, radius=radius, t_interval=(None, [-1,1]))]
 
-
+        start_time = time.time()
         all_orbits = []
         for i in range(len(orbits0)):
             orbits_for_t = [orbits0[i].t_interval, orbits0[i]]
@@ -117,17 +121,19 @@ class CollisionAnalyser:
 
                 # linear interpolation from smaller ball to bigger ball
                 radii = 0
+                radius_diff = orbits1[i].radius - orbits0[i].radius
+                center_diff = orbits1[i].center - orbits0[i].center
                 for j in range(1, num_steps):
-                    new_radius = orbits0[i].radius + j * (orbits1[i].radius - orbits0[i].radius) / num_steps
+                    new_radius = orbits0[i].radius + j * radius_diff / num_steps
                     radii += new_radius
-                    new_center = orbits0[i].center + 2 * radii * (orbits1[i].center - orbits0[i].center) / (dist * 2)
+                    new_center = orbits0[i].center + 2 * radii * center_diff / (dist * 2)
                     orbits_for_t.append(PointOrbit(new_center, new_radius, orbits0[i].t_interval))
             orbits_for_t.append(orbits1[i])
             all_orbits.append(orbits_for_t)
 
         return all_orbits
 
-    def check_two_segments(self, segment0: str, segment1: str, t_interval):
+    def check_two_segments(self, segment0: str, segment1: str, t_interval=None):
         """
         Check if two segments collide.
         """
@@ -140,7 +146,32 @@ class CollisionAnalyser:
         seg_orb0 = self.segment_orbits[segment0]
         seg_orb1 = self.segment_orbits[segment1]
 
-        if isinstance(t_interval[1], float):
+        if t_interval is None:  # check for all t
+            link_balls_0 = []
+            for ball in seg_orb0:
+                link_balls_0 += ball[1:]
+
+            link_balls_1 = []
+            for ball in seg_orb1:
+                link_balls_1 += ball[1:]
+
+            import time
+            start_time = time.time()
+
+            num_checked_balls = 0
+            num_of_collisions = 0
+            it_collides = False
+            for ball0 in link_balls_0:
+                for ball1 in link_balls_1:
+                    num_checked_balls += 1
+                    if self.check_two_miniballs(ball0, ball1):
+                        num_of_collisions += 1
+                        it_collides = True
+
+            print(f'Number of checked balls: {num_checked_balls}')
+            print(f'time for checking balls: {time.time() - start_time}')
+
+        elif isinstance(t_interval[1], float):
             for i, interval in enumerate(seg_orb0):
                 start, end = interval[0][1][0], interval[0][1][1]
                 if start <= t_interval[1] <= end and (t_interval[0] == interval[0][0] or interval[0][0] is None):  # None for base
@@ -155,13 +186,19 @@ class CollisionAnalyser:
                 else:
                     ValueError('Given interval is not valid')
 
+            num_of_collisions = 0
+            it_collides = False
             for ball0 in link_balls_0:
                 for ball1 in link_balls_1:
                     if self.check_two_miniballs(ball0, ball1):
-                        print('Collision detected!')
+                        num_of_collisions += 1
+                        it_collides = True
+
+        print(f'Number of colliding balls: {num_of_collisions}')
 
 
 
+        return it_collides
 
     @staticmethod
     def get_object_type(obj):
