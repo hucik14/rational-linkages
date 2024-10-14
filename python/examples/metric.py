@@ -27,21 +27,21 @@ if __name__ == '__main__':
 
     start_time = time()
     ca = CollisionAnalyser(m)
-    print(f'{time() - start_time:.3f} sec for generating Bezier segments')
-
+    print(f'{time() - start_time:.5f} sec for generating Bezier segments')
 
     l0 = 'l_01'
+    # l0 = 'b_00'
     l1 = 't_13'
     orbits0 = ca.get_segment_orbit(l0)
     orbits1 = ca.get_segment_orbit(l1)
 
     start_time = time()
-    res = m._check_given_pair([2, 6])
-    print(f'{time() - start_time:.3f} sec for checking collisions in standard way')
+    res = m._check_given_pair([0, 6])
+    print(f'{time() - start_time:.5f} sec for checking collisions in standard way')
 
     start_time = time()
     ca.check_two_segments(l0, l1)
-    print(f'{time() - start_time:.3f} sec for checking collision')
+    print(f'{time() - start_time:.5f} sec for checking collision')
 
     p = Plotter(interactive=True, arrows_length=0.1, joint_range_lim=2, steps=300)
     p.plot(m)
@@ -51,10 +51,10 @@ if __name__ == '__main__':
     for orbit in orbits1:
         p.plot(orbit[1:])
 
-    # for orbit in orbits0[0][1:]:
-    #     p.plot(orbit)
-    # for orbit in orbits1[0][1:]:
-    #     p.plot(orbit)
+    for orbit in orbits0[0][1:]:
+        p.plot(orbit)
+    for orbit in orbits1[64][1:]:
+        p.plot(orbit)
 
     p.show()
 

@@ -105,11 +105,11 @@ class CollisionAnalyser:
                                   t_interval=split.t_param_of_motion_curve)
                        for split in rel_bezier_splits]
         else:
-            radius = numpy.linalg.norm(p0.coordinates - p1.coordinates) / 20
-            orbits0 = [PointOrbit(point_center=p0, radius=radius, t_interval=(None, [-1,1]))]
-            orbits1 = [PointOrbit(point_center=p1, radius=radius, t_interval=(None, [-1,1]))]
+            diff = p0.coordinates - p1.coordinates
+            radius_sq = numpy.dot(diff, diff) / 10
+            orbits0 = [PointOrbit(point_center=p0, radius_squared=radius_sq, t_interval=(None, [-1,1]))]
+            orbits1 = [PointOrbit(point_center=p1, radius_squared=radius_sq, t_interval=(None, [-1,1]))]
 
-        start_time = time.time()
         all_orbits = []
         for i in range(len(orbits0)):
             orbits_for_t = [orbits0[i].t_interval, orbits0[i]]
@@ -127,7 +127,7 @@ class CollisionAnalyser:
                     new_radius = orbits0[i].radius + j * radius_diff / num_steps
                     radii += new_radius
                     new_center = orbits0[i].center + 2 * radii * center_diff / (dist * 2)
-                    orbits_for_t.append(PointOrbit(new_center, new_radius, orbits0[i].t_interval))
+                    orbits_for_t.append(PointOrbit(new_center, new_radius ** 2, orbits0[i].t_interval))
             orbits_for_t.append(orbits1[i])
             all_orbits.append(orbits_for_t)
 
@@ -196,8 +196,6 @@ class CollisionAnalyser:
 
         print(f'Number of colliding balls: {num_of_collisions}')
 
-
-
         return it_collides
 
     @staticmethod
@@ -213,5 +211,6 @@ class CollisionAnalyser:
         """
         Check if two miniballs collide.
         """
-        center_distance = numpy.linalg.norm(ball0.center.coordinates - ball1.center.coordinates)
-        return center_distance < ball0.radius + ball1.radius
+        diff = ball0.center.coordinates - ball1.center.coordinates
+        center_dist_squared = numpy.dot(diff, diff)
+        return center_dist_squared < ball0.radius_squared + ball1.radius_squared

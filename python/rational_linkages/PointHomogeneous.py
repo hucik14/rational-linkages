@@ -325,13 +325,12 @@ class PointHomogeneous:
         coords_3d = self.normalized_in_3d()
 
         radius_squared = acting_radius * (1/metric.total_mass + np.sum([(coord ** 2 / metric.inertia_eigen_vals[i]) for i, coord in enumerate(coords_3d)]))
-        radius = np.sqrt(radius_squared)
 
-        return point_center, radius
+        return point_center, radius_squared
 
 
 class PointOrbit:
-    def __init__(self, point_center, radius, t_interval):
+    def __init__(self, point_center, radius_squared, t_interval):
         """
         Orbit of a point (its covering ball)
         """
@@ -340,9 +339,17 @@ class PointOrbit:
         else:
             self.center = point_center
 
-        self.radius = radius
+        self.radius_squared = radius_squared
+
+        self._radius = None
 
         self.t_interval = t_interval
+
+    @property
+    def radius(self):
+        if self._radius is None:
+            self._radius = np.sqrt(self.radius_squared)
+        return self._radius
 
     def get_plot_data(self) -> tuple:
         """
