@@ -54,7 +54,7 @@ python_versions:
         - python -m pytest python/tests
     parallel:
       matrix:
-        - IMAGE: [python:3.13-rc-bullseye, python:3.12-bullseye, python:3.10-bullseye]
+        - IMAGE: [python:3.13-bullseye, python:3.12-bullseye, python:3.10-bullseye]
     rules:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
         - if: '$CI_COMMIT_BRANCH == "develop"'
