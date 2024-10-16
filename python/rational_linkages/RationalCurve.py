@@ -1,11 +1,14 @@
 from copy import deepcopy
 from typing import Union
 
+from scipy.integrate import quad
+
 import numpy as np
 import sympy as sp
 
 from .PointHomogeneous import PointHomogeneous
 from .DualQuaternion import DualQuaternion
+from .Quaternion import Quaternion
 
 MotionFactorization = "MotionFactorization"
 
@@ -161,6 +164,37 @@ class RationalCurve:
         _, polynomials = cls.get_symbolic_expressions(coeffs)
         return cls(polynomials)
 
+    @classmethod
+    def from_two_quaternions(cls,
+                             rot: Quaternion,
+                             transl: Quaternion) -> "RationalCurve":
+        """
+        Construct rational curve from rotational and transl. parts given as equations.
+
+        The rotation and translation has to be given as vectorial quaternions, i.e.
+        the real parts are zero.
+
+        :rot: Quaternion - rotation part of the
+        :transl: Quaternion - translational part of the curve
+
+        :returns: RationalCurve object from rotational and translational parts
+        :rtype: RationalCurve
+
+        :raises ValueError: if the rotation and translation parts are not quaternionic
+        """
+        if len(rot.array()) != 4 or len(transl.array()) != 4:
+            raise ValueError("The rotation and translation parts have to be "
+                             "quaternionic polynomials")
+
+        t = sp.Symbol('t')
+
+        polynomials = np.concatenate((rot.array(), (-1/2) * (transl * rot).array()))
+
+        # if one of the elements is not a sympy object, convert it
+        polynomials = [sp.Poly(poly, t) for poly in polynomials]
+
+        return cls(polynomials)
+
     @staticmethod
     def get_symbolic_expressions(coeffs: np.ndarray) -> tuple[list, list[sp.Poly]]:
         """
@@ -247,7 +281,7 @@ class RationalCurve:
 
         # Get the coefficients of the equations
         equations_coeffs = [
-            sp.Poly((bernstein_basis[i] - self.symbolic[i]), t).all_coeffs()
+            sp.Poly((bernstein_basis[i] - self.symbolic[i]), t, greedy=False).all_coeffs()
             for i in range(self.dimension + 1)
         ]
         # Flatten the list
@@ -554,5 +588,120 @@ class RationalCurve:
                   for p in poses]
 
         return np.sum(np.linalg.norm(np.diff(points, axis=0), axis=1))
+
+    def split_in_equal_segments(self,
+                                interval: list[float],
+                                point_to_act_on: PointHomogeneous = PointHomogeneous(),
+                                num_segments: int = 10,) -> list[float]:
+        """
+        Find the t values that split the curve into equal segments in given interval
+
+        Perform the arc length parameterization of the curve to split it into equal
+        segments. The method uses the bisection method to find the t values.
+
+        :param list[float] interval: interval of the parameter t
+        :param PointHomogeneous point_to_act_on: point to act on
+        :param int num_segments: number of segments to split the curve into
+
+        :return: list of t values that split the curve into equal segments
+        :rtype: list[float]
+
+        :raises ValueError: if the interval is not in the form [a, b] where a < b
+        :raises ValueError: if the interval values are identical
+        :raises ValueError: if the number of segments is less than 1
+        """
+        if interval[0] > interval[1]:
+            raise ValueError("The interval must be in the form [a, b] where a < b")
+        elif interval[0] == interval[1]:
+            raise ValueError("The interval values are identical")
+        elif num_segments < 2:
+            raise ValueError("The number of segments must be greater than 1")
+
+        t = sp.Symbol('t')
+
+        curve_dq = DualQuaternion(self.symbolic)
+        point_path = curve_dq.act(point_to_act_on)
+
+        dx_dt = sp.diff(point_path[1] / point_path[0], t)
+        dy_dt = sp.diff(point_path[2] / point_path[0], t)
+        dz_dt = sp.diff(point_path[3] / point_path[0], t)
+
+        integrand = sp.sqrt(dx_dt ** 2 + dy_dt ** 2 + dz_dt ** 2)
+        integrand_func = sp.lambdify(t, integrand, 'numpy')
+
+        arc_length, _ = quad(integrand_func, interval[0], interval[1])
+        desired_segment_length = arc_length / num_segments
+
+        t_vals = [interval[0]]
+        for i in range(num_segments - 1):
+            b = self._bisection_find_t(t_vals[-1],
+                                       interval,
+                                       desired_segment_length,
+                                       integrand_func)
+            t_vals.append(b)
+        t_vals.append(interval[1])
+
+        return t_vals
+
+    @staticmethod
+    def _bisection_find_t(section_start: float,
+                          curve_interval: list[float],
+                          segment_length_target: float,
+                          integrand_func: callable,
+                          tolerance: float = 1e-14):
+        """
+        Find the t value that splits the curve into given segment length using bisection
+
+        :param float section_start: start of the section
+        :param list[float] curve_interval: interval of the parameter t
+        :param float segment_length_target: target segment length
+        :param callable integrand_func: integrand function
+        :param float tolerance: tolerance of the bisection method
+
+        :return: t value that splits the curve into given segment length
+        :rtype: float
+        """
+        # initial lower and upper bounds
+        low = section_start
+        high = curve_interval[1]  # start with the upper bound
+
+        # ensure the segment length at 'high' is greater than the target
+        while True:
+            segment_length_high, _ = quad(integrand_func, section_start, high)
+            if segment_length_high >= segment_length_target:
+                break
+            high += 0.1 * (curve_interval[1] - curve_interval[0])
+
+        # bisection
+        while high - low > tolerance:
+            mid = (low + high) / 2
+            segment_length_mid, _ = quad(integrand_func, section_start, mid)
+
+            if segment_length_mid < segment_length_target:
+                low = mid
+            else:
+                high = mid
+
+        t_val = (low + high) / 2
+        return t_val
+
+    def is_on_study_quadric(self):
+        """
+        Check if the curve is a motion curve on the study quadric
+
+        :return: True if the curve is a motion curve, False otherwise
+        :rtype: bool
+        """
+        ts = np.linspace(-1, 1, 30)
+
+        for t_val in ts:
+            dq = DualQuaternion(self.evaluate(t_val))
+            dq_inv = DualQuaternion(self.evaluate(t_val, inverted_part=True))
+            if not dq.is_on_study_quadric(approximate_sol=True):
+                return False
+            if not dq_inv.is_on_study_quadric(approximate_sol=True):
+                return False
+        else:
+            return True
 
 
