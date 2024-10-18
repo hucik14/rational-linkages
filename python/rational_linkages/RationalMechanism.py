@@ -78,6 +78,7 @@ class RationalMechanism(RationalCurve):
         self.is_linkage = len(self.factorizations) == 2
 
         self._segments = None
+        self.relative_motions = []
 
         self._metric = None
 
@@ -744,7 +745,7 @@ class RationalMechanism(RationalCurve):
 
         # base (static) link has index 0 in the list of the 1st factorization
         eq, p0, p1 = self.factorizations[0].base_link(self.factorizations[1].linkage[0].points[0])
-        segments[0].append(LineSegment(eq, p0, p1, linkage_type="b", f_idx=0, idx=0))
+        segments[0].append(LineSegment(eq, p0, p1, linkage_type="l", f_idx=0, idx=0))
 
         # static joints
         segments[0].append(LineSegment(*self.factorizations[0].joint(0),
@@ -773,7 +774,7 @@ class RationalMechanism(RationalCurve):
         p0 = self.factorizations[0].act(p0, param=t)
         p1 = self.factorizations[1].act(p1, param=t)
         tool_idx = self.factorizations[1].number_of_factors
-        segments[1].append(LineSegment(tool_link, p0, p1, linkage_type="t", f_idx=1, idx=tool_idx))
+        segments[1].append(LineSegment(tool_link, p0, p1, linkage_type="l", f_idx=1, idx=tool_idx))
 
         return segments[0] + segments[1][::-1]
 
@@ -1318,4 +1319,21 @@ class RationalMechanism(RationalCurve):
 
         relative_motions = branch0 + branch1[::-1]
         return relative_motions
+
+    def get_relative_motion(self, fixed, moving):
+        """
+        Obtain relative motion between two given links or joints.
+
+        The method checks if the relative motion between the two links or joints
+        already exists in the self.relative_motions attribute. If it does, the method
+        returns the relative motion. If it does not, the method calculates the relative
+        motion and adds it to the self.relative_motions attribute.
+
+
+        """
+
+        pass
+
+
+
 
