@@ -5,6 +5,48 @@ import sympy
 from itertools import combinations
 
 
+"""
+Example
+
+from rational_linkages import (RationalMechanism, TransfMatrix, MotionInterpolation,
+                               SingularityAnalysis, Plotter)
+
+import sympy as sp
+
+# define poses as input for Bennett synthesis
+p0 = TransfMatrix()
+p1 = TransfMatrix.from_vectors(approach_z=[-0.0362862, 0.400074, 0.915764],
+                               normal_x=[0.988751, -0.118680, 0.0910266],
+                               origin=[0.033635718, 0.09436004, 0.03428654])
+p2 = TransfMatrix.from_vectors(approach_z=[-0.0463679, -0.445622, 0.894020],
+                               normal_x=[0.985161, 0.127655, 0.114724],
+                               origin=[-0.052857769, -0.04463076, -0.081766])
+
+poses = [p0, p1, p2]
+
+# construct C(t) from poses
+c = MotionInterpolation.interpolate(poses)
+
+# factorize C(t) and obtain mechanism
+m = RationalMechanism(c.factorize())
+s = SingularityAnalysis()
+j = s.check_singularity(m)
+
+t = sp.Symbol('t')
+js = sp.simplify(j)
+# jp = sp.Poly(js, t)
+sp.plot(js, (t, 0.2, 0.7))
+
+
+# p = Plotter(interactive=True, steps=500, arrows_length=0.05, joint_range_lim=0.1)
+# p.plot(m, show_tool=True)
+# p.plot(p0, label=r'$\mathbf{p}_0$ (origin)')
+# p.plot(p1, label=r'$\mathbf{p}_1$')
+# p.plot(p2, label=r'$\mathbf{p}_2$')
+# p.show()
+"""
+
+
 class SingularityAnalysis:
     """
     Singularity analysis algorithm of collision-free linkages by :footcite:t:`Li2020`.
