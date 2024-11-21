@@ -25,7 +25,6 @@ def get_changelog_commits(commits):
             description = '\n'.join(lines[1:]).strip()
             commit_date = datetime.fromtimestamp(commit.committed_date).strftime(
                 '%Y-%m-%d')
-            author = commit.author.name
             commit_hash = commit.hexsha[:8]
 
             # Determine the category based on commit message
@@ -104,7 +103,7 @@ def main():
         return
 
     release_date = datetime.now().strftime('%Y-%m-%d')
-    version = "1.6.0"  # Replace with your versioning logic
+    version = "1.9.0"  # Replace with your versioning logic
 
     release_notes = format_release_notes(version, release_date, changelog_commits)
     write_changelog(CHANGELOG_FILE, release_notes)
