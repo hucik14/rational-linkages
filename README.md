@@ -4,7 +4,7 @@
 [![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main)
 [![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=test_coverage)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
 [![GitHub issues](https://img.shields.io/github/issues/hucik14/rl-issues)](https://github.com/hucik14/rl-issues/issues)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)]()
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)]()
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb)
 
 
@@ -69,7 +69,11 @@ Using pip:
 
 3. Install the *editable* version of the package using pip:
 
-    <code>pip install -e .</code>
+    <code>pip install -e .</code> 
+
+   or 
+    
+   <code>pip install -e .[dev,doc]</code> including the development and documentation dependencies.
 
 ## Citing the package
 

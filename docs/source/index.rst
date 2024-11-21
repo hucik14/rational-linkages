@@ -34,7 +34,7 @@ Rational Linkages
    :target: https://github.com/hucik14/rl-issues/issues
    :alt: GitHub issues
 
-.. image:: https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg
+.. image:: https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg
    :target: https://www.python.org/downloads/release/python-3117/
    :alt: Python
 
