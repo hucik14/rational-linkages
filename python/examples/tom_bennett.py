@@ -2,8 +2,10 @@ from rational_linkages import (RationalMechanism, Plotter,
                                TransfMatrix, MotionInterpolation,
                                PointHomogeneous)
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
-
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 
 # define poses as input for Bennett synthesis
 p0 = TransfMatrix()
@@ -65,11 +67,11 @@ num_points = int(total_time_of_motion * frequency)
 
 # visualize the mechanism and the poses
 p = Plotter(interactive=True, steps=500, arrows_length=0.05, joint_range_lim=0.1)
-# p.plot(m, show_tool=True)
-p.plot(m.curve(), interval='closed')
-p.plot(p0, label='p0 (origin)')
-p.plot(p1, label='p1')
-p.plot(p2, label='p2')
+p.plot(m, show_tool=True)
+#p.plot(m.curve(), interval='closed')
+p.plot(p0, label=r'$\mathbf{p}_0$ (origin)')
+p.plot(p1, label=r'$\mathbf{p}_1$')
+p.plot(p2, label=r'$\mathbf{p}_2$')
 p.show()
 
 # joint-space point-to-point trajectory

@@ -34,7 +34,7 @@ Rational Linkages
    :target: https://github.com/hucik14/rl-issues/issues
    :alt: GitHub issues
 
-.. image:: https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg
+.. image:: https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg
    :target: https://www.python.org/downloads/release/python-3117/
    :alt: Python
 
@@ -152,6 +152,7 @@ their algorithms and suggestions. These people are namely:
 - **Georg Nawratil**, Technical University of Vienna, Austria,
 - and **Zijia Li**, Chinese Academy of Sciences, China, for their help with the implementation of the Combinatorial Search Algorithm of collision-free linkages :footcite:p:`Li2020`. More on this in section :ref:`combinatorial_search`.
 - **Johannes Siegele**, Austrian Academy of Sciences, Austria, for his help with the implementation of the algorithm for motion interpolation of 4 poses. More on this in section :ref:`interpolation_background`.
+- **Severinas Zube**, Vilnius University, Lithuania, for his help with implementing the algorithm for motion interpolation of 3D points :footcite:p:`Zube2018`. More on this in section :ref:`interpolation_examples`.
 
 **References**
 

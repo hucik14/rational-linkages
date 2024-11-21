@@ -181,6 +181,7 @@ class CombinatorialSearch:
         else:
             combs = combinations
 
+        # TODO: parallelize the search
         for i, sequence in enumerate(combs):
             print("--- iteration: {}, shift_value: {}, sequence {} of {}: {}"
                   .format(iteration, shift_val, i + 1, len(combs), sequence))

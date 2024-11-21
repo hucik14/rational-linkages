@@ -18,14 +18,6 @@ A) using pip:
     pip install rational-linkages
 
 
-..
-    B) using conda:
-
-    .. code-block:: bash
-
-    conda install -c conda-forge rational-linkages
-
-
 B) from source as editable package:
 
 .. code-block:: bash
@@ -35,3 +27,13 @@ B) from source as editable package:
     cd rational-linkages
 
     pip install -e .
+
+C) from source as editable package with development and documentation dependencies:
+
+.. code-block:: bash
+
+    git clone https://git.uibk.ac.at/geometrie-vermessung/rational-linkages.git
+
+    cd rational-linkages
+
+    pip install -e .[dev,doc]
