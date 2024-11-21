@@ -274,9 +274,11 @@ class RationalCurve:
 
         return points_objects
 
-    def get_bernstein_polynomial_equations(
-        self, t_var: sp.Symbol, reparametrization: bool = False, degree: int = None
-    ) -> list:
+    def get_bernstein_polynomial_equations(self,
+                                           t_var: sp.Symbol,
+                                           reparametrization: bool = False,
+                                           degree: int = None
+                                           ) -> list:
         """
         Generate the Bernstein polynomial equation
 
@@ -303,13 +305,9 @@ class RationalCurve:
 
         # Initialize the polynomial expression list
         expr = []
-
         # Generate the polynomial expression using the Bernstein polynomials
         for i in range(degree + 1):
-            polynomial_expr = sp.binomial(degree, i) * t**i * (1 - t) ** (degree - i)
-            #expr.append(sp.simplify(polynomial_expr))
-            expr.append(polynomial_expr)
-            # TODO: simplify bottleneck
+            expr.append(sp.binomial(degree, i) * t**i * (1 - t) ** (degree - i))
 
         return expr
 

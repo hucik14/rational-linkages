@@ -308,16 +308,8 @@ class MotionInterpolation:
         :return: Polynomials of rational motion curve.
         :rtype: list[sp.Poly]
         """
-        from scipy.optimize import minimize
+        from scipy.optimize import minimize  # inner import
 
-        # # Calculate the mid point between the two poses
-        # p0 = PointHomogeneous(poses[0].dq)
-        # p1 = PointHomogeneous(poses[1].dq)
-        # mid_p = p0.linear_interpolation(p1, 0.5)
-        # mid_pose = DualQuaternion(mid_p.array())
-        # mid_pose_tr = TransfMatrix(mid_pose.dq2matrix())
-        # x0 = mid_pose_tr.t
-        # TODO: clean up here
         mid_pose = DualQuaternion.random_on_study_quadric()
         mid_pose_tr = TransfMatrix(mid_pose.dq2matrix())
         x0 = mid_pose_tr.t
