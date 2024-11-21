@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.9.0 (2024-11-20)
+
+### added (5 changes)
+
+- [rational curve can be numerically checked if it is real motion](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/507db086)
+- [rational curve can be created from two quaternions](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5b591381)
+- [interpolation of 7 3D points using cubic curve](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9a9d2efb)
+- [new method for interpolating 5 points with quadratic curve](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/b86d041f)
+- [testing for Python 3.13](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/a7a5e1fd)
+
+
+### removed (2 changes)
+
+- [warning for installation of Exudyn removed](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d749f620)
+- [removed unnecessary warning for RR domain](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/0931bb90)
+
+
+### changed (3 changes)
+
+- [tests run for python 3.13](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d83b150a)
+- [legend is no longer on plot by default, arg needed](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/f09f4944)
+- [ik update, robust run automatically](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9802a9b1)
+
 ## 1.8.0 (2024-08-28)
 
 ### added (11 changes)

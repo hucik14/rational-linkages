@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "1.8.0"
+version = "1.9.0"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -21,7 +21,7 @@ classifiers = [
 dependencies = [
     "scipy >= 1.10.0",
     "sympy >= 1.10.0",
-    #"gmpy2 >= 2.2.0",  # gmpy2 2.1.5 fails to build for Python 3.12
+    "gmpy2 >= 2.2.0",  # gmpy2 2.1.5 fails to build for Python 3.12
     "matplotlib >= 3.7.0",
     "biquaternion-py >= 1.2.0",
     "PyQt5 >= 5.15.10",
@@ -36,6 +36,7 @@ doc = [
     "toml",
     "pandoc",
     "sphinx-hoverxref",
+    "gitpython",
 ]
 dev = [
     "build",
@@ -45,7 +46,8 @@ dev = [
     "flake8-pyproject",
     "black",
     "isort",
-    "twine"
+    "twine",
+    "exudyn",
 ]
 
 [tool.setuptools.packages.find]
