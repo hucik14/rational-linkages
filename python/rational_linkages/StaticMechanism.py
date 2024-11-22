@@ -6,6 +6,8 @@ from .DualQuaternion import DualQuaternion
 from .NormalizedLine import NormalizedLine
 from .TransfMatrix import TransfMatrix
 
+from .utils import dq_algebraic2vector
+
 
 class StaticMechanism(RationalMechanism):
     """
@@ -96,6 +98,32 @@ class StaticMechanism(RationalMechanism):
              "last link design parameters.", UserWarning)
 
         return cls(screw_axes)
+
+    @classmethod
+    def from_algebraic_equations(cls, ugly_axes: list):
+        """
+        Create a StaticMechanism from list of algebraic equations.
+
+        The axis should have dual quaternion form containing i, j, k, epsilon.
+
+        :param list ugly_axes: The screw axes of the mechanism.
+
+        :return: A StaticMechanism object
+        :rtype: StaticMechanism
+        """
+        axes = []
+        for axis in ugly_axes:
+            coeffs = dq_algebraic2vector(axis)
+
+            # check if 1st and 5th coefficients are zero (representing a ling)
+            if coeffs[0] != 0 or coeffs[4] != 0:
+                warn("The 1st and 5th coefficients of the screw axis should be zero.",
+                     UserWarning)
+            axes.append(NormalizedLine([coeffs[1], coeffs[2], coeffs[3],
+                                        coeffs[5], coeffs[6], coeffs[7]]))
+
+        return cls(axes)
+
 
     def get_screw_axes(self) -> list[NormalizedLine]:
         """
