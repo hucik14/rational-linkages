@@ -59,8 +59,10 @@ class TestRationalCurve(TestCase):
 
         obj = RationalCurve.from_coeffs(coeffs)
         self.assertIsInstance(obj, RationalCurve)
+        self.assertIsInstance(obj.coeffs[1,1], sp.Rational)
         self.assertTrue(str(obj.set_of_polynomials[1].domain) == 'ZZ')
-        self.assertTrue(np.allclose(obj.coeffs, np.array(coeffs, dtype='float64')))
+        self.assertTrue(np.allclose(np.array(obj.coeffs, dtype='float64'),
+                                    np.array(coeffs, dtype='float64')))
         self.assertEqual(obj.degree, 2)
 
     def test_repr(self):

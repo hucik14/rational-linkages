@@ -60,11 +60,14 @@ class RationalCurve:
         curve = RationalCurve.from_coeffs(np.array([[1., 0., 2., 0., 1.], [0.5, 0., -2., 0., 1.5], [0., -1., 0., 3., 0.], [1., 0., 2., 0., 1.]]))
     """
 
-    def __init__(self, polynomials: list[sp.Poly]):
+    def __init__(self,
+                 polynomials: list[sp.Poly],
+                 coeffs: Union[np.array, sp.Matrix] = None):
         """
         Initializes a RationalCurve object with the provided coefficients.
 
         :param polynomials: list of polynomial equations of the curve
+        :param coeffs: coefficients of the curve
         """
         self.set_of_polynomials = polynomials
 
@@ -74,7 +77,7 @@ class RationalCurve:
         for i in range(len(polynomials)):
             self.degree = max(self.degree, self.set_of_polynomials[i].degree())
 
-        self.coeffs = self.get_coeffs()
+        self._coeffs = coeffs
         self._symbolic = None
 
         self.coeffs_inversed = self.inverse_coeffs()
@@ -126,6 +129,12 @@ class RationalCurve:
 
         return self._set_of_polynomials_inversed
 
+    @property
+    def coeffs(self):
+        if self._coeffs is None:
+            self._coeffs = self.get_coeffs()
+        return self._coeffs
+
     @classmethod
     def from_coeffs(cls, coeffs: Union[np.ndarray, sp.Matrix]) -> "RationalCurve":
         """
@@ -137,7 +146,7 @@ class RationalCurve:
         :rtype: RationalCurve
         """
         _, polynomials = cls.get_symbolic_expressions(coeffs)
-        return cls(polynomials)
+        return cls(polynomials, coeffs)
 
     @classmethod
     def from_two_quaternions(cls,
