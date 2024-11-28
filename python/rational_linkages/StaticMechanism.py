@@ -1,5 +1,7 @@
 from warnings import warn
 
+import numpy as np
+
 from .RationalMechanism import RationalMechanism
 from .MotionFactorization import MotionFactorization
 from .DualQuaternion import DualQuaternion
@@ -47,6 +49,21 @@ class StaticMechanism(RationalMechanism):
 
         m.get_design(unit='deg')
 
+    .. testcode::
+
+        # Define a 6-bar mechanism from algebraic IJK representation
+        from rational_linkages import StaticMechanism
+
+
+        linkage = [epsilon*k + i,
+               epsilon*i + epsilon*k + j,
+               epsilon*i + epsilon*j + k,
+               -epsilon*k + i,
+               epsilon*i - epsilon*k - j,
+               epsilon*i - epsilon*j - k]
+
+        m = StaticMechanism.from_ijk_representation(linkage)
+
     """
     def __init__(self, screw_axes: list[NormalizedLine]):
         fake_factorization = [MotionFactorization([DualQuaternion()])]
@@ -60,7 +77,7 @@ class StaticMechanism(RationalMechanism):
                                           for axis in screw_axes]
 
     @classmethod
-    def from_dh_parameters(cls, theta, d, a, alpha):
+    def from_dh_parameters(cls, theta, d, a, alpha, unit: str = 'rad'):
         """
         Create a StaticMechanism from the DH parameters.
 
@@ -68,6 +85,7 @@ class StaticMechanism(RationalMechanism):
         :param list d: The joint offsets
         :param list a: The link lengths
         :param list alpha: The link twists
+        :param str unit: The unit of the angles ('rad' or 'deg')
 
         :warning: If the DH parameters do no close the linkages by default, the created
             mechanism will not be a closed loop - double check the last link design
@@ -76,6 +94,12 @@ class StaticMechanism(RationalMechanism):
         :return: A StaticMechanism object
         :rtype: StaticMechanism
         """
+        if unit == 'deg':
+            theta = np.deg2rad(theta)
+            alpha = np.deg2rad(alpha)
+        elif unit != 'rad':
+            raise ValueError("The unit parameter should be 'rad' or 'deg'.")
+
         n_joints = len(theta)
 
         local_tm = []
@@ -100,7 +124,7 @@ class StaticMechanism(RationalMechanism):
         return cls(screw_axes)
 
     @classmethod
-    def from_algebraic_equations(cls, ugly_axes: list):
+    def from_ijk_representation(cls, ugly_axes: list):
         """
         Create a StaticMechanism from list of algebraic equations.
 

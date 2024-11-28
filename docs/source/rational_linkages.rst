@@ -129,6 +129,14 @@ Rational Curve
    :undoc-members:
    :show-inheritance:
 
+Rational Dual Quaternion
+------------------------
+
+.. automodule:: rational_linkages.RationalDualQuaternion
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Rational Mechanism
 ------------------
 
@@ -136,6 +144,14 @@ Rational Mechanism
    :members:
    :undoc-members:
    :show-inheritance: rational_linkages.RationalCurve
+
+Static Mechanism
+----------------
+
+.. automodule:: rational_linkages.StaticMechanism
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Transf Matrix
 -------------
