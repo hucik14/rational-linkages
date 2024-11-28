@@ -47,6 +47,22 @@ class TestRationalCurve(TestCase):
         self.assertEqual(obj.dimension, 3)
         self.assertEqual(obj.degree, 4)
 
+    def test_from_coeffs_rational(self):
+        coeffs = sp.Matrix([[0, 0, 0],
+                            [4440, 39870, 22134],
+                            [16428, 9927, -42966],
+                            [-37296, -73843, -115878],
+                            [0, 0, 0],
+                            [-1332, -14586, -7812],
+                            [-2664, -1473, 6510],
+                            [-1332, -1881, -3906]])
+
+        obj = RationalCurve.from_coeffs(coeffs)
+        self.assertIsInstance(obj, RationalCurve)
+        self.assertTrue(str(obj.set_of_polynomials[1].domain) == 'ZZ')
+        self.assertTrue(np.allclose(obj.coeffs, np.array(coeffs, dtype='float64')))
+        self.assertEqual(obj.degree, 2)
+
     def test_repr(self):
         coeffs = np.array([[1.0, 0.0, 2.0], [0.5, -2.0, 0.0]])
         curve = RationalCurve.from_coeffs(coeffs)

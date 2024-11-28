@@ -127,11 +127,11 @@ class RationalCurve:
         return self._set_of_polynomials_inversed
 
     @classmethod
-    def from_coeffs(cls, coeffs: np.ndarray) -> "RationalCurve":
+    def from_coeffs(cls, coeffs: Union[np.ndarray, sp.Matrix]) -> "RationalCurve":
         """
         Construct rational curve from coefficients
 
-        :coeffs: np.ndarray - coefficients of the curve
+        :param Union[np.ndarray, sp.Matrix] coeffs: coefficients of the curve
 
         :returns: RationalCurve object from coefficients
         :rtype: RationalCurve
@@ -171,22 +171,30 @@ class RationalCurve:
         return cls(polynomials)
 
     @staticmethod
-    def get_symbolic_expressions(coeffs: np.ndarray) -> tuple[list, list[sp.Poly]]:
+    def get_symbolic_expressions(coeffs: Union[np.ndarray, sp.Matrix]
+                                 ) -> tuple[list, list[sp.Poly]]:
         """
         Add a symbolic variable to the matrix of coefficients that describes the curve
 
-        :param np.ndarray coeffs: coefficients of the curve
+        :param Union[np.ndarray, sp.Matrix] coeffs: coefficients of the curve
 
         :return: tuple of symbolic expressions list and list of sympy polynomials
         :rtype: tuple[list, list[sp.Poly]]
+
+        :raises ValueError: if the coefficients are not a numpy array or sympy matrix
         """
         symbolic_expressions = []
         polynomials = []
         t = sp.Symbol("t")
 
-        dimension = len(coeffs) - 1
+        if isinstance(coeffs, np.ndarray):
+            dim = len(coeffs)
+        elif isinstance(coeffs, sp.Matrix):
+            dim = coeffs.rows
+        else:
+            raise ValueError("The coefficients must be a numpy array or sympy matrix")
 
-        for i in range(dimension + 1):
+        for i in range(dim):
             # Extract coefficients from the current row of the coefficient matrix and
             # create symbolic expressions
             row_coefficients = reversed(coeffs[i, :])
