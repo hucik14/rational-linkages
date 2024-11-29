@@ -14,6 +14,26 @@ def bennett_ark24() -> RationalMechanism:
 
     :return: RationalMechanism object for the Bennett linkage.
     :rtype: RationalMechanism
+
+    :example:
+
+    .. testcode::
+
+        import numpy as np
+        from rational_linkages import RationalCurve, RationalMechanism
+
+        coeffs = np.array([[0, 0, 0],
+                   [4440, 39870, 22134],
+                   [16428, 9927, -42966],
+                   [-37296, -73843, -115878],
+                   [0, 0, 0],
+                   [-1332, -14586, -7812],
+                   [-2664, -1473, 6510],
+                   [-1332, -1881, -3906]])
+
+        c = RationalCurve.from_coeffs(coeffs)
+        bennett_ark24 = RationalMechanism(c.factorize())
+
     """
     resource_package = "rational_linkages.data"
     resource_path = 'bennett_ark24.pkl'
