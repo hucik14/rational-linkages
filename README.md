@@ -57,6 +57,13 @@ Using pip:
 
 <code>pip install rational-linkages</code>
 
+or
+
+<code>pip install rational-linkages[opt]</code>
+
+for installing also optional dependencies (ipython - inline plotting, gmpy2 - faster
+symbolic computations, exudyn - multibody simulations).
+
 ### Install from source
 
 1. Clone the repository (use preferably your client, or clone with the button on top of this page or using the following line)
@@ -69,11 +76,11 @@ Using pip:
 
 3. Install the *editable* version of the package using pip:
 
-    <code>pip install -e .</code> 
+    <code>pip install -e .[opt]</code> 
 
    or 
     
-   <code>pip install -e .[dev,doc]</code> including the development and documentation dependencies.
+   <code>pip install -e .[opt,dev,doc]</code> including the development and documentation dependencies.
 
 ## Citing the package
 
