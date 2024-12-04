@@ -32,8 +32,12 @@ class CollisionFreeOptimization:
         from scipy.optimize import minimize
 
         # get the axes represented as normalized lines
-        dq_lines = (self.mechanism.factorizations[0].dq_axes
-                    + self.mechanism.factorizations[1].dq_axes[::-1])
+        if len(self.mechanism.factorizations) == 1:
+            dq_lines = self.mechanism.factorizations[0].dq_axes
+        else:
+            dq_lines = (self.mechanism.factorizations[0].dq_axes
+                        + self.mechanism.factorizations[1].dq_axes[::-1])
+
         lines = [NormalizedLine.from_dual_quaternion(dq_line) for dq_line in dq_lines]
 
         def objective_function(x):

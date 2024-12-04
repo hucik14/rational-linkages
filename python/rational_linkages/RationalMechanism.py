@@ -784,10 +784,13 @@ class RationalMechanism(RationalCurve):
 
         # update the design of the mechanism
         if update_design:
-            self.factorizations[0].set_joint_connection_points_by_parameters(
-                points_params[:len(self.factorizations[0].dq_axes)])
-            self.factorizations[1].set_joint_connection_points_by_parameters(
-                points_params[len(self.factorizations[1].dq_axes):][::-1])
+            if len(self.factorizations) == 1:
+                self.factorizations[0].set_joint_connection_points_by_parameters(points_params)
+            else:
+                self.factorizations[0].set_joint_connection_points_by_parameters(
+                    points_params[:len(self.factorizations[0].dq_axes)])
+                self.factorizations[1].set_joint_connection_points_by_parameters(
+                    points_params[len(self.factorizations[1].dq_axes):][::-1])
 
         return pts, points_params, res
 

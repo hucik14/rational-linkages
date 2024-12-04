@@ -1,5 +1,8 @@
 import numpy as np
 
+from typing import Optional, Sequence
+from sympy import Expr, Rational
+
 from .TransfMatrix import TransfMatrix
 
 # Forward declarations for class names
@@ -32,25 +35,31 @@ class PointHomogeneous:
         custom_point = PointHomogeneous([2.0, 3.0, 4.0, 1.0])
     """
 
-    def __init__(self, point=None):
+    def __init__(self,
+                 point: Optional[Sequence[float]] = None,
+                 rational: bool = False):
         """
         Class to store points in PR3 or PR2
 
         Homogeneous coordinates are stored in the first row of the point array (index 0)
         :param point: array or list of floats
+        :param bool rational: flag to indicate if the point shall be treated as rational
+            i.e. using SymPy expressions
         """
-        from sympy import Expr
-
         self.is_real = True
+        self.is_rational = rational
 
         if point is None:  # point in the origin in PR3
             self.coordinates = np.array([1, 0, 0, 0])
-        elif any(isinstance(element, Expr) for element in point):
+        elif any(isinstance(element, Expr) for element in point) and not rational:
             try:
                 self.coordinates = np.asarray(point, dtype='float64')
             except Exception:
                 self.coordinates = point
                 self.is_real = False
+        elif rational:
+            self.coordinates = np.array([Rational(coord) for coord in point])
+            self.is_real = False
         else:
             self.coordinates = np.asarray(point, dtype='float64')
 
@@ -60,12 +69,15 @@ class PointHomogeneous:
         elif self.is_real:
             self.is_at_infinity = False
             self.coordinates_normalized = self.normalize()
+        elif self.is_rational and self.coordinates[0] == 0:  # point at infinity
+            self.is_at_infinity = True
+            self.coordinates_normalized = None
+        elif self.is_rational:
+            self.is_at_infinity = False
+            self.coordinates_normalized = self.normalize()
         else:
             self.is_at_infinity = False
             self.coordinates_normalized = None
-
-        #if len(self.coordinates_normalized) == 4:  # point in PR3
-        #    self.as_dq_array = self.point2dq_array()
 
         self.orbit = None
 
@@ -259,7 +271,7 @@ class PointHomogeneous:
 
         :return: np.ndarray of shape (3, 1)
         """
-        return self.normalized_in_3d()
+        return np.array(self.normalized_in_3d(), dtype="float64")
 
     def evaluate(self, t_param: float) -> 'PointHomogeneous':
         """
