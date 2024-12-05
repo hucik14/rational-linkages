@@ -30,7 +30,7 @@ class Quaternion:
         if vec4 is not None:
             if len(vec4) != 4:
                 raise ValueError("Quaternion: vec4 has to be 4-vector")
-            self.q = np.asarray(vec4)
+            self.q = np.asarray(vec4, dtype=object)
         else:
             self.q = np.array([1, 0, 0, 0])
 
