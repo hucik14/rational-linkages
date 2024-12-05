@@ -539,6 +539,9 @@ class MotionInterpolation:
         if len(points) != 5:
             raise ValueError('The number of points must be 5.')
 
+        # check if the points are Sympy Rational
+        perform_rational = True if all(p.is_rational for p in points) else False
+
         points = [p if p[0] == 1 else PointHomogeneous(p.normalize()) for p in points]
 
         # map to Quaternions, divide by -2 (Study mapping from 3D)
@@ -558,7 +561,7 @@ class MotionInterpolation:
         d32 = a3 - a2
         d14 = a1 - a4
 
-        if np.allclose((d43.inv() * d32 * d21.inv() * d14)[0], -3.0):
+        if np.allclose(float((d43.inv() * d32 * d21.inv() * d14)[0]), -3.0):
             raise ValueError("Not possible to interpolate")
 
         w0 = Quaternion()
@@ -567,13 +570,16 @@ class MotionInterpolation:
         w4 = (-1 * d21.inv() * d41 - 3 * d23.inv() * d43).inv() * (
                     3 * d21.inv() * d10 + d23.inv() * d30) * w0
 
-        w_mid = (-1/2) * (w0 + 2 * w2 + w4)
-        a_mid = (-1/2) * (a0 * w0 + 2 * a2 * w2 + a4 * w4) * w_mid.inv()
+        w_mid = -1 * (w0 + 2 * w2 + w4) / 2
+        a_mid = -1 * (a0 * w0 + 2 * a2 * w2 + a4 * w4) * w_mid.inv() / 2
 
         # get the control points of Bezier curve from constructed dual quaternions
-        cp0 = PointHomogeneous(np.concatenate((w0.array(), (a0 * w0).array())))
-        cp1 = PointHomogeneous(np.concatenate((w_mid.array(), (a_mid * w_mid).array())))
-        cp2 = PointHomogeneous(np.concatenate((w4.array(), (a4 * w4).array())))
+        cp0 = PointHomogeneous(np.concatenate((w0.array(), (a0 * w0).array())),
+                               rational=perform_rational)
+        cp1 = PointHomogeneous(np.concatenate((w_mid.array(), (a_mid * w_mid).array())),
+                               rational=perform_rational)
+        cp2 = PointHomogeneous(np.concatenate((w4.array(), (a4 * w4).array())),
+                               rational=perform_rational)
 
         return RationalBezier([cp0, cp1, cp2]).set_of_polynomials
 
@@ -594,6 +600,9 @@ class MotionInterpolation:
             raise ValueError('The number of points must be 7.')
 
         points = [p if p[0] == 1 else PointHomogeneous(p.normalize()) for p in points]
+
+        # Check if the points are Sympy Rational
+        perform_rational = True if all(p.is_rational for p in points) else False
 
         # map to Quaternions, divide by -2 (Study mapping from 3D)
         # and add 0 to the real part
@@ -645,23 +654,32 @@ class MotionInterpolation:
         r38 = q_prod(e24, e28, e34, e38)
 
         w0 = Quaternion()
+        if perform_rational:
+            w0 = Quaternion([sp.Rational(coord) for coord in w0.array()])
+
         w4 = r24.inv() * r28
         w6 = r36.inv() * r38
         w2 = c12.inv() * (c18 - c14 * w4 - c16 * w6)
 
-        w_c0 = (-2/9) * w0
+        w_c0 = -2 * w0 / 9
         a_c0 = a0
-        w_c1 = (5/27) * w0 + (2/9) * w2 + (1/9) * w4 + (2/27) * w6
-        a_c1 = ((5/27) * a0 * w0 + (2/9) * a2 * w2 + (1/9) * a4 * w4 + (2/27) * a6 * w6) * w_c1.inv()
-        w_c2 = (-2/27) * w0 + (-1/9) * w2 + (-2/9) * w4 + (-5/27) * w6
-        a_c2 = ((-2/27) * a0 * w0 + (-1/9) * a2 * w2 + (-2/9) * a4 * w4 + (-5/27) * a6 * w6) * w_c2.inv()
-        w_c3 = (2/9) * w6
+        w_c1 = 5 * w0 / 27 + 2 * w2 / 9 + w4 / 9 + 2 * w6 / 27
+        a_c1 = ((5 * a0 * w0 /27 + 2 * a2 * w2 / 9 + a4 * w4 / 9 + 2 * a6 * w6 / 27)
+                * w_c1.inv())
+        w_c2 = -2 * w0 / 27 - 1 * w2 / 9 - 2 * w4 / 9 - 5 * w6 / 27
+        a_c2 = ((-2 * a0 * w0 / 27 -1 * a2 * w2 / 9 -2 * a4 * w4 / 9 -5 * a6 * w6 / 27)
+                * w_c2.inv())
+        w_c3 = 2 * w6 / 9
         a_c3 = a6
 
         # get the control points of Bezier curve from constructed dual quaternions
-        cp0 = PointHomogeneous(np.concatenate((w_c0.array(), (a_c0 * w_c0).array())))
-        cp1 = PointHomogeneous(np.concatenate((w_c1.array(), (a_c1 * w_c1).array())))
-        cp2 = PointHomogeneous(np.concatenate((w_c2.array(), (a_c2 * w_c2).array())))
-        cp3 = PointHomogeneous(np.concatenate((w_c3.array(), (a_c3 * w_c3).array())))
+        cp0 = PointHomogeneous(np.concatenate((w_c0.array(), (a_c0 * w_c0).array())),
+                               rational=perform_rational)
+        cp1 = PointHomogeneous(np.concatenate((w_c1.array(), (a_c1 * w_c1).array())),
+                               rational=perform_rational)
+        cp2 = PointHomogeneous(np.concatenate((w_c2.array(), (a_c2 * w_c2).array())),
+                               rational=perform_rational)
+        cp3 = PointHomogeneous(np.concatenate((w_c3.array(), (a_c3 * w_c3).array())),
+                               rational=perform_rational)
 
         return RationalBezier([cp0, cp1, cp2, cp3]).set_of_polynomials
