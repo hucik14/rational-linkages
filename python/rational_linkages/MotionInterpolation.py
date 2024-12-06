@@ -25,7 +25,7 @@ class MotionInterpolation:
 
     :examples:
 
-    .. testcode::
+    .. testcode:: [motion_interpolation_example1]
 
         # 4-pose interpolation
 
@@ -33,53 +33,66 @@ class MotionInterpolation:
                                        MotionInterpolation, RationalMechanism)
 
 
-        if __name__ == "__main__":
-            # 4 poses
-            p0 = DualQuaternion()  # identity
-            p1 = DualQuaternion.as_rational([0, 0, 0, 1, 1, 0, 1, 0])
-            p2 = DualQuaternion.as_rational([1, 2, 0, 0, -2, 1, 0, 0])
-            p3 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
+        # 4 poses
+        p0 = DualQuaternion()  # identity
+        p1 = DualQuaternion.as_rational([0, 0, 0, 1, 1, 0, 1, 0])
+        p2 = DualQuaternion.as_rational([1, 2, 0, 0, -2, 1, 0, 0])
+        p3 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
 
-            # obtain the interpolated motion curve
-            c = MotionInterpolation.interpolate([p0, p1, p2, p3])
+        # obtain the interpolated motion curve
+        c = MotionInterpolation.interpolate([p0, p1, p2, p3])
 
-            # factorize the motion curve
-            f = FactorizationProvider().factorize_motion_curve(c)
+        # factorize the motion curve
+        f = FactorizationProvider().factorize_motion_curve(c)
 
-            # create a mechanism from the factorization
-            m = RationalMechanism(f)
+        # create a mechanism from the factorization
+        m = RationalMechanism(f)
 
-            # create an interactive plotter object, with 1000 descrete steps
-            # for the input rational curves, and arrows scaled to 0.5 length
-            myplt = Plotter(interactive=True, steps=1000, arrows_length=0.5)
-            myplt.plot(m, show_tool=True)
+        # create an interactive plotter object, with 1000 descrete steps
+        # for the input rational curves, and arrows scaled to 0.5 length
+        myplt = Plotter(interactive=True, steps=1000, arrows_length=0.5)
+        myplt.plot(m, show_tool=True)
 
-            # plot the poses
-            for pose in [p0, p1, p2, p3]:
-                myplt.plot(pose)
+        # plot the poses
+        for pose in [p0, p1, p2, p3]:
+            myplt.plot(pose)
 
-            # show the plot
-            myplt.show()
+        # show the plot
+        myplt.show()
 
-    .. testcode::
+    .. testcleanup:: [motion_interpolation_example1]
+
+        del DualQuaternion, Plotter, FactorizationProvider, MotionInterpolation
+        del RationalMechanism
+        del p0, p1, p2, p3, c, f, m, myplt, pose
+
+
+    .. testcode:: [motion_interpolation_example2]
 
         # 3-pose interpolation
 
         from rational_linkages import DualQuaternion, Plotter, MotionInterpolation
 
 
-        if __name__ == "__main__":
-            p0 = DualQuaternion([0, 17, -33, -89, 0, -6, 5, -3])
-            p1 = DualQuaternion([0, 84, -21, -287, 0, -30, 3, -9])
-            p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
+        p0 = DualQuaternion([0, 17, -33, -89, 0, -6, 5, -3])
+        p1 = DualQuaternion([0, 84, -21, -287, 0, -30, 3, -9])
+        p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
 
-            c = MotionInterpolation.interpolate([p0, p1, p2])
+        c = MotionInterpolation.interpolate([p0, p1, p2])
 
-            plt = Plotter(interactive=False, steps=500, arrows_length=0.05)
-            plt.plot(c, interval='closed')
+        plt = Plotter(interactive=False, steps=500, arrows_length=0.05)
+        plt.plot(c, interval='closed')
 
-            for i, pose in enumerate([p0, p1, p2]):
-                plt.plot(pose, label='p{}'.format(i+1))
+        for i, pose in enumerate([p0, p1, p2]):
+            plt.plot(pose, label='p{}'.format(i+1))
+
+        plt.show()
+
+    .. testcleanup:: [motion_interpolation_example2]
+
+        del DualQuaternion, Plotter, MotionInterpolation
+        del p0, p1, p2, c, plt, pose
+
     """
     def __init__(self):
         """

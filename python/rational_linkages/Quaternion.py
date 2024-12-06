@@ -11,7 +11,7 @@ class Quaternion:
 
     :examples:
 
-    .. testcode::
+    .. testcode:: [quaternion_example1]
 
         # General usage
 
@@ -19,6 +19,10 @@ class Quaternion:
 
         identity_quaternion = Quaternion()
         quaternion_from_list = Quaternion([0.5, 2, 1, 5])
+
+    .. testcleanup:: [quaternion_example1]
+
+        del Quaternion, identity_quaternion, quaternion_from_list
     """
 
     def __init__(self, vec4: Optional[Sequence[float]] = None):

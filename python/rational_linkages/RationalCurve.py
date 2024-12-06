@@ -33,7 +33,7 @@ class RationalCurve:
 
     :examples:
 
-    .. testcode::
+    .. testcode:: [rationalcurve_example1]
 
         # Limancon of Pascal -- from polynomial equations
 
@@ -49,15 +49,24 @@ class RationalCurve:
         eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t)
         curve = RationalCurve([eq0, eq1, eq2, eq0])
 
-    .. testcode::
+    .. testcleanup:: [rationalcurve_example1]
+
+        del RationalCurve, sp
+        del a, b, t, eq0, eq1, eq2, curve
+
+    .. testcode:: [rationalcurve_example2]
 
         # From coefficients
 
-        import sympy as sp
+        import numpy as np
         from rational_linkages import RationalCurve
 
 
         curve = RationalCurve.from_coeffs(np.array([[1., 0., 2., 0., 1.], [0.5, 0., -2., 0., 1.5], [0., -1., 0., 3., 0.], [1., 0., 2., 0., 1.]]))
+
+    .. testcleanup:: [rationalcurve_example2]
+
+        del RationalCurve, np, curve
     """
 
     def __init__(self,

@@ -7,7 +7,7 @@ The package can load a prepared model from its source. So far, a **Bennett mecha
 model from :ref:`ARK 2024 paper - extended information<ark2024extended>` is supported,
 and a **collision-free 6R mechanism**.
 
-.. testcode::
+.. testcode:: [loading_models_example1]
 
     from rational_linkages.models import bennett_ark24, collisions_free_6r
 
@@ -17,9 +17,14 @@ and a **collision-free 6R mechanism**.
     # load the model of the 6R mechanism
     r6 = collisions_free_6r()
 
+.. testcleanup:: [loading_models_example1]
+
+    del bennett_ark24, collisions_free_6r
+    del bennett, r6
+
 Plotting a model can be done as in the following example.
 
-.. testcode::
+.. testcode:: [loading_models_example2]
 
     # Loading a model from the package
 
@@ -50,3 +55,7 @@ Plotting a model can be done as in the following example.
     # show the plot
     myplt.show()
 
+.. testcleanup:: [loading_models_example2]
+
+    del Plotter, TransfMatrix, bennett_ark24
+    del m, myplt, base, p0

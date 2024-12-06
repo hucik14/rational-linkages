@@ -30,10 +30,10 @@ class StaticMechanism(RationalMechanism):
 
     :example:
 
-    .. testcode::
+    .. testcode:: [StaticMechanism_example1]
 
         # Define a 4-bar mechanism from points
-        from rational_linkages import StaticMechanism
+        from rational_linkages import StaticMechanism, NormalizedLine
 
 
         l0 = NormalizedLine.from_two_points([0.0, 0.0, 0.0],
@@ -49,20 +49,37 @@ class StaticMechanism(RationalMechanism):
 
         m.get_design(unit='deg')
 
-    .. testcode::
+    .. testoutput:: [StaticMechanism_example1]
+        :hide:
+        :options: +ELLIPSIS
+
+        ...
+
+    .. testcleanup:: [StaticMechanism_example1]
+
+        del StaticMechanism, NormalizedLine, l0, l1, l2, l3, m
+
+    .. testcode:: [StaticMechanism_example2]
 
         # Define a 6-bar mechanism from algebraic IJK representation
         from rational_linkages import StaticMechanism
+        from sympy import symbols
+
+        epsilon, i, j, k = symbols('epsilon i j k')
 
 
         linkage = [epsilon*k + i,
-               epsilon*i + epsilon*k + j,
-               epsilon*i + epsilon*j + k,
-               -epsilon*k + i,
-               epsilon*i - epsilon*k - j,
-               epsilon*i - epsilon*j - k]
+                   epsilon*i + epsilon*k + j,
+                   epsilon*i + epsilon*j + k,
+                   -epsilon*k + i,
+                   epsilon*i - epsilon*k - j,
+                   epsilon*i - epsilon*j - k]
 
         m = StaticMechanism.from_ijk_representation(linkage)
+
+    .. testcleanup:: [StaticMechanism_example2]
+
+            del StaticMechanism, linkage, m, epsilon, i, j, k, symbols
 
     """
     def __init__(self, screw_axes: list[NormalizedLine]):

@@ -23,7 +23,7 @@ class PointHomogeneous:
 
     :examples:
 
-    .. testcode::
+    .. testcode:: [point_homogeneous_example1]
 
         # Create points in projective space
 
@@ -33,6 +33,12 @@ class PointHomogeneous:
         origin_point_3D = PointHomogeneous()
         origin_point_2D = PointHomogeneous.at_origin_in_2d()
         custom_point = PointHomogeneous([2.0, 3.0, 4.0, 1.0])
+
+    .. testcleanup:: [point_homogeneous_example1]
+
+        del PointHomogeneous
+        del origin_point_3D, origin_point_2D, custom_point
+
     """
 
     def __init__(self,

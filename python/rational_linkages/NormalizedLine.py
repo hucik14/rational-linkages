@@ -27,21 +27,29 @@ class NormalizedLine:
 
     :examples:
 
-    .. testcode::
+    .. testcode:: [normalizedline_example1]
 
         # Creating a NormalizedLine from a unit screw axis
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine([1, 0, 0, 0, -2, 1])
 
-    .. testcode::
+    .. testcleanup:: [normalizedline_example1]
+
+        del NormalizedLine, line
+
+    .. testcode:: [normalizedline_example2]
 
         # Creating a default NormalizedLine at the origin along the Z axis
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine()
 
-    .. testcode::
+    .. testcleanup:: [normalizedline_example2]
+
+        del NormalizedLine, line
+
+    .. testcode:: [normalizedline_example3]
 
         # Creating a NormalizedLine from two points
 
@@ -51,21 +59,33 @@ class NormalizedLine:
         point2 = PointHomogeneous([1, 3, 1, 1])
         line = NormalizedLine.from_two_points(point1, point2)
 
-    .. testcode::
+    .. testcleanup:: [normalizedline_example3]
+
+        del NormalizedLine, line, PointHomogeneous, point1, point2
+
+    .. testcode:: [normalizedline_example4]
 
         # Creating a NormalizedLine from a direction and a point
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine.from_direction_and_point([1, 0, 0], [1, 1, 1])
 
-    .. testcode::
+    .. testcleanup:: [normalizedline_example4]
+
+        del NormalizedLine, line
+
+    .. testcode:: [normalizedline_example5]
 
         # Creating a NormalizedLine from a direction and a moment
 
         from rational_linkages import NormalizedLine
         line = NormalizedLine.from_direction_and_moment([1, 0, 0], [0, 1, -1])
 
-    .. testcode::
+    .. testcleanup:: [normalizedline_example5]
+
+        del NormalizedLine, line
+
+    .. testcode:: [normalizedline_example6]
 
         # Creating a NormalizedLine from a DualQuaternion
 
@@ -73,6 +93,10 @@ class NormalizedLine:
         from rational_linkages import DualQuaternion
         dq = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])
         line = NormalizedLine.from_dual_quaternion(dq)
+
+    .. testcleanup:: [normalizedline_example6]
+
+        del NormalizedLine, line, DualQuaternion, dq
     """
 
     def __init__(self,

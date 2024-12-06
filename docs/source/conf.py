@@ -15,6 +15,9 @@ import sys
 import toml
 
 
+# Set an environment variable for skipping doctest
+os.environ['SKIP_DOCTEST'] = 'True'
+
 docs_source_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(docs_source_dir, '..', '..'))
 src_dir = os.path.join(project_root, 'python', 'rational_linkages')
@@ -74,6 +77,7 @@ nitpick_ignore = [
     ('py:class', 'np.array'),
     ('py:class', 'sp.Symbol'),
     ('py:class', 'sp.Poly'),
+    ('py:class', 'sp.Matrix'),
     ('py:class', 'bq.Poly'),
 ]
 
@@ -132,3 +136,26 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 #html_static_path = ['_static']
+
+doctest_test_doctest_blocks = 'default'
+
+# set bool skip_this_doctest = True here in order to skip the doctest (set by
+# directive :skipif: in the testcode and testcleanup blocks)
+doctest_global_setup = """
+skip_this_doctest = False
+"""
+
+# doctest_global_cleanup = """
+# def doctest_cleanup():
+#     global_dict = globals()
+#     to_remove = [
+#         key for key in global_dict.keys()
+#         if key not in {'__builtins__', '__name__', '__doc__', '__file__',
+#                        '__package__', '__loader__', '__spec__', 'doctest_cleanup'}
+#     ]
+#
+#     return to_remove
+#
+# for element in doctest_cleanup():
+#     del globals()[element]
+# """

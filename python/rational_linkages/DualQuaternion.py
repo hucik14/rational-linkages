@@ -30,21 +30,29 @@ class DualQuaternion:
 
     :examples:
 
-    .. testcode::
+    .. testcode:: [dq_example1]
 
         # General usage
 
         from rational_linkages import DualQuaternion
         dq = DualQuaternion([1, 2, 3, 4, 0.1, 0.2, 0.3, 0.4])
 
-    .. testcode::
+    .. testcleanup:: [dq_example1]
+
+        del DualQuaternion, dq
+
+    .. testcode:: [dq_example2]
 
         # Identity dual quaternion with no rotation, no translation
 
         from rational_linkages import DualQuaternion
         dq = DualQuaternion()
 
-    .. testcode::
+    .. testcleanup:: [dq_example2]
+
+        del DualQuaternion, dq
+
+    .. testcode:: [dq_example3]
 
         # Dual quaternion from two quaternions
 
@@ -53,6 +61,11 @@ class DualQuaternion:
         q1 = Quaternion([0.5, 0.5, 0.5, 0.5])
         q2 = Quaternion([1, 2, 3, 4])
         dq = DualQuaternion.from_two_quaternions(q1, q2)
+
+    .. testcleanup:: [dq_example3]
+
+        del DualQuaternion, dq, Quaternion, q1, q2
+        
     """
 
     def __init__(self, study_parameters: Optional[Sequence[float]] = None):
@@ -115,7 +128,7 @@ class DualQuaternion:
 
         :examples:
 
-        .. testcode::
+        .. testcode:: [dq_bq_example1]
 
             # Construct dual quaternion from a BiQuaternion
 
@@ -124,7 +137,11 @@ class DualQuaternion:
             bq = 2*KK + EE * II
             dq = DualQuaternion.from_bq_biquaternion(bq)
 
-        .. testcode::
+        .. testcleanup:: [dq_bq_example1]
+
+            del DualQuaternion, dq, II, JJ, KK, EE, bq
+
+        .. testcode:: [dq_bq_example2]
 
             # Construct dual quaternion from a BiQuaternion
 
@@ -132,6 +149,10 @@ class DualQuaternion:
             from biquaternion_py import BiQuaternion
             bq = BiQuaternion(1, 0, 0, 0, 0, 2, 3, 4)
             dq = DualQuaternion.from_bq_biquaternion(bq)
+
+        .. testcleanup:: [dq_bq_example2]
+
+            del DualQuaternion, dq, BiQuaternion, bq
         """
         from biquaternion_py import BiQuaternion
 
@@ -165,7 +186,7 @@ class DualQuaternion:
 
         :examples:
 
-        .. testcode::
+        .. testcode:: [dq_bq_poly_example1]
 
             # Construct dual quaternion from a BiQuaternion polynomial
 
@@ -179,6 +200,10 @@ class DualQuaternion:
 
             # poly_bq must be of form (t - h), i.e. degree 1 otherwise ValueError is raised
             dq = DualQuaternion.from_bq_poly(poly_bq, indet=t)
+
+        .. testcleanup:: [dq_bq_poly_example1]
+
+            del DualQuaternion, dq, Poly, II, JJ, KK, EE, Symbol, t, h, poly_bq
         """
         from biquaternion_py import Poly
 
@@ -677,7 +702,7 @@ class DualQuaternion:
 
         :examples:
 
-        .. testcode::
+        .. testcode:: [dq_act_example1]
 
             # Act on a line with a dual quaternion
 
@@ -688,6 +713,11 @@ class DualQuaternion:
             line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
 
             line_after_half_turn = dq.act(line)
+
+        .. testcleanup:: [dq_act_example1]
+
+            del DualQuaternion, NormalizedLine, dq, line, line_after_half_turn
+
         """
         from .DualQuaternionAction import DualQuaternionAction
 

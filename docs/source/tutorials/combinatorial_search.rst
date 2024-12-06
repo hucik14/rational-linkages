@@ -64,7 +64,8 @@ arguments also these keyword arguments:
 
 and they can be set as follows:
 
-.. testcode::
+.. testcode:: [comb_search_tutorial_example2]
+    :skipif: skip_this_doctest == True
 
     from rational_linkages import (DualQuaternion, MotionFactorization,
                                    RationalMechanism, Plotter)
@@ -92,11 +93,17 @@ and they can be set as follows:
     myplt.plot(m, show_tool=False)
     myplt.show()
 
-.. testoutput::
+.. testoutput:: [comb_search_tutorial_example2]
     :hide:
     :options: +ELLIPSIS
 
     ...
+
+.. testcleanup:: [comb_search_tutorial_example2]
+    :skipif: skip_this_doctest == True
+
+    del DualQuaternion, MotionFactorization, RationalMechanism, Plotter
+    del h1, h2, h3, f1, factorizations, m, myplt
 
 
 **References:**

@@ -10,7 +10,7 @@ Static plotting
 By default, the plots are not interactive. This is suitable for simple plots with
 static objects:
 
-.. testcode::
+.. testcode:: [plotting_example1]
 
     # Plotting static objects
 
@@ -43,6 +43,11 @@ static objects:
 
     myplt.show()
 
+.. testcleanup:: [plotting_example1]
+
+    del myplt, identity, pose1, pose2, point, line
+    del Plotter, DualQuaternion, PointHomogeneous, NormalizedLine, TransfMatrix
+
 Which will result in the following image:
 
 .. figure:: figures/plotting_static.png
@@ -55,7 +60,7 @@ Interactive plotting
 
 In the interactive mode, the mechanisms can be animated.
 
-.. testcode::
+.. testcode:: [plotting_example2]
 
     # Interactive plotting with a loaded mechanism model
 
@@ -75,6 +80,11 @@ In the interactive mode, the mechanisms can be animated.
     myplt.plot(point, label='pt')
     myplt.plot(m, show_tool=True)
     myplt.show()
+
+.. testcleanup:: [plotting_example2]
+
+    del myplt, m, point
+    del RationalMechanism, Plotter, PointHomogeneous, bennett_ark24
 
 Which will result in the following image:
 
@@ -98,7 +108,7 @@ limits. In such cases, it is possible to use key word arguments ``arrows_length`
 The ``joint_range_lim`` specifies the limits of the range sliders, and the ``arrows_length``
 to adjust the size of the length of the frames/poses that are plotted.
 
-.. testcode::
+.. testcode:: [plotting_example3]
 
     # Interactive plotting with a loaded mechanism model, adjusted scaling
 
@@ -111,6 +121,11 @@ to adjust the size of the length of the frames/poses that are plotted.
     plt = Plotter(interactive=True, arrows_length=0.05, joint_range_lim=0.5)
     plt.plot(m, show_tool=True)
     plt.show()
+
+.. testcleanup:: [plotting_example3]
+
+        del plt, m
+        del Plotter, bennett
 
 
 Optional tool frames
@@ -134,7 +149,7 @@ However, the tool of a mechanism frame can be handled in three ways:
 
 The following examples show the three options.
 
-.. testcode::
+.. testcode:: [plotting_example4]
 
     # Tool frame on motion curve
 
@@ -159,12 +174,17 @@ The following examples show the three options.
     p.plot(m, show_tool=True)
     p.show()
 
+.. testcleanup:: [plotting_example4]
+
+    del p, m, f1, f2
+    del RationalMechanism, DualQuaternion, Plotter, MotionFactorization
+
 .. figure:: figures/plot_tool1.png
     :width: 500 px
     :align: center
     :alt: Tool frame on motion curve
 
-.. testcode::
+.. testcode:: [plotting_example5]
 
     # Tool frame in the middle of the last link
 
@@ -193,13 +213,18 @@ The following examples show the three options.
            color='red', linewidth='0.7', linestyle=':')
     p.show()
 
+.. testcleanup:: [plotting_example5]
+
+    del p, m, f1, f2
+    del RationalMechanism, DualQuaternion, Plotter, MotionFactorization
+
 
 .. figure:: figures/plot_tool2.png
     :width: 500 px
     :align: center
     :alt: Tool frame in the middle of the last link
 
-.. testcode::
+.. testcode:: [plotting_example6]
 
     # Tool frame specified as DualQuaternion
 
@@ -231,6 +256,11 @@ The following examples show the three options.
     p.plot(m.get_motion_curve(), label='motion curve', interval='closed',
            color='red', linewidth='0.7', linestyle=':')
     p.show()
+
+.. testcleanup:: [plotting_example6]
+
+    del p, m, f1, f2, tool_matrix, tool_dq
+    del RationalMechanism, DualQuaternion, TransfMatrix, Plotter, MotionFactorization
 
 .. figure:: figures/plot_tool3.png
     :width: 500 px

@@ -29,37 +29,41 @@ class RationalMechanism(RationalCurve):
 
     :examples:
 
-    .. testcode::
+    .. testcode:: [rationalmechanism_example1]
 
         # Create a rational mechanism from given example
 
-        from rational_linkages import RationalMechanism, Plotter
+        from rational_linkages import RationalMechanism, Plotter, TransfMatrix
         from rational_linkages.models import bennett_ark24
 
 
-        if __name__ == "__main__":
-            # load the model of the Bennett's linkage
-            m = bennett_ark24()
+        # load the model of the Bennett's linkage
+        m = bennett_ark24()
 
-            # create an interactive plotter object, with 500 descrete steps
-            # for the input rational curves, and arrows scaled to 0.05 length
-            myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
+        # create an interactive plotter object, with 500 descrete steps
+        # for the input rational curves, and arrows scaled to 0.05 length
+        myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
 
-            # plot the model with tool frame
-            myplt.plot(m, show_tool=True)
+        # plot the model with tool frame
+        myplt.plot(m, show_tool=True)
 
-            ##### additional plotting options #####
-            # create a pose of the identity
-            base = TransfMatrix()
-            myplt.plot(base)
+        ##### additional plotting options #####
+        # create a pose of the identity
+        base = TransfMatrix()
+        myplt.plot(base)
 
-            # create another pose
-            p0 = TransfMatrix.from_rpy_xyz([-90, 0, 0], [0.15, 0, 0], unit='deg')
-            myplt.plot(p0)
-            ######################################
+        # create another pose
+        p0 = TransfMatrix.from_rpy_xyz([-90, 0, 0], [0.15, 0, 0], unit='deg')
+        myplt.plot(p0)
+        ######################################
 
-            # show the plot
-            myplt.show()
+        # show the plot
+        myplt.show()
+
+    .. testcleanup:: [rationalmechanism_example1]
+
+        del RationalMechanism, Plotter, bennett_ark24
+        del m, myplt, p0
     """
 
     def __init__(self, factorizations: list[MotionFactorization],
@@ -1086,7 +1090,7 @@ class RationalMechanism(RationalCurve):
 
         :example:
 
-        .. testcode::
+        .. testcode:: [rationalmechanism_example2]
 
             from rational_linkages import RationalCurve, RationalMechanism
             import numpy as np
@@ -1124,6 +1128,11 @@ class RationalMechanism(RationalCurve):
             plt.legend(['Position [rad]', 'Velocity [rad/s]', 'Acceleration [rad/s^2]'])
             plt.grid()
             plt.show()
+
+        .. testcleanup:: [rationalmechanism_example2]
+
+            del RationalCurve, RationalMechanism, np
+            del plt, coeffs, c, m, time, n_steps, t0, t1, method, pos, vel, acc
 
         """
         if unit == 'deg':
