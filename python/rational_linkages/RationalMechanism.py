@@ -956,6 +956,8 @@ class RationalMechanism(RationalCurve):
 
         :return: parameter value
         :rtype: float
+
+        :warns: if the method does not converge
         """
         def run_gauss_newton(pose, robust):
             t = sp.Symbol("t")
@@ -992,7 +994,7 @@ class RationalMechanism(RationalCurve):
                     for i in range(max_iterations):
 
                         if not robust:
-                            if t_val > 1.0 or t_val < -1.0:
+                            if t_val == sp.nan or t_val > 1.0 or t_val < -1.0:
                                 break
 
                         target_pose = pose.array()
@@ -1043,12 +1045,12 @@ class RationalMechanism(RationalCurve):
         t_res, success = run_gauss_newton(pose=goal_pose, robust=robust_search)
 
         if not success:
-            warn("Gauss-Newton method did not converge. Returning the best result."
-                 "Retrying with different initial guesses...")
+            print("Fast search did not converge. Retrying with different initial "
+                  "guesses...")
             t_res, success = run_gauss_newton(pose=goal_pose, robust=True)
-
-            warn("Converged successfully.") if success \
-                else warn("Not converged, providing the closest result.")
+            print("...done.")
+            print("Converged successfully.") if success else (
+                warn("Not converged, providing the closest result."))
 
         return t_res
 
