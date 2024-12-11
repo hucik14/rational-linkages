@@ -25,6 +25,7 @@ class Plotter:
                  interactive: bool = False,
                  jupyter_notebook: bool = False,
                  show_legend: bool = False,
+                 show_controls: bool = True,
                  interval: tuple = (-1, 1),
                  steps: int = 50,
                  arrows_length: float = 1.0,
@@ -35,6 +36,7 @@ class Plotter:
         :param bool interactive: activate interactive mode
         :param bool jupyter_notebook: activate jupyter notebook mode
         :param bool show_legend: show the legend
+        :param bool show_controls: show or hide the controls for interactive plotting
         :param int steps: number of steps for plotting
         :param arrows_length: length of quiver arrows for poses and frames
         :param float joint_range_lim: limit for joint sliders, will be +/- value
@@ -84,6 +86,7 @@ class Plotter:
         self.interactive = interactive
         self.jupyter_notebook = jupyter_notebook
         self.j_sliders_limit = joint_range_lim
+        self.show_controls = show_controls
 
         # length of quiver arrows for poses and frames
         self.arrows_length = arrows_length
@@ -877,3 +880,28 @@ class Plotter:
             self.plot_slider_update(val)
             sleep(sleep_time)
 
+    def save(self, filename: str, file_type: str = "png"):
+        """
+        Save the current canvas to a file
+
+        :param str filename: name of the file
+        :param str file_type: file type to save the frames (pdf, png)
+        """
+        # check if the file_type is supported
+        if file_type not in plt.gcf().canvas.get_supported_filetypes():
+            raise ValueError(f"Unsupported file type {file_type}")
+
+        self.fig.savefig(filename + "." + file_type)
+        print("Canvas saved successfully as: ", filename + "." + file_type)
+
+    def trigger_controls_visibility(self):
+        """
+        Hide the controls for interactive plotting
+        """
+        self.show_controls = not self.show_controls
+
+        for control in [self.move_slider, self.text_box_angle, self.text_box_param,
+                        self.text_box_save] + self.joint_sliders:
+            control.ax.set_visible(self.show_controls)
+
+        return None
