@@ -213,6 +213,93 @@ class Plotter:
         return _wrapper
 
     @_plotting_decorator
+    def plot_axis_between_two_points(self,
+                                     p0: PointHomogeneous,
+                                     p1: PointHomogeneous,
+                                     **kwargs):
+        """
+        Plot a line between two points
+
+        :param PointHomogeneous p0: first point
+        :param PointHomogeneous p1: second point
+        :param kwargs: matplotlib options
+        """
+        line = np.concatenate((p0.normalized_in_3d(),
+                               p1.normalized_in_3d() - p0.normalized_in_3d()))
+
+        if 'label' not in kwargs:
+            kwargs['label'] = "line"
+        else:
+            mid_of_line = (line[:3] + line[3:]/2)
+            self.ax.text(*mid_of_line, ' ' + kwargs['label'])
+
+        if 'linestyle' not in kwargs:
+            kwargs['linestyle'] = '-.'
+
+        self.ax.quiver(*line, **kwargs)
+
+    @_plotting_decorator
+    def plot_line_segments_between_points(self,
+                                          points: list[PointHomogeneous],
+                                          **kwargs):
+        """
+        Plot a line segment between two points
+
+        :param list[PointHomogeneous] points: list of points
+        :param kwargs: matplotlib options
+        """
+        pts = [p.normalized_in_3d() for p in points]
+
+        x_coords = [pt[0] for pt in pts]
+        y_coords = [pt[1] for pt in pts]
+        z_coords = [pt[2] for pt in pts]
+
+        if 'label' not in kwargs:
+            kwargs['label'] = "segment"
+
+        self.ax.plot(x_coords, y_coords, z_coords, **kwargs)
+
+    @_plotting_decorator
+    def plot_plane(self,
+                   normal: np.ndarray,
+                   point: np.ndarray,
+                   xlim: tuple[float, float] = (-1, 1),
+                   ylim: tuple[float, float] = (-1, 1),
+                   **kwargs):
+        """
+        Plots a plane in 3D given a normal vector and a point on the plane.
+
+        :param np.ndarray normal: normal vector of the plane
+        :param np.ndarray point: point on the plane
+        :param tuple[float, float] xlim: x-axis limits
+        :param tuple[float, float] ylim: y-axis limits
+        :param kwargs: matplotlib options
+        """
+        normal = np.asarray(normal)
+        point = np.asarray(point)
+
+        # Extract the normal vector components
+        a, b, c = normal
+
+        # Calculate d in the plane equation ax + by + cz = d
+        d = np.dot(normal, point)
+
+        # Create a grid of x and y values
+        x = np.linspace(*xlim, 20)
+        y = np.linspace(*ylim, 20)
+        x, y = np.meshgrid(x, y)
+
+        # Solve for z in the plane equation
+        z = (d - a * x - b * y) / c
+
+        if 'label' not in kwargs:
+            kwargs['label'] = "plane"
+        else:
+            self.ax.text(*point, ' ' + kwargs['label'])
+
+        self.ax.plot_surface(x, y, z, alpha=0.2, rstride=100, cstride=100)
+
+    @_plotting_decorator
     def _plot_line(self, line: NormalizedLine, **kwargs):
         """
         Plot a line
@@ -229,7 +316,7 @@ class Plotter:
         line = line.get_plot_data(interval)
 
         if 'label' not in kwargs:
-            kwargs['label'] = "line"
+            kwargs['label'] = "axis"
         else:
             mid_of_line = (line[:3] + line[3:]/2)
             self.ax.text(*mid_of_line, ' ' + kwargs['label'])
