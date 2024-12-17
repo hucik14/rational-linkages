@@ -1,4 +1,5 @@
 from warnings import warn
+from typing import Union
 
 import numpy as np
 
@@ -7,6 +8,7 @@ from .MotionFactorization import MotionFactorization
 from .DualQuaternion import DualQuaternion
 from .NormalizedLine import NormalizedLine
 from .TransfMatrix import TransfMatrix
+from .PointHomogeneous import PointHomogeneous
 
 from .utils import dq_algebraic2vector
 
@@ -173,5 +175,145 @@ class StaticMechanism(RationalMechanism):
         Get the screw axes of the mechanism. Overrides the method from the parent class.
         """
         return self.screws
+
+
+class SnappingMechanism(StaticMechanism):
+    """
+    Non-rational mechanism with a fixed number of discrete poses (snap points)
+
+    This class is highly specialized and not intended for general use of Rational
+    Linkages package. It can be used e.g. for obtaining the design (DH parameters, etc.)
+    of a mechanism that has no rational parametrization.
+    The joints  are assembled in a fixed loop-closure configuration. They are defined
+    by a list of screw axes that are used to define the motion of the mechanism.
+
+    :param list[NormalizedLine] screw_axes: A list of screw axes that define the
+        kinematic structure of the mechanism.
+
+    :ivar list[NormalizedLine] screws: A list of screw axes that define the kinematic
+        structure of the mechanism.
+    :ivar int num_joints: The number of joints in the mechanism.
+    :ivar list[list[PointHomogeneous]] points_discrete_poses: List of lists of points
+        in discrete poses.
+    """
+    def __init__(self,
+                 pose: Union[TransfMatrix, DualQuaternion],
+                 points: list[PointHomogeneous]):
+        """
+        Create a SnappingMechanism for a given pose.
+
+        The mechanism will snap between origin and the pose. See figure below for the
+        axes ordering.
+
+        .. figure:: ../../docs/source/figures/snapping.svg
+
+        :param  Union[TransfMatrix, DualQuaternion] pose: The second pose of
+            the mechanism in which it snaps to (first is identity)
+        :param list[PointHomogeneous] points: The points on the mechanism that
+            specify the axes 2 and 3. Ordering of points is important, since the axes
+            2 defines axis 1 and axes 3 defines axis 0.
+
+        :return: A SnappingMechanism object
+        :rtype: SnappingMechanism
+
+        :example:
+
+        .. testcode:: [SnappingMechanism_example1]
+
+            from rational_linkages import TransfMatrix, PointHomogeneous, SnappingMechanism, Plotter
+
+            p0 = TransfMatrix()
+            p1 = TransfMatrix.from_rpy_xyz([15, 0, -5], [0.15, -0.25, 0.05], unit='deg')
+
+            a2 = PointHomogeneous([1, -0.2, 0, 0])
+            a3 = PointHomogeneous([1, 0.2, 0, 0])
+            b2 = PointHomogeneous([1, -0.2, 0, 0.1])
+            b3 = PointHomogeneous([1, 0.2, 0.1, 0.1])
+
+            m = SnappingMechanism(p1, [a2, b2, a3, b3])
+
+            m.factorizations[0].set_joint_connection_points_by_parameters([[0., 0.001],
+                                                                           [0.001, 0.],
+                                                                           [0., 0.001],
+                                                                           [0.001, 0.]])
+
+            m.get_design(unit='deg', scale=150)
+
+            p = Plotter(interactive=True, arrows_length=0.1)
+            p.plot(p0, label='origin')
+            p.plot(p1, label='pose')
+            p.plot_line_segments_between_points(m.points_discrete_poses[0] + [m.points_discrete_poses[0][0]], color='red')
+            p.plot_line_segments_between_points(m.points_discrete_poses[1] + [m.points_discrete_poses[1][0]], color='blue')
+
+            p.plot(m.screws[0], label='axis0', interval=(-0.1, 0.1))
+            p.plot(m.screws[1], label='axis1', interval=(-0.1, 0.1))
+            p.plot(m.screws[2], label='axis2', interval=(-0.1, 0.1))
+            p.plot(m.screws[3], label='axis3', interval=(-0.1, 0.1))
+
+            p.show()
+
+        """
+        if len(points) != 4:
+            raise ValueError("The points list should contain exactly four points.")
+
+        if isinstance(pose, DualQuaternion):
+            pose = TransfMatrix(pose.dq2matrix())
+
+        # transform points
+        points_transformed = [pose.array() @ p.array() for p in points]
+
+        # points on given axes
+        p20, p21, p30, p31 = points
+
+        axis2 = NormalizedLine.from_two_points(p20, p21)
+        axis3 = NormalizedLine.from_two_points(p30, p31)
+
+        # transformed points
+        p20_t, p21_t, p30_t, p31_t = [PointHomogeneous(p) for p in points_transformed]
+
+        axis1, p10 = SnappingMechanism.get_snap_axis_and_point(p20, p20_t, p21, p21_t)
+        axis0, p00 = SnappingMechanism.get_snap_axis_and_point(p30, p30_t, p31, p31_t)
+
+        self.points_discrete_poses = [[p00, p10, p20, p30], [p00, p10, p20_t, p30_t]]
+
+        super().__init__([axis0, axis1, axis2, axis3])
+
+    @staticmethod
+    def get_snap_axis_and_point(a: PointHomogeneous,
+                                a_t: PointHomogeneous,
+                                b: PointHomogeneous,
+                                b_t: PointHomogeneous
+                                ) -> tuple [NormalizedLine, PointHomogeneous]:
+        """
+        Get the snapping axis between two points.
+
+        :param PointHomogeneous a: The first point on the axis
+        :param PointHomogeneous a_t: The transformed first point on the axis
+        :param PointHomogeneous b: The second point on the axis
+        :param PointHomogeneous b_t: The transformed second point on the axis
+
+        :return: A tuple containing the snapping axis and the point on the axis
+        :rtype: tuple[NormalizedLine, PointHomogeneous]
+        """
+        # midpoints between point on axis and its transformed version
+        a_mid = PointHomogeneous((a.array() + a_t.array()) / 2).normalized_in_3d()
+        b_mid = PointHomogeneous((b.array() + b_t.array()) / 2).normalized_in_3d()
+
+        # normals of the axes (normal of a plane)
+        a_normal = NormalizedLine.from_two_points(a, a_t).direction
+        b_normal = NormalizedLine.from_two_points(b, b_t).direction
+
+        # intersection of two planes (axis of snapping)
+        axis_dir = np.cross(a_normal, b_normal)
+
+        # solve for point on axis
+        mat = np.stack([a_normal, b_normal, axis_dir], axis=0)
+        vec = np.array([np.dot(a_normal, a_mid), np.dot(b_normal, b_mid), 0])
+        pt = np.linalg.lstsq(mat, vec, rcond=None)[0]
+
+        return (NormalizedLine.from_direction_and_point(axis_dir, pt),
+                PointHomogeneous.from_3d_point(pt))
+
+
 
 

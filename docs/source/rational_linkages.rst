@@ -149,7 +149,7 @@ Static Mechanism
 ----------------
 
 .. automodule:: rational_linkages.StaticMechanism
-   :members:
+   :members: StaticMechanism, SnappingMechanism
    :undoc-members:
    :show-inheritance:
 
