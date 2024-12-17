@@ -171,7 +171,8 @@ class RationalMechanism(RationalCurve):
                    joint_length: float = 20.0,
                    washer_length: float = 1.0,
                    update_design: bool = False,
-                   pretty_print: bool = True) -> tuple[np.ndarray, np.ndarray]:
+                   pretty_print: bool = True,
+                   onshape_print: bool = False) -> tuple[np.ndarray, np.ndarray]:
         """
         Get the design parameters of the linkage for the CAD model.
 
@@ -188,6 +189,8 @@ class RationalMechanism(RationalCurve):
         :param bool update_design: if True, update the design of the mechanism (including joint segments)
         :param bool pretty_print: if True, print the parameters in a readable form,
             otherwise return a numpy array
+        :param bool onshape_print: if True, print the parameters in a form that can be
+            directly copied to Onshape
 
         :return: design parameters of the linkage
         :rtype: tuple (np.ndarray, np.ndarray)
@@ -230,6 +233,13 @@ class RationalMechanism(RationalCurve):
 
         # ignore the first row (base frame)
         dh = self.get_dh_params(unit=unit, scale=scale)[1:]
+
+        if onshape_print:
+            for i in range(self.num_joints):
+                print(f"link{i}: "
+                      f"[{dh[i, 1]:.6f}, {dh[i, 2]:.6f}, {dh[i, 3]:.6f}], "
+                      f"{design_params[i, 0]:.6f}, {design_params[i, 1]:.6f}")
+            pretty_print = False
 
         if pretty_print:
             for i in range(self.num_joints):
