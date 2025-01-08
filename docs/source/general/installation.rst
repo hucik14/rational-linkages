@@ -24,7 +24,8 @@ or
     pip install rational-linkages[opt]
 
 for installing also optional dependencies (ipython - inline plotting from console,
-gmpy2 - faster symbolic computations, exudyn - multibody simulations).
+gmpy2 - faster symbolic computations, exudyn - multibody simulations, numpy-stl -
+work with meshes in exudyn).
 
 
 B) from source as editable package:
