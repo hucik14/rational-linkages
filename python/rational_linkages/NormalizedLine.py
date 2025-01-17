@@ -11,7 +11,7 @@ PointHomogeneous = "PointHomogeneous"
 
 class NormalizedLine:
     """
-    Class representing a Normalized Line in Dual Quaternion space.
+    Class representing a Normalized Line in 3D space using Pluecker coordinates.
 
     The NormalizedLine is defined using Plucker coordinates, representing a Unit Screw
     axis.
@@ -410,5 +410,18 @@ class NormalizedLine:
                 for coord in line_expr]
         return NormalizedLine(np.asarray(line, dtype="float64"))
 
+    def intersection_with_plane(self, plane: 'NormalizedPlane') -> np.ndarray:
+        """
+        Get the intersection point of the line with a plane
 
+        :param NormalizedPlane plane: 4-vector representing the plane as NormalizedPlane
+            object
 
+        :return: intersection point
+        :rtype: np.ndarray
+        """
+        p0 = np.dot(plane.normal, self.direction)
+        p_vec = (-plane.oriented_distance * self.direction
+                 + np.cross(plane.normal, self.moment))
+
+        return np.concatenate((p0, p_vec), axis=None)
