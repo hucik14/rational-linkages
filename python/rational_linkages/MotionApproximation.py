@@ -7,6 +7,10 @@ from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
 
 
+best_params = None
+lowest_constraint_violation = float('inf')
+
+
 class MotionApproximation:
     """
     MotionApproximation class
@@ -29,14 +33,14 @@ class MotionApproximation:
 
         poses = init_poses + poses
 
-        approx_curve = MotionApproximation._cubic_approximation(init_curve,
-                                                                poses,
-                                                                guessed_t,
-                                                                num_poses,
-                                                                num_params,
-                                                                )
+        approx_curve, opt_result = MotionApproximation._cubic_approximation(init_curve,
+                                                                            poses,
+                                                                            guessed_t,
+                                                                            num_poses,
+                                                                            num_params,
+                                                                            )
 
-        return approx_curve
+        return approx_curve, opt_result
 
     @staticmethod
     def _construct_curve(flattended_coeffs):
@@ -75,14 +79,14 @@ class MotionApproximation:
             """
             curve = MotionApproximation._construct_curve(params)
 
-            distance = 0.
+            sq_dist = 0.
             for i, pose in enumerate(poses):
                 curve_pose = DualQuaternion(curve.evaluate(guessed_t[i]))
-                distance += metric.squared_distance(pose, curve_pose)
+                sq_dist += metric.squared_distance(pose, curve_pose)
 
-            # print('Objective Function Value:', distance)
+            # print('Objective Function Value:', sq_dist)
 
-            return distance
+            return sq_dist
 
         def constraint(params):
             curve = MotionApproximation._construct_curve(params)
@@ -91,35 +95,44 @@ class MotionApproximation:
 
             pts = [DualQuaternion(curve.evaluate(some_t)) for some_t in t_vars]
 
-            dist_to_study_quadric = 0.
+            constr_eqs = []
+            constr_sum = 0.
             for pt in pts:
-                dist_to_study_quadric += (pt[0] * pt[4] + pt[1] * pt[5] + pt[2] * pt[6] + pt[3] * pt[7])
+                constr_eqs.append(pt[0] * pt[4] + pt[1] * pt[5] + pt[2] * pt[6] + pt[3] * pt[7])
+                constr_sum += abs(pt[0] * pt[4] + pt[1] * pt[5] + pt[2] * pt[6] + pt[3] * pt[7])
 
             # print(f"Constraint Value: {dist_to_study_quadric}")
 
-            return dist_to_study_quadric
+            return constraints
 
         def callback(params):
+            global best_params, lowest_constraint_violation
             current_distance = objective_function(params)
-            print(f"Current Objective Function Value: {current_distance}")
+            print(f"Current OF: {current_distance}, constraints: {current_constraints}")
+
+            if abs(current_constraints) < lowest_constraint_violation:
+                lowest_constraint_violation = abs(current_constraints)
+                best_params = params.copy()
 
         constraints = {'type': 'eq', 'fun': constraint}
 
         result = minimize(objective_function,
                           initial_guess,
                           constraints=constraints,
-                          # method='SLSQP',
                           callback=callback,
-                          # options={'ftol': 1.},
+                          options={'maxiter': 200},
                           )
 
-        optimized_params = result.x
-        print("Optimized Parameters:", optimized_params)
         print(result)
 
-        result_curve = MotionApproximation._construct_curve(optimized_params)
+        result_curve = MotionApproximation._construct_curve(result.x)
 
-        return result_curve
+        global best_params
+
+        if best_params is None:
+            return result_curve, result
+        else:
+            return MotionApproximation._construct_curve(best_params), result
 
 
 
