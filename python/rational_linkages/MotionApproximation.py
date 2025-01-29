@@ -2,75 +2,124 @@ import numpy as np
 from scipy.optimize import minimize
 
 from .DualQuaternion import DualQuaternion
+from .AffineMetric import AffineMetric
+from .PointHomogeneous import PointHomogeneous
+from .RationalCurve import RationalCurve
 
 
 class MotionApproximation:
     """
     MotionApproximation class
     """
+    def __init__(self):
+        pass
 
-    def __init__(self, poses: list[DualQuaternion]):
+    @staticmethod
+    def approximate(init_curve,
+                    init_poses,
+                    poses: list[DualQuaternion],
+                    guessed_t: list[float]):
         """
         Initializes a MotionApproximation object
 
         :param poses: list[DualQuaternion] - list of poses
         """
-        self.poses = poses
-        self.num_poses = len(poses)
-        self.num_params = int(8 * 3 + 2)  # for degree 2 curve
+        num_poses = len(init_poses) + len(poses)
+        num_params = int(8 * 3)
 
-        self.curve = self.get_curve()
+        poses = init_poses + poses
 
-    def get_curve(self):
+        approx_curve = MotionApproximation._cubic_approximation(init_curve,
+                                                                poses,
+                                                                guessed_t,
+                                                                num_poses,
+                                                                num_params,
+                                                                )
+
+        return approx_curve
+
+    @staticmethod
+    def _construct_curve(flattended_coeffs):
+        coeffs = np.array([np.concatenate(([1], flattended_coeffs[:3]), axis=None),
+                           np.concatenate(([0], flattended_coeffs[3:6]), axis=None),
+                           np.concatenate(([0], flattended_coeffs[6:9]), axis=None),
+                           np.concatenate(([0], flattended_coeffs[9:12]), axis=None),
+                           np.concatenate(([0], flattended_coeffs[12:15]), axis=None),
+                           np.concatenate(([0], flattended_coeffs[15:18]), axis=None),
+                           np.concatenate(([0], flattended_coeffs[18:21]), axis=None),
+                           np.concatenate(([0], flattended_coeffs[21:]), axis=None)
+                           ])
+        return RationalCurve.from_coeffs(coeffs)
+
+    @staticmethod
+    def _cubic_approximation(init_curve,
+                             poses,
+                             guessed_t,
+                             num_poses,
+                             num_params,):
         """
-        Get the curve of the motion approximation
+        Get the curve of the cubic motion approximation
 
         :return: MotionApproximationCurve
         """
+        metric = AffineMetric(init_curve,
+                              [PointHomogeneous.from_3d_point(pose.dq2point_via_matrix())
+                               for pose in poses])
 
-        initial_guess = np.zeros(self.num_params)
-        initial_guess[2] = 1.0
+        initial_guess = init_curve.coeffs[:,1:4].flatten()
 
         def objective_function(params):
             """
             Objective function to minimize the sum of squared distances between
             the poses and the curve
             """
-            #t, s0, s1, s2, i0, i1, i2, j0, j1, j2, k0, k1, k2, es0, es1, es2, ei0, ei1, ei2, ej0, ej1, ej2, ek0, ek1, ek2 = params
-            return np.sum([val ** 2 for val in params[2::]])
+            curve = MotionApproximation._construct_curve(params)
+
+            distance = 0.
+            for i, pose in enumerate(poses):
+                curve_pose = DualQuaternion(curve.evaluate(guessed_t[i]))
+                distance += metric.squared_distance(pose, curve_pose)
+
+            # print('Objective Function Value:', distance)
+
+            return distance
 
         def constraint(params):
-            t0, t1, s0, s1, s2, i0, i1, i2, j0, j1, j2, k0, k1, k2, es0, es1, es2, ei0, ei1, ei2, ej0, ej1, ej2, ek0, ek1, ek2 = params
-            t = [t0, t1]
+            curve = MotionApproximation._construct_curve(params)
 
-            #c0 = ((s0 + s1 * t + s2 * t ** 2) * (es0 + es1 * t + es2 * t ** 2)
-            #      + (i0 + i1 * t + i2 * t ** 2) * (ei0 + ei1 * t + ei2 * t ** 2)
-            #      + (j0 + j1 * t + j2 * t ** 2) * (ej0 + ej1 * t + ej2 * t ** 2)
-            #      + (k0 + k1 * t + k2 * t ** 2) * (ek0 + ek1 * t + ek2 * t ** 2))
+            t_vars = np.linspace(-10, 10, 100)
 
-            c = []
+            pts = [DualQuaternion(curve.evaluate(some_t)) for some_t in t_vars]
 
-            for i in range(self.num_poses):
-                c.append(s0 + s1 * t[i] + s2 * t[i] ** 2 - self.poses[i].dq[0])
-                c.append(i0 + i1 * t[i] + i2 * t[i] ** 2 - self.poses[i].dq[1])
-                c.append(j0 + j1 * t[i] + j2 * t[i] ** 2 - self.poses[i].dq[2])
-                c.append(k0 + k1 * t[i] + k2 * t[i] ** 2 - self.poses[i].dq[3])
-                c.append(es0 + es1 * t[i] + es2 * t[i] ** 2 - self.poses[i].dq[4])
-                c.append(ei0 + ei1 * t[i] + ei2 * t[i] ** 2 - self.poses[i].dq[5])
-                c.append(ej0 + ej1 * t[i] + ej2 * t[i] ** 2 - self.poses[i].dq[6])
-                c.append(ek0 + ek1 * t[i] + ek2 * t[i] ** 2 - self.poses[i].dq[7])
+            dist_to_study_quadric = 0.
+            for pt in pts:
+                dist_to_study_quadric += (pt[0] * pt[4] + pt[1] * pt[5] + pt[2] * pt[6] + pt[3] * pt[7])
 
-            return c
+            # print(f"Constraint Value: {dist_to_study_quadric}")
+
+            return dist_to_study_quadric
+
+        def callback(params):
+            current_distance = objective_function(params)
+            print(f"Current Objective Function Value: {current_distance}")
 
         constraints = {'type': 'eq', 'fun': constraint}
 
-        result = minimize(objective_function, initial_guess, constraints=constraints, method='SLSQP')
+        result = minimize(objective_function,
+                          initial_guess,
+                          constraints=constraints,
+                          # method='SLSQP',
+                          callback=callback,
+                          # options={'ftol': 1.},
+                          )
 
         optimized_params = result.x
         print("Optimized Parameters:", optimized_params)
         print(result)
 
-        return result
+        result_curve = MotionApproximation._construct_curve(optimized_params)
+
+        return result_curve
 
 
 
