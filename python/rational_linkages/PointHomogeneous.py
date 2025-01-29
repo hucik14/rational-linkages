@@ -1,7 +1,7 @@
 import numpy as np
 
 from typing import Optional, Sequence
-from sympy import Expr, Rational
+from sympy import Rational
 
 from .TransfMatrix import TransfMatrix
 
@@ -162,19 +162,25 @@ class PointHomogeneous:
                             max_line_width=100000)
         return f"{p}"
 
-    def __add__(self, other):
+    def __add__(self, other: "PointHomogeneous"):
         """
         Add two points
-        :param other: Point
-        :return: array of floats
+
+        :param PointHomogeneous other: Other point
+
+        :return: two points added together
+        :rtype: PointHomogeneous
         """
         return PointHomogeneous(self.coordinates + other.coordinates)
 
-    def __sub__(self, other):
+    def __sub__(self, other: "PointHomogeneous"):
         """
         Subtract two points
-        :param other: Point
-        :return: array of floats
+
+        :param PointHomogeneous other: Other point
+
+        :return: two points subtracted
+        :rtype: PointHomogeneous
         """
         return PointHomogeneous(self.coordinates - other.coordinates)
 

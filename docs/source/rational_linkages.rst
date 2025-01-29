@@ -89,6 +89,14 @@ Normalized Line
    :undoc-members:
    :show-inheritance:
 
+Normalized Plane
+----------------
+
+.. automodule:: rational_linkages.NormalizedPlane
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Plotter
 -------
 

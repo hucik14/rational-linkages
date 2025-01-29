@@ -19,3 +19,4 @@ from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
 from .CollisionAnalyser import CollisionAnalyser
 from .StaticMechanism import StaticMechanism, SnappingMechanism
+from .NormalizedPlane import NormalizedPlane

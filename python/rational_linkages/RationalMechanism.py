@@ -172,7 +172,7 @@ class RationalMechanism(RationalCurve):
                    washer_length: float = 1.0,
                    update_design: bool = False,
                    pretty_print: bool = True,
-                   onshape_print: bool = False) -> tuple[np.ndarray, np.ndarray]:
+                   onshape_print: bool = False) -> tuple[np.ndarray, np.ndarray, list]:
         """
         Get the design parameters of the linkage for the CAD model.
 
@@ -193,7 +193,7 @@ class RationalMechanism(RationalCurve):
             directly copied to Onshape
 
         :return: design parameters of the linkage
-        :rtype: tuple (np.ndarray, np.ndarray)
+        :rtype: tuple (np.ndarray, np.ndarray, list)
         """
         screws = deepcopy(self.get_screw_axes())
         screws.append(screws[0])
@@ -231,6 +231,12 @@ class RationalMechanism(RationalCurve):
 
         design_params = design_params * scale
 
+        design_points = []
+        for i in range(self.num_joints):
+            design_points.append(
+                [screws[i].direction + design_params[i, 0] * screws[i].direction,
+                 screws[i].direction + design_params[i, 1] * screws[i].direction])
+
         # ignore the first row (base frame)
         dh = self.get_dh_params(unit=unit, scale=scale)[1:]
 
@@ -250,7 +256,7 @@ class RationalMechanism(RationalCurve):
                 print(f"cp_0 = {design_params[i, 0]:.6f}, "
                       f"cp_1 = {design_params[i, 1]:.6f}")
 
-        return dh, design_params
+        return dh, design_params, design_points
 
     def get_segment_connections(self) -> np.ndarray:
         """
