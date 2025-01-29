@@ -224,7 +224,7 @@ class TestRationalMechanism(TestCase):
                                         PointHomogeneous([1, -0.66666667, 0, 0.1]),
                                         PointHomogeneous([1, -0.66666667, 0, 0])])
 
-        dh, design_params = m.get_design(scale=10)
+        dh, design_params, design_points = m.get_design(scale=10)
 
         expected_dh = np.array([[3.14159265, 0., 5, 0.],
                                 [0., 0., 10 * 1 / 6, 0.],
@@ -236,7 +236,7 @@ class TestRationalMechanism(TestCase):
         self.assertTrue(np.allclose(dh, expected_dh))
         self.assertTrue(np.allclose(design_params, expected_design_params))
 
-        dh, design_params = m.get_design(unit='deg')
+        dh, design_params, design_points = m.get_design(unit='deg')
         expected_dh = np.array([[180, 0., 0.5, 0.],
                                 [0., 0., 1 / 6, 0.],
                                 [180, 0., 0.5, 0.],

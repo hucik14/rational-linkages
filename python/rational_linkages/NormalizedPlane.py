@@ -123,9 +123,10 @@ class NormalizedPlane:
         return self.coordinates
 
     def as_dq_array(self):
-        return np.concatenate([self.oriented_distance,
-                               [0, 0, 0, 0],
-                               self.normal], axis=None)
+        return np.concatenate([[0],
+                               self.normal,
+                               self.oriented_distance,
+                               [0, 0, 0]], axis=None)
 
     def intersection_with_plane(self, other):
         """
@@ -149,4 +150,6 @@ class NormalizedPlane:
         vec = np.array([np.dot(n1, p1), np.dot(n2, p2), 0])
         line_point = np.linalg.lstsq(mat, vec, rcond=None)[0]
 
-        return np.concatenate([line_dir, line_point], axis=None)
+        line_moment = np.cross(-1 * line_dir, line_point)
+
+        return np.concatenate([line_dir, line_moment], axis=None)
