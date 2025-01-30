@@ -7,10 +7,6 @@ from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
 
 
-best_params = None
-lowest_constraint_violation = float('inf')
-
-
 class MotionApproximation:
     """
     MotionApproximation class
@@ -84,55 +80,48 @@ class MotionApproximation:
                 curve_pose = DualQuaternion(curve.evaluate(guessed_t[i]))
                 sq_dist += metric.squared_distance(pose, curve_pose)
 
-            # print('Objective Function Value:', sq_dist)
+            # Compute constraint violation penalty
+            constraint_violations = constraint_func(params)
+            penalty_weight = 1e5  # Large weight to prioritize constraints
+            penalty = penalty_weight * constraint_violations ** 2
 
-            return sq_dist
+            return sq_dist + penalty
 
-        def constraint(params):
+        def constraint_func(params):
+            """
+            Enforces that the rational motion curve lies on the Study quadric
+            by ensuring that the polynomial coefficients satisfy N_r(t) * N_d(t) = 0.
+            """
             curve = MotionApproximation._construct_curve(params)
 
-            t_vars = np.linspace(-10, 10, 100)
+            # every row as numpy polynomial
+            poly_list = []
+            for i in range(8):
+                poly_list.append(np.polynomial.Polynomial(curve.coeffs[i, :][::-1]))
 
-            pts = [DualQuaternion(curve.evaluate(some_t)) for some_t in t_vars]
+            study_quadric = poly_list[0] * poly_list[4] + poly_list[1] * poly_list[5] + poly_list[2] * poly_list[6] + poly_list[3] * poly_list[7]
 
-            constr_eqs = []
-            constr_sum = 0.
-            for pt in pts:
-                constr_eqs.append(pt[0] * pt[4] + pt[1] * pt[5] + pt[2] * pt[6] + pt[3] * pt[7])
-                constr_sum += abs(pt[0] * pt[4] + pt[1] * pt[5] + pt[2] * pt[6] + pt[3] * pt[7])
-
-            # print(f"Constraint Value: {dist_to_study_quadric}")
-
-            return constraints
+            return sum(study_quadric.coef)
 
         def callback(params):
-            global best_params, lowest_constraint_violation
             current_distance = objective_function(params)
-            print(f"Current OF: {current_distance}, constraints: {current_constraints}")
+            current_constraint = constraint_func(params)
+            print(f"OF: {current_distance}, Constraints: {current_constraint}")
 
-            if abs(current_constraints) < lowest_constraint_violation:
-                lowest_constraint_violation = abs(current_constraints)
-                best_params = params.copy()
-
-        constraints = {'type': 'eq', 'fun': constraint}
+        constraints = {'type': 'eq', 'fun': constraint_func}
 
         result = minimize(objective_function,
                           initial_guess,
                           constraints=constraints,
                           callback=callback,
-                          options={'maxiter': 200},
+                          options={'maxiter': 500,
+                                   'ftol': 1e-20,
+                                   'eps': 1e-12,
+                                   },
                           )
 
         print(result)
 
         result_curve = MotionApproximation._construct_curve(result.x)
 
-        global best_params
-
-        if best_params is None:
-            return result_curve, result
-        else:
-            return MotionApproximation._construct_curve(best_params), result
-
-
-
+        return result_curve, result
