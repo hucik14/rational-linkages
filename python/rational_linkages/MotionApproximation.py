@@ -80,43 +80,48 @@ class MotionApproximation:
                 curve_pose = DualQuaternion(curve.evaluate(guessed_t[i]))
                 sq_dist += metric.squared_distance(pose, curve_pose)
 
-            # Compute constraint violation penalty
-            constraint_violations = constraint_func(params)
-            penalty_weight = 1e5  # Large weight to prioritize constraints
-            penalty = penalty_weight * constraint_violations ** 2
+            # # Compute constraint violation penalty
+            # constraint_violations = constraint_func(params)
+            # penalty_weight = 1e5  # Large weight to prioritize constraints
+            # penalty = penalty_weight * constraint_violations ** 2
 
-            return sq_dist + penalty
+            return sq_dist #+ penalty
 
         def constraint_func(params):
-            """
-            Enforces that the rational motion curve lies on the Study quadric
-            by ensuring that the polynomial coefficients satisfy N_r(t) * N_d(t) = 0.
-            """
             curve = MotionApproximation._construct_curve(params)
 
-            # every row as numpy polynomial
-            poly_list = []
-            for i in range(8):
-                poly_list.append(np.polynomial.Polynomial(curve.coeffs[i, :][::-1]))
+            poly_list = [np.polynomial.Polynomial(curve.coeffs[i, :][::-1])
+                         for i in range(8)]
 
-            study_quadric = poly_list[0] * poly_list[4] + poly_list[1] * poly_list[5] + poly_list[2] * poly_list[6] + poly_list[3] * poly_list[7]
+            sq_err = (poly_list[0] * poly_list[4] + poly_list[1] * poly_list[5]
+                      + poly_list[2] * poly_list[6] + poly_list[3] * poly_list[7])
 
-            return sum(study_quadric.coef)
+            if len(sq_err.coef) != 8:
+                # expand to 8 coefficients
+                sq_err.coef = np.concatenate((sq_err.coef, np.zeros(8 - len(sq_err.coef))), axis=None)
+
+            # return sum(np.array(sq_err.coef) ** 2)
+            return sq_err.coef
 
         def callback(params):
             current_distance = objective_function(params)
             current_constraint = constraint_func(params)
             print(f"OF: {current_distance}, Constraints: {current_constraint}")
 
-        constraints = {'type': 'eq', 'fun': constraint_func}
+        # constraints = {'type': 'eq', 'fun': constraint_func}
+        constraints = []
+        for i in range(8):  # Create 8 separate constraint functions
+            constraints.append({
+                'type': 'eq',
+                'fun': lambda params, index=i: constraint_func(params)[index]
+            })
 
         result = minimize(objective_function,
                           initial_guess,
-                          constraints=constraints,
+                          constraints=constraints,  # Use the list of constraints
                           callback=callback,
-                          options={'maxiter': 500,
-                                   'ftol': 1e-20,
-                                   'eps': 1e-12,
+                          options={'maxiter': 100,
+                                   'ftol': 1e-16,
                                    },
                           )
 
