@@ -1,10 +1,14 @@
 import numpy as np
 from scipy.optimize import minimize
+from typing import Union
 
 from .DualQuaternion import DualQuaternion
 from .AffineMetric import AffineMetric
 from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
+
+
+### NOT YET in the documentation ### TODO: add to docs
 
 
 class MotionApproximation:
@@ -16,30 +20,41 @@ class MotionApproximation:
 
     @staticmethod
     def approximate(init_curve,
-                    init_poses,
                     poses: list[DualQuaternion],
-                    guessed_t: list[float]):
+                    t_vals: Union[list[float], np.ndarray]
+                    ) -> tuple[RationalCurve, dict]:
         """
-        Initializes a MotionApproximation object
+        Approximate a motion curve that passes through the given poses
 
-        :param poses: list[DualQuaternion] - list of poses
+        :param RationalCurve init_curve: initial curve (guess), use interpolation
+            algorithm from :class:`.MotionInterpolation.MotionInterpolation` to get
+            a good initial guess
+        :param list[DualQuaternion] poses: poses to be approximated
+        :param Union[list[float], np.ndarray] t_vals: parameter t values for the poses
+            in the same order
+
+        :return: Approximated curve and optimization result
+        :rtype: tuple[RationalCurve, dict]
         """
-        num_poses = len(init_poses) + len(poses)
-        num_params = int(8 * 3)
-
-        poses = init_poses + poses
+        if init_curve.degree != 3:
+            raise ValueError("So far, only cubic curves are supported")
 
         approx_curve, opt_result = MotionApproximation._cubic_approximation(init_curve,
                                                                             poses,
-                                                                            guessed_t,
-                                                                            num_poses,
-                                                                            num_params,
-                                                                            )
+                                                                            t_vals)
 
         return approx_curve, opt_result
 
     @staticmethod
-    def _construct_curve(flattended_coeffs):
+    def _construct_curve(flattended_coeffs) -> RationalCurve:
+        """
+        Construct a RationalCurve from the flattened coefficients
+
+        :param flattended_coeffs: flattened coefficients
+
+        :return: RationalCurve constructed from the coefficients
+        :rtype: RationalCurve
+        """
         coeffs = np.array([np.concatenate(([1], flattended_coeffs[:3]), axis=None),
                            np.concatenate(([0], flattended_coeffs[3:6]), axis=None),
                            np.concatenate(([0], flattended_coeffs[6:9]), axis=None),
@@ -54,13 +69,12 @@ class MotionApproximation:
     @staticmethod
     def _cubic_approximation(init_curve,
                              poses,
-                             guessed_t,
-                             num_poses,
-                             num_params,):
+                             t_vals) -> tuple[RationalCurve, dict]:
         """
         Get the curve of the cubic motion approximation
 
-        :return: MotionApproximationCurve
+        :return: Approximated curve
+        :rtype: tuple[RationalCurve, dict]
         """
         metric = AffineMetric(init_curve,
                               [PointHomogeneous.from_3d_point(pose.dq2point_via_matrix())
@@ -77,57 +91,43 @@ class MotionApproximation:
 
             sq_dist = 0.
             for i, pose in enumerate(poses):
-                curve_pose = DualQuaternion(curve.evaluate(guessed_t[i]))
+                curve_pose = DualQuaternion(curve.evaluate(t_vals[i]))
                 sq_dist += metric.squared_distance(pose, curve_pose)
 
-            # # Compute constraint violation penalty
-            # constraint_violations = constraint_func(params)
-            # penalty_weight = 1e5  # Large weight to prioritize constraints
-            # penalty = penalty_weight * constraint_violations ** 2
-
-            return sq_dist #+ penalty
+            return sq_dist
 
         def constraint_func(params):
             curve = MotionApproximation._construct_curve(params)
+            sq_err = curve.study_quadric_check()
 
-            poly_list = [np.polynomial.Polynomial(curve.coeffs[i, :][::-1])
-                         for i in range(8)]
+            if len(sq_err) != 6:  # expand if necessary to avoid index errors
+                sq_err = np.concatenate((sq_err, np.zeros(6 - len(sq_err))), axis=None)
 
-            sq_err = (poly_list[0] * poly_list[4] + poly_list[1] * poly_list[5]
-                      + poly_list[2] * poly_list[6] + poly_list[3] * poly_list[7])
-
-            if len(sq_err.coef) != 6:
-                # expand to 8 coefficients
-                sq_err.coef = np.concatenate((sq_err.coef, np.zeros(6 - len(sq_err.coef))), axis=None)
-
-            # return sum(np.array(sq_err.coef) ** 2)
-            return sq_err.coef
+            return sq_err
 
         def callback(params):
             current_distance = objective_function(params)
             current_constraint = constraint_func(params)
-            print(f"OF: {current_distance}, Constraints: {current_constraint}")
+            print(f"Objective function: {current_distance}, Constraints:")
+            print(current_constraint)
 
-        # constraints = {'type': 'eq', 'fun': constraint_func}
         constraints = []
-        for i in range(6):  # Create 8 separate constraint functions
+        for i in range(6):  # separate constraint functions for Study Quadric equation
             constraints.append({
                 'type': 'eq',
                 'fun': (lambda params, index=i: constraint_func(params)[index])
-                # Capture index properly
             })
 
         result = minimize(objective_function,
                           initial_guess,
-                          constraints=constraints,  # Use the list of constraints
+                          constraints=constraints,
                           callback=callback,
-                          options={'maxiter': 100,
+                          options={'maxiter': 200,
                                    'ftol': 1e-16,
                                    },
                           )
 
         print(result)
-
         result_curve = MotionApproximation._construct_curve(result.x)
 
         return result_curve, result
