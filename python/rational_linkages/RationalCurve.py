@@ -683,6 +683,21 @@ class RationalCurve:
         t_val = (low + high) / 2
         return t_val
 
+    def study_quadric_check(self) -> np.ndarray:
+        """
+        Calculate the error of the curve from the Study quadric
+
+        :return: coefficients error of the curve from the Study quadric
+        :rtype: np.ndarray
+        """
+        poly_list = [np.polynomial.Polynomial(self.coeffs[i, :][::-1])
+                     for i in range(8)]
+
+        study_quadric = (poly_list[0] * poly_list[4] + poly_list[1] * poly_list[5]
+                         + poly_list[2] * poly_list[6] + poly_list[3] * poly_list[7])
+
+        return study_quadric.coef
+
     def is_on_study_quadric(self):
         """
         Check if the curve is a motion curve on the study quadric
@@ -690,16 +705,8 @@ class RationalCurve:
         :return: True if the curve is a motion curve, False otherwise
         :rtype: bool
         """
-        ts = np.linspace(-1, 1, 30)
+        study_quadric_error = self.study_quadric_check()
 
-        for t_val in ts:
-            dq = DualQuaternion(self.evaluate(t_val))
-            dq_inv = DualQuaternion(self.evaluate(t_val, inverted_part=True))
-            if not dq.is_on_study_quadric(approximate_sol=True):
-                return False
-            if not dq_inv.is_on_study_quadric(approximate_sol=True):
-                return False
-        else:
-            return True
+        return sum(abs(study_quadric_error)) < 1e-10
 
 

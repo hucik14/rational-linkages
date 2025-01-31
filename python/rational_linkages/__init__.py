@@ -6,6 +6,7 @@ from .ExudynAnalysis import ExudynAnalysis
 from .FactorizationProvider import FactorizationProvider
 from .Linkage import LineSegment, Linkage, PointsConnection
 from .MiniBall import MiniBall
+from .MotionApproximation import MotionApproximation
 from .MotionFactorization import MotionFactorization
 from .MotionInterpolation import MotionInterpolation
 from .NormalizedLine import NormalizedLine

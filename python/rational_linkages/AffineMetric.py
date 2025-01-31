@@ -169,6 +169,9 @@ class AffineMetric:
         :return: float - squared distance between a and b
         :rtype: float
         """
+        if abs(a[0]) > 1e-10 and abs(b[0]) > 1e-10:
+            a = a / a[0]
+            b = b / b[0]
         return self.inner_product(a, b)
 
     def inner_product(self, a: DualQuaternion, b: DualQuaternion):
