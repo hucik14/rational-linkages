@@ -96,9 +96,9 @@ class MotionApproximation:
             sq_err = (poly_list[0] * poly_list[4] + poly_list[1] * poly_list[5]
                       + poly_list[2] * poly_list[6] + poly_list[3] * poly_list[7])
 
-            if len(sq_err.coef) != 8:
+            if len(sq_err.coef) != 6:
                 # expand to 8 coefficients
-                sq_err.coef = np.concatenate((sq_err.coef, np.zeros(8 - len(sq_err.coef))), axis=None)
+                sq_err.coef = np.concatenate((sq_err.coef, np.zeros(6 - len(sq_err.coef))), axis=None)
 
             # return sum(np.array(sq_err.coef) ** 2)
             return sq_err.coef
@@ -110,10 +110,11 @@ class MotionApproximation:
 
         # constraints = {'type': 'eq', 'fun': constraint_func}
         constraints = []
-        for i in range(8):  # Create 8 separate constraint functions
+        for i in range(6):  # Create 8 separate constraint functions
             constraints.append({
                 'type': 'eq',
-                'fun': lambda params, index=i: constraint_func(params)[index]
+                'fun': (lambda params, index=i: constraint_func(params)[index])
+                # Capture index properly
             })
 
         result = minimize(objective_function,
