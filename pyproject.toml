@@ -89,7 +89,7 @@ omit = [
     "*/test*",
     "*__init__.py",
     "*Plotter.py",
-    "*ButtonID.py",
     "*MotionApproximation.py",
     "*StaticMechanism.py",
+    "*AffineMetric.py",
     ]
