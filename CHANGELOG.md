@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.10.0 (2025-02-03)
+
+### added (12 changes)
+
+- [new Motion Approximation method](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5b06135e)
+- [tests and debug of new methods](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9090b931)
+- [constructors from 3 points, line and point, intersection with other plane](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d691d967)
+- [intersection of lines and planes, cleanup](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/42d41b9d)
+- [New NormalizedPlane.py class](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/38355558)
+- [numpy-stl added to opt dependencies](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/e37992e6)
+- [get_design of RationalMechanism.py returns also actual connection points](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/8fa7365b)
+- [print params for onshape new models](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/dda41e25)
+- [Synthesis of snapping mechanism for two poses - Wunderlich construction](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/8ce2225d)
+- [plotter adds methods triggering controls visibility, saving via command line](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/6d4fe794)
+- [plotter adds methods for plotting planes, axis (quiver) between points, line segments between list of points](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/63a6111b)
+- [create StaticMechanism.py from algebraic equations (i,j,k,eps)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/8d57ee1e)
+
+
+### removed (2 changes)
+
+- [code cleanup, removed ButtonID](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5a8630fd)
+- [examples cleanup](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/4fc947d8)
+
+
+### changed (2 changes)
+
+- [plotting examples cleanup](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/2f929382)
+- [precise Study Quadric check using numpy Polynomials](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/075a36d1)
+
+
 ## 1.9.0 (2024-11-20)
 
 ### added (5 changes)
