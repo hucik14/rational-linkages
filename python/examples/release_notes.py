@@ -7,6 +7,8 @@ SOURCE_BRANCH = 'develop'  # Replace with your source branch
 TARGET_BRANCH = 'main'  # Replace with your target branch
 CHANGELOG_FILE = 'CHANGELOG.md'  # Name of the changelog file
 
+NEW_VERSION = '1.11.0'
+
 
 def get_changelog_commits(commits):
     changelog_commits = {
@@ -103,7 +105,7 @@ def main():
         return
 
     release_date = datetime.now().strftime('%Y-%m-%d')
-    version = "1.9.0"  # Replace with your versioning logic
+    version = NEW_VERSION
 
     release_notes = format_release_notes(version, release_date, changelog_commits)
     write_changelog(CHANGELOG_FILE, release_notes)

@@ -25,6 +25,7 @@ class Plotter:
                  interactive: bool = False,
                  jupyter_notebook: bool = False,
                  show_legend: bool = False,
+                 show_controls: bool = True,
                  interval: tuple = (-1, 1),
                  steps: int = 50,
                  arrows_length: float = 1.0,
@@ -35,6 +36,7 @@ class Plotter:
         :param bool interactive: activate interactive mode
         :param bool jupyter_notebook: activate jupyter notebook mode
         :param bool show_legend: show the legend
+        :param bool show_controls: show or hide the controls for interactive plotting
         :param int steps: number of steps for plotting
         :param arrows_length: length of quiver arrows for poses and frames
         :param float joint_range_lim: limit for joint sliders, will be +/- value
@@ -84,6 +86,7 @@ class Plotter:
         self.interactive = interactive
         self.jupyter_notebook = jupyter_notebook
         self.j_sliders_limit = joint_range_lim
+        self.show_controls = show_controls
 
         # length of quiver arrows for poses and frames
         self.arrows_length = arrows_length
@@ -213,6 +216,93 @@ class Plotter:
         return _wrapper
 
     @_plotting_decorator
+    def plot_axis_between_two_points(self,
+                                     p0: PointHomogeneous,
+                                     p1: PointHomogeneous,
+                                     **kwargs):
+        """
+        Plot a line between two points
+
+        :param PointHomogeneous p0: first point
+        :param PointHomogeneous p1: second point
+        :param kwargs: matplotlib options
+        """
+        line = np.concatenate((p0.normalized_in_3d(),
+                               p1.normalized_in_3d() - p0.normalized_in_3d()))
+
+        if 'label' not in kwargs:
+            kwargs['label'] = "line"
+        else:
+            mid_of_line = (line[:3] + line[3:]/2)
+            self.ax.text(*mid_of_line, ' ' + kwargs['label'])
+
+        if 'linestyle' not in kwargs:
+            kwargs['linestyle'] = '-.'
+
+        self.ax.quiver(*line, **kwargs)
+
+    @_plotting_decorator
+    def plot_line_segments_between_points(self,
+                                          points: list[PointHomogeneous],
+                                          **kwargs):
+        """
+        Plot a line segment between two points
+
+        :param list[PointHomogeneous] points: list of points
+        :param kwargs: matplotlib options
+        """
+        pts = [p.normalized_in_3d() for p in points]
+
+        x_coords = [pt[0] for pt in pts]
+        y_coords = [pt[1] for pt in pts]
+        z_coords = [pt[2] for pt in pts]
+
+        if 'label' not in kwargs:
+            kwargs['label'] = "segment"
+
+        self.ax.plot(x_coords, y_coords, z_coords, **kwargs)
+
+    @_plotting_decorator
+    def plot_plane(self,
+                   normal: np.ndarray,
+                   point: np.ndarray,
+                   xlim: tuple[float, float] = (-1, 1),
+                   ylim: tuple[float, float] = (-1, 1),
+                   **kwargs):
+        """
+        Plots a plane in 3D given a normal vector and a point on the plane.
+
+        :param np.ndarray normal: normal vector of the plane
+        :param np.ndarray point: point on the plane
+        :param tuple[float, float] xlim: x-axis limits
+        :param tuple[float, float] ylim: y-axis limits
+        :param kwargs: matplotlib options
+        """
+        normal = np.asarray(normal)
+        point = np.asarray(point)
+
+        # Extract the normal vector components
+        a, b, c = normal
+
+        # Calculate d in the plane equation ax + by + cz = d
+        d = np.dot(normal, point)
+
+        # Create a grid of x and y values
+        x = np.linspace(*xlim, 20)
+        y = np.linspace(*ylim, 20)
+        x, y = np.meshgrid(x, y)
+
+        # Solve for z in the plane equation
+        z = (d - a * x - b * y) / c
+
+        if 'label' not in kwargs:
+            kwargs['label'] = "plane"
+        else:
+            self.ax.text(*point, ' ' + kwargs['label'])
+
+        self.ax.plot_surface(x, y, z, alpha=0.2, rstride=100, cstride=100)
+
+    @_plotting_decorator
     def _plot_line(self, line: NormalizedLine, **kwargs):
         """
         Plot a line
@@ -229,7 +319,7 @@ class Plotter:
         line = line.get_plot_data(interval)
 
         if 'label' not in kwargs:
-            kwargs['label'] = "line"
+            kwargs['label'] = "axis"
         else:
             mid_of_line = (line[:3] + line[3:]/2)
             self.ax.text(*mid_of_line, ' ' + kwargs['label'])
@@ -790,3 +880,28 @@ class Plotter:
             self.plot_slider_update(val)
             sleep(sleep_time)
 
+    def save(self, filename: str, file_type: str = "png"):
+        """
+        Save the current canvas to a file
+
+        :param str filename: name of the file
+        :param str file_type: file type to save the frames (pdf, png)
+        """
+        # check if the file_type is supported
+        if file_type not in plt.gcf().canvas.get_supported_filetypes():
+            raise ValueError(f"Unsupported file type {file_type}")
+
+        self.fig.savefig(filename + "." + file_type)
+        print("Canvas saved successfully as: ", filename + "." + file_type)
+
+    def trigger_controls_visibility(self):
+        """
+        Hide the controls for interactive plotting
+        """
+        self.show_controls = not self.show_controls
+
+        for control in [self.move_slider, self.text_box_angle, self.text_box_param,
+                        self.text_box_save] + self.joint_sliders:
+            control.ax.set_visible(self.show_controls)
+
+        return None

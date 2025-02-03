@@ -37,10 +37,14 @@ quaternion :math:`\mathbf{q}_d = (p_4, p_5, p_6, p_7)`.
 In the package, the class :class:`.DualQuaternion` is used to represent dual
 quaternions. A simple example of creating an identity dual quaternion is:
 
-.. testcode::
+.. testcode:: [dual_quaternion_example1]
 
     from rational_linkages import DualQuaternion
     p = DualQuaternion()
+
+.. testcleanup:: [dual_quaternion_example1]
+
+    del p, DualQuaternion
 
 
 which will create a dual quaternion :math:`\mathbf{p} = (1, 0, 0, 0, 0, 0, 0, 0)`.
@@ -130,7 +134,7 @@ also known as roll-pitch-yaw angles. The method :meth:`.TransfMatrix.from_rpy_xy
 serves for this purpose. Conversion to dual quaternion is then straightforward,
 as seen in the following example:
 
-.. testcode::
+.. testcode:: [dual_quaternion_example2]
 
     # Create a transformation matrix from Tait-Bryan angles and translation vector,
     # and convert it to dual quaternion
@@ -165,9 +169,11 @@ as seen in the following example:
     T = TransfMatrix(p.dq2matrix())
     print(T)
 
+
+
 The output of the example is:
 
-.. testoutput::
+.. testoutput:: [dual_quaternion_example2]
 
     --------------------
     Transformation matrix:
@@ -201,6 +207,10 @@ The output of the example is:
      [ 5.,  0.,  1., -0.],
      [ 6.,  1.,  0.,  0.]]
 
+.. testcleanup:: [dual_quaternion_example2]
+
+    del TransfMatrix, DualQuaternion
+    del T0, T1, T2, T, p, T_list
 
 
 Dual Quaternion Actions

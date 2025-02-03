@@ -62,12 +62,12 @@ class TestPlotter(unittest.TestCase):
     def test_plot_line_image(self):
         line = NormalizedLine()
         self.plotter.plot(line)
+        self.plotter.update_limits(self.plotter.ax)
         self.plotter.fig.savefig('test_plot_line.png')
-        self.assertTrue(compare_images('test_plot_line.png',
-                                       'python/tests_manual/baseline_images/plot_line.png',
-                                       0.1))
+        self.assertIsNone(compare_images('plot_line_baseline.png',
+                                       'test_plot_line.png',
+                                       0.01))
         os.remove('test_plot_line.png')
-        os.remove('python/tests_manual/baseline_images/plot_line-failed-diff.png')
 
     def test_plot_list(self):
         dq1 = DualQuaternion()

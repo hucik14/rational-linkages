@@ -17,6 +17,16 @@ A) using pip:
 
     pip install rational-linkages
 
+or
+
+.. code-block:: bash
+
+    pip install rational-linkages[opt]
+
+for installing also optional dependencies (ipython - inline plotting from console,
+gmpy2 - faster symbolic computations, exudyn - multibody simulations, numpy-stl -
+work with meshes in exudyn).
+
 
 B) from source as editable package:
 
@@ -26,7 +36,7 @@ B) from source as editable package:
 
     cd rational-linkages
 
-    pip install -e .
+    pip install -e .[opt]
 
 C) from source as editable package with development and documentation dependencies:
 
@@ -36,4 +46,4 @@ C) from source as editable package with development and documentation dependenci
 
     cd rational-linkages
 
-    pip install -e .[dev,doc]
+    pip install -e .[opt,dev,doc]

@@ -29,37 +29,41 @@ class RationalMechanism(RationalCurve):
 
     :examples:
 
-    .. testcode::
+    .. testcode:: [rationalmechanism_example1]
 
         # Create a rational mechanism from given example
 
-        from rational_linkages import RationalMechanism, Plotter
+        from rational_linkages import RationalMechanism, Plotter, TransfMatrix
         from rational_linkages.models import bennett_ark24
 
 
-        if __name__ == "__main__":
-            # load the model of the Bennett's linkage
-            m = bennett_ark24()
+        # load the model of the Bennett's linkage
+        m = bennett_ark24()
 
-            # create an interactive plotter object, with 500 descrete steps
-            # for the input rational curves, and arrows scaled to 0.05 length
-            myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
+        # create an interactive plotter object, with 500 descrete steps
+        # for the input rational curves, and arrows scaled to 0.05 length
+        myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
 
-            # plot the model with tool frame
-            myplt.plot(m, show_tool=True)
+        # plot the model with tool frame
+        myplt.plot(m, show_tool=True)
 
-            ##### additional plotting options #####
-            # create a pose of the identity
-            base = TransfMatrix()
-            myplt.plot(base)
+        ##### additional plotting options #####
+        # create a pose of the identity
+        base = TransfMatrix()
+        myplt.plot(base)
 
-            # create another pose
-            p0 = TransfMatrix.from_rpy_xyz([-90, 0, 0], [0.15, 0, 0], unit='deg')
-            myplt.plot(p0)
-            ######################################
+        # create another pose
+        p0 = TransfMatrix.from_rpy_xyz([-90, 0, 0], [0.15, 0, 0], unit='deg')
+        myplt.plot(p0)
+        ######################################
 
-            # show the plot
-            myplt.show()
+        # show the plot
+        myplt.show()
+
+    .. testcleanup:: [rationalmechanism_example1]
+
+        del RationalMechanism, Plotter, bennett_ark24
+        del m, myplt, p0
     """
 
     def __init__(self, factorizations: list[MotionFactorization],
@@ -167,7 +171,8 @@ class RationalMechanism(RationalCurve):
                    joint_length: float = 20.0,
                    washer_length: float = 1.0,
                    update_design: bool = False,
-                   pretty_print: bool = True) -> tuple[np.ndarray, np.ndarray]:
+                   pretty_print: bool = True,
+                   onshape_print: bool = False) -> tuple[np.ndarray, np.ndarray, list]:
         """
         Get the design parameters of the linkage for the CAD model.
 
@@ -184,9 +189,11 @@ class RationalMechanism(RationalCurve):
         :param bool update_design: if True, update the design of the mechanism (including joint segments)
         :param bool pretty_print: if True, print the parameters in a readable form,
             otherwise return a numpy array
+        :param bool onshape_print: if True, print the parameters in a form that can be
+            directly copied to Onshape
 
         :return: design parameters of the linkage
-        :rtype: tuple (np.ndarray, np.ndarray)
+        :rtype: tuple (np.ndarray, np.ndarray, list)
         """
         screws = deepcopy(self.get_screw_axes())
         screws.append(screws[0])
@@ -224,8 +231,21 @@ class RationalMechanism(RationalCurve):
 
         design_params = design_params * scale
 
+        design_points = []
+        for i in range(self.num_joints):
+            design_points.append(
+                [screws[i].direction + design_params[i, 0] * screws[i].direction,
+                 screws[i].direction + design_params[i, 1] * screws[i].direction])
+
         # ignore the first row (base frame)
         dh = self.get_dh_params(unit=unit, scale=scale)[1:]
+
+        if onshape_print:
+            for i in range(self.num_joints):
+                print(f"link{i}: "
+                      f"[{dh[i, 1]:.6f}, {dh[i, 2]:.6f}, {dh[i, 3]:.6f}], "
+                      f"{design_params[i, 0]:.6f}, {design_params[i, 1]:.6f}")
+            pretty_print = False
 
         if pretty_print:
             for i in range(self.num_joints):
@@ -236,7 +256,7 @@ class RationalMechanism(RationalCurve):
                 print(f"cp_0 = {design_params[i, 0]:.6f}, "
                       f"cp_1 = {design_params[i, 1]:.6f}")
 
-        return dh, design_params
+        return dh, design_params, design_points
 
     def get_segment_connections(self) -> np.ndarray:
         """
@@ -784,10 +804,13 @@ class RationalMechanism(RationalCurve):
 
         # update the design of the mechanism
         if update_design:
-            self.factorizations[0].set_joint_connection_points_by_parameters(
-                points_params[:len(self.factorizations[0].dq_axes)])
-            self.factorizations[1].set_joint_connection_points_by_parameters(
-                points_params[len(self.factorizations[1].dq_axes):][::-1])
+            if len(self.factorizations) == 1:
+                self.factorizations[0].set_joint_connection_points_by_parameters(points_params)
+            else:
+                self.factorizations[0].set_joint_connection_points_by_parameters(
+                    points_params[:len(self.factorizations[0].dq_axes)])
+                self.factorizations[1].set_joint_connection_points_by_parameters(
+                    points_params[len(self.factorizations[1].dq_axes):][::-1])
 
         return pts, points_params, res
 
@@ -949,6 +972,8 @@ class RationalMechanism(RationalCurve):
 
         :return: parameter value
         :rtype: float
+
+        :warns: if the method does not converge
         """
         def run_gauss_newton(pose, robust):
             t = sp.Symbol("t")
@@ -985,7 +1010,7 @@ class RationalMechanism(RationalCurve):
                     for i in range(max_iterations):
 
                         if not robust:
-                            if t_val > 1.0 or t_val < -1.0:
+                            if t_val == sp.nan or t_val > 1.0 or t_val < -1.0:
                                 break
 
                         target_pose = pose.array()
@@ -1036,12 +1061,12 @@ class RationalMechanism(RationalCurve):
         t_res, success = run_gauss_newton(pose=goal_pose, robust=robust_search)
 
         if not success:
-            warn("Gauss-Newton method did not converge. Returning the best result."
-                 "Retrying with different initial guesses...")
+            print("Fast search did not converge. Retrying with different initial "
+                  "guesses...")
             t_res, success = run_gauss_newton(pose=goal_pose, robust=True)
-
-            warn("Converged successfully.") if success \
-                else warn("Not converged, providing the closest result.")
+            print("...done.")
+            print("Converged successfully.") if success else (
+                warn("Not converged, providing the closest result."))
 
         return t_res
 
@@ -1083,7 +1108,7 @@ class RationalMechanism(RationalCurve):
 
         :example:
 
-        .. testcode::
+        .. testcode:: [rationalmechanism_example2]
 
             from rational_linkages import RationalCurve, RationalMechanism
             import numpy as np
@@ -1121,6 +1146,11 @@ class RationalMechanism(RationalCurve):
             plt.legend(['Position [rad]', 'Velocity [rad/s]', 'Acceleration [rad/s^2]'])
             plt.grid()
             plt.show()
+
+        .. testcleanup:: [rationalmechanism_example2]
+
+            del RationalCurve, RationalMechanism, np
+            del plt, coeffs, c, m, time, n_steps, t0, t1, method, pos, vel, acc
 
         """
         if unit == 'deg':

@@ -138,6 +138,16 @@ class TestMotionInterpolation(TestCase):
         self.assertRaises(Exception,
                           mi.interpolate_points_quadratic, [p0, p1, p2, p3, p4])
 
+        # Test rational points
+        p0 = PointHomogeneous([1, 0, 0, 0], rational=True)
+        p1 = PointHomogeneous([1, 1, 0, -2], rational=True)
+        p2 = PointHomogeneous([1, 2, -1, 0], rational=True)
+        p3 = PointHomogeneous([1, -3, 0, 3], rational=True)
+        p4 = PointHomogeneous([1, 2, 1, -1], rational=True)
+        curve = mi.interpolate([p0, p1, p2, p3, p4])
+        self.assertTrue(str(curve.set_of_polynomials[0].domain) == 'QQ')
+        self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
+
     def test_interpolate_points_cubic(self):
         mi = MotionInterpolation()
 
@@ -162,9 +172,23 @@ class TestMotionInterpolation(TestCase):
 
         # Call the interpolate_points_quadratic method
         curve = mi.interpolate([p0, p1, p2, p3, p4, p5, p6])
+        self.assertTrue(str(curve.set_of_polynomials[0].domain) == 'RR')
 
         self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
 
         tm_point = DualQuaternion(curve.evaluate(0.5)).dq2point_via_matrix()
         self.assertTrue(np.allclose(tm_point, p3.normalized_in_3d()))
+
+        # Create some dummy points
+        p0 = PointHomogeneous([1, 0, 0, 0], rational=True)
+        p1 = PointHomogeneous([1, 1, 0, -2], rational=True)
+        p2 = PointHomogeneous([1, 2, -1, 0], rational=True)
+        p3 = PointHomogeneous([1, -3, 0, 3], rational=True)
+        p4 = PointHomogeneous([1, 2, 1, -1], rational=True)
+        p5 = PointHomogeneous([1, 2, 1, 1], rational=True)
+        p6 = PointHomogeneous([1, 2, 1, 2], rational=True)
+
+        curve = mi.interpolate([p0, p1, p2, p3, p4, p5, p6])
+        self.assertTrue(str(curve.set_of_polynomials[0].domain) == 'QQ')
+        self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
 

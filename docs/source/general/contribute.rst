@@ -60,13 +60,20 @@ Example of a docstring:
 
         :example:
 
-        .. testcode::
+        .. testcode:: [example_function]
 
             # General usage of a function, this section will be also included in doctest
+
+            import numpy
 
             a = 1
             b = 2.0
             c = example_function(a, b)
+
+        .. testcleanup:: [example_function]
+
+            del numpy
+            del a, b, c
 
         :note: additional notes
 

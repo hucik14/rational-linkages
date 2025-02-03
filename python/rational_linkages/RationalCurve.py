@@ -33,7 +33,7 @@ class RationalCurve:
 
     :examples:
 
-    .. testcode::
+    .. testcode:: [rationalcurve_example1]
 
         # Limancon of Pascal -- from polynomial equations
 
@@ -49,22 +49,34 @@ class RationalCurve:
         eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t)
         curve = RationalCurve([eq0, eq1, eq2, eq0])
 
-    .. testcode::
+    .. testcleanup:: [rationalcurve_example1]
+
+        del RationalCurve, sp
+        del a, b, t, eq0, eq1, eq2, curve
+
+    .. testcode:: [rationalcurve_example2]
 
         # From coefficients
 
-        import sympy as sp
+        import numpy as np
         from rational_linkages import RationalCurve
 
 
         curve = RationalCurve.from_coeffs(np.array([[1., 0., 2., 0., 1.], [0.5, 0., -2., 0., 1.5], [0., -1., 0., 3., 0.], [1., 0., 2., 0., 1.]]))
+
+    .. testcleanup:: [rationalcurve_example2]
+
+        del RationalCurve, np, curve
     """
 
-    def __init__(self, polynomials: list[sp.Poly]):
+    def __init__(self,
+                 polynomials: list[sp.Poly],
+                 coeffs: Union[np.array, sp.Matrix] = None):
         """
         Initializes a RationalCurve object with the provided coefficients.
 
         :param polynomials: list of polynomial equations of the curve
+        :param coeffs: coefficients of the curve
         """
         self.set_of_polynomials = polynomials
 
@@ -74,7 +86,7 @@ class RationalCurve:
         for i in range(len(polynomials)):
             self.degree = max(self.degree, self.set_of_polynomials[i].degree())
 
-        self.coeffs = self.get_coeffs()
+        self._coeffs = coeffs
         self._symbolic = None
 
         self.coeffs_inversed = self.inverse_coeffs()
@@ -126,18 +138,24 @@ class RationalCurve:
 
         return self._set_of_polynomials_inversed
 
+    @property
+    def coeffs(self):
+        if self._coeffs is None:
+            self._coeffs = self.get_coeffs()
+        return self._coeffs
+
     @classmethod
-    def from_coeffs(cls, coeffs: np.ndarray) -> "RationalCurve":
+    def from_coeffs(cls, coeffs: Union[np.ndarray, sp.Matrix]) -> "RationalCurve":
         """
         Construct rational curve from coefficients
 
-        :coeffs: np.ndarray - coefficients of the curve
+        :param Union[np.ndarray, sp.Matrix] coeffs: coefficients of the curve
 
         :returns: RationalCurve object from coefficients
         :rtype: RationalCurve
         """
         _, polynomials = cls.get_symbolic_expressions(coeffs)
-        return cls(polynomials)
+        return cls(polynomials, coeffs)
 
     @classmethod
     def from_two_quaternions(cls,
@@ -171,22 +189,30 @@ class RationalCurve:
         return cls(polynomials)
 
     @staticmethod
-    def get_symbolic_expressions(coeffs: np.ndarray) -> tuple[list, list[sp.Poly]]:
+    def get_symbolic_expressions(coeffs: Union[np.ndarray, sp.Matrix]
+                                 ) -> tuple[list, list[sp.Poly]]:
         """
         Add a symbolic variable to the matrix of coefficients that describes the curve
 
-        :param np.ndarray coeffs: coefficients of the curve
+        :param Union[np.ndarray, sp.Matrix] coeffs: coefficients of the curve
 
         :return: tuple of symbolic expressions list and list of sympy polynomials
         :rtype: tuple[list, list[sp.Poly]]
+
+        :raises ValueError: if the coefficients are not a numpy array or sympy matrix
         """
         symbolic_expressions = []
         polynomials = []
         t = sp.Symbol("t")
 
-        dimension = len(coeffs) - 1
+        if isinstance(coeffs, np.ndarray):
+            dim = len(coeffs)
+        elif isinstance(coeffs, sp.Matrix):
+            dim = coeffs.rows
+        else:
+            raise ValueError("The coefficients must be a numpy array or sympy matrix")
 
-        for i in range(dimension + 1):
+        for i in range(dim):
             # Extract coefficients from the current row of the coefficient matrix and
             # create symbolic expressions
             row_coefficients = reversed(coeffs[i, :])
@@ -657,6 +683,21 @@ class RationalCurve:
         t_val = (low + high) / 2
         return t_val
 
+    def study_quadric_check(self) -> np.ndarray:
+        """
+        Calculate the error of the curve from the Study quadric
+
+        :return: coefficients error of the curve from the Study quadric
+        :rtype: np.ndarray
+        """
+        poly_list = [np.polynomial.Polynomial(self.coeffs[i, :][::-1])
+                     for i in range(8)]
+
+        study_quadric = (poly_list[0] * poly_list[4] + poly_list[1] * poly_list[5]
+                         + poly_list[2] * poly_list[6] + poly_list[3] * poly_list[7])
+
+        return study_quadric.coef
+
     def is_on_study_quadric(self):
         """
         Check if the curve is a motion curve on the study quadric
@@ -664,16 +705,8 @@ class RationalCurve:
         :return: True if the curve is a motion curve, False otherwise
         :rtype: bool
         """
-        ts = np.linspace(-1, 1, 30)
+        study_quadric_error = self.study_quadric_check()
 
-        for t_val in ts:
-            dq = DualQuaternion(self.evaluate(t_val))
-            dq_inv = DualQuaternion(self.evaluate(t_val, inverted_part=True))
-            if not dq.is_on_study_quadric(approximate_sol=True):
-                return False
-            if not dq_inv.is_on_study_quadric(approximate_sol=True):
-                return False
-        else:
-            return True
+        return sum(abs(study_quadric_error)) < 1e-10
 
 

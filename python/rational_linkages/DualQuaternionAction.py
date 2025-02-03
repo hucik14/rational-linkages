@@ -30,7 +30,7 @@ class DualQuaternionAction:
 
         :example:
 
-        .. testcode::
+        .. testcode:: [dualquaternionaction_example1]
 
             #  Act on line with a Dual Quaternion
 
@@ -40,6 +40,10 @@ class DualQuaternionAction:
             line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
 
             line_after_half_turn = dq.act(line)
+
+        .. testcleanup:: [dualquaternionaction_example1]
+
+            del DualQuaternion, NormalizedLine, dq, line, line_after_half_turn
 
         """
         # check if the object is line or point

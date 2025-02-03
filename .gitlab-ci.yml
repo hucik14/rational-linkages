@@ -20,7 +20,7 @@ test_python311:
       name: python:3.11-bullseye
       entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
-      - pip install .
+      - pip install .[opt]
       - pip install pytest
       - python -m pytest python/tests
     coverage: '/TOTAL.+ ([0-9]{1,3}%)/'

@@ -11,7 +11,7 @@ class Quaternion:
 
     :examples:
 
-    .. testcode::
+    .. testcode:: [quaternion_example1]
 
         # General usage
 
@@ -19,6 +19,10 @@ class Quaternion:
 
         identity_quaternion = Quaternion()
         quaternion_from_list = Quaternion([0.5, 2, 1, 5])
+
+    .. testcleanup:: [quaternion_example1]
+
+        del Quaternion, identity_quaternion, quaternion_from_list
     """
 
     def __init__(self, vec4: Optional[Sequence[float]] = None):
@@ -30,7 +34,7 @@ class Quaternion:
         if vec4 is not None:
             if len(vec4) != 4:
                 raise ValueError("Quaternion: vec4 has to be 4-vector")
-            self.q = np.asarray(vec4)
+            self.q = np.asarray(vec4, dtype=object)
         else:
             self.q = np.array([1, 0, 0, 0])
 
