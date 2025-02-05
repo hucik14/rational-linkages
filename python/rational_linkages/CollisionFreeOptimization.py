@@ -142,7 +142,7 @@ class CombinatorialSearch:
 
         if comb_links is None:
             # check design for collisions
-            init_collisions = self.mechanism.collision_check(only_links=True,
+            init_collisions = self.mechanism.collision_check(only_links=False,
                                                              terminate_on_first=True)
         else:
             # skip initial collision check if combinations are provided
