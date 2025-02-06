@@ -100,7 +100,10 @@ class Plotter:
         :param objects_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
             MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve,
             RationalBezier, MiniBall, or list of those
-        :param kwargs: plotting options following matplotlib standards and syntax
+        :param kwargs: plotting options following matplotlib standards and syntax; optional kwargs:
+            - with_poses=True: rational curve with poses
+            - interval='closed': rational curve will be closed in the interval (tangent half-angle substitution)
+            - show_tool=True: mechanism with tool frame
         """
         # if list of objects, plot each object separately
         if isinstance(objects_to_plot, list):
