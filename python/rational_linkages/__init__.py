@@ -11,7 +11,7 @@ from .MotionFactorization import MotionFactorization
 from .MotionInterpolation import MotionInterpolation
 from .NormalizedLine import NormalizedLine
 from .Plotter import Plotter
-from .PlotterPyqtgraph import PlotterPyqtgraph, MotionDesigner
+from .PlotterPyqtgraph import PlotterPyqtgraph, MotionDesigner, FramePlotHelper
 # from .PlotterVispy import PlotterVispy, MotionDesigner
 from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
