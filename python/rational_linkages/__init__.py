@@ -11,7 +11,7 @@ from .MotionFactorization import MotionFactorization
 from .MotionInterpolation import MotionInterpolation
 from .NormalizedLine import NormalizedLine
 from .Plotter import Plotter
-from .PlotterVispy import PlotterVispy
+from .PlotterVispy import PlotterVispy, MotionDesigner
 from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
 from .RationalBezier import RationalBezier, BezierSegment
