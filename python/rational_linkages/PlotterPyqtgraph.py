@@ -1,12 +1,10 @@
 from functools import wraps
-from itertools import cycle
 import numpy as np
-import threading
+import sys
 
 # PyQt and Pyqtgraph imports
-from PyQt5 import QtGui, QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QApplication, QLabel
-import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 
 # Import your custom classes (adjust the import paths as needed)
@@ -465,80 +463,98 @@ class PlotterPyqtgraph:
         QApplication.exec_()
 
 
+class MotionDesignerApp:
+    """
+    Main application class for the motion designer.
+
+    Encapsulates the QApplication and the MotionDesigner widget.
+    """
+    def __init__(self):
+        self.app = QtWidgets.QApplication(sys.argv)
+        self.window = MotionDesigner()
+
+    def run(self):
+        self.window.show()
+        sys.exit(self.app.exec_())
+
+
 class MotionDesigner(QtWidgets.QWidget):
     """
+    Interactive plotting widget for designing motion curves with interpolated points.
+
     A widget that displays a 3D view of a motion curve and control points,
     plus a side panel with controls for selecting and modifying one of the
     control points (p0 to p6). Moving the sliders adjusts the x, y, and z
     coordinates of the selected control point, which then updates the curve.
     """
-    def __init__(self, parent=None, steps=1000, interval=(0, 1), font_size_of_labels=12):
+    def __init__(self,
+                 parent=None,
+                 steps=1000,
+                 interval=(0, 1),
+                 font_size_of_labels=12):
         super().__init__(parent)
 
-        # Create an instance of our Pyqtgraph-based plotter.
+        # an instance of Pyqtgraph-based plotter
         self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
                                         interval=interval,
                                         font_size_of_labels=font_size_of_labels)
 
-        # Create default control points (p0 to p6)
-        # (Adjust the coordinates as appropriate for your application.)
+        # default points
         self.points = [
-            PointHomogeneous(),                      # p0: default
-            PointHomogeneous([1, 1, 1, 0.3]),          # p1
-            PointHomogeneous([1, 3, -3, 0.5]),         # p2
-            PointHomogeneous([1, 0.5, -7, 1]),         # p3
-            PointHomogeneous([1, -3.2, -7, 4]),        # p4
-            PointHomogeneous([1, -7, -3, 2]),          # p5
-            PointHomogeneous([1, -8, 3, 0.5])          # p6
+            PointHomogeneous(),
+            PointHomogeneous([1, 1, 1, 0.3]),
+            PointHomogeneous([1, 3, -3, 0.5]),
+            PointHomogeneous([1, 0.5, -7, 1]),
+            PointHomogeneous([1, -3.2, -7, 4]),
+            PointHomogeneous([1, -7, -3, 2]),
+            PointHomogeneous([1, -8, 3, 0.5])
         ]
 
-        # Store a NumPy array of the control point coordinates (in 3D)
+        # array of control point coordinates (in 3D)
         self.plotted_points = np.array([pt.normalized_in_3d() for pt in self.points])
 
-        # Create an instance of the MotionInterpolation class.
         self.mi = MotionInterpolation()
 
-        # Create and add the initial motion curve.
-        self.curve_line = None
-        self.frames = None
-        self.update_curve()
+        self.curve_line = None  # path of motion curve
+        self.frames = None  # poses of motion curve
+        self.update_curve()  # initial curve update
 
-        # Create a scatter plot item for the control points (drawn as red dots).
+        # interpolated points markers
         self.markers = gl.GLScatterPlotItem(pos=self.plotted_points,
-                                            color=(1, 0, 0, 1),
+                                            color=(0, 1, 0, 1),
                                             size=10)
         self.plotter.widget.addItem(self.markers)
 
-        # --- Build the Control Panel ---
-        # A combo box to select one of the control points.
+        # --- build the Control Panel ---
+        # combo box to select one of the points
         self.point_combo = QtWidgets.QComboBox()
         for i in range(len(self.points)):
             self.point_combo.addItem(f"Point {i}")
         self.point_combo.currentIndexChanged.connect(self.on_point_selection_changed)
 
-        # Three sliders for adjusting x, y, and z.
+        # sliders for adjusting x, y, and z
         self.slider_x = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.slider_y = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.slider_z = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        # Set the slider range (for example, mapping –10 to 10 into –1000 to 1000)
+        # slider range
         for slider in (self.slider_x, self.slider_y, self.slider_z):
             slider.setMinimum(-1000)
             slider.setMaximum(1000)
             slider.setSingleStep(1)
             slider.valueChanged.connect(self.on_slider_value_changed)
 
-        # Set the sliders initially for the first point.
+        # initially for the first point
         self.set_sliders_for_point(0)
 
-        # --- Layout the 3D view and control panel ---
+        # --- layout the 3D view and control panel ---
         main_layout = QtWidgets.QHBoxLayout(self)
-        # Add the GLViewWidget from our plotter (it is stored in self.plotter.widget).
+        # add plotter (stored in self.plotter.widget)
         main_layout.addWidget(self.plotter.widget, stretch=1)
 
         # Build a vertical control panel.
         control_panel = QtWidgets.QWidget()
         cp_layout = QtWidgets.QVBoxLayout(control_panel)
-        cp_layout.addWidget(QtWidgets.QLabel("Select Control Point:"))
+        cp_layout.addWidget(QtWidgets.QLabel("Select control point:"))
         cp_layout.addWidget(self.point_combo)
         cp_layout.addWidget(QtWidgets.QLabel("Adjust X:"))
         cp_layout.addWidget(self.slider_x)
@@ -547,6 +563,10 @@ class MotionDesigner(QtWidgets.QWidget):
         cp_layout.addWidget(QtWidgets.QLabel("Adjust Z:"))
         cp_layout.addWidget(self.slider_z)
         cp_layout.addStretch(1)
+
+        close_button = QtWidgets.QPushButton("Close")
+        cp_layout.addWidget(close_button)
+        close_button.clicked.connect(self.close)
 
         main_layout.addWidget(control_panel)
         self.setLayout(main_layout)
@@ -624,12 +644,12 @@ class MotionDesigner(QtWidgets.QWidget):
             curve_points.append(pt)
         curve_points = np.array(curve_points)
 
-        t_space_frames = np.tan(np.linspace(-np.pi / 2, np.pi / 2, 31))
+        t_space_frames = np.tan(np.linspace(-np.pi / 2, np.pi / 2, 51))
 
         frames_arrays = []
         for t in t_space_frames:
             dq = DualQuaternion([poly(t) for poly in curve])
-            frames_arrays.append(dq.dq2matrix())
+            frames_arrays.append(TransfMatrix(dq.dq2matrix()))
 
         # If the curve line has not yet been created, create it.
         if self.curve_line is None:
@@ -647,26 +667,34 @@ class MotionDesigner(QtWidgets.QWidget):
             for i, frame in enumerate(self.frames):
                 frame.setData(frames_arrays[i])
 
+    def closeEvent(self, event):
+        """
+        Called when the window is closed. Ensure that the Qt application exits.
+        """
+        print("Closing the window... generated points for interpolation:")
+        for pt in self.points:
+            print(pt)
+        self.plotter.app.quit()
+
+    def close(self):
+        """
+        Close the window.
+        """
+        self.closeEvent(None)
+
 
 class FramePlotHelper:
-    def __init__(self, transform=np.eye(4), axis_length=1.0, width=2, antialias=True):
+    def __init__(self,
+                 transform: TransfMatrix = TransfMatrix(),
+                 width: float = 2,
+                 antialias: bool = True):
         """
         Create a coordinate frame using three GLLinePlotItems.
 
-        Parameters:
-            transform (np.ndarray): A 4x4 transformation matrix (default identity).
-            axis_length (float): Length of each axis.
-            width (int): Line width.
-            antialias (bool): Whether to antialias the lines.
+        :param TransfMatrix transform: The initial transformation matrix.
+        :param float width: The width of the lines.
+        :param bool antialias: Whether to use antialiasing
         """
-        self.axis_length = axis_length
-
-        # Define the endpoints in local coordinates (homogeneous coordinates)
-        self.origin_local = np.array([1, 0, 0, 0])
-        self.x_local = np.array([0, axis_length, 0, 0])
-        self.y_local = np.array([0, 0, axis_length, 0])
-        self.z_local = np.array([0, 0, 0, axis_length])
-
         # Create GLLinePlotItems for the three axes.
         # The initial positions are placeholders; they will be set properly in setData().
         self.x_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
@@ -685,45 +713,22 @@ class FramePlotHelper:
         # Set the initial transformation
         self.setData(transform)
 
-    def _transform_point(self, point, transform):
-        """
-        Apply a 4x4 transformation matrix to a 4D homogeneous point.
-
-        Parameters:
-            point (np.ndarray): A 4-element array representing a point in homogeneous coordinates.
-            transform (np.ndarray): The 4x4 transformation matrix.
-
-        Returns:
-            np.ndarray: The transformed 3D point.
-        """
-        transformed = transform @ point  # Using the @ operator for matrix multiplication
-        # Assume the w component is 1 (or nonzero) and drop it.
-        return transformed[1:] / transformed[0] if transformed[0] != 0 else transformed[1:]
-
-    def setData(self, transform):
+    def setData(self, transform: TransfMatrix):
         """
         Update the coordinate frame using a new 4x4 transformation matrix.
 
-        Parameters:
-            transform (np.ndarray): The new 4x4 transformation matrix.
+        :param TransfMatrix transform: The new transformation matrix.
         """
-        # Transform the local endpoints into world coordinates.
-        origin_world = self._transform_point(self.origin_local, transform)
-        x_world = self._transform_point(self.x_local, transform)
-        y_world = self._transform_point(self.y_local, transform)
-        z_world = self._transform_point(self.z_local, transform)
-
         # Update the positions for each axis.
-        self.x_axis.setData(pos=np.array([origin_world, x_world]))
-        self.y_axis.setData(pos=np.array([origin_world, y_world]))
-        self.z_axis.setData(pos=np.array([origin_world, z_world]))
+        self.x_axis.setData(pos=np.array([transform.t, transform.t + transform.n]))
+        self.y_axis.setData(pos=np.array([transform.t, transform.t + transform.o]))
+        self.z_axis.setData(pos=np.array([transform.t, transform.t + transform.a]))
 
-    def addToView(self, view):
+    def addToView(self, view: gl.GLViewWidget):
         """
         Add all three axes to a GLViewWidget.
 
-        Parameters:
-            view: An instance of pyqtgraph.opengl.GLViewWidget.
+        :param gl.GLViewWidget view: The view to add the axes to.
         """
         view.addItem(self.x_axis)
         view.addItem(self.y_axis)
