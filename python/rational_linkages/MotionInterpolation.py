@@ -597,14 +597,19 @@ class MotionInterpolation:
         return RationalBezier([cp0, cp1, cp2]).set_of_polynomials
 
     @staticmethod
-    def interpolate_points_cubic(points: list[PointHomogeneous]) -> list[sp.Poly]:
+    def interpolate_points_cubic(points: list[PointHomogeneous],
+                                 return_numeric: bool = False) -> (
+            Union[list[sp.Poly], np.ndarray]):
         """
         Interpolates the given 7 points by a cubic curve in SE(3).
 
-        :param list[PointHomogeneous] points: The points to interpolate.
+        :param list[Union[sp.Poly, np.polynomial.Polynomial]] points: The points
+            to interpolate.
+        :param bool return_numeric: If True, the result will be returned as numpy
+            polynomials, otherwise as sympy polynomials.
 
         :return: The rational motion curve.
-        :rtype: list[sp.Poly]
+        :rtype: list[Union[sp.Poly, np.polynomial.Polynomial]]
         """
         if not all(isinstance(p, PointHomogeneous) for p in points):
             raise TypeError('The given points must be PointHomogeneous.')
@@ -695,4 +700,7 @@ class MotionInterpolation:
         cp3 = PointHomogeneous(np.concatenate((w_c3.array(), (a_c3 * w_c3).array())),
                                rational=perform_rational)
 
-        return RationalBezier([cp0, cp1, cp2, cp3]).set_of_polynomials
+        if return_numeric:
+            return RationalBezier.get_numerical_coeffs([cp0, cp1, cp2, cp3])
+        else:
+            return RationalBezier([cp0, cp1, cp2, cp3]).set_of_polynomials

@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+import numpy as np
 import sympy as sp
 
 from .MiniBall import MiniBall
@@ -84,6 +85,26 @@ class RationalBezier(RationalCurve):
         bezier_polynomials = [
             sp.Poly(bezier_curve[i], t) for i in range(dimension + 1)]
         return bezier_polynomials
+
+    @staticmethod
+    def get_numerical_coeffs(control_points: list[PointHomogeneous]
+                             ) -> np.ndarray:
+        """
+        Get the numerical coefficients of the Bezier curve
+        """
+        from scipy.special import comb  # INNER IMPORT
+
+        control_pts = np.array([point.array() for point in control_points])
+        degree = len(control_points) - 1
+
+        mat = np.zeros((degree + 1, degree + 1))
+
+        for j in range(degree + 1):
+            for k in range(j + 1):
+                mat[j, k] = comb(degree, k) * comb(degree - k, j - k) * (-1)**(j - k)
+
+        return mat.dot(control_pts)
+
 
     def get_plot_data(self, interval: tuple = (0, 1), steps: int = 50) -> tuple:
         """
