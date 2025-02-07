@@ -18,19 +18,16 @@ from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
 from .MiniBall import MiniBall
 from .Linkage import LineSegment
+from .Quaternion import Quaternion
 
 
 
 class PlotterVispy:
     def __init__(self,
-                 interactive: bool = False,
-                 jupyter_notebook: bool = False,
-                 show_legend: bool = False,
-                 show_controls: bool = True,
-                 interval: tuple = (-1, 1),
-                 steps: int = 50,
-                 arrows_length: float = 1.0,
-                 joint_range_lim: float = 1.0):
+                 discrete_step_space: int = 1000,
+                 interval: tuple = (0, 1),
+                 font_size_of_labels: int = 100,
+                 ):
         """
         Initialize the Vispy plotter.
 
@@ -52,22 +49,9 @@ class PlotterVispy:
 
 
         # Store parameters (some parameters from the matplotlib version are not used)
-        self.t_space = np.linspace(interval[0], interval[1], steps)
-        self.steps = steps
-        self.legend = show_legend
-        self.interactive = interactive
-        self.jupyter_notebook = jupyter_notebook
-        self.j_sliders_limit = joint_range_lim
-        self.show_controls = show_controls
-        self.arrows_length = arrows_length
-        self.label_font_size = 100
-
-        # A container for keeping references to the visuals (if needed later)
-        self.plotted = {}
-
-        # Initialize the control panel if in interactive mode.
-        if self.interactive:
-            self._init_control_panel()
+        self.t_space = np.linspace(interval[0], interval[1], discrete_step_space)
+        self.steps = discrete_step_space
+        self.label_font_size = font_size_of_labels
 
     def plot(self, objects_to_plot, **kwargs):
         """
@@ -125,10 +109,10 @@ class PlotterVispy:
         """
         Analyze the object type for dispatching the correct plotting method.
         """
-        if isinstance(object_to_plot, RationalMechanism) and not self.interactive:
+        if isinstance(object_to_plot, RationalMechanism):# and not self.interactive:
             return "is_rational_mechanism"
-        elif isinstance(object_to_plot, RationalMechanism) and self.interactive:
-            return "is_interactive"
+        # elif isinstance(object_to_plot, RationalMechanism) and self.interactive:
+        #     return "is_interactive"
         elif isinstance(object_to_plot, MotionFactorization) and not self.interactive:
             return "is_motion_factorization"
         elif isinstance(object_to_plot, NormalizedLine):
@@ -381,7 +365,7 @@ class PlotterVispy:
         """
         Plot a rational mechanism by plotting its factorizations and the tool path.
         """
-        self.plotted['mechanism'] = mechanism
+        # self.plotted['mechanism'] = mechanism
         t = kwargs.pop('t', 0)
         for factorization in mechanism.factorizations:
             self._plot_motion_factorization(factorization, t=t, **kwargs)
@@ -458,6 +442,22 @@ class PlotterVispy:
                             shading='flat',
                             mode='triangle')
         self.view.add(mesh)
+
+    def show(self):
+        app.run()
+
+
+class PlotterVispyInteractive(PlotterVispy):
+    def __init__(self,
+                 interactive: bool = True,
+                 j_sliders_limit: float = 1.0,
+                 **kwargs):
+        """
+        Initialize the Vispy plotter for interactive plotting.
+        """
+        super().__init__(**kwargs)
+        self.interactive = interactive
+        self.j_sliders_limit = j_sliders_limit
 
     def _init_control_panel(self):
         """
@@ -734,5 +734,8 @@ class PlotterVispy:
         # Force an update of the canvas.
         self.canvas.update()
 
-    def show(self):
-        app.run()
+
+
+
+
+
