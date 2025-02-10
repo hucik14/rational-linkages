@@ -537,14 +537,18 @@ class MotionInterpolation:
         return result
 
     @staticmethod
-    def interpolate_points_quadratic(points: list[PointHomogeneous]) -> list[sp.Poly]:
+    def interpolate_points_quadratic(points: list[PointHomogeneous],
+                                     return_numeric: bool = False) -> (
+            Union[list[sp.Poly], np.ndarray]):
         """
         Interpolates the given 5 points by a quadratic curve in SE(3).
 
         :param list[PointHomogeneous] points: The points to interpolate.
+        :param bool return_numeric: If True, the result will be returned as numpy
+            polynomials, otherwise as sympy polynomials.
 
         :return: The rational motion curve.
-        :rtype: list[sp.Poly]
+        :rtype: Union[list[sp.Poly], np.ndarray]
         """
         if not all(isinstance(p, PointHomogeneous) for p in points):
             raise TypeError('The given points must be PointHomogeneous.')
@@ -594,7 +598,10 @@ class MotionInterpolation:
         cp2 = PointHomogeneous(np.concatenate((w4.array(), (a4 * w4).array())),
                                rational=perform_rational)
 
-        return RationalBezier([cp0, cp1, cp2]).set_of_polynomials
+        if return_numeric:
+            return RationalBezier.get_numerical_coeffs([cp0, cp1, cp2])
+        else:
+            return RationalBezier([cp0, cp1, cp2]).set_of_polynomials
 
     @staticmethod
     def interpolate_points_cubic(points: list[PointHomogeneous],

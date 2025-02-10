@@ -469,9 +469,18 @@ class MotionDesignerApp:
 
     Encapsulates the QApplication and the MotionDesigner widget.
     """
-    def __init__(self):
+    def __init__(self,
+                 method: str,
+                 initial_points: list[PointHomogeneous] = None):
+        """
+        Initialize the application with the motion designer widget.
+
+        :param str method: The method to use for interpolation, supproted values are
+            'cubic_from_points' and 'quadratic_from_points'.
+        """
         self.app = QtWidgets.QApplication(sys.argv)
-        self.window = MotionDesigner()
+        self.window = MotionDesigner(method=method,
+                                     initial_points=initial_points)
 
     def run(self):
         self.window.show()
@@ -488,27 +497,47 @@ class MotionDesigner(QtWidgets.QWidget):
     coordinates of the selected control point, which then updates the curve.
     """
     def __init__(self,
+                 method: str = 'cubic_from_points',
+                 initial_points: list[PointHomogeneous] = None,
                  parent=None,
                  steps=1000,
                  interval=(0, 1),
                  font_size_of_labels=12):
         super().__init__(parent)
 
+        self.method = method
+
+        if method == 'cubic_from_points':
+            if initial_points is None:
+                # default points
+                self.points = [PointHomogeneous(),
+                               PointHomogeneous([1, 1, 1, 0.3]),
+                               PointHomogeneous([1, 3, -3, 0.5]),
+                               PointHomogeneous([1, 0.5, -7, 1]),
+                               PointHomogeneous([1, -3.2, -7, 4]),
+                               PointHomogeneous([1, -7, -3, 2]),
+                               PointHomogeneous([1, -8, 3, 0.5])]
+            else:
+                if len(initial_points) != 7:
+                    raise ValueError("For a cubic curve, 7 points are needed.")
+                self.points = initial_points
+        elif method == 'quadratic_from_points':
+            if initial_points is None:
+                self.points = [PointHomogeneous(),
+                               PointHomogeneous([1, 1, 1, 2]),
+                               PointHomogeneous([1, 3, -3, 1]),
+                               PointHomogeneous([1, 2, -4, 1]),
+                               PointHomogeneous([1, -2, -2, 2])]
+            else:
+                if len(initial_points) != 5:
+                    raise ValueError("For a quadratic curve, 5 points are needed.")
+                self.points = initial_points
+
+
         # an instance of Pyqtgraph-based plotter
         self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
                                         interval=interval,
                                         font_size_of_labels=font_size_of_labels)
-
-        # default points
-        self.points = [
-            PointHomogeneous(),
-            PointHomogeneous([1, 1, 1, 0.3]),
-            PointHomogeneous([1, 3, -3, 0.5]),
-            PointHomogeneous([1, 0.5, -7, 1]),
-            PointHomogeneous([1, -3.2, -7, 4]),
-            PointHomogeneous([1, -7, -3, 2]),
-            PointHomogeneous([1, -8, 3, 0.5])
-        ]
 
         # array of control point coordinates (in 3D)
         self.plotted_points = np.array([pt.normalized_in_3d() for pt in self.points])
@@ -628,8 +657,14 @@ class MotionDesigner(QtWidgets.QWidget):
         interpolation is performed by MotionInterpolation. Then update the curve
         line in the GLViewWidget.
         """
-        # Get the numeric coefficients from cubic interpolation.
-        coeffs = self.mi.interpolate_points_cubic(self.points, return_numeric=True).T
+        # get the numeric coefficients from interpolation
+        if self.method == 'cubic_from_points':
+            coeffs = self.mi.interpolate_points_cubic(self.points,
+                                                      return_numeric=True).T
+        elif self.method == 'quadratic_from_points':
+            coeffs = self.mi.interpolate_points_quadratic(self.points,
+                                                          return_numeric=True).T
+
         # For each coordinate (x, y, z), create a 1D polynomial.
         curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]
 
