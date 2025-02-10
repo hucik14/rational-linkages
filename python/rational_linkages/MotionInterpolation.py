@@ -227,6 +227,42 @@ class MotionInterpolation:
         return poly
 
     @staticmethod
+    def interpolate_quadratic_numerically(poses: list[DualQuaternion]):
+        """
+        Interpolates the given 3 rational poses by a quadratic curve in SE(3).
+
+        :param list[DualQuaternion] poses: The rational poses to interpolate.
+
+        :return: Numpy Polynomials of rational motion curve.
+        :rtype: np.ndarray
+        """
+        p0 = poses[0].array()
+        p1 = poses[1].array()
+        p2 = poses[2].array()
+
+        # split dual quaternion into real (first 4) and dual (last 4) parts
+        p0_r, p0_d = p0[:4], p0[4:]
+        p1_r, p1_d = p1[:4], p1[4:]
+        p2_r, p2_d = p2[:4], p2[4:]
+
+        # compute the common denominator
+        denom = np.dot(p2_r, p0_d) + np.dot(p0_r, p2_d)
+        if np.abs(denom) < 1e-12:
+            raise ValueError("Interpolation failed: denominator nearly zero.")
+
+        # parameters from the Study condition
+        omega = (np.dot(p2_r, p1_d) + np.dot(p1_r, p2_d)) / denom
+        alpha = (np.dot(p1_r, p0_d) + np.dot(p0_r, p1_d)) / denom
+
+        c0 = alpha * p2
+        c1 = p1 - alpha * p2 - omega * p0
+        c2 = omega * p0
+
+        # return array of coefficients
+        return np.stack([c2, c1, c0], axis=1)
+
+
+    @staticmethod
     def interpolate_quadratic_2_poses(poses: list[DualQuaternion]) -> list[sp.Poly]:
         """
         Interpolates the given 2 rational poses by a quadratic curve in SE(3).
