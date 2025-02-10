@@ -1,4 +1,5 @@
 from functools import wraps
+from typing import Union
 import numpy as np
 import sys
 
@@ -19,7 +20,6 @@ from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
 from .MiniBall import MiniBall
 from .Linkage import LineSegment
-from .Quaternion import Quaternion
 
 
 class PlotterPyqtgraph:
@@ -471,16 +471,18 @@ class MotionDesignerApp:
     """
     def __init__(self,
                  method: str,
-                 initial_points: list[PointHomogeneous] = None):
+                 initial_points_or_poses: Union[list[PointHomogeneous], list[DualQuaternion]] = None):
         """
         Initialize the application with the motion designer widget.
 
-        :param str method: The method to use for interpolation, supproted values are
-            'cubic_from_points' and 'quadratic_from_points'.
+        :param str method: The method to use for interpolation, supported values are
+            'cubic_from_points', 'quadratic_from_points', and 'quadratic_from_poses'.
+        :param list[PointHomogeneous] or list[DualQuaternion] initial_points_or_poses:
+            The initial points or poses to use for the motion curve.
         """
         self.app = QtWidgets.QApplication(sys.argv)
         self.window = MotionDesigner(method=method,
-                                     initial_points=initial_points)
+                                     initial_pts=initial_points_or_poses)
 
     def run(self):
         self.window.show()
@@ -498,17 +500,15 @@ class MotionDesigner(QtWidgets.QWidget):
     """
     def __init__(self,
                  method: str = 'cubic_from_points',
-                 initial_points: list[PointHomogeneous] = None,
+                 initial_pts: Union[list[PointHomogeneous], list[DualQuaternion]] = None,
                  parent=None,
                  steps=1000,
                  interval=(0, 1),
                  font_size_of_labels=12):
         super().__init__(parent)
 
-        self.method = method
-
         if method == 'cubic_from_points':
-            if initial_points is None:
+            if initial_pts is None:
                 # default points
                 self.points = [PointHomogeneous(),
                                PointHomogeneous([1, 1, 1, 0.3]),
@@ -518,20 +518,29 @@ class MotionDesigner(QtWidgets.QWidget):
                                PointHomogeneous([1, -7, -3, 2]),
                                PointHomogeneous([1, -8, 3, 0.5])]
             else:
-                if len(initial_points) != 7:
+                if len(initial_pts) != 7:
                     raise ValueError("For a cubic curve, 7 points are needed.")
-                self.points = initial_points
+                self.points = initial_pts
         elif method == 'quadratic_from_points':
-            if initial_points is None:
+            if initial_pts is None:
                 self.points = [PointHomogeneous(),
                                PointHomogeneous([1, 1, 1, 2]),
                                PointHomogeneous([1, 3, -3, 1]),
                                PointHomogeneous([1, 2, -4, 1]),
                                PointHomogeneous([1, -2, -2, 2])]
             else:
-                if len(initial_points) != 5:
+                if len(initial_pts) != 5:
                     raise ValueError("For a quadratic curve, 5 points are needed.")
-                self.points = initial_points
+                self.points = initial_pts
+        elif method == 'quadratic_from_poses':
+            if initial_pts is None:
+                self.points = [DualQuaternion(),
+                               DualQuaternion([1, 0, 1, 0, 1, 0, 1, 2]),
+                               DualQuaternion([1, 0, 1, 0, 1, 0, 2, 1])]
+            else:
+                if len(initial_pts) != 3:
+                    raise ValueError("For a quadratic curve, 3 poses are needed.")
+                self.points = initial_pts
 
 
         # an instance of Pyqtgraph-based plotter
@@ -539,20 +548,32 @@ class MotionDesigner(QtWidgets.QWidget):
                                         interval=interval,
                                         font_size_of_labels=font_size_of_labels)
 
-        # array of control point coordinates (in 3D)
-        self.plotted_points = np.array([pt.normalized_in_3d() for pt in self.points])
-
+        self.method = method
         self.mi = MotionInterpolation()
+
+        # array of control point coordinates (in 3D)
+        if method == 'quadratic_from_points' or method == 'cubic_from_points':
+            self.plotted_points = np.array([pt.normalized_in_3d()
+                                            for pt in self.points])
+
+            # interpolated points markers
+            self.markers = gl.GLScatterPlotItem(pos=self.plotted_points,
+                                                color=(0, 1, 0, 1),
+                                                size=10)
+            self.plotter.widget.addItem(self.markers)
+
+        elif method == 'quadratic_from_poses':
+            poses_arrays = [TransfMatrix(pt.dq2matrix()) for pt in self.points]
+            self.plotted_poses = [FramePlotHelper(transform=tr,
+                                                  width=10) for tr in poses_arrays]
+            for pose in self.plotted_poses:
+                pose.addToView(self.plotter.widget)
+
 
         self.curve_line = None  # path of motion curve
         self.frames = None  # poses of motion curve
         self.update_curve()  # initial curve update
 
-        # interpolated points markers
-        self.markers = gl.GLScatterPlotItem(pos=self.plotted_points,
-                                            color=(0, 1, 0, 1),
-                                            size=10)
-        self.plotter.widget.addItem(self.markers)
 
         # --- build the Control Panel ---
         # combo box to select one of the points
@@ -571,6 +592,22 @@ class MotionDesigner(QtWidgets.QWidget):
             slider.setMaximum(1000)
             slider.setSingleStep(1)
             slider.valueChanged.connect(self.on_slider_value_changed)
+
+        if method == 'quadratic_from_poses':
+            # sliders for adjusting x, y, and z
+            self.slider_roll = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+            self.slider_pitch = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+            self.slider_yaw = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+
+            self.slider_roll_prev = 0
+            self.slider_pitch_prev = 0
+            self.slider_yaw_prev = 0
+            # slider range
+            for slider in (self.slider_roll, self.slider_pitch, self.slider_yaw):
+                slider.setMinimum(-1000)
+                slider.setMaximum(1000)
+                slider.setSingleStep(1)
+                slider.valueChanged.connect(self.on_slider_value_changed)
 
         # initially for the first point
         self.set_sliders_for_point(0)
@@ -591,6 +628,14 @@ class MotionDesigner(QtWidgets.QWidget):
         cp_layout.addWidget(self.slider_y)
         cp_layout.addWidget(QtWidgets.QLabel("Adjust Z:"))
         cp_layout.addWidget(self.slider_z)
+        if method == 'quadratic_from_poses':
+            cp_layout.addWidget(QtWidgets.QLabel("Adjust R:"))
+            cp_layout.addWidget(self.slider_roll)
+            cp_layout.addWidget(QtWidgets.QLabel("Adjust P:"))
+            cp_layout.addWidget(self.slider_pitch)
+            cp_layout.addWidget(QtWidgets.QLabel("Adjust Y:"))
+            cp_layout.addWidget(self.slider_yaw)
+
         cp_layout.addStretch(1)
 
         close_button = QtWidgets.QPushButton("Close")
@@ -607,17 +652,42 @@ class MotionDesigner(QtWidgets.QWidget):
         control point with the given index.
         (Here we assume that coordinates are in the range roughly –10..10.)
         """
-        pt = self.plotted_points[index]
-        # Block signals to avoid triggering update events while we set the sliders.
-        self.slider_x.blockSignals(True)
-        self.slider_y.blockSignals(True)
-        self.slider_z.blockSignals(True)
-        self.slider_x.setValue(int(pt[0] * 100))
-        self.slider_y.setValue(int(pt[1] * 100))
-        self.slider_z.setValue(int(pt[2] * 100))
-        self.slider_x.blockSignals(False)
-        self.slider_y.blockSignals(False)
-        self.slider_z.blockSignals(False)
+        if self.method == 'quadratic_from_poses':
+            pt = self.plotted_poses[index]
+            # Block signals to avoid triggering update events while we set the sliders.
+            self.slider_x.blockSignals(True)
+            self.slider_y.blockSignals(True)
+            self.slider_z.blockSignals(True)
+            self.slider_roll.blockSignals(True)
+            self.slider_pitch.blockSignals(True)
+            self.slider_yaw.blockSignals(True)
+            self.slider_x.setValue(int(pt.tr.t[0] * 100))
+            self.slider_y.setValue(int(pt.tr.t[1] * 100))
+            self.slider_z.setValue(int(pt.tr.t[2] * 100))
+            self.slider_roll.setValue(int(pt.tr.rpy()[0] * 100))
+            self.slider_pitch.setValue(int(pt.tr.rpy()[1] * 100))
+            self.slider_yaw.setValue(int(pt.tr.rpy()[2] * 100))
+            self.slider_roll_prev = self.slider_roll.value()
+            self.slider_pitch_prev = self.slider_pitch.value()
+            self.slider_yaw_prev = self.slider_yaw.value()
+            self.slider_x.blockSignals(False)
+            self.slider_y.blockSignals(False)
+            self.slider_z.blockSignals(False)
+            self.slider_roll.blockSignals(False)
+            self.slider_pitch.blockSignals(False)
+            self.slider_yaw.blockSignals(False)
+        else:
+            pt = self.plotted_points[index]
+            # Block signals to avoid triggering update events while we set the sliders.
+            self.slider_x.blockSignals(True)
+            self.slider_y.blockSignals(True)
+            self.slider_z.blockSignals(True)
+            self.slider_x.setValue(int(pt[0] * 100))
+            self.slider_y.setValue(int(pt[1] * 100))
+            self.slider_z.setValue(int(pt[2] * 100))
+            self.slider_x.blockSignals(False)
+            self.slider_y.blockSignals(False)
+            self.slider_z.blockSignals(False)
 
     def on_point_selection_changed(self, index):
         """
@@ -638,15 +708,61 @@ class MotionDesigner(QtWidgets.QWidget):
         new_y = self.slider_y.value() / 100.0
         new_z = self.slider_z.value() / 100.0
 
-        # Update the selected control point.
-        # (Assuming PointHomogeneous.from_3d_point returns a new instance.)
-        self.points[index] = PointHomogeneous.from_3d_point([new_x, new_y, new_z])
+        if self.method == 'quadratic_from_poses':
+            def rotmat(axis: str, angle: float) -> np.array:
+                c = np.cos(angle)
+                s = np.sin(angle)
+                if axis == 'x':
+                    return np.array([[1, 0, 0, 0],
+                                     [0, 1, 0, 0],
+                                     [0, 0, c, -s],
+                                     [0, 0, s, c]])
+                elif axis == 'y':
+                    return np.array([[1, 0, 0, 0],
+                                     [0, c, 0, s],
+                                     [0, 0, 1, 0],
+                                     [0, -s, 0, c]])
+                elif axis == 'z':
+                    return np.array([[1, 0, 0, 0],
+                                     [0, c, -s, 0],
+                                     [0, s, c, 0],
+                                     [0, 0, 0, 1]])
+                else:
+                    raise ValueError("Axis must be 'x', 'y', or 'z'")
 
-        # Update our stored array of control point coordinates.
-        self.plotted_points[index] = np.array([new_x, new_y, new_z])
+            if self.slider_roll.value() != self.slider_roll_prev:
+                new_roll = (self.slider_roll_prev - self.slider_roll.value()) / 100.0
+                new_mat = rotmat('x', new_roll)
+                new_tr = TransfMatrix(self.plotted_poses[index].tr.array() @ new_mat)
+                self.slider_roll_prev = self.slider_roll.value()
 
-        # Update the markers in the 3D view.
-        self.markers.setData(pos=self.plotted_points)
+            elif self.slider_pitch.value() != self.slider_pitch_prev:
+                new_pitch = (self.slider_pitch_prev - self.slider_pitch.value()) / 100.0
+                new_mat = rotmat('y', new_pitch)
+                new_tr = TransfMatrix(self.plotted_poses[index].tr.array() @ new_mat)
+                self.slider_pitch_prev = self.slider_pitch.value()
+
+            elif self.slider_yaw.value() != self.slider_yaw_prev:
+                new_yaw = (self.slider_yaw_prev - self.slider_yaw.value()) / 100.0
+                new_mat = rotmat('z', new_yaw)
+                new_tr = TransfMatrix(self.plotted_poses[index].tr.array() @ new_mat)
+                self.slider_yaw_prev = self.slider_yaw.value()
+            else:
+                new_tr = TransfMatrix.from_rpy_xyz(self.plotted_poses[index].tr.rpy(), [new_x, new_y, new_z])
+
+            new_dq = DualQuaternion(new_tr.matrix2dq())
+            self.points[index] = new_dq
+            self.plotted_poses[index].setData(new_tr)
+
+
+        else:
+            # Update the selected control point.
+            # (Assuming PointHomogeneous.from_3d_point returns a new instance.)
+            self.points[index] = PointHomogeneous.from_3d_point([new_x, new_y, new_z])
+            # Update our stored array of control point coordinates.
+            self.plotted_points[index] = np.array([new_x, new_y, new_z])
+            # Update the markers in the 3D view.
+            self.markers.setData(pos=self.plotted_points)
 
         # Recalculate and update the motion curve.
         self.update_curve()
@@ -660,10 +776,12 @@ class MotionDesigner(QtWidgets.QWidget):
         # get the numeric coefficients from interpolation
         if self.method == 'cubic_from_points':
             coeffs = self.mi.interpolate_points_cubic(self.points,
-                                                      return_numeric=True).T
+                                                      return_numeric=True)
         elif self.method == 'quadratic_from_points':
             coeffs = self.mi.interpolate_points_quadratic(self.points,
-                                                          return_numeric=True).T
+                                                          return_numeric=True)
+        elif self.method == 'quadratic_from_poses':
+            coeffs = self.mi.interpolate_quadratic_numerically(self.points)
 
         # For each coordinate (x, y, z), create a 1D polynomial.
         curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]
@@ -680,7 +798,6 @@ class MotionDesigner(QtWidgets.QWidget):
         curve_points = np.array(curve_points)
 
         t_space_frames = np.tan(np.linspace(-np.pi / 2, np.pi / 2, 51))
-
         frames_arrays = []
         for t in t_space_frames:
             dq = DualQuaternion([poly(t) for poly in curve])
@@ -746,6 +863,7 @@ class FramePlotHelper:
                                         antialias=antialias)
 
         # Set the initial transformation
+        self.tr = transform
         self.setData(transform)
 
     def setData(self, transform: TransfMatrix):
@@ -754,6 +872,8 @@ class FramePlotHelper:
 
         :param TransfMatrix transform: The new transformation matrix.
         """
+        self.tr = transform
+
         # Update the positions for each axis.
         self.x_axis.setData(pos=np.array([transform.t, transform.t + transform.n]))
         self.y_axis.setData(pos=np.array([transform.t, transform.t + transform.o]))

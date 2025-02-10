@@ -103,7 +103,7 @@ class RationalBezier(RationalCurve):
             for k in range(j + 1):
                 mat[j, k] = comb(degree, k) * comb(degree - k, j - k) * (-1)**(j - k)
 
-        return mat.dot(control_pts)
+        return mat.dot(control_pts).T
 
 
     def get_plot_data(self, interval: tuple = (0, 1), steps: int = 50) -> tuple:
