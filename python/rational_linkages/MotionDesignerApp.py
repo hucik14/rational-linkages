@@ -1,0 +1,412 @@
+from typing import Union
+import numpy as np
+import sys
+
+# PyQt and Pyqtgraph imports
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import Qt
+import pyqtgraph.opengl as gl
+
+# Import your custom classes (adjust the import paths as needed)
+from .DualQuaternion import DualQuaternion
+from .MotionInterpolation import MotionInterpolation
+from .PointHomogeneous import PointHomogeneous
+from .TransfMatrix import TransfMatrix
+from .PlotterPyqtgraph import PlotterPyqtgraph, FramePlotHelper
+
+
+class MotionDesignerApp:
+    """
+    Main application class for the motion designer.
+
+    Encapsulates the QApplication and the MotionDesigner widget.
+
+    :examples:
+
+    .. testcode:: [motiondesignerapp_example1]
+
+        from rational_linkages import MotionDesignerApp
+
+        d = MotionDesignerApp(method='quadratic_from_poses')
+        d.run()
+
+    .. testoutput:: [motiondesignerapp_example1]
+        :hide:
+
+        Closing the window... generated points for interpolation:
+        [1, 0, 0, 0, 0, 0, 0, 0]
+        [ 1,  0,  1,  0,  1,  0, -1, -2]
+        [ 1,  0,  0,  0,  1, -1,  2, -1]
+
+    .. testcleanup:: [motiondesignerapp_example1]
+
+        del d
+
+    .. testcode:: [motiondesignerapp_example2]
+
+        from rational_linkages import MotionDesignerApp, PointHomogeneous
+
+
+        chosen_points = [PointHomogeneous(pt) for pt in
+                         [
+                             [ 1.  , -0.2 ,  0.  ,  1.76],
+                             [1., 1., 1., 2.],
+                             [ 1.,  3., -3.,  1.],
+                             [ 1.,  2., -4.,  1.],
+                             [ 1., -2., -2.,  2.]
+                         ]]
+
+        d = MotionDesignerApp(method='quadratic_from_points', initial_points_or_poses=chosen_points)
+        d.run()
+
+    .. testoutput:: [motiondesignerapp_example2]
+        :hide:
+
+        Closing the window... generated points for interpolation:
+        [ 1.  , -0.2 ,  0.  ,  1.76]
+        [1., 1., 1., 2.]
+        [ 1.,  3., -3.,  1.]
+        [ 1.,  2., -4.,  1.]
+        [ 1., -2., -2.,  2.]
+
+    .. testcleanup:: [motiondesignerapp_example2]
+
+        del d
+
+    """
+    def __init__(self,
+                 method: str,
+                 initial_points_or_poses: Union[list[PointHomogeneous], list[DualQuaternion]] = None):
+        """
+        Initialize the application with the motion designer widget.
+
+        :param str method: The method to use for interpolation, supported values are
+            'cubic_from_points', 'quadratic_from_points', and 'quadratic_from_poses'.
+        :param list[PointHomogeneous] or list[DualQuaternion] initial_points_or_poses:
+            The initial points or poses to use for the motion curve.
+        """
+        if method not in ['cubic_from_points',
+                          'quadratic_from_points',
+                          'quadratic_from_poses']:
+            raise ValueError("Invalid method for motion designer.")
+
+        self.app = QtWidgets.QApplication(sys.argv)
+        self.window = MotionDesigner(method=method,
+                                     initial_pts=initial_points_or_poses)
+
+    def run(self):
+        """
+        Run the application, showing the motion designer widget.
+        """
+        self.window.show()
+        try:
+            self.app.exec_()
+        except SystemExit:
+            pass
+
+class MotionDesigner(QtWidgets.QWidget):
+    """
+    Interactive plotting widget for designing motion curves with interpolated points.
+
+    A widget that displays a 3D view of a motion curve and control points,
+    plus a side panel with controls for selecting and modifying one of the
+    control points (p0 to p6). Moving the sliders adjusts the x, y, and z
+    coordinates of the selected control point, which then updates the curve.
+    """
+    def __init__(self,
+                 method: str = 'cubic_from_points',
+                 initial_pts: Union[list[PointHomogeneous], list[DualQuaternion]] = None,
+                 parent=None,
+                 steps=1000,
+                 interval=(0, 1),
+                 font_size_of_labels=12):
+        """
+        Initialize the motion designer widget.
+        """
+        super().__init__(parent)
+
+        if method == 'cubic_from_points':
+            if initial_pts is None:
+                # default points
+                self.points = [PointHomogeneous(),
+                               PointHomogeneous([1, 1, 1, 0.3]),
+                               PointHomogeneous([1, 3, -3, 0.5]),
+                               PointHomogeneous([1, 0.5, -7, 1]),
+                               PointHomogeneous([1, -3.2, -7, 4]),
+                               PointHomogeneous([1, -7, -3, 2]),
+                               PointHomogeneous([1, -8, 3, 0.5])]
+            else:
+                if len(initial_pts) != 7:
+                    raise ValueError("For a cubic curve, 7 points are needed.")
+                self.points = initial_pts
+        elif method == 'quadratic_from_points':
+            if initial_pts is None:
+                self.points = [PointHomogeneous(),
+                               PointHomogeneous([1, 1, 1, 2]),
+                               PointHomogeneous([1, 3, -3, 1]),
+                               PointHomogeneous([1, 2, -4, 1]),
+                               PointHomogeneous([1, -2, -2, 2])]
+            else:
+                if len(initial_pts) != 5:
+                    raise ValueError("For a quadratic curve, 5 points are needed.")
+                self.points = initial_pts
+        elif method == 'quadratic_from_poses':
+            if initial_pts is None:
+                self.points = [DualQuaternion(),
+                               DualQuaternion([1, 0, 1, 0, 1, 0, -1, -2]),
+                               DualQuaternion([1, 0, 0, 0, 1, -1, 2, -1])]
+            else:
+                if len(initial_pts) != 3:
+                    raise ValueError("For a quadratic curve, 3 poses are needed.")
+                self.points = initial_pts
+
+
+        # an instance of Pyqtgraph-based plotter
+        self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
+                                        interval=interval,
+                                        font_size_of_labels=font_size_of_labels)
+
+        self.method = method
+        self.mi = MotionInterpolation()
+
+        # array of control point coordinates (in 3D)
+        if method == 'quadratic_from_points' or method == 'cubic_from_points':
+            self.plotted_points = np.array([pt.normalized_in_3d()
+                                            for pt in self.points])
+
+            # interpolated points markers
+            self.markers = gl.GLScatterPlotItem(pos=self.plotted_points,
+                                                color=(0, 1, 0, 1),
+                                                size=10)
+            self.plotter.widget.addItem(self.markers)
+
+        elif method == 'quadratic_from_poses':
+            poses_arrays = [TransfMatrix(pt.dq2matrix()) for pt in self.points]
+            self.plotted_poses = [FramePlotHelper(transform=tr,
+                                                  width=10,
+                                                  length=2) for tr in poses_arrays]
+            for pose in self.plotted_poses:
+                pose.addToView(self.plotter.widget)
+
+        self.curve_path_vis = None  # path of motion curve
+        self.curve_frames_vis = None  # poses of motion curve
+        self.update_curve_vis()  # initial curve update
+
+        # --- build the Control Panel ---
+        # combo box to select one of the points
+        self.point_combo = QtWidgets.QComboBox()
+        for i in range(len(self.points)):
+            self.point_combo.addItem(f"Point {i}")
+        self.point_combo.currentIndexChanged.connect(self.on_point_selection_changed)
+
+        # sliders for adjusting x, y, and z
+        self.slider_x = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.slider_y = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.slider_z = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        # slider range
+        for slider in (self.slider_x, self.slider_y, self.slider_z):
+            slider.setMinimum(-1000)
+            slider.setMaximum(1000)
+            slider.setSingleStep(1)
+            slider.valueChanged.connect(self.on_slider_value_changed)
+
+        if method == 'quadratic_from_poses':
+            # sliders for adjusting x, y, and z
+            self.slider_roll = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+            self.slider_pitch = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+            self.slider_yaw = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+
+            self.slider_roll_prev = 0
+            self.slider_pitch_prev = 0
+            self.slider_yaw_prev = 0
+            # slider range
+            for slider in (self.slider_roll, self.slider_pitch, self.slider_yaw):
+                slider.setMinimum(int(-np.pi * 100))
+                slider.setMaximum(int(np.pi * 100))
+                slider.setSingleStep(1)
+                slider.valueChanged.connect(self.on_slider_value_changed)
+
+        # initially for the first point
+        self.set_sliders_for_point(0)
+
+        # --- layout the 3D view and control panel ---
+        main_layout = QtWidgets.QHBoxLayout(self)
+        # add plotter (stored in self.plotter.widget)
+        main_layout.addWidget(self.plotter.widget, stretch=1)
+
+        # Build a vertical control panel.
+        control_panel = QtWidgets.QWidget()
+        cp_layout = QtWidgets.QVBoxLayout(control_panel)
+
+        cp_layout.addWidget(QtWidgets.QLabel("Select control point:"))
+        cp_layout.addWidget(self.point_combo)
+        cp_layout.addWidget(QtWidgets.QLabel("Adjust X:"))
+        cp_layout.addWidget(self.slider_x)
+        cp_layout.addWidget(QtWidgets.QLabel("Adjust Y:"))
+        cp_layout.addWidget(self.slider_y)
+        cp_layout.addWidget(QtWidgets.QLabel("Adjust Z:"))
+        cp_layout.addWidget(self.slider_z)
+        if method == 'quadratic_from_poses':
+            cp_layout.addWidget(QtWidgets.QLabel("Rotate X:"))
+            cp_layout.addWidget(self.slider_roll)
+            cp_layout.addWidget(QtWidgets.QLabel("Rotate Y:"))
+            cp_layout.addWidget(self.slider_pitch)
+            cp_layout.addWidget(QtWidgets.QLabel("Rotate Z:"))
+            cp_layout.addWidget(self.slider_yaw)
+
+        cp_layout.addStretch(1)
+
+        close_button = QtWidgets.QPushButton("Close")
+        cp_layout.addWidget(close_button)
+        close_button.clicked.connect(self.closeEvent)
+
+        main_layout.addWidget(control_panel)
+        self.setLayout(main_layout)
+        self.setWindowTitle("Motion Designer With Sliders")
+
+    def set_sliders_for_point(self, index):
+        """
+        Set the slider positions to reflect the current coordinates of the
+        control point with the given index.
+        (Here we assume that coordinates are in the range roughly –10..10.)
+        """
+        sliders = [self.slider_x, self.slider_y, self.slider_z]
+        if self.method == 'quadratic_from_points' or self.method == 'cubic_from_points':
+            pt = self.plotted_points[index]
+            values = [int(pt[i] * 100) for i in range(3)]
+        else:
+            sliders.extend([self.slider_roll, self.slider_pitch, self.slider_yaw])
+            pt = self.plotted_poses[index]
+            values = [
+                int(pt.tr.t[0] * 100),
+                int(pt.tr.t[1] * 100),
+                int(pt.tr.t[2] * 100),
+                int(pt.tr.rpy()[0] * 100),
+                int(pt.tr.rpy()[1] * 100),
+                int(pt.tr.rpy()[2] * 100)
+            ]
+            (self.slider_roll_prev, self.slider_pitch_prev,
+             self.slider_yaw_prev) = values[3:]
+
+        for slider, value in zip(sliders, values):
+            slider.blockSignals(True)
+            slider.setValue(value)
+            slider.blockSignals(False)
+
+    def on_point_selection_changed(self, index):
+        """
+        When a different point is selected in the combo box, update the slider
+        positions to match that point’s coordinates.
+        """
+        self.set_sliders_for_point(index)
+
+    def on_slider_value_changed(self, value):
+        """
+        Called when any of the sliders change their value. Update the currently
+        selected control point’s x, y, or z coordinate based on the slider values,
+        update the control point markers, and then recalculate the motion curve.
+        """
+        index = self.point_combo.currentIndex()
+        # Convert slider values (integers) to floating‑point coordinates.
+        new_x = self.slider_x.value() / 100.0
+        new_y = self.slider_y.value() / 100.0
+        new_z = self.slider_z.value() / 100.0
+
+        if self.method == 'quadratic_from_poses':
+            if self.slider_roll.value() != self.slider_roll_prev:
+                new_roll = (self.slider_roll_prev - self.slider_roll.value()) / 100.0
+                new_mat = TransfMatrix.from_rotation('x', new_roll)
+                new_tr = self.plotted_poses[index].tr * new_mat
+                self.slider_roll_prev = self.slider_roll.value()
+
+            elif self.slider_pitch.value() != self.slider_pitch_prev:
+                new_pitch = (self.slider_pitch_prev - self.slider_pitch.value()) / 100.0
+                new_mat = TransfMatrix.from_rotation('y', new_pitch)
+                new_tr = self.plotted_poses[index].tr * new_mat
+                self.slider_pitch_prev = self.slider_pitch.value()
+
+            elif self.slider_yaw.value() != self.slider_yaw_prev:
+                new_yaw = (self.slider_yaw_prev - self.slider_yaw.value()) / 100.0
+                new_mat = TransfMatrix.from_rotation('z', new_yaw)
+                new_tr = self.plotted_poses[index].tr * new_mat
+                self.slider_yaw_prev = self.slider_yaw.value()
+            else:
+                new_tr = TransfMatrix.from_rpy_xyz(self.plotted_poses[index].tr.rpy(), [new_x, new_y, new_z])
+
+            new_dq = DualQuaternion(new_tr.matrix2dq())
+            self.points[index] = new_dq
+            self.plotted_poses[index].setData(new_tr)
+
+        else:
+            # update the selected control point
+            self.points[index] = PointHomogeneous.from_3d_point([new_x, new_y, new_z])
+            self.plotted_points[index] = np.array([new_x, new_y, new_z])
+            # update the visual markers
+            self.markers.setData(pos=self.plotted_points)
+
+        # Recalculate and update the motion curve.
+        self.update_curve_vis()
+
+    def update_curve_vis(self):
+        """
+        Recalculate the motion curve using the current control points. The
+        interpolation is performed by MotionInterpolation. Then update the curve
+        line in the GLViewWidget.
+        """
+        # get the numeric coefficients from interpolation
+        if self.method == 'cubic_from_points':
+            coeffs = self.mi.interpolate_points_cubic(self.points,
+                                                      return_numeric=True)
+        elif self.method == 'quadratic_from_points':
+            coeffs = self.mi.interpolate_points_quadratic(self.points,
+                                                          return_numeric=True)
+        elif self.method == 'quadratic_from_poses':
+            coeffs = self.mi.interpolate_quadratic_numerically(self.points)
+
+        # create numpy polynomial objects
+        curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]
+
+        # parameter values using a tangent substitution
+        t_space = np.tan(np.linspace(-np.pi / 2, np.pi / 2, self.plotter.steps + 1))
+        curve_points = []
+        for t in t_space:
+            dq = DualQuaternion([poly(t) for poly in curve])  # evaluate fot each t
+            pt = dq.dq2point_via_matrix()
+            curve_points.append(pt)
+        curve_points = np.array(curve_points)
+
+        t_space_frames = np.tan(np.linspace(-np.pi / 2, np.pi / 2, 51))
+        curve_frames = []
+        for t in t_space_frames:
+            dq = DualQuaternion([poly(t) for poly in curve])
+            curve_frames.append(TransfMatrix(dq.dq2matrix()))
+
+        # if the curve line has not yet been created
+        if self.curve_path_vis is None:
+            self.curve_path_vis = gl.GLLinePlotItem(pos=curve_points,
+                                                    color=(0, 0, 1, 1),
+                                                    width=2,
+                                                    antialias=True)
+            self.plotter.widget.addItem(self.curve_path_vis)
+
+            self.curve_frames_vis = [FramePlotHelper(transform=tr) for tr in curve_frames]
+            for frame in self.curve_frames_vis:
+                frame.addToView(self.plotter.widget)
+        else:  # update the existing curve visuals
+            self.curve_path_vis.setData(pos=curve_points)
+            for i, frame in enumerate(self.curve_frames_vis):
+                frame.setData(curve_frames[i])
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Q:
+            self.closeEvent(event)
+
+    def closeEvent(self, event):
+        """
+        Called when the window is closed. Ensure that the Qt application exits.
+        """
+        print("Closing the window... generated points for interpolation:")
+        for pt in self.points:
+            print(pt)
+        self.plotter.app.quit()
+        event.accept()

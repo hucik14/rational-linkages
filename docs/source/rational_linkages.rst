@@ -65,6 +65,22 @@ MiniBall
    :undoc-members:
    :show-inheritance:
 
+Motion Approximation
+--------------------
+
+.. automodule:: rational_linkages.MotionApproximation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Motion Designer App
+-------------------
+
+.. automodule:: rational_linkages.MotionDesignerApp
+   :members: MotionDesignerApp, MotionDesigner
+   :undoc-members:
+   :show-inheritance:
+
 Motion Factorization
 --------------------
 
@@ -102,6 +118,14 @@ Plotter
 
 .. automodule:: rational_linkages.Plotter
    :members:
+   :undoc-members:
+   :show-inheritance:
+
+PlotterPyqtgraph
+----------------
+
+.. automodule:: rational_linkages.PlotterPyqtgraph
+   :members: PlotterPyqtgraph, FramePlotHelper
    :undoc-members:
    :show-inheritance:
 
