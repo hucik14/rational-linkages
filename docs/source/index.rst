@@ -81,9 +81,9 @@ Main Features:
    :caption: Contents:
 
    general
-   modules
    tutorials
    background-math
+   modules
 
 
 Indices and Tables:

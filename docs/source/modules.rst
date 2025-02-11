@@ -1,5 +1,5 @@
-Rational Linkages Package Reference
-===================================
+Rational Linkages Reference
+===========================
 
 .. toctree::
    :maxdepth: 4

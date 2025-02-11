@@ -471,9 +471,6 @@ class PlotterPyqtgraph:
         event.accept()
 
 
-
-
-
 class FramePlotHelper:
     def __init__(self,
                  transform: TransfMatrix = TransfMatrix(),
