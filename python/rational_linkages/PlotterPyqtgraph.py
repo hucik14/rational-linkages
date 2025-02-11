@@ -335,7 +335,7 @@ class PlotterPyqtgraph:
                 self._plot_dual_quaternion(pose_dq)
         x, y, z = curve.get_plot_data(interval, self.steps)
         pts = np.column_stack((x, y, z))
-        color = self._get_color(kwargs.get('color', 'yellow'), (1, 1, 0, 1))
+        color = self._get_color(kwargs.get('color', 'blue'), (1, 1, 0, 1))
         line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
         self.widget.addItem(line_item)
 
@@ -543,8 +543,8 @@ class MotionDesigner(QtWidgets.QWidget):
         elif method == 'quadratic_from_poses':
             if initial_pts is None:
                 self.points = [DualQuaternion(),
-                               DualQuaternion([1, 0, 1, 0, 1, 0, 1, 2]),
-                               DualQuaternion([1, 0, 1, 0, 1, 0, 2, 1])]
+                               DualQuaternion([1, 0, 1, 0, 1, 0, -1, -2]),
+                               DualQuaternion([1, 0, 0, 0, 1, -1, 2, -1])]
             else:
                 if len(initial_pts) != 3:
                     raise ValueError("For a quadratic curve, 3 poses are needed.")
@@ -573,7 +573,8 @@ class MotionDesigner(QtWidgets.QWidget):
         elif method == 'quadratic_from_poses':
             poses_arrays = [TransfMatrix(pt.dq2matrix()) for pt in self.points]
             self.plotted_poses = [FramePlotHelper(transform=tr,
-                                                  width=10) for tr in poses_arrays]
+                                                  width=10,
+                                                  length=2) for tr in poses_arrays]
             for pose in self.plotted_poses:
                 pose.addToView(self.plotter.widget)
 
@@ -610,8 +611,8 @@ class MotionDesigner(QtWidgets.QWidget):
             self.slider_yaw_prev = 0
             # slider range
             for slider in (self.slider_roll, self.slider_pitch, self.slider_yaw):
-                slider.setMinimum(-1000)
-                slider.setMaximum(1000)
+                slider.setMinimum(int(-np.pi * 100))
+                slider.setMaximum(int(np.pi * 100))
                 slider.setSingleStep(1)
                 slider.valueChanged.connect(self.on_slider_value_changed)
 
@@ -647,7 +648,7 @@ class MotionDesigner(QtWidgets.QWidget):
 
         close_button = QtWidgets.QPushButton("Close")
         cp_layout.addWidget(close_button)
-        close_button.clicked.connect(self.close_event)
+        close_button.clicked.connect(self.closeEvent)
 
         main_layout.addWidget(control_panel)
         self.setLayout(main_layout)
@@ -704,20 +705,20 @@ class MotionDesigner(QtWidgets.QWidget):
         if self.method == 'quadratic_from_poses':
             if self.slider_roll.value() != self.slider_roll_prev:
                 new_roll = (self.slider_roll_prev - self.slider_roll.value()) / 100.0
-                new_mat = self.transf_from_rotation('x', new_roll)
-                new_tr = TransfMatrix(self.plotted_poses[index].tr.array() @ new_mat)
+                new_mat = TransfMatrix.from_rotation('x', new_roll)
+                new_tr = self.plotted_poses[index].tr * new_mat
                 self.slider_roll_prev = self.slider_roll.value()
 
             elif self.slider_pitch.value() != self.slider_pitch_prev:
                 new_pitch = (self.slider_pitch_prev - self.slider_pitch.value()) / 100.0
-                new_mat = self.transf_from_rotation('y', new_pitch)
-                new_tr = TransfMatrix(self.plotted_poses[index].tr.array() @ new_mat)
+                new_mat = TransfMatrix.from_rotation('y', new_pitch)
+                new_tr = self.plotted_poses[index].tr * new_mat
                 self.slider_pitch_prev = self.slider_pitch.value()
 
             elif self.slider_yaw.value() != self.slider_yaw_prev:
                 new_yaw = (self.slider_yaw_prev - self.slider_yaw.value()) / 100.0
-                new_mat = self.transf_from_rotation('z', new_yaw)
-                new_tr = TransfMatrix(self.plotted_poses[index].tr.array() @ new_mat)
+                new_mat = TransfMatrix.from_rotation('z', new_yaw)
+                new_tr = self.plotted_poses[index].tr * new_mat
                 self.slider_yaw_prev = self.slider_yaw.value()
             else:
                 new_tr = TransfMatrix.from_rpy_xyz(self.plotted_poses[index].tr.rpy(), [new_x, new_y, new_z])
@@ -773,9 +774,9 @@ class MotionDesigner(QtWidgets.QWidget):
         # if the curve line has not yet been created
         if self.curve_path_vis is None:
             self.curve_path_vis = gl.GLLinePlotItem(pos=curve_points,
-                                                color=(0, 0, 1, 1),
-                                                width=2,
-                                                antialias=True)
+                                                    color=(0, 0, 1, 1),
+                                                    width=2,
+                                                    antialias=True)
             self.plotter.widget.addItem(self.curve_path_vis)
 
             self.curve_frames_vis = [FramePlotHelper(transform=tr) for tr in curve_frames]
@@ -786,45 +787,7 @@ class MotionDesigner(QtWidgets.QWidget):
             for i, frame in enumerate(self.curve_frames_vis):
                 frame.setData(curve_frames[i])
 
-    @staticmethod
-    def transf_from_rotation(axis: str, angle: float, unit: str = 'rad') -> np.array:
-        """
-        Create a transformation matrix from a rotation around an axis.
-
-        :param str axis: The axis of rotation ('x', 'y', or 'z').
-        :param float angle: The angle of rotation in radians.
-        :param str unit: The unit of the angle ('rad' or 'deg'). Default is 'rad'.
-
-        :return: A 4x4 transformation matrix.
-        :rtype: np.ndarray
-        """
-        if unit == 'deg':
-            angle = np.deg2rad(angle)
-        elif unit != 'rad':
-            raise ValueError("Unit must be 'rad' or 'deg'")
-
-        c = np.cos(angle)
-        s = np.sin(angle)
-
-        if axis == 'x':
-            return np.array([[1, 0, 0, 0],
-                             [0, 1, 0, 0],
-                             [0, 0, c, -s],
-                             [0, 0, s, c]])
-        elif axis == 'y':
-            return np.array([[1, 0, 0, 0],
-                             [0, c, 0, s],
-                             [0, 0, 1, 0],
-                             [0, -s, 0, c]])
-        elif axis == 'z':
-            return np.array([[1, 0, 0, 0],
-                             [0, c, -s, 0],
-                             [0, s, c, 0],
-                             [0, 0, 0, 1]])
-        else:
-            raise ValueError("Axis must be 'x', 'y', or 'z'")
-
-    def close_event(self, event):
+    def closeEvent(self, event):
         """
         Called when the window is closed. Ensure that the Qt application exits.
         """
@@ -832,37 +795,41 @@ class MotionDesigner(QtWidgets.QWidget):
         for pt in self.points:
             print(pt)
         self.plotter.app.quit()
+        event.accept()
 
 
 class FramePlotHelper:
     def __init__(self,
                  transform: TransfMatrix = TransfMatrix(),
-                 width: float = 2,
+                 width: float = 2.,
+                 length: float = 1.,
                  antialias: bool = True):
         """
         Create a coordinate frame using three GLLinePlotItems.
 
         :param TransfMatrix transform: The initial transformation matrix.
         :param float width: The width of the lines.
+        :param float length: The length of the axes.
         :param bool antialias: Whether to use antialiasing
         """
         # Create GLLinePlotItems for the three axes.
         # The initial positions are placeholders; they will be set properly in setData().
         self.x_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
-                                        color=(1, 0, 0, 1),
+                                        color=(1, 0, 0, 0.5),
                                         width=width,
                                         antialias=antialias)
         self.y_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
-                                        color=(0, 1, 0, 1),
+                                        color=(0, 1, 0, 0.5),
                                         width=width,
                                         antialias=antialias)
         self.z_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
-                                        color=(0, 0, 1, 1),
+                                        color=(0, 0, 1, 0.5),
                                         width=width,
                                         antialias=antialias)
 
         # Set the initial transformation
         self.tr = transform
+        self.length = length
         self.setData(transform)
 
     def setData(self, transform: TransfMatrix):
@@ -874,9 +841,9 @@ class FramePlotHelper:
         self.tr = transform
 
         # Update the positions for each axis.
-        self.x_axis.setData(pos=np.array([transform.t, transform.t + transform.n]))
-        self.y_axis.setData(pos=np.array([transform.t, transform.t + transform.o]))
-        self.z_axis.setData(pos=np.array([transform.t, transform.t + transform.a]))
+        self.x_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.n]))
+        self.y_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.o]))
+        self.z_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.a]))
 
     def addToView(self, view: gl.GLViewWidget):
         """
