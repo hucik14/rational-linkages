@@ -180,13 +180,17 @@ class MotionDesigner(QtWidgets.QWidget):
                                                 size=10)
             self.plotter.widget.addItem(self.markers)
 
+            for i, pt in enumerate(self.plotted_points):
+                self.plotter.widget.add_label(pt, f"p{i}")
+
         elif method == 'quadratic_from_poses':
             poses_arrays = [TransfMatrix(pt.dq2matrix()) for pt in self.points]
             self.plotted_poses = [FramePlotHelper(transform=tr,
                                                   width=10,
                                                   length=2) for tr in poses_arrays]
-            for pose in self.plotted_poses:
+            for i, pose in enumerate(self.plotted_poses):
                 pose.addToView(self.plotter.widget)
+                self.plotter.widget.add_label(pose, f"p{i}")
 
         self.curve_path_vis = None  # path of motion curve
         self.curve_frames_vis = None  # poses of motion curve
@@ -397,10 +401,6 @@ class MotionDesigner(QtWidgets.QWidget):
             for i, frame in enumerate(self.curve_frames_vis):
                 frame.setData(curve_frames[i])
 
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Q:
-            self.closeEvent(event)
-
     def closeEvent(self, event):
         """
         Called when the window is closed. Ensure that the Qt application exits.
@@ -409,4 +409,3 @@ class MotionDesigner(QtWidgets.QWidget):
         for pt in self.points:
             print(pt)
         self.plotter.app.quit()
-        event.accept()

@@ -2,8 +2,10 @@ from functools import wraps
 import numpy as np
 
 # PyQt and Pyqtgraph imports
-from PyQt5.QtWidgets import QApplication, QLabel
+
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
+from PyQt5 import QtCore, QtGui
 import pyqtgraph.opengl as gl
 
 # Import your custom classes (adjust the import paths as needed)
@@ -34,7 +36,7 @@ class PlotterPyqtgraph:
             self.app = QApplication([])
 
         # Create the GLViewWidget.
-        self.widget = gl.GLViewWidget()
+        self.widget = CustomGLViewWidget()
         self.widget.setWindowTitle('3D Plot')
         self.widget.opts['distance'] = 10
         self.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
@@ -42,7 +44,7 @@ class PlotterPyqtgraph:
 
         # Add a grid.
         grid = gl.GLGridItem()
-        grid.setSize(10, 10)
+        grid.setSize(20, 20)
         grid.setSpacing(1, 1)
         self.widget.addItem(grid)
 
@@ -52,6 +54,8 @@ class PlotterPyqtgraph:
         # Store parameters.
         self.t_space = np.linspace(interval[0], interval[1], discrete_step_space)
         self.steps = discrete_step_space
+
+        self.labels = []
         self.label_font_size = font_size_of_labels
 
         # (The "interactive" flag is present for compatibility with your Vispy version.)
@@ -184,7 +188,7 @@ class PlotterPyqtgraph:
         self.widget.addItem(scatter)
         if 'label' in kwargs:
             mid = (pos0 + pos1) / 2
-            self._add_text(kwargs['label'], mid, color, self.label_font_size)
+            self.add_label(kwargs['label'], mid, color, self.label_font_size)
 
     @_plotting_decorator
     def plot_line_segments_between_points(self,
@@ -228,7 +232,7 @@ class PlotterPyqtgraph:
         self.widget.addItem(surface)
 
         if 'label' in kwargs:
-            self._add_text(kwargs['label'], point, (1, 1, 1, 1), self.label_font_size)
+            self.add_label(kwargs['label'], point, (1, 1, 1, 1), self.label_font_size)
 
     def _create_mesh_from_grid(self, X, Y, Z):
         """
@@ -270,7 +274,7 @@ class PlotterPyqtgraph:
 
         if 'label' in kwargs:
             mid = start_pt + direction / 2
-            self._add_text(kwargs['label'], mid, color, self.label_font_size)
+            self.add_label(kwargs['label'], mid, color, self.label_font_size)
 
     @_plotting_decorator
     def _plot_point(self, point: PointHomogeneous, **kwargs):
@@ -282,7 +286,7 @@ class PlotterPyqtgraph:
         scatter = gl.GLScatterPlotItem(pos=np.array([pos]), color=color, size=10)
         self.widget.addItem(scatter)
         if 'label' in kwargs:
-            self._add_text(kwargs['label'], pos, color, self.label_font_size)
+            self.widget.add_label(scatter, kwargs['label'])
 
     @_plotting_decorator
     def _plot_dual_quaternion(self, dq: DualQuaternion, **kwargs):
@@ -314,7 +318,7 @@ class PlotterPyqtgraph:
         self.widget.addItem(z_line)
 
         if 'label' in kwargs:
-            self._add_text(kwargs['label'], origin, (1, 1, 1, 1), self.label_font_size)
+            self.widget.add_label(origin, kwargs['label'])
 
     @_plotting_decorator
     def _plot_rational_curve(self, curve: RationalCurve, **kwargs):
@@ -445,23 +449,43 @@ class PlotterPyqtgraph:
                              smooth=False, drawEdges=True, edgeColor=(0, 0, 0, 1))
         self.widget.addItem(mesh)
 
-    def _add_text(self, label_text: str, pos, color, font_size):
-        """
-        Add text labels using QLabel overlay.
-        """
-        label = QLabel(self.widget)
-        label.setText(label_text)
-        label.setStyleSheet(f"color: rgba({color[0]*255}, {color[1]*255}, {color[2]*255}, {color[3]}); font-size: {font_size}px;")
-        label.move(int(pos[0]), int(pos[1]))
-        label.show()
+    def paintEvent(self, event):
+        # Draw the usual 3D scene first.
+        super(PlotterPyqtgraph, self).paintEvent(event)
+
+        # Set up a QPainter to draw overlay text.
+        painter = QtGui.QPainter(self)
+        painter.setPen(QtCore.Qt.white)
+        painter.setFont(QtGui.QFont("Arial", 12))
+
+        # Get the Model-View-Projection (MVP) matrix.
+        projection_matrix = self.projectionMatrix()
+        view_matrix = self.viewMatrix()
+        mvp = projection_matrix * view_matrix
+
+        # Iterate over each label and project its 3D point to 2D screen coordinates.
+        for entry in self.labels:
+            point = entry['point']
+            text = entry['text']
+            # Convert the 3D point to homogeneous coordinates.
+            point_vec = QtGui.QVector4D(point.pos[0][0], point.pos[0][1], point.pos[0][2], 1.0)
+            projected = mvp.map(point_vec)
+            # Perform perspective division
+            if projected.w() != 0:
+                ndc_x = projected.x() / projected.w()
+                ndc_y = projected.y() / projected.w()
+            else:
+                ndc_x, ndc_y = 0, 0
+            # Convert normalized device coordinates to screen coordinates.
+            x = int((ndc_x * 0.5 + 0.5) * self.width())
+            y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
+            painter.drawText(x, y, text)
+
+        painter.end()
 
     def show(self):
         """Start the Qt event loop."""
         QApplication.exec_()
-
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Q:
-            self.closeEvent(event)
 
     def closeEvent(self, event):
         """
@@ -469,6 +493,78 @@ class PlotterPyqtgraph:
         """
         self.app.quit()
         event.accept()
+
+
+class CustomGLViewWidget(gl.GLViewWidget):
+    def __init__(self, *args, **kwargs):
+        super(CustomGLViewWidget, self).__init__(*args, **kwargs)
+        # List to hold labels: each entry is a dict with keys 'point' and 'text'
+        self.labels = []
+
+    def add_label(self, point, text):
+        """
+        Adds a label for a 3D point.
+        """
+        self.labels.append({'point': point, 'text': text})
+
+    def paintEvent(self, event):
+        # Draw the usual 3D scene first.
+        super(CustomGLViewWidget, self).paintEvent(event)
+
+        # Set up a QPainter to draw overlay text.
+        painter = QtGui.QPainter(self)
+        painter.setPen(QtCore.Qt.white)
+        painter.setFont(QtGui.QFont("Arial", 12))
+
+        # Get the Model-View-Projection (MVP) matrix.
+        projection_matrix = self.projectionMatrix()
+        view_matrix = self.viewMatrix()
+        mvp = projection_matrix * view_matrix
+
+        # Iterate over each label and project its 3D point to 2D screen coordinates.
+        for entry in self.labels:
+            point = entry['point']
+            text = entry['text']
+
+            projected = mvp.map(self._obtain_label_vec(point))
+            # Perform perspective division
+            if projected.w() != 0:
+                ndc_x = projected.x() / projected.w()
+                ndc_y = projected.y() / projected.w()
+            else:
+                ndc_x, ndc_y = 0, 0
+            # Convert normalized device coordinates to screen coordinates.
+            x = int((ndc_x * 0.5 + 0.5) * self.width())
+            y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
+            painter.drawText(x, y, text)
+
+        painter.end()
+
+    @staticmethod
+    def _obtain_label_vec(pt):
+        """
+        Obtain the label vector.
+        """
+        # Convert the 3D point to homogeneous coordinates.
+
+        if isinstance(pt, np.ndarray):
+            point_vec = pt
+
+        elif isinstance(pt, PointHomogeneous):
+            point_vec = [pt.coordinates_normalized[1],
+                         pt.coordinates_normalized[2],
+                         pt.coordinates_normalized[3]]
+
+        elif isinstance(pt, TransfMatrix):
+            point_vec = [pt.t[0], pt.t[1], pt.t[2]]
+
+        elif isinstance(pt, FramePlotHelper):
+            point_vec = [pt.tr.t[0], pt.tr.t[1], pt.tr.t[2]]
+
+        else:  # is pyqtgraph marker (scatter)
+            point_vec = [pt.pos[0][0], pt.pos[0][1], pt.pos[0][2]]
+
+        return QtGui.QVector4D(point_vec[0], point_vec[1], point_vec[2], 1.0)
 
 
 class FramePlotHelper:
