@@ -1,14 +1,9 @@
-from functools import wraps
 import numpy as np
 
-# PyQt and Pyqtgraph imports
-
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph.opengl as gl
 
-# Import your custom classes (adjust the import paths as needed)
 from .DualQuaternion import DualQuaternion
 from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
@@ -24,8 +19,8 @@ from .Linkage import LineSegment
 class PlotterPyqtgraph:
     def __init__(self,
                  discrete_step_space: int = 1000,
-                 interval: tuple = (0, 1),
-                 font_size_of_labels: int = 12):
+                 interval: tuple = (0, 1)
+                 ):
         """
         Initialize the Pyqtgraph plotter. This version creates a GLViewWidget,
         sets a turntable‐like camera, adds a grid and coordinate axes.
@@ -37,7 +32,7 @@ class PlotterPyqtgraph:
 
         # Create the GLViewWidget.
         self.widget = CustomGLViewWidget()
-        self.widget.setWindowTitle('3D Plot')
+        self.widget.setWindowTitle('Rational Linkages')
         self.widget.opts['distance'] = 10
         self.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
         self.widget.show()
@@ -56,12 +51,12 @@ class PlotterPyqtgraph:
         self.steps = discrete_step_space
 
         self.labels = []
-        self.label_font_size = font_size_of_labels
 
         # (The "interactive" flag is present for compatibility with your Vispy version.)
         self.interactive = False
 
-    def _get_color(self, color, default):
+    @staticmethod
+    def _get_color(color, default):
         """
         Convert common color names to RGBA tuples.
         If color is already a tuple (or list) it is returned unchanged.
@@ -157,20 +152,6 @@ class PlotterPyqtgraph:
         else:
             raise TypeError("Unsupported type for plotting.")
 
-    @staticmethod
-    def _plotting_decorator(func):
-        """
-        A decorator to allow common post‑plotting updates.
-        """
-
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            result = func(self, *args, **kwargs)
-            return result
-
-        return wrapper
-
-    @_plotting_decorator
     def plot_axis_between_two_points(self,
                                      p0: PointHomogeneous,
                                      p1: PointHomogeneous,
@@ -181,16 +162,15 @@ class PlotterPyqtgraph:
         pos0 = np.array(p0.normalized_in_3d())
         pos1 = np.array(p1.normalized_in_3d())
         pts = np.array([pos0, pos1])
-        color = self._get_color(kwargs.get('color', 'white'), (1, 1, 1, 1))
+        color = self._get_color(kwargs.get('color', 'magenta'), (1, 1, 1, 1))
         line = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
         self.widget.addItem(line)
         scatter = gl.GLScatterPlotItem(pos=np.array([pos1]), color=color, size=5)
         self.widget.addItem(scatter)
         if 'label' in kwargs:
             mid = (pos0 + pos1) / 2
-            self.add_label(kwargs['label'], mid, color, self.label_font_size)
+            self.widget.add_label(mid, kwargs['label'])
 
-    @_plotting_decorator
     def plot_line_segments_between_points(self,
                                           points: list,
                                           **kwargs):
@@ -198,11 +178,10 @@ class PlotterPyqtgraph:
         Plot a connected line (polyline) through a list of points.
         """
         pts = np.array([p.normalized_in_3d() for p in points])
-        color = self._get_color(kwargs.get('color', 'white'), (1, 1, 1, 1))
+        color = self._get_color(kwargs.get('color', 'green'), (1, 1, 1, 1))
         line = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
         self.widget.addItem(line)
 
-    @_plotting_decorator
     def plot_plane(self,
                    normal: np.ndarray,
                    point: np.ndarray,
@@ -249,7 +228,6 @@ class PlotterPyqtgraph:
         faces = np.array(faces)
         return vertices, faces
 
-    @_plotting_decorator
     def _plot_line(self, line: NormalizedLine, **kwargs):
         """
         Plot a line as an arrow (here a simple line). The method
@@ -264,7 +242,7 @@ class PlotterPyqtgraph:
         end_pt = start_pt + direction
         pts = np.array([start_pt, end_pt])
 
-        color = self._get_color(kwargs.get('color', 'white'), (1, 1, 1, 1))
+        color = self._get_color(kwargs.get('color', 'magenta'), (1, 1, 1, 1))
 
         line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
         self.widget.addItem(line_item)
@@ -274,9 +252,8 @@ class PlotterPyqtgraph:
 
         if 'label' in kwargs:
             mid = start_pt + direction / 2
-            self.add_label(kwargs['label'], mid, color, self.label_font_size)
+            self.widget.add_label(mid, kwargs['label'])
 
-    @_plotting_decorator
     def _plot_point(self, point: PointHomogeneous, **kwargs):
         """
         Plot a point as a marker.
@@ -285,10 +262,10 @@ class PlotterPyqtgraph:
         color = self._get_color(kwargs.get('color', 'red'), (1, 0, 0, 1))
         scatter = gl.GLScatterPlotItem(pos=np.array([pos]), color=color, size=10)
         self.widget.addItem(scatter)
+
         if 'label' in kwargs:
             self.widget.add_label(scatter, kwargs['label'])
 
-    @_plotting_decorator
     def _plot_dual_quaternion(self, dq: DualQuaternion, **kwargs):
         """
         Plot a dual quaternion by converting it to a transformation matrix.
@@ -296,7 +273,6 @@ class PlotterPyqtgraph:
         matrix = TransfMatrix(dq.dq2matrix())
         self._plot_transf_matrix(matrix, **kwargs)
 
-    @_plotting_decorator
     def _plot_transf_matrix(self, matrix: TransfMatrix, **kwargs):
         """
         Plot a transformation matrix as three arrows (x, y, and z axes).
@@ -320,7 +296,6 @@ class PlotterPyqtgraph:
         if 'label' in kwargs:
             self.widget.add_label(origin, kwargs['label'])
 
-    @_plotting_decorator
     def _plot_rational_curve(self, curve: RationalCurve, **kwargs):
         """
         Plot a rational curve as a line. Optionally, plot poses along the curve.
@@ -336,11 +311,10 @@ class PlotterPyqtgraph:
                 self._plot_dual_quaternion(pose_dq)
         x, y, z = curve.get_plot_data(interval, self.steps)
         pts = np.column_stack((x, y, z))
-        color = self._get_color(kwargs.get('color', 'blue'), (1, 1, 0, 1))
+        color = self._get_color(kwargs.get('color', 'orange'), (1, 1, 0, 1))
         line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
         self.widget.addItem(line_item)
 
-    @_plotting_decorator
     def _plot_rational_bezier(self,
                               bezier: RationalBezier,
                               plot_control_points: bool = True,
@@ -351,7 +325,7 @@ class PlotterPyqtgraph:
         interval = kwargs.pop('interval', (0, 1))
         x, y, z, x_cp, y_cp, z_cp = bezier.get_plot_data(interval, self.steps)
         pts = np.column_stack((x, y, z))
-        color = self._get_color(kwargs.get('color', 'magenta'), (1, 0, 1, 1))
+        color = self._get_color(kwargs.get('color', 'yellow'), (1, 0, 1, 1))
         line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
         self.widget.addItem(line_item)
         if plot_control_points:
@@ -362,7 +336,6 @@ class PlotterPyqtgraph:
                                         antialias=True)
             self.widget.addItem(cp_line)
 
-    @_plotting_decorator
     def _plot_motion_factorization(self, factorization: MotionFactorization, **kwargs):
         """
         Plot the motion factorization as a 3D line.
@@ -374,7 +347,6 @@ class PlotterPyqtgraph:
         line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
         self.widget.addItem(line_item)
 
-    @_plotting_decorator
     def _plot_rational_mechanism(self, mechanism: RationalMechanism, **kwargs):
         """
         Plot a rational mechanism by plotting its factorizations and the tool path.
@@ -393,7 +365,6 @@ class PlotterPyqtgraph:
         self.widget.addItem(line_item)
         self._plot_tool_path(mechanism, **kwargs)
 
-    @_plotting_decorator
     def _plot_tool_path(self, mechanism: RationalMechanism, **kwargs):
         """
         Plot the path of the tool.
@@ -409,7 +380,6 @@ class PlotterPyqtgraph:
         line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
         self.widget.addItem(line_item)
 
-    @_plotting_decorator
     def _plot_miniball(self, ball: MiniBall, **kwargs):
         """
         Plot a MiniBall as a semi‑transparent mesh.
@@ -423,7 +393,6 @@ class PlotterPyqtgraph:
                              smooth=False, drawEdges=True, edgeColor=(0, 0, 0, 1))
         self.widget.addItem(mesh)
 
-    @_plotting_decorator
     def _plot_point_orbit(self, orbit: PointOrbit, **kwargs):
         """
         Plot a point orbit as a semi‑transparent mesh.
@@ -436,7 +405,6 @@ class PlotterPyqtgraph:
                              smooth=False, drawEdges=True, edgeColor=(0, 0, 0, 1))
         self.widget.addItem(mesh)
 
-    @_plotting_decorator
     def _plot_line_segment(self, segment: LineSegment, **kwargs):
         """
         Plot a line segment as a surface mesh.
@@ -514,7 +482,7 @@ class CustomGLViewWidget(gl.GLViewWidget):
         # Set up a QPainter to draw overlay text.
         painter = QtGui.QPainter(self)
         painter.setPen(QtCore.Qt.white)
-        painter.setFont(QtGui.QFont("Arial", 12))
+        painter.setFont(QtGui.QFont("Consolas", 10))
 
         # Get the Model-View-Projection (MVP) matrix.
         projection_matrix = self.projectionMatrix()
@@ -623,3 +591,271 @@ class FramePlotHelper:
         view.addItem(self.x_axis)
         view.addItem(self.y_axis)
         view.addItem(self.z_axis)
+
+
+class InteractivePlotter(QtWidgets.QWidget):
+    """
+    A QWidget that contains a PlotterPyqtgraph 3D view and interactive controls
+    (sliders and text boxes) for plotting and manipulating a mechanism.
+    """
+    def __init__(self, mechanism, show_tool=True, steps=1000,
+                 j_sliders_limit=1.0, arrows_length=1.0, parent=None):
+        super().__init__(parent)
+        self.mechanism = mechanism
+        self.show_tool = show_tool
+        self.steps = steps
+        self.j_sliders_limit = j_sliders_limit
+        self.arrows_length = arrows_length
+
+        # Mimic the original “plotted” dictionary.
+        self.plotted = {'mechanism': mechanism}
+
+        # Create the PlotterPyqtgraph instance.
+        self.plotter = PlotterPyqtgraph(discrete_step_space=steps)
+        # Optionally adjust the camera.
+        self.plotter.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
+
+        # Main layout: split between the 3D view and a control panel.
+        main_layout = QtWidgets.QHBoxLayout(self)
+
+        # Add the 3D view (PlotterPyqtgraph’s widget) to the layout.
+        main_layout.addWidget(self.plotter.widget, stretch=1)
+
+        # Create the control panel (on the right).
+        control_panel = QtWidgets.QWidget()
+        control_layout = QtWidgets.QVBoxLayout(control_panel)
+
+        # --- Driving joint angle slider ---
+        control_layout.addWidget(QtWidgets.QLabel("Joint angle [rad]:"))
+        self.move_slider = self.create_float_slider(0.0, 2 * np.pi, 0.0,
+                                                    orientation=QtCore.Qt.Horizontal)
+        control_layout.addWidget(self.move_slider)
+
+        # --- Text boxes ---
+        self.text_box_angle = QtWidgets.QLineEdit()
+        self.text_box_angle.setPlaceholderText("Set angle [rad]:")
+        control_layout.addWidget(self.text_box_angle)
+
+        self.text_box_param = QtWidgets.QLineEdit()
+        self.text_box_param.setPlaceholderText("Set parameter t [-]:")
+        control_layout.addWidget(self.text_box_param)
+
+        self.text_box_save = QtWidgets.QLineEdit()
+        self.text_box_save.setPlaceholderText("Save with filename:")
+        control_layout.addWidget(self.text_box_save)
+
+        # --- Joint connection sliders ---
+        joint_sliders_layout = QtWidgets.QHBoxLayout()
+        self.joint_sliders = []
+        for i in range(self.mechanism.num_joints):
+            slider0, slider1 = self._init_joint_sliders(i, self.j_sliders_limit)
+            self.joint_sliders.append(slider0)
+            self.joint_sliders.append(slider1)
+            # For each joint, arrange the pair vertically.
+            joint_layout = QtWidgets.QVBoxLayout()
+            joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp0"))
+            joint_layout.addWidget(slider0)
+            joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp1"))
+            joint_layout.addWidget(slider1)
+            joint_sliders_layout.addLayout(joint_layout)
+        control_layout.addLayout(joint_sliders_layout)
+
+        # For the first factorization:
+        for i in range(mechanism.factorizations[0].number_of_factors):
+            # Our QSliders use setValue() and we assumed a scaling factor of 100.
+            default_val0 = mechanism.factorizations[0].linkage[i].points_params[0]
+            default_val1 = mechanism.factorizations[0].linkage[i].points_params[1]
+            self.joint_sliders[2 * i].setValue(int(default_val0 * 100))
+            self.joint_sliders[2 * i + 1].setValue(int(default_val1 * 100))
+
+        # For the second factorization:
+        offset = 2 * mechanism.factorizations[0].number_of_factors
+        for i in range(mechanism.factorizations[1].number_of_factors):
+            default_val0 = mechanism.factorizations[1].linkage[i].points_params[0]
+            default_val1 = mechanism.factorizations[1].linkage[i].points_params[1]
+            self.joint_sliders[offset + 2 * i].setValue(int(default_val0 * 100))
+            self.joint_sliders[offset + 2 * i + 1].setValue(int(default_val1 * 100))
+
+        main_layout.addWidget(control_panel)
+
+        # --- Initialize plot items for the mechanism links ---
+        self.lines = []
+        num_lines = self.mechanism.num_joints * 2
+        for i in range(num_lines):
+            # if i is even, make the link color green, and joints red
+            if i % 2 == 0:
+                line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                              color=(0, 1, 0, 1),
+                                              width=2,
+                                              antialias=True)
+            else:
+                line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                              color=(1, 0, 0, 1),
+                                              width=2,
+                                              antialias=True)
+            self.lines.append(line_item)
+            self.plotter.widget.addItem(line_item)
+
+        # --- If desired, initialize tool plot and tool frame ---
+        if self.show_tool:
+            self.tool_link = gl.GLLinePlotItem(pos=np.zeros((3, 3)),
+                                               color=(0.5, 0, 0.5, 1),
+                                               width=2,
+                                               antialias=True)
+            self.plotter.widget.addItem(self.tool_link)
+            self.tool_frame = FramePlotHelper(
+                transform=TransfMatrix(self.mechanism.tool_frame.dq2matrix()))
+            self.tool_frame.addToView(self.plotter.widget)
+
+        # --- Plot the tool path ---
+        self._plot_tool_path(self.mechanism)
+
+        # --- Connect signals to slots ---
+        self.move_slider.valueChanged.connect(self.on_move_slider_changed)
+        self.text_box_angle.returnPressed.connect(self.on_angle_text_entered)
+        self.text_box_param.returnPressed.connect(self.on_param_text_entered)
+        self.text_box_save.returnPressed.connect(self.on_save_text_entered)
+        for slider in self.joint_sliders:
+            slider.valueChanged.connect(self.on_joint_slider_changed)
+
+        # Set initial configuration (home position)
+        self.move_slider.setValue(self.move_slider.minimum())
+        self.plot_slider_update(self.move_slider.value() / 100.0)
+
+    # --- Helper to create a “float slider” (using integer scaling) ---
+    def create_float_slider(self, min_val, max_val, init_val,
+                            orientation=QtCore.Qt.Horizontal, decimals=2):
+        slider = QtWidgets.QSlider(orientation)
+        slider.setMinimum(int(min_val * 100))
+        slider.setMaximum(int(max_val * 100))
+        slider.setValue(int(init_val * 100))
+        slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        slider.setTickInterval(10)
+        return slider
+
+    def _init_joint_sliders(self, idx, slider_limit):
+        """
+        Create a pair of vertical sliders for joint connection parameters.
+        (The slider values are scaled by 100.)
+        """
+        slider0 = self.create_float_slider(-slider_limit, slider_limit, 0.0,
+                                           orientation=QtCore.Qt.Vertical)
+        slider1 = self.create_float_slider(-slider_limit, slider_limit, 0.0,
+                                           orientation=QtCore.Qt.Vertical)
+        return slider0, slider1
+
+    def _plot_tool_path(self, mechanism):
+        """
+        Plot the tool path (as a continuous line) using a set of computed points.
+        """
+        t_lin = np.linspace(0, 2 * np.pi, self.steps)
+        t_vals = [mechanism.factorizations[0].joint_angle_to_t_param(t) for t in t_lin]
+        ee_points = [mechanism.factorizations[0].direct_kinematics_of_tool(
+                        t, mechanism.tool_frame.dq2point_via_matrix())
+                     for t in t_vals]
+        pts = np.array(ee_points)
+        tool_path = gl.GLLinePlotItem(pos=pts,
+                                      color=(0, 0, 1, 1),
+                                      width=2,
+                                      antialias=True)
+        self.plotter.widget.addItem(tool_path)
+
+    # --- Slots for interactive control events ---
+    def on_move_slider_changed(self, value):
+        """
+        Called when the driving joint angle slider is moved.
+        """
+        angle = value / 100.0  # Convert back to a float value.
+        self.plot_slider_update(angle)
+
+    def on_angle_text_entered(self):
+        """
+        Called when the angle text box is submitted.
+        """
+        try:
+            val = float(self.text_box_angle.text())
+            # Normalize angle to [0, 2*pi]
+            if val >= 0:
+                val = val % (2 * np.pi)
+            else:
+                val = (val % (2 * np.pi)) - np.pi
+            self.move_slider.setValue(int(val * 100))
+        except ValueError:
+            pass
+
+    def on_param_text_entered(self):
+        """
+        Called when the t-parameter text box is submitted.
+        """
+        try:
+            val = float(self.text_box_param.text())
+            self.plot_slider_update(val, t_param=val)
+            joint_angle = self.mechanism.factorizations[0].t_param_to_joint_angle(val)
+            self.move_slider.setValue(int(joint_angle * 100))
+        except ValueError:
+            pass
+
+    def on_save_text_entered(self):
+        """
+        Called when the save text box is submitted.
+        """
+        filename = self.text_box_save.text()
+        self.mechanism.save(filename=filename)
+
+    def on_joint_slider_changed(self, value):
+        """
+        Called when any joint slider is changed.
+        Updates the joint connection parameters and refreshes the plot.
+        """
+        num_of_factors = self.mechanism.factorizations[0].number_of_factors
+        # Update first factorization's linkage parameters.
+        for i in range(num_of_factors):
+            self.mechanism.factorizations[0].linkage[i].set_point_by_param(
+                0, self.joint_sliders[2 * i].value() / 100.0)
+            self.mechanism.factorizations[0].linkage[i].set_point_by_param(
+                1, self.joint_sliders[2 * i + 1].value() / 100.0)
+        # Update second factorization's linkage parameters.
+        for i in range(num_of_factors):
+            self.mechanism.factorizations[1].linkage[i].set_point_by_param(
+                0, self.joint_sliders[2 * num_of_factors + 2 * i].value() / 100.0)
+            self.mechanism.factorizations[1].linkage[i].set_point_by_param(
+                1, self.joint_sliders[2 * num_of_factors + 1 + 2 * i].value() / 100.0)
+        self.plot_slider_update(self.move_slider.value() / 100.0)
+
+    def plot_slider_update(self, angle, t_param=None):
+        """
+        Update the mechanism plot based on the current joint angle or t parameter.
+        """
+        if t_param is not None:
+            t = t_param
+        else:
+            t = self.mechanism.factorizations[0].joint_angle_to_t_param(angle)
+
+        # Compute link positions.
+        links = (self.mechanism.factorizations[0].direct_kinematics(t) +
+                 self.mechanism.factorizations[1].direct_kinematics(t)[::-1])
+        links.insert(0, links[-1])  # as in your original code
+
+        # Update each line segment.
+        for i, line in enumerate(self.lines):
+            pt1 = links[i]
+            pt2 = links[i+1]
+            pts = np.array([pt1, pt2])
+            line.setData(pos=pts)
+
+        if self.show_tool:
+            pts0 = self.mechanism.factorizations[0].direct_kinematics(t)[-1]
+            pts1 = self.mechanism.factorizations[0].direct_kinematics_of_tool(t, self.mechanism.tool_frame.dq2point_via_matrix())
+            pts2 = self.mechanism.factorizations[1].direct_kinematics(t)[-1]
+
+            tool_triangle = [pts0, pts1, pts2]
+
+            self.tool_link.setData(pos=np.array(tool_triangle))
+
+            # Update tool frame (pose) arrows.
+            pose_dq = DualQuaternion(self.mechanism.evaluate(t))
+            # Compute the pose matrix by composing the mechanism’s pose and tool frame.
+            pose_matrix = TransfMatrix(pose_dq.dq2matrix()) * TransfMatrix(self.mechanism.tool_frame.dq2matrix())
+            self.tool_frame.setData(pose_matrix)
+
+        self.plotter.widget.update()

@@ -163,8 +163,7 @@ class MotionDesigner(QtWidgets.QWidget):
 
         # an instance of Pyqtgraph-based plotter
         self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
-                                        interval=interval,
-                                        font_size_of_labels=font_size_of_labels)
+                                        interval=interval)
 
         self.method = method
         self.mi = MotionInterpolation()
