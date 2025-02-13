@@ -153,3 +153,24 @@ class NormalizedPlane:
         line_moment = np.cross(-1 * line_dir, line_point)
 
         return np.concatenate([line_dir, line_moment], axis=None)
+
+    def data_to_plot(self, xlim: tuple = (-1, 1), ylim: tuple = (-1, 1)):
+        """
+        Get the data to plot the plane.
+
+        :param tuple xlim: The x limits.
+        :param tuple ylim: The y limits.
+
+        :return: The data to plot the plane.
+        :rtype: tuple
+        """
+        normal = np.asarray(self.normal)
+        point = np.asarray(self.point)
+        a, b, c = normal
+        d = np.dot(normal, point)
+        x = np.linspace(xlim[0], xlim[1], 5)
+        y = np.linspace(ylim[0], ylim[1], 5)
+        x_pts, y_pts = np.meshgrid(x, y)
+        z_pts = (d - a * x_pts - b * y_pts) / c
+
+        return x_pts, y_pts, z_pts

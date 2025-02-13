@@ -8,6 +8,7 @@ import pyqtgraph.opengl as gl
 from .DualQuaternion import DualQuaternion
 from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
+from .NormalizedPlane import NormalizedPlane
 from .PointHomogeneous import PointHomogeneous, PointOrbit
 from .RationalBezier import RationalBezier
 from .RationalCurve import RationalCurve
@@ -121,6 +122,8 @@ class PlotterPyqtgraph:
             self._plot_line_segment(object_to_plot, **kwargs)
         elif type_to_plot == "is_point_orbit":
             self._plot_point_orbit(object_to_plot, **kwargs)
+        elif type_to_plot == "is_plane":
+            self._plot_plane(object_to_plot, **kwargs)
         else:
             raise TypeError("Unsupported type for plotting.")
 
@@ -150,6 +153,8 @@ class PlotterPyqtgraph:
             return "is_line_segment"
         elif isinstance(object_to_plot, PointOrbit):
             return "is_point_orbit"
+        elif isinstance(object_to_plot, NormalizedPlane):
+            return "is_plane"
         else:
             raise TypeError("Unsupported type for plotting.")
 
@@ -183,43 +188,39 @@ class PlotterPyqtgraph:
         line = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
         self.widget.addItem(line)
 
-    def plot_plane(self,
-                   normal: np.ndarray,
-                   point: np.ndarray,
-                   xlim: tuple = (-1, 1),
-                   ylim: tuple = (-1, 1),
-                   **kwargs):
+    def _plot_plane(self,
+                    plane: NormalizedPlane,
+                    xlim: tuple = (-1, 1),
+                    ylim: tuple = (-1, 1),
+                    **kwargs):
         """
-        Plot a plane defined by a normal vector and a point on it.
-        (Here we create a grid and then build a mesh.)
-        """
-        normal = np.asarray(normal)
-        point = np.asarray(point)
-        a, b, c = normal
-        d = np.dot(normal, point)
-        x = np.linspace(xlim[0], xlim[1], 20)
-        y = np.linspace(ylim[0], ylim[1], 20)
-        X, Y = np.meshgrid(x, y)
-        Z = (d - a * X - b * Y) / c
+        Plot a plane as a semi‑transparent mesh.
 
-        vertices, faces = self._create_mesh_from_grid(X, Y, Z)
-        surface = gl.GLMeshItem(vertexes=vertices, faces=faces,
+        :param NormalizedPlane plane: The plane to plot.
+        :param tuple xlim: The x‐axis limits.
+        :param tuple ylim: The y‐axis limits.
+        """
+        grid_points = plane.data_to_plot(xlim, ylim)
+
+        vertices, faces = self._create_mesh_from_grid(grid_points)
+        surface = gl.GLMeshItem(vertexes=vertices,
+                                faces=faces,
                                 color=self._get_color(
-                                    kwargs.get('color', (0.8, 0.2, 0.2, 0.4)),
-                                    (0.8, 0.2, 0.2, 0.4)),
-                                smooth=False, drawEdges=True,
+                                    kwargs.get('color', (0.8, 0.2, 0.2, 0.2)),
+                                    (0.8, 0.2, 0.2, 0.2)),
+                                smooth=False,
+                                drawEdges=True,
                                 edgeColor=(0.5, 0.5, 0.5, 1))
         self.widget.addItem(surface)
 
-        if 'label' in kwargs:
-            self.add_label(kwargs['label'], point, (1, 1, 1, 1), self.label_font_size)
-
-    def _create_mesh_from_grid(self, X, Y, Z):
+    @staticmethod
+    def _create_mesh_from_grid(grid_points: tuple):
         """
         Create vertices and faces for a mesh given grid data.
         """
-        m, n = X.shape
-        vertices = np.column_stack((X.flatten(), Y.flatten(), Z.flatten()))
+        x, y, z = grid_points
+        m, n = x.shape
+        vertices = np.column_stack((x.flatten(), y.flatten(), z.flatten()))
         faces = []
         for i in range(m - 1):
             for j in range(n - 1):
