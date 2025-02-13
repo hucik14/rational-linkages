@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 
 from PyQt5.QtWidgets import QApplication
@@ -17,9 +18,13 @@ from .Linkage import LineSegment
 
 
 class PlotterPyqtgraph:
+    """
+    PyQtGraph plotter for 3D visualization of geometric objects.
+    """
     def __init__(self,
                  discrete_step_space: int = 1000,
-                 interval: tuple = (0, 1)
+                 interval: tuple = (0, 1),
+                 arrows_length: float = 1.0,
                  ):
         """
         Initialize the Pyqtgraph plotter. This version creates a GLViewWidget,
@@ -37,23 +42,21 @@ class PlotterPyqtgraph:
         self.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
         self.widget.show()
 
-        # Add a grid.
+        # add a grid
         grid = gl.GLGridItem()
         grid.setSize(20, 20)
         grid.setSpacing(1, 1)
         self.widget.addItem(grid)
 
-        # Add coordinate axes.
-        self.plot(TransfMatrix())
-
-        # Store parameters.
+        # store parameters
         self.t_space = np.linspace(interval[0], interval[1], discrete_step_space)
         self.steps = discrete_step_space
+        self.arrows_length = arrows_length
+
+        # add origin coordinates
+        self.plot(TransfMatrix())
 
         self.labels = []
-
-        # (The "interactive" flag is present for compatibility with your Vispy version.)
-        self.interactive = False
 
     @staticmethod
     def _get_color(color, default):
@@ -112,8 +115,6 @@ class PlotterPyqtgraph:
             self._plot_rational_bezier(object_to_plot, **kwargs)
         elif type_to_plot == "is_rational_mechanism":
             self._plot_rational_mechanism(object_to_plot, **kwargs)
-        elif type_to_plot == "is_interactive":
-            self._plot_interactive(object_to_plot, **kwargs)
         elif type_to_plot == "is_miniball":
             self._plot_miniball(object_to_plot, **kwargs)
         elif type_to_plot == "is_line_segment":
@@ -129,7 +130,7 @@ class PlotterPyqtgraph:
         """
         if isinstance(object_to_plot, RationalMechanism):
             return "is_rational_mechanism"
-        elif isinstance(object_to_plot, MotionFactorization) and not self.interactive:
+        elif isinstance(object_to_plot, MotionFactorization):
             return "is_motion_factorization"
         elif isinstance(object_to_plot, NormalizedLine):
             return "is_line"
@@ -278,15 +279,21 @@ class PlotterPyqtgraph:
         Plot a transformation matrix as three arrows (x, y, and z axes).
         """
         origin = np.array(matrix.t)
-        x_axis = np.array([origin, origin + np.array(matrix.n)])
-        y_axis = np.array([origin, origin + np.array(matrix.o)])
-        z_axis = np.array([origin, origin + np.array(matrix.a)])
+        x_axis = np.array([origin, origin + self.arrows_length * np.array(matrix.n)])
+        y_axis = np.array([origin, origin + self.arrows_length * np.array(matrix.o)])
+        z_axis = np.array([origin, origin + self.arrows_length * np.array(matrix.a)])
 
-        x_line = gl.GLLinePlotItem(pos=x_axis, color=(1, 0, 0, 1), width=2,
+        x_line = gl.GLLinePlotItem(pos=x_axis,
+                                   color=(1, 0, 0, 1),
+                                   width=2,
                                    antialias=True)
-        y_line = gl.GLLinePlotItem(pos=y_axis, color=(0, 1, 0, 1), width=2,
+        y_line = gl.GLLinePlotItem(pos=y_axis,
+                                   color=(0, 1, 0, 1),
+                                   width=2,
                                    antialias=True)
-        z_line = gl.GLLinePlotItem(pos=z_axis, color=(0, 0, 1, 1), width=2,
+        z_line = gl.GLLinePlotItem(pos=z_axis,
+                                   color=(0, 0, 1, 1),
+                                   width=2,
                                    antialias=True)
 
         self.widget.addItem(x_line)
@@ -598,8 +605,13 @@ class InteractivePlotter(QtWidgets.QWidget):
     A QWidget that contains a PlotterPyqtgraph 3D view and interactive controls
     (sliders and text boxes) for plotting and manipulating a mechanism.
     """
-    def __init__(self, mechanism, show_tool=True, steps=1000,
-                 j_sliders_limit=1.0, arrows_length=1.0, parent=None):
+    def __init__(self,
+                 mechanism: RationalMechanism,
+                 show_tool: bool = True,
+                 steps: int = 1000,
+                 j_sliders_limit: float = 1.0,
+                 arrows_length: float = 1.0,
+                 parent=None):
         super().__init__(parent)
         self.mechanism = mechanism
         self.show_tool = show_tool
@@ -611,7 +623,8 @@ class InteractivePlotter(QtWidgets.QWidget):
         self.plotted = {'mechanism': mechanism}
 
         # Create the PlotterPyqtgraph instance.
-        self.plotter = PlotterPyqtgraph(discrete_step_space=steps)
+        self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
+                                        arrows_length=self.arrows_length)
         # Optionally adjust the camera.
         self.plotter.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
 
@@ -704,7 +717,8 @@ class InteractivePlotter(QtWidgets.QWidget):
                                                antialias=True)
             self.plotter.widget.addItem(self.tool_link)
             self.tool_frame = FramePlotHelper(
-                transform=TransfMatrix(self.mechanism.tool_frame.dq2matrix()))
+                transform=TransfMatrix(self.mechanism.tool_frame.dq2matrix()),
+                length=self.arrows_length)
             self.tool_frame.addToView(self.plotter.widget)
 
         # --- Plot the tool path ---
@@ -859,3 +873,58 @@ class InteractivePlotter(QtWidgets.QWidget):
             self.tool_frame.setData(pose_matrix)
 
         self.plotter.widget.update()
+
+class InteractivePlotterApp:
+    """
+    Main application class for the interactive plotting of mechanisms.
+
+    Encapsulates the QApplication and the InteractivePlotter widget.
+
+    :examples:
+
+    .. testcode:: [interactiveplotterapp_example1]
+
+        from rational_linkages import InteractivePlotterApp
+        from rational_linkages.models import collisions_free_6r
+
+
+        ipa = InteractivePlotterApp(mechanism=collisions_free_6r())
+        ipa.run()
+
+    .. testcleanup:: [motiondesignerapp_example1]
+
+        del ipa
+
+
+    """
+    def __init__(self,
+                 mechanism: RationalMechanism,
+                 show_tool=True,
+                 steps=1000,
+                 j_sliders_limit=1.0,
+                 arrows_length=1.0):
+        """
+        Initialize the application.
+
+        :param RationalMechanism mechanism: The mechanism to be plotted
+        :param bool show_tool: whether to show the tool (end-effector) frame
+        :param int steps: the number of discrete steps for the curve path
+        :param float j_sliders_limit: the limit for the joint sliders
+        :param float arrows_length: the length of the arrows of plotted frames
+        """
+        self.app = QtWidgets.QApplication(sys.argv)
+        self.window = InteractivePlotter(mechanism=mechanism,
+                                         show_tool=show_tool,
+                                         steps=steps,
+                                         j_sliders_limit=j_sliders_limit,
+                                         arrows_length=arrows_length)
+
+    def run(self):
+        """
+        Run the application, showing the motion designer widget.
+        """
+        self.window.show()
+        try:
+            self.app.exec_()
+        except SystemExit:
+            pass

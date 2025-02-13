@@ -76,7 +76,8 @@ class MotionDesignerApp:
     """
     def __init__(self,
                  method: str,
-                 initial_points_or_poses: Union[list[PointHomogeneous], list[DualQuaternion]] = None):
+                 initial_points_or_poses: Union[list[PointHomogeneous], list[DualQuaternion]] = None,
+                 arrows_length: float = 1.0):
         """
         Initialize the application with the motion designer widget.
 
@@ -84,6 +85,7 @@ class MotionDesignerApp:
             'cubic_from_points', 'quadratic_from_points', and 'quadratic_from_poses'.
         :param list[PointHomogeneous] or list[DualQuaternion] initial_points_or_poses:
             The initial points or poses to use for the motion curve.
+        :param float arrows_length: The length of the arrows for the poses.
         """
         if method not in ['cubic_from_points',
                           'quadratic_from_points',
@@ -92,7 +94,8 @@ class MotionDesignerApp:
 
         self.app = QtWidgets.QApplication(sys.argv)
         self.window = MotionDesigner(method=method,
-                                     initial_pts=initial_points_or_poses)
+                                     initial_pts=initial_points_or_poses,
+                                     arrows_length=arrows_length)
 
     def run(self):
         """
@@ -116,10 +119,10 @@ class MotionDesigner(QtWidgets.QWidget):
     def __init__(self,
                  method: str = 'cubic_from_points',
                  initial_pts: Union[list[PointHomogeneous], list[DualQuaternion]] = None,
-                 parent=None,
-                 steps=1000,
-                 interval=(0, 1),
-                 font_size_of_labels=12):
+                 parent = None,
+                 steps: int = 1000,
+                 interval: tuple = (0, 1),
+                 arrows_length: float = 1.0):
         """
         Initialize the motion designer widget.
         """
@@ -163,7 +166,8 @@ class MotionDesigner(QtWidgets.QWidget):
 
         # an instance of Pyqtgraph-based plotter
         self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
-                                        interval=interval)
+                                        interval=interval,
+                                        arrows_length=arrows_length)
 
         self.method = method
         self.mi = MotionInterpolation()
@@ -186,7 +190,8 @@ class MotionDesigner(QtWidgets.QWidget):
             poses_arrays = [TransfMatrix(pt.dq2matrix()) for pt in self.points]
             self.plotted_poses = [FramePlotHelper(transform=tr,
                                                   width=10,
-                                                  length=2) for tr in poses_arrays]
+                                                  length=2 * self.arrows_length)
+                                  for tr in poses_arrays]
             for i, pose in enumerate(self.plotted_poses):
                 pose.addToView(self.plotter.widget)
                 self.plotter.widget.add_label(pose, f"p{i}")
@@ -392,7 +397,9 @@ class MotionDesigner(QtWidgets.QWidget):
                                                     antialias=True)
             self.plotter.widget.addItem(self.curve_path_vis)
 
-            self.curve_frames_vis = [FramePlotHelper(transform=tr) for tr in curve_frames]
+            self.curve_frames_vis = [FramePlotHelper(transform=tr,
+                                                     length=self.plotter.arrows_length)
+                                     for tr in curve_frames]
             for frame in self.curve_frames_vis:
                 frame.addToView(self.plotter.widget)
         else:  # update the existing curve visuals

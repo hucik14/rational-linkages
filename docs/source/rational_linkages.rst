@@ -125,7 +125,7 @@ PlotterPyqtgraph
 ----------------
 
 .. automodule:: rational_linkages.PlotterPyqtgraph
-   :members: PlotterPyqtgraph, FramePlotHelper
+   :members: PlotterPyqtgraph, FramePlotHelper, InteractivePlotter, InteractivePlotterApp
    :undoc-members:
    :show-inheritance:
 

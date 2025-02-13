@@ -13,7 +13,7 @@ from .MotionInterpolation import MotionInterpolation
 from .NormalizedLine import NormalizedLine
 from .NormalizedPlane import NormalizedPlane
 from .Plotter import Plotter
-from .PlotterPyqtgraph import PlotterPyqtgraph, FramePlotHelper, InteractivePlotter
+from .PlotterPyqtgraph import PlotterPyqtgraph, FramePlotHelper, InteractivePlotter, InteractivePlotterApp
 from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
 from .RationalBezier import RationalBezier, BezierSegment
