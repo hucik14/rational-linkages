@@ -163,11 +163,12 @@ class MotionDesigner(QtWidgets.QWidget):
                     raise ValueError("For a quadratic curve, 3 poses are needed.")
                 self.points = initial_pts
 
+        self.arrows_length = arrows_length
 
         # an instance of Pyqtgraph-based plotter
         self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
                                         interval=interval,
-                                        arrows_length=arrows_length)
+                                        arrows_length=self.arrows_length)
 
         self.method = method
         self.mi = MotionInterpolation()
