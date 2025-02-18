@@ -15,7 +15,7 @@ from .TransfMatrix import TransfMatrix
 from .PlotterPyqtgraph import PlotterPyqtgraph, FramePlotHelper
 
 
-class MotionDesignerApp:
+class MotionDesigner:
     """
     Main application class for the motion designer.
 
@@ -23,14 +23,14 @@ class MotionDesignerApp:
 
     :examples:
 
-    .. testcode:: [motiondesignerapp_example1]
+    .. testcode:: [motiondesigner_example1]
 
-        from rational_linkages import MotionDesignerApp
+        from rational_linkages import MotionDesigner
 
-        d = MotionDesignerApp(method='quadratic_from_poses')
-        d.run()
+        d = MotionDesigner(method='quadratic_from_poses')
+        d.show()
 
-    .. testoutput:: [motiondesignerapp_example1]
+    .. testoutput:: [motiondesigner_example1]
         :hide:
 
         Closing the window... generated points for interpolation:
@@ -38,13 +38,13 @@ class MotionDesignerApp:
         [ 1,  0,  1,  0,  1,  0, -1, -2]
         [ 1,  0,  0,  0,  1, -1,  2, -1]
 
-    .. testcleanup:: [motiondesignerapp_example1]
+    .. testcleanup:: [motiondesigner_example1]
 
         del d
 
-    .. testcode:: [motiondesignerapp_example2]
+    .. testcode:: [motiondesigner_example2]
 
-        from rational_linkages import MotionDesignerApp, PointHomogeneous
+        from rational_linkages import MotionDesigner, PointHomogeneous
 
 
         chosen_points = [PointHomogeneous(pt) for pt in
@@ -56,10 +56,10 @@ class MotionDesignerApp:
                              [ 1., -2., -2.,  2.]
                          ]]
 
-        d = MotionDesignerApp(method='quadratic_from_points', initial_points_or_poses=chosen_points)
-        d.run()
+        d = MotionDesigner(method='quadratic_from_points', initial_points_or_poses=chosen_points)
+        d.show()
 
-    .. testoutput:: [motiondesignerapp_example2]
+    .. testoutput:: [motiondesigner_example2]
         :hide:
 
         Closing the window... generated points for interpolation:
@@ -69,7 +69,7 @@ class MotionDesignerApp:
         [ 1.,  2., -4.,  1.]
         [ 1., -2., -2.,  2.]
 
-    .. testcleanup:: [motiondesignerapp_example2]
+    .. testcleanup:: [motiondesigner_example2]
 
         del d
 
@@ -93,11 +93,20 @@ class MotionDesignerApp:
             raise ValueError("Invalid method for motion designer.")
 
         self.app = QtWidgets.QApplication(sys.argv)
-        self.window = MotionDesigner(method=method,
-                                     initial_pts=initial_points_or_poses,
-                                     arrows_length=arrows_length)
+        self.window = MotionDesignerWidget(method=method,
+                                           initial_pts=initial_points_or_poses,
+                                           arrows_length=arrows_length)
 
-    def run(self):
+    def plot(self, *args, **kwargs):
+        """
+        Plot the given objects in the motion designer widget.
+
+        :param args: The objects to plot.
+        :param kwargs: Additional keyword arguments for the plotter.
+        """
+        self.window.plotter.plot(*args, **kwargs)
+
+    def show(self):
         """
         Run the application, showing the motion designer widget.
         """
@@ -107,7 +116,7 @@ class MotionDesignerApp:
         except SystemExit:
             pass
 
-class MotionDesigner(QtWidgets.QWidget):
+class MotionDesignerWidget(QtWidgets.QWidget):
     """
     Interactive plotting widget for designing motion curves with interpolated points.
 

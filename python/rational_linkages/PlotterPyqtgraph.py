@@ -601,7 +601,7 @@ class FramePlotHelper:
         view.addItem(self.z_axis)
 
 
-class InteractivePlotter(QtWidgets.QWidget):
+class InteractivePlotterWidget(QtWidgets.QWidget):
     """
     A QWidget that contains a PlotterPyqtgraph 3D view and interactive controls
     (sliders and text boxes) for plotting and manipulating a mechanism.
@@ -875,7 +875,7 @@ class InteractivePlotter(QtWidgets.QWidget):
 
         self.plotter.widget.update()
 
-class InteractivePlotterApp:
+class InteractivePlotter:
     """
     Main application class for the interactive plotting of mechanisms.
 
@@ -883,18 +883,18 @@ class InteractivePlotterApp:
 
     :examples:
 
-    .. testcode:: [interactiveplotterapp_example1]
+    .. testcode:: [interactiveplotter_example1]
 
-        from rational_linkages import InteractivePlotterApp
+        from rational_linkages import InteractivePlotter
         from rational_linkages.models import collisions_free_6r
 
 
-        ipa = InteractivePlotterApp(mechanism=collisions_free_6r())
-        ipa.run()
+        p = InteractivePlotter(mechanism=collisions_free_6r())
+        p.show()
 
-    .. testcleanup:: [motiondesignerapp_example1]
+    .. testcleanup:: [motiondesigner_example1]
 
-        del ipa
+        del p
 
 
     """
@@ -914,13 +914,22 @@ class InteractivePlotterApp:
         :param float arrows_length: the length of the arrows of plotted frames
         """
         self.app = QtWidgets.QApplication(sys.argv)
-        self.window = InteractivePlotter(mechanism=mechanism,
-                                         show_tool=show_tool,
-                                         steps=steps,
-                                         j_sliders_limit=j_sliders_limit,
-                                         arrows_length=arrows_length)
+        self.window = InteractivePlotterWidget(mechanism=mechanism,
+                                               show_tool=show_tool,
+                                               steps=steps,
+                                               j_sliders_limit=j_sliders_limit,
+                                               arrows_length=arrows_length)
 
-    def run(self):
+    def plot(self, *args, **kwargs):
+        """
+        Plot the given objects in the motion designer widget.
+
+        :param args: The objects to plot.
+        :param kwargs: Additional keyword arguments for the plotter.
+        """
+        self.window.plotter.plot(*args, **kwargs)
+
+    def show(self):
         """
         Run the application, showing the motion designer widget.
         """

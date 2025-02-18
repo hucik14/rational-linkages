@@ -73,11 +73,11 @@ Motion Approximation
    :undoc-members:
    :show-inheritance:
 
-Motion Designer App
--------------------
+Motion Designer
+---------------
 
-.. automodule:: rational_linkages.MotionDesignerApp
-   :members: MotionDesignerApp, MotionDesigner
+.. automodule:: rational_linkages.MotionDesigner
+   :members: MotionDesigner, MotionDesignerWidget
    :undoc-members:
    :show-inheritance:
 
@@ -125,7 +125,7 @@ PlotterPyqtgraph
 ----------------
 
 .. automodule:: rational_linkages.PlotterPyqtgraph
-   :members: PlotterPyqtgraph, FramePlotHelper, InteractivePlotter, InteractivePlotterApp
+   :members: PlotterPyqtgraph, FramePlotHelper, InteractivePlotter, InteractivePlotterWidget
    :undoc-members:
    :show-inheritance:
 
