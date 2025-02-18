@@ -737,6 +737,8 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         self.move_slider.setValue(self.move_slider.minimum())
         self.plot_slider_update(self.move_slider.value() / 100.0)
 
+        self.setWindowTitle('Rational Linkages')
+
     # --- Helper to create a “float slider” (using integer scaling) ---
     def create_float_slider(self, min_val, max_val, init_val,
                             orientation=QtCore.Qt.Horizontal, decimals=2):

@@ -280,7 +280,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
         main_layout.addWidget(control_panel)
         self.setLayout(main_layout)
-        self.setWindowTitle("Motion Designer With Sliders")
+        self.setWindowTitle("Motion Designer")
 
     def set_sliders_for_point(self, index):
         """
