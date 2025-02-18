@@ -248,7 +248,7 @@ class MotionInterpolation:
         # compute the common denominator
         denom = np.dot(p2_r, p0_d) + np.dot(p0_r, p2_d)
         if np.abs(denom) < 1e-12:
-            raise ValueError("Interpolation failed: denominator nearly zero.")
+            raise ValueError("Interpolation failed: denominator nearly zero. The poses p0 and p2 are dependent.")
 
         # parameters from the Study condition
         omega = (np.dot(p2_r, p1_d) + np.dot(p1_r, p2_d)) / denom
