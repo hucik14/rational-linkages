@@ -227,13 +227,13 @@ class MotionInterpolation:
         return poly
 
     @staticmethod
-    def interpolate_quadratic_numerically(poses: list[DualQuaternion]):
+    def interpolate_quadratic_numerically(poses: list[DualQuaternion]) -> np.ndarray:
         """
-        Interpolates the given 3 rational poses by a quadratic curve in SE(3).
+        Interpolates the given 3 poses by a quadratic curve in SE(3).
 
-        :param list[DualQuaternion] poses: The rational poses to interpolate.
+        :param list[DualQuaternion] poses: the rational poses to interpolate.
 
-        :return: Numpy Polynomials of rational motion curve.
+        :return: numerical coefficients of the motion curve
         :rtype: np.ndarray
         """
         p0 = poses[0].array()
@@ -395,7 +395,8 @@ class MotionInterpolation:
         return MotionInterpolation.interpolate_quadratic(poses)
 
     @staticmethod
-    def interpolate_cubic(poses: list[DualQuaternion]) -> list[sp.Poly]:
+    def interpolate_cubic(poses: list[DualQuaternion],
+                          return_coeffs: bool = False) -> list[sp.Poly]:
         """
         Interpolates the given 4 rational poses by a cubic curve in SE(3).
 
@@ -407,12 +408,28 @@ class MotionInterpolation:
         :see also: :ref:`interpolation_background`
 
         :param list[DualQuaternion] poses: The rational poses to interpolate.
+        :param bool return_coeffs: If True, the result will be returned as numpy array
 
         :return: The rational motion curve.
         :rtype: list[sp.Poly]
 
         :raises ValueError: If the interpolation has no solution, 'k' does not exist.
         """
+        rational_poses = []
+
+        # convert poses to rational dual quaternions
+        for pose in poses:
+            if isinstance(pose, TransfMatrix):
+                rational_poses.append(DualQuaternion.as_rational(pose.matrix2dq()))
+            elif isinstance(pose, DualQuaternion) and not pose.is_rational:
+                rational_poses.append(DualQuaternion.as_rational(pose.array()))
+            elif isinstance(pose, DualQuaternion) and pose.is_rational:
+                rational_poses.append(pose)
+            elif isinstance(pose, PointHomogeneous):
+                rational_poses.append(pose)
+
+        poses = rational_poses
+
         # obtain additional dual quaternions k1, k2
         try:
             k = MotionInterpolation._obtain_k_dq(poses)
@@ -464,7 +481,15 @@ class MotionInterpolation:
         t = sp.Symbol("t")
         poly = [element.subs(x, t) for element in poly]
 
-        return [sp.Poly(element, t) for element in poly]
+        if return_coeffs:
+            coeffs = [sp.Poly(element, t).all_coeffs() for element in poly]
+            if not all(len(c) == 4 for c in coeffs):
+                # expand by 0, put at the beginning of the list
+                coeffs = [[0.] * (4 - len(c)) + c for c in coeffs]
+
+            return np.array(coeffs, dtype='float64')
+        else:
+            return [sp.Poly(element, t) for element in poly]
 
     @staticmethod
     def _obtain_k_dq(poses: list[DualQuaternion]) -> list[DualQuaternion]:
@@ -526,7 +551,7 @@ class MotionInterpolation:
 
         sols_t = sp.solve(eqs, t)
 
-        # covert to list and retrun
+        # covert to list and return
         return [val for i, (key, val) in enumerate(sols_t.items())]
 
     @staticmethod

@@ -76,7 +76,7 @@ class MotionDesigner:
     """
     def __init__(self,
                  method: str,
-                 initial_points_or_poses: Union[list[PointHomogeneous], list[DualQuaternion]] = None,
+                 initial_points_or_poses: list[PointHomogeneous, DualQuaternion] = None,
                  arrows_length: float = 1.0):
         """
         Initialize the application with the motion designer widget.
@@ -88,8 +88,9 @@ class MotionDesigner:
         :param float arrows_length: The length of the arrows for the poses.
         """
         if method not in ['cubic_from_points',
+                          'cubic_from_poses',
                           'quadratic_from_points',
-                          'quadratic_from_poses']:
+                          'quadratic_from_poses',]:
             raise ValueError("Invalid method for motion designer.")
 
         self.app = QtWidgets.QApplication(sys.argv)
@@ -137,50 +138,15 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         """
         super().__init__(parent)
 
-        if method == 'cubic_from_points':
-            if initial_pts is None:
-                # default points
-                self.points = [PointHomogeneous(),
-                               PointHomogeneous([1, 1, 1, 0.3]),
-                               PointHomogeneous([1, 3, -3, 0.5]),
-                               PointHomogeneous([1, 0.5, -7, 1]),
-                               PointHomogeneous([1, -3.2, -7, 4]),
-                               PointHomogeneous([1, -7, -3, 2]),
-                               PointHomogeneous([1, -8, 3, 0.5])]
-            else:
-                if len(initial_pts) != 7:
-                    raise ValueError("For a cubic curve, 7 points are needed.")
-                self.points = initial_pts
-        elif method == 'quadratic_from_points':
-            if initial_pts is None:
-                self.points = [PointHomogeneous(),
-                               PointHomogeneous([1, 1, 1, 2]),
-                               PointHomogeneous([1, 3, -3, 1]),
-                               PointHomogeneous([1, 2, -4, 1]),
-                               PointHomogeneous([1, -2, -2, 2])]
-            else:
-                if len(initial_pts) != 5:
-                    raise ValueError("For a quadratic curve, 5 points are needed.")
-                self.points = initial_pts
-        elif method == 'quadratic_from_poses':
-            if initial_pts is None:
-                self.points = [DualQuaternion(),
-                               DualQuaternion([1, 0, 1, 0, 1, 0, -1, -2]),
-                               DualQuaternion([1, 0, 0, 0, 1, -1, 2, -1])]
-            else:
-                if len(initial_pts) != 3:
-                    raise ValueError("For a quadratic curve, 3 poses are needed.")
-                self.points = initial_pts
-
+        self.points = self._initialize_points(method, initial_pts)
+        self.method = method
         self.arrows_length = arrows_length
+        self.mi = MotionInterpolation()
 
         # an instance of Pyqtgraph-based plotter
         self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
                                         interval=interval,
                                         arrows_length=self.arrows_length)
-
-        self.method = method
-        self.mi = MotionInterpolation()
 
         # array of control point coordinates (in 3D)
         if method == 'quadratic_from_points' or method == 'cubic_from_points':
@@ -196,7 +162,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             for i, pt in enumerate(self.plotted_points):
                 self.plotter.widget.add_label(pt, f"p{i}")
 
-        elif method == 'quadratic_from_poses':
+        elif method == 'quadratic_from_poses' or method == 'cubic_from_poses':
             poses_arrays = [TransfMatrix(pt.dq2matrix()) for pt in self.points]
             self.plotted_poses = [FramePlotHelper(transform=tr,
                                                   width=10,
@@ -210,7 +176,9 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         self.curve_frames_vis = None  # poses of motion curve
         self.update_curve_vis()  # initial curve update
 
-        # --- build the Control Panel ---
+        ###################################
+        # --- build the Control Panel --- #
+
         # combo box to select one of the points
         self.point_combo = QtWidgets.QComboBox()
         for i in range(len(self.points)):
@@ -228,7 +196,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             slider.setSingleStep(1)
             slider.valueChanged.connect(self.on_slider_value_changed)
 
-        if method == 'quadratic_from_poses':
+        if method == 'quadratic_from_poses' or method == 'cubic_from_poses':
             # sliders for adjusting x, y, and z
             self.slider_roll = QtWidgets.QSlider(QtCore.Qt.Horizontal)
             self.slider_pitch = QtWidgets.QSlider(QtCore.Qt.Horizontal)
@@ -264,7 +232,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         cp_layout.addWidget(self.slider_y)
         cp_layout.addWidget(QtWidgets.QLabel("Adjust Z:"))
         cp_layout.addWidget(self.slider_z)
-        if method == 'quadratic_from_poses':
+        if method == 'quadratic_from_poses' or method == 'cubic_from_poses':
             cp_layout.addWidget(QtWidgets.QLabel("Rotate X:"))
             cp_layout.addWidget(self.slider_roll)
             cp_layout.addWidget(QtWidgets.QLabel("Rotate Y:"))
@@ -281,6 +249,56 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         main_layout.addWidget(control_panel)
         self.setLayout(main_layout)
         self.setWindowTitle("Motion Designer")
+
+    def _initialize_points(self, method, initial_pts):
+        predefined_points = {
+            'cubic_from_points': [
+                PointHomogeneous(),
+                PointHomogeneous([1, 1, 1, 0.3]),
+                PointHomogeneous([1, 3, -3, 0.5]),
+                PointHomogeneous([1, 0.5, -7, 1]),
+                PointHomogeneous([1, -3.2, -7, 4]),
+                PointHomogeneous([1, -7, -3, 2]),
+                PointHomogeneous([1, -8, 3, 0.5])
+            ],
+            'cubic_from_poses': [
+                DualQuaternion(),
+                DualQuaternion([0, 0, 0, 1, 1, 0, 1, 0]),
+                DualQuaternion([1, 2, 0, 0, -2, 1, 0, 0]),
+                DualQuaternion([3, 0, 1, 0, 1, 0, -3, 0])
+            ],
+            'quadratic_from_points': [
+                PointHomogeneous(),
+                PointHomogeneous([1, 1, 1, 2]),
+                PointHomogeneous([1, 3, -3, 1]),
+                PointHomogeneous([1, 2, -4, 1]),
+                PointHomogeneous([1, -2, -2, 2])
+            ],
+            'quadratic_from_poses': [
+                DualQuaternion(),
+                DualQuaternion([1, 0, 1, 0, 1, 0, -1, -2]),
+                DualQuaternion([1, 0, 0, 0, 1, -1, 2, -1])
+            ]
+        }
+
+        required_points = {
+            'cubic_from_points': 7,
+            'cubic_from_poses': 4,
+            'quadratic_from_points': 5,
+            'quadratic_from_poses': 3
+        }
+
+        if method not in predefined_points:
+            raise ValueError(f"Unknown method: {method}")
+
+        if initial_pts is None:
+            return predefined_points[method]
+
+        if len(initial_pts) != required_points[method]:
+            raise ValueError(
+                f"For a {method.replace('_', ' ')}, {required_points[method]} points are needed.")
+
+        return initial_pts
 
     def set_sliders_for_point(self, index):
         """
@@ -330,7 +348,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         new_y = self.slider_y.value() / 100.0
         new_z = self.slider_z.value() / 100.0
 
-        if self.method == 'quadratic_from_poses':
+        if self.method == 'quadratic_from_poses' or self.method == 'cubic_from_poses':
             if self.slider_roll.value() != self.slider_roll_prev:
                 new_roll = (self.slider_roll_prev - self.slider_roll.value()) / 100.0
                 new_mat = TransfMatrix.from_rotation('x', new_roll)
@@ -380,6 +398,8 @@ class MotionDesignerWidget(QtWidgets.QWidget):
                                                           return_numeric=True)
         elif self.method == 'quadratic_from_poses':
             coeffs = self.mi.interpolate_quadratic_numerically(self.points)
+        elif self.method == 'cubic_from_poses':
+            coeffs = self.mi.interpolate_cubic(self.points, return_coeffs=True)
 
         # create numpy polynomial objects
         curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]
