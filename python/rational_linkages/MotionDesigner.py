@@ -399,7 +399,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         elif self.method == 'quadratic_from_poses':
             coeffs = self.mi.interpolate_quadratic_numerically(self.points)
         elif self.method == 'cubic_from_poses':
-            coeffs = self.mi.interpolate_cubic(self.points, return_coeffs=True)
+            coeffs = self.mi.interpolate_cubic(self.points, numerically=True)
 
         # create numpy polynomial objects
         curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]

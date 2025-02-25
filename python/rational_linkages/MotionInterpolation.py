@@ -396,7 +396,8 @@ class MotionInterpolation:
 
     @staticmethod
     def interpolate_cubic(poses: list[DualQuaternion],
-                          return_coeffs: bool = False) -> list[sp.Poly]:
+                          numerically: bool = False,
+                          lamb: Union[float, int] = 0) -> list[sp.Poly]:
         """
         Interpolates the given 4 rational poses by a cubic curve in SE(3).
 
@@ -408,36 +409,34 @@ class MotionInterpolation:
         :see also: :ref:`interpolation_background`
 
         :param list[DualQuaternion] poses: The rational poses to interpolate.
-        :param bool return_coeffs: If True, the result will be returned as numpy array
+        :param bool numerically: If True, solve the equations numerically.
+        :param Union[float, int] lamb: The lambda parameter for the interpolation.
 
         :return: The rational motion curve.
         :rtype: list[sp.Poly]
 
         :raises ValueError: If the interpolation has no solution, 'k' does not exist.
         """
+        from time import time
         rational_poses = []
 
         # convert poses to rational dual quaternions
         for pose in poses:
-            if isinstance(pose, TransfMatrix):
-                rational_poses.append(DualQuaternion.as_rational(pose.matrix2dq()))
-            elif isinstance(pose, DualQuaternion) and not pose.is_rational:
+            if isinstance(pose, DualQuaternion) and not pose.is_rational:
                 rational_poses.append(DualQuaternion.as_rational(pose.array()))
             elif isinstance(pose, DualQuaternion) and pose.is_rational:
-                rational_poses.append(pose)
-            elif isinstance(pose, PointHomogeneous):
                 rational_poses.append(pose)
 
         poses = rational_poses
 
         # obtain additional dual quaternions k1, k2
         try:
-            k = MotionInterpolation._obtain_k_dq(poses)
+            k = MotionInterpolation._obtain_k_dq(poses, numerically=numerically)
         except Exception:
             raise ValueError('Interpolation has no solution.')
 
         # solve for t[i] - the parameter of the rational motion curve for i-th pose
-        t_sols = MotionInterpolation._solve_for_t(poses, k)
+        t_sols = MotionInterpolation._solve_for_t(poses, k, numerically=numerically)
 
         # Lagrange's interpolation part
         # lambdas for interpolation - scalar multiples of the poses
@@ -464,39 +463,45 @@ class MotionInterpolation:
                  for element in temp3]
 
         # obtain additional parametric pose p4
-        lam = sp.symbols("lam")
-        poses.append(DualQuaternion([lam, 0, 0, 0, 0, 0, 0, 0]) - k[0])
+        poses.append(DualQuaternion([lamb, 0, 0, 0, 0, 0, 0, 0]) - k[0])
 
-        eqs_lambda = [element.subs(x, lam) - lams[-1] * poses[-1].array()[i]
+        eqs_lambda = [element.subs(x, lamb) - lams[-1] * poses[-1].array()[i]
                       for i, element in enumerate(temp4)]
 
-        sols_lambda = sp.solve(eqs_lambda, lams, domain='RR')
+        if numerically:
+            sols_lambda = sp.nsolve(eqs_lambda, lams, [1., 1., 1., 1.])
+            sols_lambda = dict(zip(lams, sols_lambda))
+        else:
+            sols_lambda = sp.solve(eqs_lambda, lams, domain='RR')
 
-        # obtain the family of solutions
-        poly = [element.subs(sols_lambda) for element in temp4]
+        if numerically:
+            # obtain the family of solutions
+            poly = [element.subs(sols_lambda).evalf() for element in temp4]
 
-        # choose one solution by setting lambda, in this case lambda = 0
-        poly = [element.subs(lam, 0).evalf() for element in poly]
-
-        t = sp.Symbol("t")
-        poly = [element.subs(x, t) for element in poly]
-
-        if return_coeffs:
-            coeffs = [sp.Poly(element, t).all_coeffs() for element in poly]
+            coeffs = [sp.Poly(element, x, greedy=True).all_coeffs() for element in poly]
             if not all(len(c) == 4 for c in coeffs):
                 # expand by 0, put at the beginning of the list
                 coeffs = [[0.] * (4 - len(c)) + c for c in coeffs]
 
             return np.array(coeffs, dtype='float64')
         else:
-            return [sp.Poly(element, t) for element in poly]
+            # obtain the family of solutions
+            poly = [element.subs(sols_lambda) for element in temp4]
+
+            t = sp.Symbol("t")
+            poly = [element.subs(x, t) for element in poly]
+
+            polys = [sp.Poly(element, t) for element in poly]
+            return polys
 
     @staticmethod
-    def _obtain_k_dq(poses: list[DualQuaternion]) -> list[DualQuaternion]:
+    def _obtain_k_dq(poses: list[DualQuaternion],
+                     numerically: bool = False) -> list[DualQuaternion]:
         """
         Obtain additional dual quaternions k1, k2 for interpolation of 4 poses.
 
         :param list[DualQuaternion] poses: The rational poses to interpolate.
+        :param bool numerically: If True, the solution will be obtained numerically.
 
         :return: Two additional dual quaternions for interpolation.
         :rtype: list[DualQuaternion]
@@ -508,27 +513,38 @@ class MotionInterpolation:
 
         eqs = [k[0], k[4], k.norm().array()[4]]
 
-        sol = sp.solve(eqs, x, domain=sp.S.Reals)
+        if numerically:
+            sol = sp.nsolve(eqs, x, [1., 1., 1.])
 
-        k_as_expr = [sp.Expr(el) for el in k]
+            k1_array = poses[0].array() + sol[0] * poses[1].array() + sol[1] * poses[
+                2].array() + sol[2] * poses[3].array()
+            return [DualQuaternion(k1_array)]
 
-        k1 = [el.subs({x[0]: sol[0][0], x[1]: sol[0][1], x[2]: sol[0][2]})
-              for el in k_as_expr]
-        k2 = [el.subs({x[0]: sol[1][0], x[1]: sol[1][1], x[2]: sol[1][2]})
-              for el in k_as_expr]
+        else:
+            sol = sp.solve(eqs, x, domain='RR')
 
-        k1_dq = DualQuaternion([el.args[0] for el in k1])
-        k2_dq = DualQuaternion([el.args[0] for el in k2])
+            k_as_expr = [sp.Expr(el) for el in k]
 
-        return [k1_dq, k2_dq]
+            k1 = [el.subs({x[0]: sol[0][0], x[1]: sol[0][1], x[2]: sol[0][2]})
+                  for el in k_as_expr]
+            k2 = [el.subs({x[0]: sol[1][0], x[1]: sol[1][1], x[2]: sol[1][2]})
+                  for el in k_as_expr]
+
+            k1_dq = DualQuaternion([el.args[0] for el in k1])
+            k2_dq = DualQuaternion([el.args[0] for el in k2])
+
+            return [k1_dq, k2_dq]
 
     @staticmethod
-    def _solve_for_t(poses: list[DualQuaternion], k: list[DualQuaternion]):
+    def _solve_for_t(poses: list[DualQuaternion],
+                     k: list[DualQuaternion],
+                     numerically: bool = False) -> list:
         """
         Solve for t[i] - the parameter of the rational motion curve for i-th pose.
 
         :param list[DualQuaternion] poses: The rational poses to interpolate.
         :param list[DualQuaternion] k: The additional dual quaternions for interpolation.
+        :param bool numerically: If True, the solution will be obtained numerically.
 
         :return: The solutions for t[i].
         :rtype: list
@@ -549,10 +565,13 @@ class MotionInterpolation:
                sp.Matrix((t_dq[2] - k[0]).array()).transpose() @ study_cond_mat
                @ sp.Matrix(poses[3].array())]
 
-        sols_t = sp.solve(eqs, t)
-
-        # covert to list and return
-        return [val for i, (key, val) in enumerate(sols_t.items())]
+        if numerically:
+            sols_t = sp.nsolve(eqs, t, [0.7, 0.7, 0.7])
+            return [val for val in sols_t]
+        else:
+            sols_t = sp.solve(eqs, t)
+            # covert to list and return
+            return [val for i, (key, val) in enumerate(sols_t.items())]
 
     @staticmethod
     def _lagrange_polynomial(degree, index, x, t):
