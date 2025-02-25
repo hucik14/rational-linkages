@@ -165,12 +165,15 @@ class NormalizedPlane:
         :rtype: tuple
         """
         normal = np.asarray(self.normal)
-        point = np.asarray(self.point)
         a, b, c = normal
-        d = np.dot(normal, point)
+        d = self.oriented_distance
         x = np.linspace(xlim[0], xlim[1], 5)
         y = np.linspace(ylim[0], ylim[1], 5)
         x_pts, y_pts = np.meshgrid(x, y)
-        z_pts = (d - a * x_pts - b * y_pts) / c
+
+        if np.isclose(c, 0.0):
+            c = 1e-6
+
+        z_pts = -1 * (d + a * x_pts + b * y_pts) / c
 
         return x_pts, y_pts, z_pts
