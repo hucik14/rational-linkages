@@ -453,14 +453,22 @@ class MotionInterpolation:
         t = sp.symbols("t:4")
         x = sp.symbols("x")
 
-        # to avoid calculation with infinity, substitute t[i] with 1/t[i]
-        temp = [element.subs(t[0], 0) for element in interp]
-        temp2 = [element.subs(x, 1 / x) for element in temp]
-        temp3 = [sp.together(element * x ** 3) for element in temp2]
-        temp4 = [sp.together(element.subs({t[1]: 1 / t_sols[0],
-                                           t[2]: 1 / t_sols[1],
-                                           t[3]: 1 / t_sols[2]}))
-                 for element in temp3]
+        if numerically:
+            temp = interp.subs({t[0]: 0, x: 1 / x}).evalf()
+            temp = sp.together(temp * x ** 3).evalf()
+            temp4 = [sp.together(element.subs({t[1]: 1 / t_sols[0],
+                                               t[2]: 1 / t_sols[1],
+                                               t[3]: 1 / t_sols[2]}).evalf()).evalf()
+                     for element in temp]
+        else:
+            # to avoid calculation with infinity, substitute t[i] with 1/t[i]
+            temp = [element.subs(t[0], 0) for element in interp]
+            temp2 = [element.subs(x, 1 / x) for element in temp]
+            temp3 = [sp.together(element * x ** 3) for element in temp2]
+            temp4 = [sp.together(element.subs({t[1]: 1 / t_sols[0],
+                                               t[2]: 1 / t_sols[1],
+                                               t[3]: 1 / t_sols[2]}))
+                     for element in temp3]
 
         # obtain additional parametric pose p4
         poses.append(DualQuaternion([lamb, 0, 0, 0, 0, 0, 0, 0]) - k[0])
