@@ -212,6 +212,14 @@ class MotionDesignerWidget(QtWidgets.QWidget):
                 slider.setSingleStep(1)
                 slider.valueChanged.connect(self.on_slider_value_changed)
 
+        # slider for lambda of cubic curve
+        if method == 'cubic_from_poses':
+            self.slider_lambda = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+            self.slider_lambda.setMinimum(int(-np.pi * 100))
+            self.slider_lambda.setMaximum(int(np.pi * 100))
+            self.slider_lambda.setSingleStep(1)
+            self.slider_lambda.valueChanged.connect(self.on_lambda_slider_value_changed)
+
         # initially for the first point
         self.set_sliders_for_point(0)
 
@@ -239,6 +247,9 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             cp_layout.addWidget(self.slider_pitch)
             cp_layout.addWidget(QtWidgets.QLabel("Rotate Z:"))
             cp_layout.addWidget(self.slider_yaw)
+        if method == 'cubic_from_poses':
+            cp_layout.addWidget(QtWidgets.QLabel("Adjust curve lambda:"))
+            cp_layout.addWidget(self.slider_lambda)
 
         cp_layout.addStretch(1)
 
@@ -379,23 +390,35 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         # Recalculate and update the motion curve.
         self.update_curve_vis()
 
-    def update_curve_vis(self):
+    def on_lambda_slider_value_changed(self, value):
+        """
+        Called when the lambda slider changes its value. Update the lambda value
+        of the cubic curve, update the control point markers, and then recalculate
+        the motion curve.
+        """
+        new_lambda = self.slider_lambda.value() / 100.0
+        self.update_curve_vis(new_lambda)
+
+    def update_curve_vis(self, lambda_val: float = None):
         """
         Recalculate the motion curve using the current control points. The
         interpolation is performed by MotionInterpolation. Then update the curve
         line in the GLViewWidget.
         """
-        # get the numeric coefficients from interpolation
-        if self.method == 'cubic_from_points':
-            coeffs = self.mi.interpolate_points_cubic(self.points,
-                                                      return_numeric=True)
-        elif self.method == 'quadratic_from_points':
-            coeffs = self.mi.interpolate_points_quadratic(self.points,
+        if lambda_val is None:
+            # get the numeric coefficients from interpolation
+            if self.method == 'cubic_from_points':
+                coeffs = self.mi.interpolate_points_cubic(self.points,
                                                           return_numeric=True)
-        elif self.method == 'quadratic_from_poses':
-            coeffs = self.mi.interpolate_quadratic_numerically(self.points)
-        elif self.method == 'cubic_from_poses':
-            coeffs = self.mi.interpolate_cubic_numerically(self.points)
+            elif self.method == 'quadratic_from_points':
+                coeffs = self.mi.interpolate_points_quadratic(self.points,
+                                                              return_numeric=True)
+            elif self.method == 'quadratic_from_poses':
+                coeffs = self.mi.interpolate_quadratic_numerically(self.points)
+            elif self.method == 'cubic_from_poses':
+                coeffs = self.mi.interpolate_cubic_numerically(self.points)
+        else:  # update only lambda of cubic curve
+            coeffs = self.mi.interpolate_cubic_numerically(self.points, lambda_val)
 
         # create numpy polynomial objects
         curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]
@@ -440,4 +463,6 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         print("Closing the window... generated points for interpolation:")
         for pt in self.points:
             print(pt)
+        if self.slider_lambda:
+            print(f"Lambda: {self.slider_lambda.value() / 100.0}")
         self.plotter.app.quit()
