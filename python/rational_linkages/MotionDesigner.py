@@ -242,10 +242,6 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
         cp_layout.addStretch(1)
 
-        close_button = QtWidgets.QPushButton("Close")
-        cp_layout.addWidget(close_button)
-        close_button.clicked.connect(self.closeEvent)
-
         main_layout.addWidget(control_panel)
         self.setLayout(main_layout)
         self.setWindowTitle("Motion Designer")
@@ -399,7 +395,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         elif self.method == 'quadratic_from_poses':
             coeffs = self.mi.interpolate_quadratic_numerically(self.points)
         elif self.method == 'cubic_from_poses':
-            coeffs = self.mi.interpolate_cubic(self.points, numerically=True)
+            coeffs = self.mi.interpolate_cubic_numerically(self.points)
 
         # create numpy polynomial objects
         curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]
