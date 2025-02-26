@@ -28,6 +28,23 @@ def dq_algebraic2vector(ugly_expression: list) -> list:
 
     return primal_coeffs + dual_coeffs
 
+def extract_coeffs(expr, var, deg: int, expand: bool = True):
+    """
+    Extracts the coefficients of a polynomial expression.
+
+    :param sympy.Expr expr: Polynomial expression.
+    :param sympy.Symbol var: Variable to extract coefficients with respect to.
+    :param int deg: Degree of the polynomial.
+    :param bool expand: Expand the expression before extracting coefficients.
+
+    :return: List of coefficients of the polynomial.
+    :rtype: list
+    """
+    if expand:
+        from sympy import expand  # inner import
+        expr = expand(expr)
+    return [expr.coeff(var, i) for i in range(deg, -1, -1)]
+
 
 def sum_of_squares(list_of_values: list) -> float:
     """

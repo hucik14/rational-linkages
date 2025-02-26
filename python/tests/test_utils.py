@@ -1,7 +1,7 @@
 from unittest import TestCase
 import sympy
 
-from rational_linkages.utils import is_package_installed, sum_of_squares, dq_algebraic2vector
+from rational_linkages.utils import is_package_installed, sum_of_squares, dq_algebraic2vector, extract_coeffs
 
 
 class TestUtils(TestCase):
@@ -58,7 +58,8 @@ class TestUtils(TestCase):
         # Test 5: Rational coefficients
         expr5 = sympy.Rational(1, 2) * i + sympy.Rational(3, 4) * epsilon * j
         result5 = dq_algebraic2vector(expr5)
-        self.assertEqual(result5, [0, sympy.Rational(1, 2), 0, 0, 0, 0, sympy.Rational(3, 4), 0])
+        self.assertEqual(result5,
+                         [0, sympy.Rational(1, 2), 0, 0, 0, 0, sympy.Rational(3, 4), 0])
 
         # Test 6: Negative coefficients
         expr6 = -i - j - epsilon * k
@@ -70,3 +71,13 @@ class TestUtils(TestCase):
         # expr7 = epsilon * (i + j) + 2 - 3*i - j
         # result7 = dq_algebraic2vector(expr7)
         # self.assertEqual(result7, [2, -3, -1, 0, 0, 1, 1, 0])
+
+    def test_extract_coeffs(self):
+        x = sympy.symbols('x')
+        eq = x**3 + 2*x**2 + 3*x + 4
+        expected_coeffs = [1, 2, 3, 4]
+        self.assertEqual(extract_coeffs(eq, x, 3), expected_coeffs)
+
+        eq = 5 * x ** 4 - 3 * x
+        expected_coeffs = [5, 0, 0, -3, 0]
+        self.assertEqual(extract_coeffs(eq, x, 4), expected_coeffs)
