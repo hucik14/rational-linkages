@@ -101,13 +101,15 @@ class MotionInterpolation:
         pass
 
     @staticmethod
-    def interpolate(poses_or_points: list[Union[DualQuaternion, TransfMatrix, PointHomogeneous]]
-                    ) -> RationalCurve:
+    def interpolate(poses_or_points: list[Union[DualQuaternion, TransfMatrix, PointHomogeneous]],
+                    lambda_val: Union[float, int] = 0) -> RationalCurve:
         """
         Interpolates the given 2, 3, 4 poses or 5 points by a rational motion in SE(3).
 
         :param list[Union[DualQuaternion, TransfMatrix, PointHomogeneous]]
             poses_or_points: The poses or points to interpolate.
+        :param Union[float, int] lambda_val: The lambda parameter for the interpolation.
+            Only used for cubic interpolation using 4 poses.
 
         :return: The rational motion curve.
         :rtype: RationalCurve
@@ -155,7 +157,8 @@ class MotionInterpolation:
 
         # interpolate the rational poses
         if len(rational_poses) == 4:
-            curve_eqs = MotionInterpolation.interpolate_cubic(rational_poses)
+            curve_eqs = MotionInterpolation.interpolate_cubic(rational_poses,
+                                                              lambda_val=lambda_val)
             return RationalCurve(curve_eqs)
         elif len(rational_poses) == 3:
             curve_eqs = MotionInterpolation.interpolate_quadratic(rational_poses)
@@ -395,7 +398,8 @@ class MotionInterpolation:
         return MotionInterpolation.interpolate_quadratic(poses)
 
     @staticmethod
-    def interpolate_cubic(poses: list[DualQuaternion]) -> list[sp.Poly]:
+    def interpolate_cubic(poses: list[DualQuaternion],
+                          lambda_val: Union[float, int] = 0) -> list[sp.Poly]:
         """
         Interpolates the given 4 rational poses by a cubic curve in SE(3).
 
@@ -458,8 +462,8 @@ class MotionInterpolation:
         # obtain the family of solutions
         poly = [element.subs(sols_lambda) for element in temp4]
 
-        # choose one solution by setting lambda, in this case lambda = 0
-        poly = [element.subs(lam, 0).evalf() for element in poly]
+        # choose one solution by setting lambda, default lam=0
+        poly = [element.subs(lam, lambda_val) for element in poly]
 
         t = sp.Symbol("t")
         poly = [element.subs(x, t) for element in poly]
@@ -468,7 +472,7 @@ class MotionInterpolation:
 
     @staticmethod
     def interpolate_cubic_numerically(poses: list[DualQuaternion],
-                                      lamb: Union[float, int] = 0) -> np.ndarray:
+                                      lambda_val: Union[float, int] = 0) -> np.ndarray:
         """
         Interpolates the given 4 rational poses by a cubic curve in SE(3).
 
@@ -480,7 +484,7 @@ class MotionInterpolation:
         :see also: :ref:`interpolation_background`
 
         :param list[DualQuaternion] poses: The rational poses to interpolate.
-        :param Union[float, int] lamb: The lambda parameter for the interpolation.
+        :param Union[float, int] lambda_val: The lambda parameter for the interpolation.
 
         :return: the numerical coefficients of the motion curve
         :rtype: np.ndarray
@@ -523,9 +527,10 @@ class MotionInterpolation:
                  for element in temp]
 
         # obtain additional parametric pose p4
-        poses.append(DualQuaternion([lamb, 0, 0, 0, 0, 0, 0, 0]) - k[0])
+        lambda_val = sp.Rational(lambda_val)
+        poses.append(DualQuaternion([lambda_val, 0, 0, 0, 0, 0, 0, 0]) - k[0])
 
-        eqs_lambda = [element.subs(x, lamb) - lams[-1] * poses[-1].array()[i]
+        eqs_lambda = [element.subs(x, lambda_val) - lams[-1] * poses[-1].array()[i]
                       for i, element in enumerate(temp4)]
 
         sols_lambda = sp.nsolve(eqs_lambda, lams, [1., 1., 1., 1.], dict=True)
