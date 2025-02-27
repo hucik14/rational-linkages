@@ -215,8 +215,8 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         # slider for lambda of cubic curve
         if method == 'cubic_from_poses':
             self.slider_lambda = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-            self.slider_lambda.setMinimum(int(-np.pi * 100))
-            self.slider_lambda.setMaximum(int(np.pi * 100))
+            self.slider_lambda.setMinimum(int(-500))
+            self.slider_lambda.setMaximum(int(500))
             self.slider_lambda.setSingleStep(1)
             self.slider_lambda.valueChanged.connect(self.on_lambda_slider_value_changed)
 

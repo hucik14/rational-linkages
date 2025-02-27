@@ -533,7 +533,7 @@ class MotionInterpolation:
         eqs_lambda = [element.subs(x, lambda_val) - lams[-1] * poses[-1].array()[i]
                       for i, element in enumerate(temp4)]
 
-        sols_lambda = sp.nsolve(eqs_lambda, lams, [1., 1., 1., 1.], dict=True)
+        sols_lambda = sp.nsolve(eqs_lambda, lams, [1., 1., -1., -1.], dict=True)
 
         coeffs = list(map(lambda expr: [expr.coeff(x, i) for i in range(3, -1, -1)],
                           (sp.expand(element.subs(sols_lambda[0])) for element in temp4)))
