@@ -69,13 +69,17 @@ class RationalCurve:
         del RationalCurve, np, curve
     """
 
-    def __init__(self, polynomials: list[sp.Poly], metric: "AffineMetric" = None):
+    def __init__(self,
+                 polynomials: list[sp.Poly],
+                 coeffs: Union[np.array, sp.Matrix] = None,
+                 metric: "AffineMetric" = None):
         """
         Initializes a RationalCurve object with the provided coefficients.
 
         :param polynomials: list of polynomial equations of the curve
         :param coeffs: coefficients of the curve
         """
+
         self.set_of_polynomials = polynomials
 
         self.dimension = len(self.set_of_polynomials) - 1

@@ -83,6 +83,11 @@ work with meshes in exudyn).
     
    <code>pip install -e .[opt,dev,doc]</code> including the development and documentation dependencies.
 
+Additionally, on Linux systems, mesa-libGL is required for plotting. For example, 
+on Ubuntu, it can be installed using:
+
+   <code>sudo apt install libgl1-mesa-glx</code>
+
 ## Citing the package
 
 For additional information, see our preprint paper, and in the case of usage, please, 

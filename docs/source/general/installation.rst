@@ -27,7 +27,6 @@ for installing also optional dependencies (ipython - inline plotting from consol
 gmpy2 - faster symbolic computations, exudyn - multibody simulations, numpy-stl -
 work with meshes in exudyn).
 
-
 B) from source as editable package:
 
 .. code-block:: bash
@@ -47,3 +46,10 @@ C) from source as editable package with development and documentation dependenci
     cd rational-linkages
 
     pip install -e .[opt,dev,doc]
+
+Additionally, on linux systems, mesa-libGL drivers are required for plotting. Using
+Ubuntu, you can install them using:
+
+.. code-block:: bash
+
+    sudo apt install libgl1-mesa-glx
