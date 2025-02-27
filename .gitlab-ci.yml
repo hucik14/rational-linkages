@@ -20,6 +20,7 @@ test_python311:
       name: python:3.11-bullseye
       entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
+      - apt-get update && apt-get install -y libgl1-mesa-glx
       - pip install .[opt]
       - pip install pytest
       - python -m pytest python/tests
@@ -50,9 +51,10 @@ python_versions:
         name: $IMAGE
         entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
-        - pip install .
-        - pip install pytest
-        - python -m pytest python/tests
+      - apt-get update && apt-get install -y libgl1-mesa-glx
+      - pip install .
+      - pip install pytest
+      - python -m pytest python/tests
     parallel:
       matrix:
         - IMAGE: [python:3.13-bullseye, python:3.12-bullseye, python:3.10-bullseye]
