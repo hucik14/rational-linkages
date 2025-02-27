@@ -85,7 +85,7 @@ class Plotter:
         self.legend = show_legend
         self.interactive = interactive
         self.jupyter_notebook = jupyter_notebook
-        self.j_sliders_limit = joint_range_lim
+        self.joint_sliders_lim = joint_range_lim
         self.show_controls = show_controls
 
         # length of quiver arrows for poses and frames
@@ -529,7 +529,7 @@ class Plotter:
         if 'alpha' not in kwargs:
             kwargs['alpha'] = 0.15
 
-        x, y, z = orbit.get_plot_data()
+        x, y, z = orbit.get_plot_data_mpl()
 
         self.ax.plot_surface(x, y, z, **kwargs)
 
@@ -580,7 +580,7 @@ class Plotter:
         for i in range(mechanism.num_joints):
             slider0, slider1 = self._init_slider(idx=i,
                                                  j_sliders=self.joint_sliders,
-                                                 slider_limit=self.j_sliders_limit)
+                                                 slider_limit=self.joint_sliders_lim)
             self.joint_sliders.append(slider0)
             self.joint_sliders.append(slider1)
 

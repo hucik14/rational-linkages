@@ -1,8 +1,10 @@
 import numpy as np
 import sympy as sp
 
+from rational_linkages.utils import color_rgba
+
 from rational_linkages import (
-    Plotter,
+    InteractivePlotter as Plotter,
     RationalCurve,
     RationalBezier,
     RationalMechanism,
@@ -43,18 +45,17 @@ if __name__ == '__main__':
     ca.check_two_segments(l0, l1)
     print(f'{time() - start_time:.5f} sec for checking collision')
 
-    p = Plotter(interactive=True, arrows_length=0.1, joint_range_lim=2, steps=300)
-    p.plot(m)
+    p = Plotter(m, arrows_length=0.1, joint_sliders_lim=2)
 
     for orbit in orbits0:
-        p.plot(orbit[1:])
+        p.plot(orbit[1:], color=color_rgba('r', 0.1))
     for orbit in orbits1:
-        p.plot(orbit[1:])
+        p.plot(orbit[1:], color=color_rgba('g', 0.1))
 
     for orbit in orbits0[0][1:]:
-        p.plot(orbit)
+        p.plot(orbit, color=color_rgba('c', 0.8))
     for orbit in orbits1[64][1:]:
-        p.plot(orbit)
+        p.plot(orbit, color=color_rgba('m', 0.8))
 
     p.show()
 

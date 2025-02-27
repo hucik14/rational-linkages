@@ -392,38 +392,32 @@ class PlotterPyqtgraph:
         """
         Plot a MiniBall as a semi‑transparent mesh.
         """
-        x, y, z = ball.get_plot_data()
-        vertices, faces = self._create_mesh_from_grid(x, y, z)
-        mesh = gl.GLMeshItem(vertexes=vertices, faces=faces,
-                             color=self._get_color(
-                                 kwargs.get('color', (0.2, 0.8, 0.2, 0.15)),
-                                 (0.2, 0.8, 0.2, 0.15)),
-                             smooth=False, drawEdges=True, edgeColor=(0, 0, 0, 1))
-        self.widget.addItem(mesh)
+        raise NotImplementedError("TODO, make as point orbit")
 
     def _plot_point_orbit(self, orbit: PointOrbit, **kwargs):
         """
         Plot a point orbit as a semi‑transparent mesh.
         """
-        x, y, z = orbit.get_plot_data()
-        vertices, faces = self._create_mesh_from_grid(x, y, z)
-        mesh = gl.GLMeshItem(vertexes=vertices, faces=faces,
-                             color=self._get_color(kwargs.get('color', (1, 0, 0, 0.15)),
-                                                   (1, 0, 0, 0.15)),
-                             smooth=False, drawEdges=True, edgeColor=(0, 0, 0, 1))
-        self.widget.addItem(mesh)
+        if 'color' in kwargs:
+            coloring = kwargs.pop('color')
+        else:
+            coloring = (1, 0.5, 0, 0.15)
+
+        center, radius = orbit.get_plot_data()
+        mesh = gl.MeshData.sphere(rows=8, cols=8, radius=radius)
+        sphere = gl.GLMeshItem(meshdata=mesh,
+                               color=coloring,
+                               glOptions="translucent",
+                               drawFaces=True,
+                               drawEdges=False)
+        sphere.translate(*center)
+        self.widget.addItem(sphere)
 
     def _plot_line_segment(self, segment: LineSegment, **kwargs):
         """
         Plot a line segment as a surface mesh.
         """
-        x, y, z = segment.get_plot_data()
-        vertices, faces = self._create_mesh_from_grid(x, y, z)
-        mesh = gl.GLMeshItem(vertexes=vertices, faces=faces,
-                             color=self._get_color(kwargs.get('color', (1, 1, 0, 0.2)),
-                                                   (1, 1, 0, 0.2)),
-                             smooth=False, drawEdges=True, edgeColor=(0, 0, 0, 1))
-        self.widget.addItem(mesh)
+        raise NotImplementedError("TODO, see matplotlib version")
 
     def paintEvent(self, event):
         # Draw the usual 3D scene first.
@@ -610,14 +604,14 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
                  mechanism: RationalMechanism,
                  show_tool: bool = True,
                  steps: int = 1000,
-                 j_sliders_limit: float = 1.0,
+                 joint_sliders_lim: float = 1.0,
                  arrows_length: float = 1.0,
                  parent=None):
         super().__init__(parent)
         self.mechanism = mechanism
         self.show_tool = show_tool
         self.steps = steps
-        self.j_sliders_limit = j_sliders_limit
+        self.joint_sliders_lim = joint_sliders_lim
         self.arrows_length = arrows_length
 
         # Mimic the original “plotted” dictionary.
@@ -662,7 +656,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         joint_sliders_layout = QtWidgets.QHBoxLayout()
         self.joint_sliders = []
         for i in range(self.mechanism.num_joints):
-            slider0, slider1 = self._init_joint_sliders(i, self.j_sliders_limit)
+            slider0, slider1 = self._init_joint_sliders(i, self.joint_sliders_lim)
             self.joint_sliders.append(slider0)
             self.joint_sliders.append(slider1)
             # For each joint, arrange the pair vertically.
@@ -904,7 +898,7 @@ class InteractivePlotter:
                  mechanism: RationalMechanism,
                  show_tool=True,
                  steps=1000,
-                 j_sliders_limit=1.0,
+                 joint_sliders_lim=1.0,
                  arrows_length=1.0):
         """
         Initialize the application.
@@ -912,14 +906,14 @@ class InteractivePlotter:
         :param RationalMechanism mechanism: The mechanism to be plotted
         :param bool show_tool: whether to show the tool (end-effector) frame
         :param int steps: the number of discrete steps for the curve path
-        :param float j_sliders_limit: the limit for the joint sliders
+        :param float joint_sliders_lim: the limit for the joint sliders
         :param float arrows_length: the length of the arrows of plotted frames
         """
         self.app = QtWidgets.QApplication(sys.argv)
         self.window = InteractivePlotterWidget(mechanism=mechanism,
                                                show_tool=show_tool,
                                                steps=steps,
-                                               j_sliders_limit=j_sliders_limit,
+                                               joint_sliders_lim=joint_sliders_lim,
                                                arrows_length=arrows_length)
 
     def plot(self, *args, **kwargs):

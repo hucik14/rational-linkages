@@ -392,7 +392,7 @@ class PointOrbit:
             self._radius = np.sqrt(self.radius_squared)
         return self._radius
 
-    def get_plot_data(self) -> tuple:
+    def get_plot_data_mpl(self) -> tuple:
         """
         Get data for plotting in 3D space
 
@@ -414,3 +414,13 @@ class PointOrbit:
             raise ValueError("Cannot plot ball due to incompatible dimension.")
 
         return x, y, z
+
+    def get_plot_data(self) -> tuple:
+        """
+        Get data for plotting in 3D space
+
+        :return: center and radius
+        :rtype: tuple
+        """
+        center = tuple(self.center.normalized_in_3d())
+        return center, self.radius
