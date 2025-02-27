@@ -173,7 +173,30 @@ class PointHomogeneous:
         """
         return PointHomogeneous(self.coordinates + other.coordinates)
 
-    def __sub__(self, other: "PointHomogeneous"):
+    def __mul__(self, other):
+        """
+        Multiply point by scalar
+        :param other: float
+        :return: array of floats
+        """
+        if isinstance(other, PointHomogeneous):
+            raise ValueError("PointHomogeneous: cannot multiply two points")
+        return PointHomogeneous(self.coordinates * other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __truediv__(self, other):
+        """
+        Divide point by scalar
+        :param other: float
+        :return: array of floats
+        """
+        if isinstance(other, PointHomogeneous):
+            raise ValueError("PointHomogeneous: cannot divide two points")
+        return PointHomogeneous(self.coordinates / other)
+
+    def __sub__(self, other):
         """
         Subtract two points
 
@@ -328,10 +351,11 @@ class PointHomogeneous:
         """
         Get point orbit
 
-
+        Equation from Schroecker and Webber, Guaranteed collision detection with
+        toleranced motions, 2014, eq. 4.
 
         :param PointHomogeneous acting_center: center of the acting ball
-        :param float acting_radius: radius of the orbit ball
+        :param float acting_radius: squared radius of the orbit ball
         :param AffineMetric metric: metric of the curve
 
         :return: point center and radius squared
@@ -340,30 +364,33 @@ class PointHomogeneous:
         point_center = acting_center.point2matrix() @ self.coordinates_normalized
 
         coords_3d = self.normalized_in_3d()
-        radius_squared = acting_radius ** 2 * (1/metric.total_mass + np.sum([(coord ** 2 / metric.inertia_eigen_vals[i]) for i, coord in enumerate(coords_3d)]))
 
-        radius = np.sqrt(radius_squared)
-        self.set_point_orbit(point_center, radius)
-        return point_center, radius
+        radius_squared = acting_radius * (1/metric.total_mass + np.sum([(coord ** 2 / metric.inertia_eigen_vals[i]) for i, coord in enumerate(coords_3d)]))
 
-    def set_point_orbit(self, orbit_center: "PointHomogeneous", orbit_radius: float):
-        """
-        Set the orbit of the point
-        """
-        self.orbit = PointOrbit(orbit_center, orbit_radius)
+        return point_center, radius_squared
 
 
 class PointOrbit:
-    def __init__(self, point_center, radius):
+    def __init__(self, point_center, radius_squared, t_interval):
         """
-
+        Orbit of a point (its covering ball)
         """
         if not isinstance(point_center, PointHomogeneous):
             self.center = PointHomogeneous(point_center)
         else:
             self.center = point_center
 
-        self.radius = radius
+        self.radius_squared = radius_squared
+
+        self._radius = None
+
+        self.t_interval = t_interval
+
+    @property
+    def radius(self):
+        if self._radius is None:
+            self._radius = np.sqrt(self.radius_squared)
+        return self._radius
 
     def get_plot_data(self) -> tuple:
         """
