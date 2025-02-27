@@ -32,8 +32,12 @@ class CollisionFreeOptimization:
         from scipy.optimize import minimize
 
         # get the axes represented as normalized lines
-        dq_lines = (self.mechanism.factorizations[0].dq_axes
-                    + self.mechanism.factorizations[1].dq_axes[::-1])
+        if len(self.mechanism.factorizations) == 1:
+            dq_lines = self.mechanism.factorizations[0].dq_axes
+        else:
+            dq_lines = (self.mechanism.factorizations[0].dq_axes
+                        + self.mechanism.factorizations[1].dq_axes[::-1])
+
         lines = [NormalizedLine.from_dual_quaternion(dq_line) for dq_line in dq_lines]
 
         def objective_function(x):
@@ -138,7 +142,7 @@ class CombinatorialSearch:
 
         if comb_links is None:
             # check design for collisions
-            init_collisions = self.mechanism.collision_check(only_links=True,
+            init_collisions = self.mechanism.collision_check(only_links=False,
                                                              terminate_on_first=True)
         else:
             # skip initial collision check if combinations are provided
@@ -181,6 +185,7 @@ class CombinatorialSearch:
         else:
             combs = combinations
 
+        # TODO: parallelize the search
         for i, sequence in enumerate(combs):
             print("--- iteration: {}, shift_value: {}, sequence {} of {}: {}"
                   .format(iteration, shift_val, i + 1, len(combs), sequence))

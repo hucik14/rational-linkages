@@ -65,6 +65,22 @@ MiniBall
    :undoc-members:
    :show-inheritance:
 
+Motion Approximation
+--------------------
+
+.. automodule:: rational_linkages.MotionApproximation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Motion Designer
+---------------
+
+.. automodule:: rational_linkages.MotionDesigner
+   :members: MotionDesigner, MotionDesignerWidget
+   :undoc-members:
+   :show-inheritance:
+
 Motion Factorization
 --------------------
 
@@ -89,11 +105,27 @@ Normalized Line
    :undoc-members:
    :show-inheritance:
 
+Normalized Plane
+----------------
+
+.. automodule:: rational_linkages.NormalizedPlane
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Plotter
 -------
 
 .. automodule:: rational_linkages.Plotter
    :members:
+   :undoc-members:
+   :show-inheritance:
+
+PlotterPyqtgraph
+----------------
+
+.. automodule:: rational_linkages.PlotterPyqtgraph
+   :members: PlotterPyqtgraph, FramePlotHelper, InteractivePlotter, InteractivePlotterWidget
    :undoc-members:
    :show-inheritance:
 
@@ -129,6 +161,14 @@ Rational Curve
    :undoc-members:
    :show-inheritance:
 
+Rational Dual Quaternion
+------------------------
+
+.. automodule:: rational_linkages.RationalDualQuaternion
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Rational Mechanism
 ------------------
 
@@ -136,6 +176,14 @@ Rational Mechanism
    :members:
    :undoc-members:
    :show-inheritance: rational_linkages.RationalCurve
+
+Static Mechanism
+----------------
+
+.. automodule:: rational_linkages.StaticMechanism
+   :members: StaticMechanism, SnappingMechanism
+   :undoc-members:
+   :show-inheritance:
 
 Transf Matrix
 -------------

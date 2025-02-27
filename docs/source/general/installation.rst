@@ -17,14 +17,15 @@ A) using pip:
 
     pip install rational-linkages
 
+or
 
-..
-    B) using conda:
+.. code-block:: bash
 
-    .. code-block:: bash
+    pip install rational-linkages[opt]
 
-    conda install -c conda-forge rational-linkages
-
+for installing also optional dependencies (ipython - inline plotting from console,
+gmpy2 - faster symbolic computations, exudyn - multibody simulations, numpy-stl -
+work with meshes in exudyn).
 
 B) from source as editable package:
 
@@ -34,4 +35,21 @@ B) from source as editable package:
 
     cd rational-linkages
 
-    pip install -e .
+    pip install -e .[opt]
+
+C) from source as editable package with development and documentation dependencies:
+
+.. code-block:: bash
+
+    git clone https://git.uibk.ac.at/geometrie-vermessung/rational-linkages.git
+
+    cd rational-linkages
+
+    pip install -e .[opt,dev,doc]
+
+Additionally, on linux systems, mesa-libGL drivers are required for plotting. Using
+Ubuntu, you can install them using:
+
+.. code-block:: bash
+
+    sudo apt install libgl1-mesa-glx

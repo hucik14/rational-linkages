@@ -1,5 +1,58 @@
 # Changelog
 
+## 1.10.0 (2025-02-03)
+
+### added (12 changes)
+
+- [new Motion Approximation method](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5b06135e)
+- [tests and debug of new methods](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9090b931)
+- [constructors from 3 points, line and point, intersection with other plane](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d691d967)
+- [intersection of lines and planes, cleanup](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/42d41b9d)
+- [New NormalizedPlane.py class](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/38355558)
+- [numpy-stl added to opt dependencies](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/e37992e6)
+- [get_design of RationalMechanism.py returns also actual connection points](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/8fa7365b)
+- [print params for onshape new models](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/dda41e25)
+- [Synthesis of snapping mechanism for two poses - Wunderlich construction](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/8ce2225d)
+- [plotter adds methods triggering controls visibility, saving via command line](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/6d4fe794)
+- [plotter adds methods for plotting planes, axis (quiver) between points, line segments between list of points](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/63a6111b)
+- [create StaticMechanism.py from algebraic equations (i,j,k,eps)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/8d57ee1e)
+
+
+### removed (2 changes)
+
+- [code cleanup, removed ButtonID](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5a8630fd)
+- [examples cleanup](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/4fc947d8)
+
+
+### changed (2 changes)
+
+- [plotting examples cleanup](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/2f929382)
+- [precise Study Quadric check using numpy Polynomials](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/075a36d1)
+
+
+## 1.9.0 (2024-11-20)
+
+### added (5 changes)
+
+- [rational curve can be numerically checked if it is real motion](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/507db086)
+- [rational curve can be created from two quaternions](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5b591381)
+- [interpolation of 7 3D points using cubic curve](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9a9d2efb)
+- [new method for interpolating 5 points with quadratic curve](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/b86d041f)
+- [testing for Python 3.13](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/a7a5e1fd)
+
+
+### removed (2 changes)
+
+- [warning for installation of Exudyn removed](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d749f620)
+- [removed unnecessary warning for RR domain](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/0931bb90)
+
+
+### changed (3 changes)
+
+- [tests run for python 3.13](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d83b150a)
+- [legend is no longer on plot by default, arg needed](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/f09f4944)
+- [ik update, robust run automatically](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9802a9b1)
+
 ## 1.8.0 (2024-08-28)
 
 ### added (11 changes)

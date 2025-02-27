@@ -1,5 +1,8 @@
 import numpy as np
 
+from typing import Optional, Sequence
+from sympy import Rational
+
 from .TransfMatrix import TransfMatrix
 
 # Forward declarations for class names
@@ -20,7 +23,7 @@ class PointHomogeneous:
 
     :examples:
 
-    .. testcode::
+    .. testcode:: [point_homogeneous_example1]
 
         # Create points in projective space
 
@@ -30,42 +33,74 @@ class PointHomogeneous:
         origin_point_3D = PointHomogeneous()
         origin_point_2D = PointHomogeneous.at_origin_in_2d()
         custom_point = PointHomogeneous([2.0, 3.0, 4.0, 1.0])
+
+    .. testcleanup:: [point_homogeneous_example1]
+
+        del PointHomogeneous
+        del origin_point_3D, origin_point_2D, custom_point
+
     """
 
-    def __init__(self, point=None):
+    def __init__(self,
+                 point: Optional[Sequence[float]] = None,
+                 rational: bool = False):
         """
         Class to store points in PR3 or PR2
 
         Homogeneous coordinates are stored in the first row of the point array (index 0)
         :param point: array or list of floats
+        :param bool rational: flag to indicate if the point shall be treated as rational
+            i.e. using SymPy expressions
         """
-        from sympy import Expr
+        self.is_rational = rational
+        self.is_expression = False
 
-        self.is_real = True
+        self.coordinates = self._initialize_coordinates(point)
+        self.is_at_infinity = self._check_if_at_infinity()
+        self.coordinates_normalized = self.normalize() if not (
+            self.is_at_infinity) else None
 
-        if point is None:  # point in the origin in PR3
-            self.coordinates = np.array([1, 0, 0, 0])
-        elif any(isinstance(element, Expr) for element in point):
-            try:
-                self.coordinates = np.asarray(point, dtype='float64')
-            except Exception:
-                self.coordinates = point
-                self.is_real = False
+        self.orbit = None
+
+    def _initialize_coordinates(self, point: Optional[Sequence[float]]) -> np.ndarray:
+        """
+        Initialize the coordinates of the point
+
+        If None, create point at origin in PR3, otherwise convert the point to float. If
+        the point is an expression, it will be stored as a SymPy object.
+
+        :param point: array or list of floats
+
+        :return: array of floats or Sympy objects
+        :rtype: np.ndarray
+        """
+        if point is None:  # Origin point in PR3
+            return np.array([1, 0, 0, 0], dtype='float64')
+
+        if self.is_rational:
+            return np.array([Rational(coord) for coord in point], dtype=object)
+
+        # try to convert the point to float, if it is an expression, it will fail
+        try:
+            return np.asarray(point, dtype='float64')
+        except Exception:
+            self.is_expression = True
+            self.is_rational = True
+            return np.array(point, dtype=object)
+
+    def _check_if_at_infinity(self) -> bool:
+        """
+        Check if the point is at infinity
+
+        :return: True if the point is at infinity, False otherwise
+        :rtype: bool
+        """
+        if self.is_expression:
+            return self.coordinates[0] == 0
+        elif self.is_rational:
+            return self.coordinates[0] == 0
         else:
-            self.coordinates = np.asarray(point, dtype='float64')
-
-        if self.is_real and np.allclose(np.array([self.coordinates[0]]), np.array([0.0])):  # point at infinity
-            self.is_at_infinity = True
-            self.coordinates_normalized = None
-        elif self.is_real:
-            self.is_at_infinity = False
-            self.coordinates_normalized = self.normalize()
-        else:
-            self.is_at_infinity = False
-            self.coordinates_normalized = None
-
-        #if len(self.coordinates_normalized) == 4:  # point in PR3
-        #    self.as_dq_array = self.point2dq_array()
+            return np.isclose(self.coordinates[0], 0.0)
 
     @classmethod
     def at_origin_in_2d(cls):
@@ -127,11 +162,14 @@ class PointHomogeneous:
                             max_line_width=100000)
         return f"{p}"
 
-    def __add__(self, other):
+    def __add__(self, other: "PointHomogeneous"):
         """
         Add two points
-        :param other: Point
-        :return: array of floats
+
+        :param PointHomogeneous other: Other point
+
+        :return: two points added together
+        :rtype: PointHomogeneous
         """
         return PointHomogeneous(self.coordinates + other.coordinates)
 
@@ -161,8 +199,11 @@ class PointHomogeneous:
     def __sub__(self, other):
         """
         Subtract two points
-        :param other: Point
-        :return: array of floats
+
+        :param PointHomogeneous other: Other point
+
+        :return: two points subtracted
+        :rtype: PointHomogeneous
         """
         return PointHomogeneous(self.coordinates - other.coordinates)
 
@@ -280,7 +321,7 @@ class PointHomogeneous:
 
         :return: np.ndarray of shape (3, 1)
         """
-        return self.normalized_in_3d()
+        return np.array(self.normalized_in_3d(), dtype="float64")
 
     def evaluate(self, t_param: float) -> 'PointHomogeneous':
         """

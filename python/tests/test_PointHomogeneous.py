@@ -16,12 +16,37 @@ class TestPointHomogeneous(TestCase):
         t = Symbol('t')
 
         pt = PointHomogeneous([1, t ** 2, 1 - t, 0])
-
         evaluated_pt = pt.evaluate(2)
         self.assertTrue(
             np.allclose(evaluated_pt.coordinates, np.array([1, 4, -1, 0])))
         self.assertFalse(pt.is_at_infinity)
+        self.assertTrue(pt.is_expression)
+        self.assertTrue(pt.is_rational)
+
+        pt = PointHomogeneous([0, t ** 2, 1 - t, 0])
         self.assertTrue(pt.coordinates_normalized is None)
+        self.assertTrue(pt.is_at_infinity)
+        self.assertTrue(pt.is_expression)
+        self.assertTrue(pt.is_rational)
+
+        pt = PointHomogeneous([0, 3, 1.0, 0])
+        self.assertFalse(pt.is_rational)
+        self.assertFalse(pt.is_expression)
+        self.assertTrue(pt.is_at_infinity)
+        self.assertTrue(pt.coordinates_normalized is None)
+
+        pt = PointHomogeneous([0, 3, 1, 0], rational=True)
+        self.assertTrue(pt.is_rational)
+        self.assertFalse(pt.is_expression)
+        self.assertTrue(pt.is_at_infinity)
+        self.assertTrue(pt.coordinates_normalized is None)
+
+        pt = PointHomogeneous([1, 3, 1, 0], rational=True)
+        self.assertTrue(pt.is_rational)
+        self.assertFalse(pt.is_expression)
+        self.assertFalse(pt.is_at_infinity)
+
+
 
     def test_at_origin_in_2d(self):
         obj = PointHomogeneous.at_origin_in_2d()

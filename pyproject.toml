@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "1.8.0"
+version = "1.10.0"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -21,13 +21,21 @@ classifiers = [
 dependencies = [
     "scipy >= 1.10.0",
     "sympy >= 1.10.0",
-    #"gmpy2 >= 2.2.0",  # gmpy2 2.1.5 fails to build for Python 3.12
-    "matplotlib >= 3.7.0",
+    "matplotlib >= 3.9.0",
     "biquaternion-py >= 1.2.0",
     "PyQt5 >= 5.15.10",
+    "pyqtgraph >= 0.12.4",
+    "PyOpenGL >= 3.0.0",
+    "Pillow >= 10.0.0",
 ]
 
 [project.optional-dependencies]
+opt = [
+    "ipython >= 8.0.0",
+    "gmpy2 >= 2.2.0",
+    "exudyn >= 1.9.0",
+    "numpy-stl >= 3.0.0",
+]
 doc = [
     "sphinx",
     "sphinx-rtd-theme",
@@ -36,6 +44,7 @@ doc = [
     "toml",
     "pandoc",
     "sphinx-hoverxref",
+    "gitpython",
 ]
 dev = [
     "build",
@@ -45,7 +54,7 @@ dev = [
     "flake8-pyproject",
     "black",
     "isort",
-    "twine"
+    "twine",
 ]
 
 [tool.setuptools.packages.find]
@@ -83,7 +92,7 @@ omit = [
     "*/test*",
     "*__init__.py",
     "*Plotter.py",
-    "*ButtonID.py",
     "*MotionApproximation.py",
     "*StaticMechanism.py",
+    "*AffineMetric.py",
     ]

@@ -85,9 +85,12 @@ class FactorizationProvider:
             quaternions with rational numbers elements as input.
         """
         # check if the given factorization has input DualQuaternions as rational numbers
-        for i in range(factorization.number_of_factors):
-            if not factorization.dq_axes[i].is_rational:
-                warn('The given motion factorization has not only rational numbers as input. The factorization will be performed with floating point numbers, but may be instable.')
+        if self.domain == 'QQ':
+            for i in range(factorization.number_of_factors):
+                if not factorization.dq_axes[i].is_rational:
+                    warn('The given motion factorization has not only rational numbers '
+                         'as input. The factorization will be performed with floating '
+                         'point numbers, but may be instable.')
 
         t = sp.Symbol("t")
 

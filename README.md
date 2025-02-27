@@ -4,7 +4,7 @@
 [![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main)
 [![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=test_coverage)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
 [![GitHub issues](https://img.shields.io/github/issues/hucik14/rl-issues)](https://github.com/hucik14/rl-issues/issues)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)]()
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)]()
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb)
 
 
@@ -57,6 +57,14 @@ Using pip:
 
 <code>pip install rational-linkages</code>
 
+or
+
+<code>pip install rational-linkages[opt]</code>
+
+for installing also optional dependencies (ipython - inline plotting, gmpy2 - faster
+symbolic computations, exudyn - multibody simulations, numpy-stl -
+work with meshes in exudyn).
+
 ### Install from source
 
 1. Clone the repository (use preferably your client, or clone with the button on top of this page or using the following line)
@@ -69,7 +77,16 @@ Using pip:
 
 3. Install the *editable* version of the package using pip:
 
-    <code>pip install -e .</code>
+    <code>pip install -e .[opt]</code> 
+
+   or 
+    
+   <code>pip install -e .[opt,dev,doc]</code> including the development and documentation dependencies.
+
+Additionally, on Linux systems, mesa-libGL is required for plotting. For example, 
+on Ubuntu, it can be installed using:
+
+   <code>sudo apt install libgl1-mesa-glx</code>
 
 ## Citing the package
 

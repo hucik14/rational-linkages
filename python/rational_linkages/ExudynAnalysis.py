@@ -22,6 +22,7 @@ class ExudynAnalysis:
 
     def get_exudyn_params(self,
                           mechanism: RationalMechanism,
+                          is_rational: bool = True,
                           link_radius: float = 0.1,
                           scale: float = 1.0) -> tuple:
         """
@@ -37,6 +38,7 @@ class ExudynAnalysis:
         relative_links_pts (links connection points relative to its center of gravity).
 
         :param RationalMechanism mechanism: RationalMechanism object
+        :param bool is_rational: if True, the mechanism is a rational mechanism
         :param float link_radius: width of links
         :param float scale: scale length factor for links dimensions
 
@@ -44,14 +46,20 @@ class ExudynAnalysis:
             relative_links_pts
         :rtype: tuple
         """
-        # get positions of links connection points
-        links_pts = self._links_points(mechanism)
+
+        if is_rational:
+            # get positions of links connection points
+            links_pts = self._links_points(mechanism)
+            # get joint axes
+            joint_axes = self._joints_axes(mechanism)
+        else:
+            links_pts = self._links_points_static(mechanism)
+
+            joint_axes = mechanism.get_screw_axes()
+            joint_axes = [axis.direction for axis in joint_axes]
 
         if scale != 1.0:
             links_pts = [[scale * pt for pt in pts] for pts in links_pts]
-
-        # get joint axes
-        joint_axes = self._joints_axes(mechanism)
 
         # get links lengths
         links_lengths = self._links_lengths(links_pts)
@@ -150,4 +158,19 @@ class ExudynAnalysis:
             axes_branch2.append(direction)
 
         return axes + axes_branch2[::-1]
+
+    @staticmethod
+    def _links_points_static(mechanism: RationalMechanism) -> list:
+        """
+        Get links connection points in default configuration for static mechanism.
+
+        :param mechanism: RationalMechanism object
+
+        :return: list of points on links
+        :rtype: list
+        """
+        # get points sequence
+        _, _, points = mechanism.get_design(unit='deg', scale=150, pretty_print=False)
+
+        return points
 

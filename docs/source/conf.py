@@ -15,6 +15,9 @@ import sys
 import toml
 
 
+# Set an environment variable for skipping doctest
+os.environ['SKIP_DOCTEST'] = 'True'
+
 docs_source_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(docs_source_dir, '..', '..'))
 src_dir = os.path.join(project_root, 'python', 'rational_linkages')
@@ -72,9 +75,13 @@ nitpick_ignore = [
     ('py:class', 'numpy.ndarray'),
     ('py:class', 'numpy.array'),
     ('py:class', 'np.array'),
+    ('py:class', 'np.polynomial.Polynomial'),
     ('py:class', 'sp.Symbol'),
     ('py:class', 'sp.Poly'),
+    ('py:class', 'sp.Matrix'),
     ('py:class', 'bq.Poly'),
+    ('py:class', 'gl.GLViewWidget'),
+    ('py:class', 'PyQt5.QtWidgets.QWidget'),
 ]
 
 intersphinx_mapping = {'python': ('http://docs.python.org/3', None),
@@ -83,6 +90,8 @@ intersphinx_mapping = {'python': ('http://docs.python.org/3', None),
                        'matplotlib': ('http://matplotlib.org/stable', None),
                        'sympy': ('https://docs.sympy.org/latest/', None),
                        'biquaternion_py': ('https://biquaternion-py.readthedocs.io/en/latest/', None),
+                       'PyQt5': ('https://www.riverbankcomputing.com/static/Docs/PyQt5/', None),
+                       'pyqtgraph': ('https://pyqtgraph.readthedocs.io/en/latest/', None),
                        }
 
 hoverxref_auto_ref = True
@@ -132,3 +141,11 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 #html_static_path = ['_static']
+
+doctest_test_doctest_blocks = 'default'
+
+# set bool skip_this_doctest = True here in order to skip the doctest (set by
+# directive :skipif: in the testcode and testcleanup blocks)
+doctest_global_setup = """
+skip_this_doctest = False
+"""
