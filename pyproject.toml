@@ -21,9 +21,12 @@ classifiers = [
 dependencies = [
     "scipy >= 1.10.0",
     "sympy >= 1.10.0",
-    "matplotlib >= 3.7.0",
+    "matplotlib >= 3.9.0",
     "biquaternion-py >= 1.2.0",
     "PyQt5 >= 5.15.10",
+    "pyqtgraph >= 0.12.4",
+    "OpenGL >= 3.0.0",
+    "Pillow >= 10.0.0",
 ]
 
 [project.optional-dependencies]
