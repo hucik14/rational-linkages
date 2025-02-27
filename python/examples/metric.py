@@ -9,70 +9,52 @@ from rational_linkages import (
     AffineMetric,
     PointHomogeneous,
     DualQuaternion,
+    CollisionAnalyser,
 )
-from rational_linkages.models import bennett_ark24, collisions_free_6r, plane_fold_6r
+from rational_linkages.models import bennett_ark24, collisions_free_6r, plane_fold_6r, interp_4poses_6r
+
+from time import time
 
 if __name__ == '__main__':
-    m = RationalMechanism.from_saved_file("johannes-interp.pkl")
-    #m = collisions_free_6r()
-    # m = plane_fold_6r()
+    m = interp_4poses_6r()
+    m = collisions_free_6r()
+    m = plane_fold_6r()
     #m = bennett_ark24()
+
     m.update_segments()
+    m._relative_motions = None
+    m._metric = None
 
-    #m.collision_check(parallel=True, only_links=True)
+    start_time = time()
+    ca = CollisionAnalyser(m)
+    print(f'{time() - start_time:.5f} sec for generating Bezier segments')
 
-    c = m.curve()
-    t = sp.symbols('t')
+    l0 = 'l_01'
+    # l0 = 'b_00'
+    l1 = 't_13'
+    orbits0 = ca.get_segment_orbit(l0)
+    orbits1 = ca.get_segment_orbit(l1)
 
-    mechanism_points = m.points_at_parameter(0, inverted_part=True, only_links=False)
-    metric = AffineMetric(c, mechanism_points)
+    start_time = time()
+    res = m._check_given_pair([0, 6])
+    print(f'{time() - start_time:.5f} sec for checking collisions in standard way')
 
-    p = Plotter(interactive=True, arrows_length=0.1, joint_range_lim=2, steps=200)
+    start_time = time()
+    ca.check_two_segments(l0, l1)
+    print(f'{time() - start_time:.5f} sec for checking collision')
 
-    # bezier_segments = c.split_in_beziers(metric=metric, min_splits=20)
-    lower_c = m.factorizations[0].get_symbolic_factors()
-
-    mflc = RationalCurve([sp.Poly(pol, t) for pol in (lower_c[0] * lower_c[1])])
-    bezier_segments = mflc.split_in_beziers(metric=metric, min_splits=30)
-
+    p = Plotter(interactive=True, arrows_length=0.1, joint_range_lim=2, steps=300)
     p.plot(m)
 
-    s = 4
-    p0 = 3
-    p1 = 4
-    p.plot(m.segments[s])
-    p.plot(mechanism_points[p0])
-    p.plot(mechanism_points[p1])
+    for orbit in orbits0:
+        p.plot(orbit[1:])
+    for orbit in orbits1:
+        p.plot(orbit[1:])
 
-    p.plot(bezier_segments[0], plot_control_points=True)
-    p.plot(bezier_segments[1], plot_control_points=True)
+    for orbit in orbits0[0][1:]:
+        p.plot(orbit)
+    for orbit in orbits1[64][1:]:
+        p.plot(orbit)
 
-    for segment in bezier_segments:
-        mechanism_points[p0].get_point_orbit(
-            segment.ball.center,
-            segment.ball.radius,
-            metric)
-        p.plot(mechanism_points[p0].orbit)
-
-    for segment in bezier_segments:
-        mechanism_points[p1].get_point_orbit(
-            segment.ball.center,
-            segment.ball.radius,
-            metric)
-        p.plot(mechanism_points[p1].orbit)
-
-    # segment = bezier_segments[0]
-    # mechanism_points[2].get_point_orbit(
-    #     segment.ball.center,
-    #     segment.ball.radius,
-    #     metric)
-    # p.plot(mechanism_points[2].orbit)
-    #
-    # mechanism_points[3].get_point_orbit(
-    #     segment.ball.center,
-    #     segment.ball.radius,
-    #     metric)
-    # p.plot(mechanism_points[3].orbit)
-    # p.plot(segment, plot_control_points=True)
     p.show()
 

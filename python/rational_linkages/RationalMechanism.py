@@ -19,13 +19,15 @@ class RationalMechanism(RationalCurve):
     """
     Class representing rational mechanisms in dual quaternion space.
 
-    :ivar factorizations: list of MotionFactorization objects
-    :ivar num_joints: number of joints in the mechanism
-    :ivar is_linkage: True if the mechanism is a linkage, False if it is 1 branch of a
-        linkage
-    :ivar tool_frame: end effector of the mechanism
-    :ivar segments: list of LineSegment objects representing the physical realization of
-        the linkage
+    :ivar list factorizations: list of MotionFactorization objects
+    :ivar int num_joints: number of joints in the mechanism
+    :ivar bool is_linkage: True if the mechanism is a linkage, False if it is 1 branch
+        of a linkage
+    :ivar DualQuaternion tool_frame: end effector of the mechanism
+    :ivar AffineMetric metric: object representing the metric of the mechanism
+    :ivar LineSegment segments: list of LineSegment objects representing the physical
+        realization of the linkage
+
 
     :examples:
 
@@ -75,14 +77,46 @@ class RationalMechanism(RationalCurve):
         self.factorizations = factorizations
         self.num_joints = sum([f.number_of_factors for f in factorizations])
 
-        self.is_linkage = True if len(self.factorizations) == 2 else False
-
         self.tool_frame = self._determine_tool(tool)
 
-        self.segments = None
+        self.is_linkage = len(self.factorizations) == 2
 
-        if self.is_linkage:
-            self.update_segments()
+        self._segments = None
+
+        self._metric = None
+
+    @property
+    def segments(self):
+        """
+        Return the line segments of the linkage.
+
+        Line segments are the physical realization of the linkage.
+
+        :return: list of LineSegment objects
+        :rtype: list[LineSegment]
+        """
+        if self._segments is None and self.is_linkage:
+            self._segments = self._get_line_segments_of_linkage()
+        else:
+            ValueError("Segments are available only for linkages.")
+
+        return self._segments
+
+    @property
+    def metric(self):
+        """
+        Define a metric in R12 for the mechanism.
+
+        This metric is used for collision detection.
+        """
+        if self._metric is None:
+            from .AffineMetric import AffineMetric  # inner import
+            mechanism_points = self.points_at_parameter(0,
+                                                        inverted_part=True,
+                                                        only_links=False)
+            self._metric = AffineMetric(self.curve(), mechanism_points)
+
+        return self._metric
 
     @classmethod
     def from_saved_file(cls, filename: str):
@@ -684,7 +718,8 @@ class RationalMechanism(RationalCurve):
 
         return solutions, intersection_points
 
-    def get_intersection_points(self, l0: NormalizedLine, l1: NormalizedLine,
+    @staticmethod
+    def get_intersection_points(l0: NormalizedLine, l1: NormalizedLine,
                                 t_params: list[float]):
         """
         Return the intersection points of two lines.
@@ -696,7 +731,6 @@ class RationalMechanism(RationalCurve):
         :return: list of intersection points
         :rtype: list[PointHomogeneous]
         """
-        from .PointHomogeneous import PointHomogeneous
         intersection_points = [PointHomogeneous()] * len(t_params)
 
         for i, t_val in enumerate(t_params):
@@ -711,12 +745,6 @@ class RationalMechanism(RationalCurve):
 
         return intersection_points
 
-    def update_segments(self):
-        """
-        Update the line segments of the linkage.
-        """
-        self.segments = self._get_line_segments_of_linkage()
-
     def _get_line_segments_of_linkage(self) -> list:
         """
         Return the line segments of the linkage.
@@ -728,7 +756,7 @@ class RationalMechanism(RationalCurve):
         :return: list of LineSegment objects
         :rtype: list[LineSegment]
         """
-        from .Linkage import LineSegment
+        from .Linkage import LineSegment  # inner import
 
         t = sp.Symbol("t")
 
@@ -782,7 +810,7 @@ class RationalMechanism(RationalCurve):
         """
         Perform singularity check of the mechanism.
         """
-        from .SingularityAnalysis import SingularityAnalysis
+        from .SingularityAnalysis import SingularityAnalysis  # inner import
 
         sa = SingularityAnalysis()
         return sa.check_singularity(self)
@@ -797,7 +825,7 @@ class RationalMechanism(RationalCurve):
             result of the optimization
         :rtype: list, list, float
         """
-        from .CollisionFreeOptimization import CollisionFreeOptimization
+        from .CollisionFreeOptimization import CollisionFreeOptimization  # inner import
 
         # get smallest polyline
         pts, points_params, res = CollisionFreeOptimization(self).smallest_polyline()
@@ -853,13 +881,13 @@ class RationalMechanism(RationalCurve):
         return results
 
     def points_at_parameter(self,
-                            t: float,
+                            t_param: float,
                             inverted_part: bool = False,
                             only_links: bool = False) -> list[PointHomogeneous]:
         """
         Get the points of the mechanism at the given parameter.
 
-        :param float t: parameter value
+        :param float t_param: parameter value
         :param bool inverted_part: if True, return the evaluated points for the inverted
             part of the mechanism
         :param bool only_links: if True, instead of two points per joint segment,
@@ -868,10 +896,9 @@ class RationalMechanism(RationalCurve):
         :return: list of connection points of the mechanism
         :rtype: list[PointHomogeneous]
         """
-
-        branch0 = self.factorizations[0].direct_kinematics(t,
+        branch0 = self.factorizations[0].direct_kinematics(t_param,
                                                            inverted_part=inverted_part)
-        branch1 = self.factorizations[1].direct_kinematics(t,
+        branch1 = self.factorizations[1].direct_kinematics(t_param,
                                                            inverted_part=inverted_part)
 
         points = branch0 + branch1[::-1]
@@ -1292,3 +1319,33 @@ class RationalMechanism(RationalCurve):
 
         # Save the stacked array to a CSV file
         np.savetxt('trajectory.csv', data, delimiter=',', fmt='%1.6f')
+
+    def update_metric(self):
+        """
+        Update the metric of the mechanism.
+
+        Set to none so that the metric is recalculated when needed.
+        """
+        self._metric = None
+
+    def update_segments(self):
+        """
+        Update the line segments of the linkage.
+        """
+        self._segments = self._get_line_segments_of_linkage()
+
+    def get_relative_motions(self):
+        """
+        Get the relative motions of the mechanism.
+        """
+        sequence = DualQuaternion()
+        branch0 = [sequence := sequence * factor for factor in
+                   self.factorizations[0].factors_with_parameter]
+
+        sequence = DualQuaternion()
+        branch1 = [sequence := sequence * factor for factor in
+                   self.factorizations[1].factors_with_parameter]
+
+        relative_motions = branch0 + branch1[::-1]
+        return relative_motions
+

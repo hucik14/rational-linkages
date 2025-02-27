@@ -24,7 +24,7 @@ p = Plotter(interactive=False, arrows_length=0.5, joint_range_lim=2, steps=200)
 bezier_segments = [b_left, b_right, b_left_inv, b_right_inv]
 
 for bezier_curve in bezier_segments:
-    p.plot(bezier_curve, interval=(-1, 1), plot_control_points=True)
+    p.plot(bezier_curve.curve, interval=(-1, 1), plot_control_points=True)
     p.plot(bezier_curve.ball)
 
 p.show()
