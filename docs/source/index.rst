@@ -13,7 +13,8 @@
    :width: 24%
 
 .. |binder_badge| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
+   :target: https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb
+
 
 Rational Linkages
 =================
@@ -30,8 +31,8 @@ Rational Linkages
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main
    :alt: Maintenance
 
-.. image:: https://img.shields.io/github/issues/hucik14/rl-issues
-   :target: https://github.com/hucik14/rl-issues/issues
+.. image:: https://img.shields.io/github/issues/hucik14/rational-linkages
+   :target: https://github.com/hucik14/rational-linkages/issues
    :alt: GitHub issues
 
 .. image:: https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg
@@ -39,7 +40,7 @@ Rational Linkages
    :alt: Python
 
 .. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
+   :target: https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb
 
 Welcome to the Rational Linkages package documentation, which serves as a reference for
 the provided tools. This package is a collection of functions for the synthesis,
