@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.10.1 (2025-03-03)
+
+### added (1 change)
+
+- [github mirroring, notebooks update](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/6eb348b3)
+
+### fixed (1 change)
+
+- [bug: collision searched failed in case of joint-joint collisions](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9de82417)
+
+
 ## 1.10.0 (2025-02-03)
 
 ### added (12 changes)

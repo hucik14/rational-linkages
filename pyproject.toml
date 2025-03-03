@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "1.10.0"
+version = "1.10.1"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -67,7 +67,7 @@ include = ["rational_linkages*"]
 [project.urls]
 Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"
 Documentation = "http://rational-linkages.readthedocs.io/"
-Issues = "https://github.com/hucik14/rl-issues/issues"
+Issues = "https://github.com/hucik14/rational-linkages/issues"
 
 [tool.black]
 line-length = 88
