@@ -3,10 +3,9 @@
 [![PyPI version](https://img.shields.io/pypi/v/rational-linkages.svg)](https://pypi.org/project/rational-linkages/)
 [![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main)
 [![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=test_coverage)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
-[![GitHub issues](https://img.shields.io/github/issues/hucik14/rl-issues)](https://github.com/hucik14/rl-issues/issues)
+[![GitHub issues](https://img.shields.io/github/issues/hucik14/rational-linkages)](https://github.com/hucik14/rational-linkages/issues)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)]()
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb)
-
 
 # Rational Linkages
 
@@ -15,10 +14,7 @@ analysis, design, and rapid prototyping
 of the single-loop rational linkages, allowing one to create 3D-printable 
 collision-free mechanisms synthesised for a given task (set of poses). 
 
-<img src="/docs/source/figures/r4.JPEG" width="24%">
-<img src="/docs/source/figures/r6li.JPEG" width="24%">
-<img src="/docs/source/figures/r6hp.JPEG" width="24%">
-<img src="/docs/source/figures/r6joh.JPEG" width="24%">
+<img src="/docs/source/figures/r4.JPEG" width="24%"> <img src="/docs/source/figures/r6li.JPEG" width="24%"> <img src="/docs/source/figures/r6hp.JPEG" width="24%"> <img src="/docs/source/figures/r6joh.JPEG" width="24%">
 
 The package is developed as a part of the research project at the 
 Unit of Geometry and Surveying, University of Innsbruck, Austria. 
@@ -30,7 +26,7 @@ hosted on Read the Docs, and provides a comprehensive overview of the package wi
 [examples and tutorials](https://rational-linkages.readthedocs.io/latest/general/overview.html).
 
 Since the self-hosted repository does not allow external users to create issues,
-please, use the [external issue tracker](https://github.com/hucik14/rl-issues) 
+please, use the [Github issue tracker](https://github.com/hucik14/rational-linkages/issues) 
 hosted on GitHub for submitting **issues** and **feature requests**. Additionally,
 you can *"watch/star"* the issue tracker package **to get notified about the updates**
 (new releases will be also announced there).

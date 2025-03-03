@@ -30,8 +30,8 @@ Rational Linkages
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main
    :alt: Maintenance
 
-.. image:: https://img.shields.io/github/issues/hucik14/rl-issues
-   :target: https://github.com/hucik14/rl-issues/issues
+.. image:: https://img.shields.io/github/issues/hucik14/rational-linkages
+   :target: https://github.com/hucik14/rational-linkages/issues
    :alt: GitHub issues
 
 .. image:: https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg
