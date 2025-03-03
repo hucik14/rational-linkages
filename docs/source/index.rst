@@ -57,8 +57,8 @@ as `Gitlab repository`_ hosted by UIBK. The *installation
 instructions* can be found in the :ref:`installation manual<installation>`.
 STL files of some mechanisms may be found as `models on Printables.com`_.
 
-Since the self-hosted repository does not allow external users to create issues,
-please, use the `external issue tracker`_
+Since the self-hosted repository (Gitlab, University of Innsbruck) does not allow external users to create issues,
+please, use the `package mirror`_
 hosted on Github for submitting **issues** and **feature requests**.
 
 For installation-free try-out, run live example of the package in your browser using

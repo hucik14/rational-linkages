@@ -25,8 +25,8 @@ Unit of Geometry and Surveying, University of Innsbruck, Austria.
 hosted on Read the Docs, and provides a comprehensive overview of the package with 
 [examples and tutorials](https://rational-linkages.readthedocs.io/latest/general/overview.html).
 
-Since the self-hosted repository does not allow external users to create issues,
-please, use the [Github issue tracker](https://github.com/hucik14/rational-linkages/issues) 
+Since the self-hosted repository (Gitlab, University of Innsbruck) does not allow external users to create issues,
+please, use the [package mirror](https://github.com/hucik14/rational-linkages) 
 hosted on GitHub for submitting **issues** and **feature requests**. Additionally,
 you can *"watch/star"* the issue tracker package **to get notified about the updates**
 (new releases will be also announced there).
