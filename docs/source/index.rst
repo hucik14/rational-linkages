@@ -13,7 +13,8 @@
    :width: 24%
 
 .. |binder_badge| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
+   :target: https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb
+
 
 Rational Linkages
 =================
@@ -39,7 +40,7 @@ Rational Linkages
    :alt: Python
 
 .. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/hucik14/rl-issues/HEAD?labpath=jupyter_ntbs%2Fsynthesis_bennett.ipynb
+   :target: https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb
 
 Welcome to the Rational Linkages package documentation, which serves as a reference for
 the provided tools. This package is a collection of functions for the synthesis,
