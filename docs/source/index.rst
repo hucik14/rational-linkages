@@ -19,7 +19,11 @@
 Rational Linkages
 =================
 
-.. image:: https://img.shields.io/gitlab/v/release/21918?gitlab_url=https%3A%2F%2Fgit.uibk.ac.at%2F&style=social&logo=gitlab&label=repository
+.. image:: https://img.shields.io/badge/Github-mirror_%26_issues-_?style=social&logo=github
+   :target: https://github.com/hucik14/rational-linkages
+   :alt: GitHub Mirror
+
+.. image:: https://img.shields.io/badge/Git_UIBK-repository-_?style=social&logo=gitlab
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
    :alt: GitLab (self-managed)
 
@@ -27,17 +31,13 @@ Rational Linkages
    :target: https://pypi.org/project/rational-linkages/
    :alt: PyPI
 
-.. image:: https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg
-   :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main
-   :alt: Maintenance
-
 .. image:: https://img.shields.io/github/issues/hucik14/rational-linkages
    :target: https://github.com/hucik14/rational-linkages/issues
    :alt: GitHub issues
 
-.. image:: https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg
-   :target: https://www.python.org/downloads/release/python-3117/
-   :alt: Python
+.. image:: https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg
+   :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main
+   :alt: Maintenance
 
 .. image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb
