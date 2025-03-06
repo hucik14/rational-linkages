@@ -231,7 +231,7 @@ class RationalMechanism(RationalCurve):
         """
         screws = deepcopy(self.get_screw_axes())
         screws.append(screws[0])
-        frames = self.get_frames()[1:]
+        frames = self.get_frames()
 
         connection_params = self.get_segment_connections()
         mid_pts_dist = (joint_length + washer_length) / scale
@@ -272,7 +272,7 @@ class RationalMechanism(RationalCurve):
                  screws[i].direction + design_params[i, 1] * screws[i].direction])
 
         # ignore the first row (base frame)
-        dh = self.get_dh_params(unit=unit, scale=scale)[1:]
+        dh = self.get_dh_params(unit=unit, scale=scale)
 
         if onshape_print:
             for i in range(self.num_joints):
@@ -310,7 +310,10 @@ class RationalMechanism(RationalCurve):
 
         return connection_params
 
-    def get_dh_params(self, unit: str = 'rad', scale: float = 1.0) -> np.ndarray:
+    def get_dh_params(self,
+                      unit: str = 'rad',
+                      scale: float = 1.0,
+                      include_base: bool = False) -> np.ndarray:
         """
         Get the standard Denavit-Hartenberg parameters of the linkage.
 
@@ -319,8 +322,11 @@ class RationalMechanism(RationalCurve):
 
         See more in the paper by :footcite:t:`Huczala2022iccma`.
 
-        :param str unit: desired unit of the angle parameters, can be 'deg' or 'rad'
+        :param str unit: desired unit of the angle parameters, can be 'deg', 'rad', or
+            'tanhalf' for tangent half-angle representation
         :param float scale: scale of the length parameters of the linkage
+        :param bool include_base: if True, identity frame will be placed at the
+            beginning of the list of frames
 
         :return: theta, d, a, alpha array of Denavit-Hartenberg parameters
         :rtype: np.ndarray
@@ -328,43 +334,53 @@ class RationalMechanism(RationalCurve):
         .. footbibliography::
 
         """
-        frames = deepcopy(self.get_frames())
+        frames = deepcopy(self.get_frames(include_base=include_base))
+        j = self.num_joints + 1 if include_base else self.num_joints
 
-        dh = np.zeros((self.num_joints + 1, 4))
-        for i in range(self.num_joints + 1):
+        dh = np.zeros((j, 4))
+        for i in range(j):
             th, d, a, al = frames[i].dh_to_other_frame(frames[i+1])
 
             if unit == 'deg':
                 th = np.rad2deg(th)
                 al = np.rad2deg(al)
+            elif unit == 'tanhalf':
+                th = np.tan(th / 2)
+                al = np.tan(al / 2)
             elif unit != 'rad':
                 raise ValueError("unit must be deg or rad")
 
             dh[i, :] = [th, scale * d, scale * a, al]
         return dh
 
-    def get_frames(self) -> list[TransfMatrix]:
+    def get_frames(self, include_base: bool = False) -> list[TransfMatrix]:
         """
-        Get the frames of a linkage that follow standard Denaivt-Hartenberg convention.
+        Get the frames of a linkage that follow standard Denavit-Hartenberg convention.
 
         It returns n+2 frames, where n is the number of joints. The first frame is the
         base frame, and the last frame is an updated frame of the first joint that
         follows the DH convention in respect to the last joint's frame.
 
+        :param bool include_base: if True, identity frame will be placed at the
+            beginning of the list of frames
+
         :return: list of TransfMatrix objects
         :rtype: list[TransfMatrix]
         """
-        from .TransfMatrix import TransfMatrix
-
-        frames = [TransfMatrix()] * (self.num_joints + 2)
+        from .TransfMatrix import TransfMatrix  # inner import
 
         screws = deepcopy(self.get_screw_axes())
 
         # add the first screw to the end of the list
         screws.append(screws[0])
 
-        # insert origin as the base line
-        screws.insert(0, NormalizedLine())
+        if include_base:
+            frames = [TransfMatrix()] * (self.num_joints + 2)
+
+            # insert origin as the base line
+            screws.insert(0, NormalizedLine())
+        else:
+            frames = [TransfMatrix()] * (self.num_joints + 1)
 
         for i, line in enumerate(screws[1:]):
             # obtain the connection points and the distance to the previous line
@@ -406,6 +422,10 @@ class RationalMechanism(RationalCurve):
                                                               line.direction,
                                                               origin=pts[0])
 
+        if not include_base:
+            # update the last frame to close the linkage loop
+            frames[0] = frames[-1]
+
         return frames
 
     def get_global_frames(self) -> list[TransfMatrix]:
@@ -415,7 +435,7 @@ class RationalMechanism(RationalCurve):
         :return: list of TransfMatrix objects
         :rtype: list[TransfMatrix]
         """
-        local_frames = self.get_frames()
+        local_frames = self.get_frames(include_base=True)[1:]
         global_frames = [TransfMatrix()]
 
         for i in range(1, len(local_frames)):
