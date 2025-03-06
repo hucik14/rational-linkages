@@ -5,7 +5,8 @@ import numpy as np
 
 from rational_linkages import (DualQuaternion, MotionFactorization, NormalizedLine,
                                RationalMechanism, CollisionFreeOptimization,
-                               PointHomogeneous, RationalCurve)
+                               PointHomogeneous, RationalCurve, StaticMechanism,
+                               TransfMatrix)
 from rational_linkages.models import bennett_ark24, collisions_free_6r
 
 
@@ -245,6 +246,77 @@ class TestRationalMechanism(TestCase):
 
         with self.assertRaises(ValueError):
             m.get_design(unit='invalid_unit')
+
+    def test_get_frames(self):
+        # Define the input points and axes
+        p1 = np.array([0.0, 0.0, 0.0])
+        p2 = np.array([90.0, 0.0, 0.0])
+        p3 = np.array([79.406, 57.819, 30.011])
+        p4 = np.array([17.101, 46.985, 0.0])
+        axis1 = np.array([2.325, 24.073, 31.861])
+        axis3 = np.array([-35.996, -12.662, 11.997])
+        axis2 = np.array([-0.805784767488, 0.283086531524, 0.52016624665])
+        axis4 = np.array([0.24182239505, 0.079865917399, -0.967028109462])
+
+        # Create NormalizedLine objects
+        l1 = NormalizedLine.from_direction_and_point(axis1, p1)
+        l2 = NormalizedLine.from_direction_and_point(axis2, p2)
+        l3 = NormalizedLine.from_direction_and_point(axis3, p3)
+        l4 = NormalizedLine.from_direction_and_point(axis4, p4)
+
+        # Create StaticMechanism object
+        m = StaticMechanism([l1, l2, l3, l4])
+
+        # Call the get_frames method
+        frames = m.get_frames(include_base=True)
+
+        # Verify the output frames
+        assert len(frames) == 6  # 4 joints + 2 (base and updated first joint)
+        assert isinstance(frames[0], TransfMatrix)
+        assert isinstance(frames[1], TransfMatrix)
+        assert isinstance(frames[2], TransfMatrix)
+        assert isinstance(frames[3], TransfMatrix)
+        assert isinstance(frames[4], TransfMatrix)
+        assert isinstance(frames[5], TransfMatrix)
+
+        frames = m.get_frames(include_base=False)
+        assert len(frames) == 5  # 4 joints + 1 (updated to close the linkage)
+
+    def test_get_dh_params(self):
+        # Define the input points and axes
+        p1 = np.array([0.0, 0.0, 0.0])
+        p2 = np.array([90.0, 0.0, 0.0])
+        p3 = np.array([79.406, 57.819, 30.011])
+        p4 = np.array([17.101, 46.985, 0.0])
+        axis1 = np.array([2.325, 24.073, 31.861])
+        axis3 = np.array([-35.996, -12.662, 11.997])
+        axis2 = np.array([-0.805784767488, 0.283086531524, 0.52016624665])
+        axis4 = np.array([0.24182239505, 0.079865917399, -0.967028109462])
+
+        # Create NormalizedLine objects
+        l1 = NormalizedLine.from_direction_and_point(axis1, p1)
+        l2 = NormalizedLine.from_direction_and_point(axis2, p2)
+        l3 = NormalizedLine.from_direction_and_point(axis3, p3)
+        l4 = NormalizedLine.from_direction_and_point(axis4, p4)
+
+        # Create StaticMechanism object
+        m = StaticMechanism([l1, l2, l3, l4])
+
+        # Call the get_frames method
+        dh = m.get_dh_params(unit='tanhalf', include_base=True)
+        expected_params = np.array([[20.75613551,  0.,        0.,        0.33655048],
+                                    [ 1.19961844, 62.24216589,  9.34786957, 0.54819327],
+                                    [-3.32313922, 1.99201035, 0.71209197, -0.34111847],
+                                    [-0.58498605, -4.97304423, 10.72867296,-1.81165571],
+                                    [ 2.1279754, -1.52726014, 0.92161508, 2.4191778 ]])
+        self.assertTrue(np.allclose(dh, expected_params))
+
+        dh = m.get_dh_params(unit='tanhalf', include_base=False)
+        expected_params = np.array([[-0.58153175, -7.67293745, 9.34786957, 0.54819327],
+                                    [-3.32313922,  1.99201035,  0.71209197,-0.34111847],
+                                    [-0.58498605, -4.97304423, 10.72867296,-1.81165571],
+                                    [2.1279754, -1.52726014, 0.92161508, 2.4191778 ]])
+        self.assertTrue(np.allclose(dh, expected_params))
 
     def test_collision_free_optimization(self):
         h1 = DualQuaternion.as_rational([0, 1, 0, 0, 0, 0, 0, 0])
