@@ -219,6 +219,8 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             self.slider_lambda.setMaximum(int(500))
             self.slider_lambda.setSingleStep(1)
             self.slider_lambda.valueChanged.connect(self.on_lambda_slider_value_changed)
+        else:
+            self.slider_lambda = None
 
         # initially for the first point
         self.set_sliders_for_point(0)
