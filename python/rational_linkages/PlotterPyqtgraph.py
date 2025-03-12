@@ -34,7 +34,7 @@ class PlotterPyqtgraph:
         # Create a Qt application if one is not already running.
         self.app = QApplication.instance()
         if self.app is None:
-            self.app = QApplication([])
+            self.app = QApplication(sys.argv)
 
         # Create the GLViewWidget.
         self.widget = CustomGLViewWidget()
@@ -455,7 +455,7 @@ class PlotterPyqtgraph:
 
     def show(self):
         """Start the Qt event loop."""
-        QApplication.exec_()
+        self.app.exec()
 
     def closeEvent(self, event):
         """
@@ -484,7 +484,6 @@ class CustomGLViewWidget(gl.GLViewWidget):
         # Set up a QPainter to draw overlay text.
         painter = QtGui.QPainter(self)
         painter.setPen(QtCore.Qt.white)
-        painter.setFont(QtGui.QFont("Consolas", 10))
 
         # Get the Model-View-Projection (MVP) matrix.
         projection_matrix = self.projectionMatrix()
@@ -909,7 +908,9 @@ class InteractivePlotter:
         :param float joint_sliders_lim: the limit for the joint sliders
         :param float arrows_length: the length of the arrows of plotted frames
         """
-        self.app = QtWidgets.QApplication(sys.argv)
+        self.app = QApplication.instance()
+        if self.app is None:
+            self.app = QApplication(sys.argv)
         self.window = InteractivePlotterWidget(mechanism=mechanism,
                                                show_tool=show_tool,
                                                steps=steps,
@@ -931,6 +932,6 @@ class InteractivePlotter:
         """
         self.window.show()
         try:
-            self.app.exec_()
+            self.app.exec()
         except SystemExit:
             pass
