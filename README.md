@@ -58,6 +58,10 @@ or
 
 <code>pip install rational-linkages[opt]</code>
 
+Mac users might need to use backslashes to escape the brackets, e.g.:
+
+<code>pip install rational-linkages\\[opt\\]</code>
+
 for installing also optional dependencies (ipython - inline plotting, gmpy2 - faster
 symbolic computations, exudyn - multibody simulations, numpy-stl -
 work with meshes in exudyn).
@@ -78,7 +82,11 @@ work with meshes in exudyn).
 
    or 
     
-   <code>pip install -e .[opt,dev,doc]</code> including the development and documentation dependencies.
+   <code>pip install -e .[opt,dev,doc]</code> including the development and documentation dependencies. 
+
+   Mac users might need to use backslashes to escape the brackets, e.g.: 
+
+   <code>pip install -e .\\[opt\\]</code>
 
 ## Citing the package
 
