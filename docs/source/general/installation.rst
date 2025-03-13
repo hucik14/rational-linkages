@@ -23,6 +23,12 @@ or
 
     pip install rational-linkages[opt]
 
+Mac users might need to add backslashes to escape the brackets, e.g.:
+
+.. code-block:: bash
+
+    pip install rational-linkages\[opt\]
+
 for installing also optional dependencies (ipython - inline plotting from console,
 gmpy2 - faster symbolic computations, exudyn - multibody simulations, numpy-stl -
 work with meshes in exudyn).
@@ -37,6 +43,12 @@ B) from source as editable package:
     cd rational-linkages
 
     pip install -e .[opt]
+
+Mac users might need to add backslashes to escape the brackets, e.g.:
+
+.. code-block:: bash
+
+    pip install -e .\[opt\]
 
 C) from source as editable package with development and documentation dependencies:
 
