@@ -1,8 +1,8 @@
 import sys
 import numpy as np
 
-from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt6.QtWidgets import QApplication
+from PyQt6 import QtCore, QtGui, QtWidgets
 import pyqtgraph.opengl as gl
 
 from .DualQuaternion import DualQuaternion
@@ -483,7 +483,7 @@ class CustomGLViewWidget(gl.GLViewWidget):
 
         # Set up a QPainter to draw overlay text.
         painter = QtGui.QPainter(self)
-        painter.setPen(QtCore.Qt.white)
+        painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.white))
 
         # Get the Model-View-Projection (MVP) matrix.
         projection_matrix = self.projectionMatrix()
@@ -613,9 +613,6 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         self.joint_sliders_lim = joint_sliders_lim
         self.arrows_length = arrows_length
 
-        # Mimic the original “plotted” dictionary.
-        self.plotted = {'mechanism': mechanism}
-
         # Create the PlotterPyqtgraph instance.
         self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
                                         arrows_length=self.arrows_length)
@@ -635,7 +632,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         # --- Driving joint angle slider ---
         control_layout.addWidget(QtWidgets.QLabel("Joint angle [rad]:"))
         self.move_slider = self.create_float_slider(0.0, 2 * np.pi, 0.0,
-                                                    orientation=QtCore.Qt.Horizontal)
+                                                    orientation=QtCore.Qt.Orientation.Horizontal)
         control_layout.addWidget(self.move_slider)
 
         # --- Text boxes ---
@@ -734,12 +731,12 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
 
     # --- Helper to create a “float slider” (using integer scaling) ---
     def create_float_slider(self, min_val, max_val, init_val,
-                            orientation=QtCore.Qt.Horizontal, decimals=2):
+                            orientation=QtCore.Qt.Orientation.Horizontal):
         slider = QtWidgets.QSlider(orientation)
         slider.setMinimum(int(min_val * 100))
         slider.setMaximum(int(max_val * 100))
         slider.setValue(int(init_val * 100))
-        slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        slider.setTickPosition(QtWidgets.QSlider.TickPosition.TicksBelow)
         slider.setTickInterval(10)
         return slider
 
@@ -749,9 +746,9 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         (The slider values are scaled by 100.)
         """
         slider0 = self.create_float_slider(-slider_limit, slider_limit, 0.0,
-                                           orientation=QtCore.Qt.Vertical)
+                                           orientation=QtCore.Qt.Orientation.Vertical)
         slider1 = self.create_float_slider(-slider_limit, slider_limit, 0.0,
-                                           orientation=QtCore.Qt.Vertical)
+                                           orientation=QtCore.Qt.Orientation.Vertical)
         return slider0, slider1
 
     def _plot_tool_path(self, mechanism):

@@ -3,8 +3,7 @@ import numpy as np
 import sys
 
 # PyQt and Pyqtgraph imports
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtCore import Qt
+from PyQt6 import QtCore, QtWidgets
 import pyqtgraph.opengl as gl
 
 # Import your custom classes (adjust the import paths as needed)
@@ -113,7 +112,7 @@ class MotionDesigner:
         """
         self.window.show()
         try:
-            self.app.exec_()
+            self.app.exec()
         except SystemExit:
             pass
 
@@ -186,9 +185,9 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         self.point_combo.currentIndexChanged.connect(self.on_point_selection_changed)
 
         # sliders for adjusting x, y, and z
-        self.slider_x = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.slider_y = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.slider_z = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.slider_x = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        self.slider_y = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        self.slider_z = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         # slider range
         for slider in (self.slider_x, self.slider_y, self.slider_z):
             slider.setMinimum(-1000)
@@ -198,9 +197,9 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
         if method == 'quadratic_from_poses' or method == 'cubic_from_poses':
             # sliders for adjusting x, y, and z
-            self.slider_roll = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-            self.slider_pitch = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-            self.slider_yaw = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+            self.slider_roll = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+            self.slider_pitch = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+            self.slider_yaw = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
 
             self.slider_roll_prev = 0
             self.slider_pitch_prev = 0
@@ -214,7 +213,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
         # slider for lambda of cubic curve
         if method == 'cubic_from_poses':
-            self.slider_lambda = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+            self.slider_lambda = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
             self.slider_lambda.setMinimum(int(-500))
             self.slider_lambda.setMaximum(int(500))
             self.slider_lambda.setSingleStep(1)
@@ -250,7 +249,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             cp_layout.addWidget(QtWidgets.QLabel("Rotate Z:"))
             cp_layout.addWidget(self.slider_yaw)
         if method == 'cubic_from_poses':
-            cp_layout.addWidget(QtWidgets.QLabel("Adjust curve lambda:"))
+            cp_layout.addWidget(QtWidgets.QLabel("Lambda:"))
             cp_layout.addWidget(self.slider_lambda)
 
         cp_layout.addStretch(1)
