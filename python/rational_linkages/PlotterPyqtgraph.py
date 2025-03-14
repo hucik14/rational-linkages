@@ -623,7 +623,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         main_layout = QtWidgets.QHBoxLayout(self)
 
         # Add the 3D view (PlotterPyqtgraph’s widget) to the layout.
-        main_layout.addWidget(self.plotter.widget, stretch=1)
+        main_layout.addWidget(self.plotter.widget, stretch=5)
 
         # Create the control panel (on the right).
         control_panel = QtWidgets.QWidget()
@@ -651,36 +651,39 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         # --- Joint connection sliders ---
         joint_sliders_layout = QtWidgets.QHBoxLayout()
         self.joint_sliders = []
+
+        # Initialize sliders for each joint
         for i in range(self.mechanism.num_joints):
             slider0, slider1 = self._init_joint_sliders(i, self.joint_sliders_lim)
             self.joint_sliders.append(slider0)
             self.joint_sliders.append(slider1)
-            # For each joint, arrange the pair vertically.
+
+            # Arrange sliders vertically for each joint
             joint_layout = QtWidgets.QVBoxLayout()
             joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp0"))
             joint_layout.addWidget(slider0)
             joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp1"))
             joint_layout.addWidget(slider1)
             joint_sliders_layout.addLayout(joint_layout)
+
         control_layout.addLayout(joint_sliders_layout)
 
-        # For the first factorization:
-        for i in range(mechanism.factorizations[0].number_of_factors):
-            # Our QSliders use setValue() and we assumed a scaling factor of 100.
-            default_val0 = mechanism.factorizations[0].linkage[i].points_params[0]
-            default_val1 = mechanism.factorizations[0].linkage[i].points_params[1]
+        # Set default values for the first factorization
+        for i in range(self.mechanism.factorizations[0].number_of_factors):
+            default_val0 = self.mechanism.factorizations[0].linkage[i].points_params[0]
+            default_val1 = self.mechanism.factorizations[0].linkage[i].points_params[1]
             self.joint_sliders[2 * i].setValue(int(default_val0 * 100))
             self.joint_sliders[2 * i + 1].setValue(int(default_val1 * 100))
 
-        # For the second factorization:
-        offset = 2 * mechanism.factorizations[0].number_of_factors
-        for i in range(mechanism.factorizations[1].number_of_factors):
-            default_val0 = mechanism.factorizations[1].linkage[i].points_params[0]
-            default_val1 = mechanism.factorizations[1].linkage[i].points_params[1]
+        # Set default values for the second factorization
+        offset = 2 * self.mechanism.factorizations[0].number_of_factors
+        for i in range(self.mechanism.factorizations[1].number_of_factors):
+            default_val0 = self.mechanism.factorizations[1].linkage[i].points_params[0]
+            default_val1 = self.mechanism.factorizations[1].linkage[i].points_params[1]
             self.joint_sliders[offset + 2 * i].setValue(int(default_val0 * 100))
             self.joint_sliders[offset + 2 * i + 1].setValue(int(default_val1 * 100))
 
-        main_layout.addWidget(control_panel)
+        main_layout.addWidget(control_panel, stretch=1)
 
         # --- Initialize plot items for the mechanism links ---
         self.lines = []
@@ -745,9 +748,13 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         Create a pair of vertical sliders for joint connection parameters.
         (The slider values are scaled by 100.)
         """
-        slider0 = self.create_float_slider(-slider_limit, slider_limit, 0.0,
+        slider0 = self.create_float_slider(-slider_limit,
+                                           slider_limit,
+                                           0.0,
                                            orientation=QtCore.Qt.Orientation.Vertical)
-        slider1 = self.create_float_slider(-slider_limit, slider_limit, 0.0,
+        slider1 = self.create_float_slider(-slider_limit,
+                                           slider_limit,
+                                           0.0,
                                            orientation=QtCore.Qt.Orientation.Vertical)
         return slider0, slider1
 
