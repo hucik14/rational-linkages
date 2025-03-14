@@ -384,8 +384,7 @@ class PlotterPyqtgraph:
             t_vals[i], mechanism.tool_frame.dq2point_via_matrix())
             for i in range(self.steps)]
         pts = np.array(ee_points)
-        color = self._get_color(kwargs.get('color', 'lime'), (0, 1, 0, 1))
-        line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
+        line_item = gl.GLLinePlotItem(pos=pts, color=(1, 0, 1, 1), width=2, antialias=True)
         self.widget.addItem(line_item)
 
     def _plot_miniball(self, ball: MiniBall, **kwargs):
@@ -716,7 +715,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
             self.tool_frame.addToView(self.plotter.widget)
 
         # --- Plot the tool path ---
-        self._plot_tool_path(self.mechanism)
+        self._plot_tool_path()
 
         # --- Connect signals to slots ---
         self.move_slider.valueChanged.connect(self.on_move_slider_changed)
@@ -758,14 +757,15 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
                                            orientation=QtCore.Qt.Orientation.Vertical)
         return slider0, slider1
 
-    def _plot_tool_path(self, mechanism):
+    def _plot_tool_path(self):
         """
         Plot the tool path (as a continuous line) using a set of computed points.
         """
         t_lin = np.linspace(0, 2 * np.pi, self.steps)
-        t_vals = [mechanism.factorizations[0].joint_angle_to_t_param(t) for t in t_lin]
-        ee_points = [mechanism.factorizations[0].direct_kinematics_of_tool(
-                        t, mechanism.tool_frame.dq2point_via_matrix())
+        t_vals = [self.mechanism.factorizations[0].joint_angle_to_t_param(t)
+                  for t in t_lin]
+        ee_points = [self.mechanism.factorizations[0].direct_kinematics_of_tool(
+                        t, self.mechanism.tool_frame.dq2point_via_matrix())
                      for t in t_vals]
         pts = np.array(ee_points)
         tool_path = gl.GLLinePlotItem(pos=pts,
