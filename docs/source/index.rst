@@ -103,6 +103,7 @@ Austria. Namely, the following people contributed to the development:
 
 - Daniel Huczala (author, maintainer)
 - Hans-Peter Schröcker (supervisor, contributor)
+- Andreas Mair (contributor)
 - Martin Pfurner (contributor)
 - Daren A. Thimm (contributor)
 
