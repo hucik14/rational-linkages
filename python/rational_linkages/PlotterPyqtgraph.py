@@ -1,8 +1,8 @@
 import sys
 import numpy as np
 
-from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt6.QtWidgets import QApplication
+from PyQt6 import QtCore, QtGui, QtWidgets
 import pyqtgraph.opengl as gl
 
 from .DualQuaternion import DualQuaternion
@@ -384,8 +384,7 @@ class PlotterPyqtgraph:
             t_vals[i], mechanism.tool_frame.dq2point_via_matrix())
             for i in range(self.steps)]
         pts = np.array(ee_points)
-        color = self._get_color(kwargs.get('color', 'lime'), (0, 1, 0, 1))
-        line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
+        line_item = gl.GLLinePlotItem(pos=pts, color=(1, 0, 1, 1), width=2, antialias=True)
         self.widget.addItem(line_item)
 
     def _plot_miniball(self, ball: MiniBall, **kwargs):
@@ -483,7 +482,7 @@ class CustomGLViewWidget(gl.GLViewWidget):
 
         # Set up a QPainter to draw overlay text.
         painter = QtGui.QPainter(self)
-        painter.setPen(QtCore.Qt.white)
+        painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.white))
 
         # Get the Model-View-Projection (MVP) matrix.
         projection_matrix = self.projectionMatrix()
@@ -607,14 +606,13 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
                  arrows_length: float = 1.0,
                  parent=None):
         super().__init__(parent)
+        self.setMinimumSize(800, 600)
+
         self.mechanism = mechanism
         self.show_tool = show_tool
         self.steps = steps
         self.joint_sliders_lim = joint_sliders_lim
         self.arrows_length = arrows_length
-
-        # Mimic the original “plotted” dictionary.
-        self.plotted = {'mechanism': mechanism}
 
         # Create the PlotterPyqtgraph instance.
         self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
@@ -626,7 +624,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         main_layout = QtWidgets.QHBoxLayout(self)
 
         # Add the 3D view (PlotterPyqtgraph’s widget) to the layout.
-        main_layout.addWidget(self.plotter.widget, stretch=1)
+        main_layout.addWidget(self.plotter.widget, stretch=5)
 
         # Create the control panel (on the right).
         control_panel = QtWidgets.QWidget()
@@ -635,7 +633,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         # --- Driving joint angle slider ---
         control_layout.addWidget(QtWidgets.QLabel("Joint angle [rad]:"))
         self.move_slider = self.create_float_slider(0.0, 2 * np.pi, 0.0,
-                                                    orientation=QtCore.Qt.Horizontal)
+                                                    orientation=QtCore.Qt.Orientation.Horizontal)
         control_layout.addWidget(self.move_slider)
 
         # --- Text boxes ---
@@ -654,36 +652,41 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         # --- Joint connection sliders ---
         joint_sliders_layout = QtWidgets.QHBoxLayout()
         self.joint_sliders = []
+
+        # Initialize sliders for each joint
         for i in range(self.mechanism.num_joints):
             slider0, slider1 = self._init_joint_sliders(i, self.joint_sliders_lim)
             self.joint_sliders.append(slider0)
             self.joint_sliders.append(slider1)
-            # For each joint, arrange the pair vertically.
+
+            # Arrange sliders vertically for each joint
             joint_layout = QtWidgets.QVBoxLayout()
+
             joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp0"))
             joint_layout.addWidget(slider0)
             joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp1"))
             joint_layout.addWidget(slider1)
+
             joint_sliders_layout.addLayout(joint_layout)
+
         control_layout.addLayout(joint_sliders_layout)
 
-        # For the first factorization:
-        for i in range(mechanism.factorizations[0].number_of_factors):
-            # Our QSliders use setValue() and we assumed a scaling factor of 100.
-            default_val0 = mechanism.factorizations[0].linkage[i].points_params[0]
-            default_val1 = mechanism.factorizations[0].linkage[i].points_params[1]
+        # Set default values for the first factorization
+        for i in range(self.mechanism.factorizations[0].number_of_factors):
+            default_val0 = self.mechanism.factorizations[0].linkage[i].points_params[0]
+            default_val1 = self.mechanism.factorizations[0].linkage[i].points_params[1]
             self.joint_sliders[2 * i].setValue(int(default_val0 * 100))
             self.joint_sliders[2 * i + 1].setValue(int(default_val1 * 100))
 
-        # For the second factorization:
-        offset = 2 * mechanism.factorizations[0].number_of_factors
-        for i in range(mechanism.factorizations[1].number_of_factors):
-            default_val0 = mechanism.factorizations[1].linkage[i].points_params[0]
-            default_val1 = mechanism.factorizations[1].linkage[i].points_params[1]
+        # Set default values for the second factorization
+        offset = 2 * self.mechanism.factorizations[0].number_of_factors
+        for i in range(self.mechanism.factorizations[1].number_of_factors):
+            default_val0 = self.mechanism.factorizations[1].linkage[i].points_params[0]
+            default_val1 = self.mechanism.factorizations[1].linkage[i].points_params[1]
             self.joint_sliders[offset + 2 * i].setValue(int(default_val0 * 100))
             self.joint_sliders[offset + 2 * i + 1].setValue(int(default_val1 * 100))
 
-        main_layout.addWidget(control_panel)
+        main_layout.addWidget(control_panel, stretch=1)
 
         # --- Initialize plot items for the mechanism links ---
         self.lines = []
@@ -716,7 +719,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
             self.tool_frame.addToView(self.plotter.widget)
 
         # --- Plot the tool path ---
-        self._plot_tool_path(self.mechanism)
+        self._plot_tool_path()
 
         # --- Connect signals to slots ---
         self.move_slider.valueChanged.connect(self.on_move_slider_changed)
@@ -734,12 +737,12 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
 
     # --- Helper to create a “float slider” (using integer scaling) ---
     def create_float_slider(self, min_val, max_val, init_val,
-                            orientation=QtCore.Qt.Horizontal, decimals=2):
+                            orientation=QtCore.Qt.Orientation.Horizontal):
         slider = QtWidgets.QSlider(orientation)
         slider.setMinimum(int(min_val * 100))
         slider.setMaximum(int(max_val * 100))
         slider.setValue(int(init_val * 100))
-        slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        slider.setTickPosition(QtWidgets.QSlider.TickPosition.TicksBelow)
         slider.setTickInterval(10)
         return slider
 
@@ -748,20 +751,25 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         Create a pair of vertical sliders for joint connection parameters.
         (The slider values are scaled by 100.)
         """
-        slider0 = self.create_float_slider(-slider_limit, slider_limit, 0.0,
-                                           orientation=QtCore.Qt.Vertical)
-        slider1 = self.create_float_slider(-slider_limit, slider_limit, 0.0,
-                                           orientation=QtCore.Qt.Vertical)
+        slider0 = self.create_float_slider(-slider_limit,
+                                           slider_limit,
+                                           0.0,
+                                           orientation=QtCore.Qt.Orientation.Vertical)
+        slider1 = self.create_float_slider(-slider_limit,
+                                           slider_limit,
+                                           0.0,
+                                           orientation=QtCore.Qt.Orientation.Vertical)
         return slider0, slider1
 
-    def _plot_tool_path(self, mechanism):
+    def _plot_tool_path(self):
         """
         Plot the tool path (as a continuous line) using a set of computed points.
         """
         t_lin = np.linspace(0, 2 * np.pi, self.steps)
-        t_vals = [mechanism.factorizations[0].joint_angle_to_t_param(t) for t in t_lin]
-        ee_points = [mechanism.factorizations[0].direct_kinematics_of_tool(
-                        t, mechanism.tool_frame.dq2point_via_matrix())
+        t_vals = [self.mechanism.factorizations[0].joint_angle_to_t_param(t)
+                  for t in t_lin]
+        ee_points = [self.mechanism.factorizations[0].direct_kinematics_of_tool(
+                        t, self.mechanism.tool_frame.dq2point_via_matrix())
                      for t in t_vals]
         pts = np.array(ee_points)
         tool_path = gl.GLLinePlotItem(pos=pts,
@@ -931,7 +939,9 @@ class InteractivePlotter:
         Run the application, showing the motion designer widget.
         """
         self.window.show()
-        try:
-            self.app.exec()
-        except SystemExit:
-            pass
+        self.app.exec()
+
+    def closeEvent(self, event):
+        self.app.closeAllWindows()
+        self.app.quit()
+        event.accept()

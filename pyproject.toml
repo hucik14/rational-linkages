@@ -23,10 +23,9 @@ dependencies = [
     "sympy >= 1.10.0",
     "matplotlib >= 3.9.0",
     "biquaternion-py >= 1.2.0",
-    "PyQt5 >= 5.15.10",
+    "PyQt6 >= 6.2.0",
     "pyqtgraph >= 0.12.4",
     "PyOpenGL >= 3.0.0",
-    "Pillow >= 10.0.0",
 ]
 
 [project.optional-dependencies]

@@ -23,7 +23,7 @@ or
 
     pip install rational-linkages[opt]
 
-Mac users might need to add backslashes to escape the brackets, e.g.:
+Mac or Linux users might need to add backslashes to escape the brackets, e.g.:
 
 .. code-block:: bash
 
@@ -43,7 +43,7 @@ B) from source as editable package:
 
     pip install -e .[opt]
 
-Mac users might need to add backslashes to escape the brackets, e.g.:
+Mac or Linux users might need to add backslashes to escape the brackets, e.g.:
 
 .. code-block:: bash
 
@@ -59,9 +59,9 @@ C) from source as editable package with development and documentation dependenci
 
     pip install -e .[opt,dev,doc]
 
-Additionally, on linux systems, mesa-libGL drivers are required for plotting. Using
-Ubuntu, you can install them using:
+Additionally, on linux systems, some additional libraries are required for plotting with PyQt6. Using
+Ubuntu, you can install them as follows:
 
 .. code-block:: bash
 
-    sudo apt install libgl1-mesa-glx
+    sudo apt install libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3
