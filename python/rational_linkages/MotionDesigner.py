@@ -136,6 +136,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         Initialize the motion designer widget.
         """
         super().__init__(parent)
+        self.setMinimumSize(800, 600)
 
         self.points = self._initialize_points(method, initial_pts)
         self.method = method

@@ -606,6 +606,8 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
                  arrows_length: float = 1.0,
                  parent=None):
         super().__init__(parent)
+        self.setMinimumSize(800, 600)
+
         self.mechanism = mechanism
         self.show_tool = show_tool
         self.steps = steps
@@ -659,10 +661,12 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
 
             # Arrange sliders vertically for each joint
             joint_layout = QtWidgets.QVBoxLayout()
+
             joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp0"))
             joint_layout.addWidget(slider0)
             joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp1"))
             joint_layout.addWidget(slider1)
+
             joint_sliders_layout.addLayout(joint_layout)
 
         control_layout.addLayout(joint_sliders_layout)
@@ -935,7 +939,9 @@ class InteractivePlotter:
         Run the application, showing the motion designer widget.
         """
         self.window.show()
-        try:
-            self.app.exec()
-        except SystemExit:
-            pass
+        self.app.exec()
+
+    def closeEvent(self, event):
+        self.app.closeAllWindows()
+        self.app.quit()
+        event.accept()
