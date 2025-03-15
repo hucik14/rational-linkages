@@ -782,13 +782,13 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
                 line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
                                               color=(0, 1, 0, 1),
                                               glOptions=self.render_mode,
-                                              width=2,
+                                              width=5,
                                               antialias=True)
             else:
                 line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
                                               color=(1, 0, 0, 1),
                                               glOptions=self.render_mode,
-                                              width=2,
+                                              width=5,
                                               antialias=True)
             self.lines.append(line_item)
             self.plotter.widget.addItem(line_item)
@@ -796,9 +796,9 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         # --- If desired, initialize tool plot and tool frame ---
         if self.show_tool:
             self.tool_link = gl.GLLinePlotItem(pos=np.zeros((3, 3)),
-                                               color=(0.5, 0, 0.5, 1),
+                                               color=(0, 1, 0, 0.5),
                                                glOptions=self.render_mode,
-                                               width=2,
+                                               width=5,
                                                antialias=True)
             self.plotter.widget.addItem(self.tool_link)
             self.tool_frame = FramePlotHelper(
@@ -862,7 +862,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
                      for t in t_vals]
         pts = np.array(ee_points)
         tool_path = gl.GLLinePlotItem(pos=pts,
-                                      color=(0, 0, 1, 1),
+                                      color=(1, 0, 1, 1),
                                       glOptions=self.render_mode,
                                       width=2,
                                       antialias=True)
@@ -927,7 +927,6 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         QtWidgets.QMessageBox.information(self,
                                           "Success",
                                           f"Figure saved as {filename}.png")
-
 
     def on_joint_slider_changed(self, value):
         """
