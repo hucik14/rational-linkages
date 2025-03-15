@@ -34,7 +34,7 @@ test_coverage:
       name: python:3.11-bullseye
       entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
-      - apt-get update && apt-get install -y libgl1-mesa-glx libxkbcommon-x11-0
+      - apt-get update && apt-get install -y libgl1-mesa-glx libxkbcommon-x11-0 libegl1
       - pip install .
       - pip install coverage pytest
       - coverage run
