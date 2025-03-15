@@ -26,27 +26,41 @@ class PlotterPyqtgraph:
                  discrete_step_space: int = 1000,
                  interval: tuple = (0, 1),
                  arrows_length: float = 1.0,
+                 white_background: bool = False
                  ):
         """
-        Initialize the Pyqtgraph plotter. This version creates a GLViewWidget,
-        sets a turntable‐like camera, adds a grid and coordinate axes.
+        Initialize the Pyqtgraph plotter.
+
+        This version creates a GLViewWidget, sets a turntable‐like camera,
+        adds a grid and coordinate axes.
         """
         # Create a Qt application if one is not already running.
         self.app = QApplication.instance()
         if self.app is None:
             self.app = QApplication(sys.argv)
 
+        self.white_background = white_background
+
         # Create the GLViewWidget.
-        self.widget = CustomGLViewWidget()
+        self.widget = CustomGLViewWidget(white_background=self.white_background)  # gl.GLViewWidget()
         self.widget.setWindowTitle('Rational Linkages')
         self.widget.opts['distance'] = 10
         self.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
+
+        if self.white_background:
+            self.widget.setBackgroundColor(255, 255, 255, 255)
+            self.render_mode = 'opaque'
+        else:
+            self.render_mode = 'additive'
+
         self.widget.show()
 
         # add a grid
         grid = gl.GLGridItem()
         grid.setSize(20, 20)
         grid.setSpacing(1, 1)
+        if self.white_background:
+            grid.setColor(QtGui.QColor(QtCore.Qt.GlobalColor.lightGray))
         self.widget.addItem(grid)
 
         # store parameters
@@ -169,9 +183,16 @@ class PlotterPyqtgraph:
         pos1 = np.array(p1.normalized_in_3d())
         pts = np.array([pos0, pos1])
         color = self._get_color(kwargs.get('color', 'magenta'), (1, 1, 1, 1))
-        line = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
+        line = gl.GLLinePlotItem(pos=pts,
+                                 color=color,
+                                 glOptions=self.render_mode,
+                                 width=2,
+                                 antialias=True)
         self.widget.addItem(line)
-        scatter = gl.GLScatterPlotItem(pos=np.array([pos1]), color=color, size=5)
+        scatter = gl.GLScatterPlotItem(pos=np.array([pos1]),
+                                       color=color,
+                                       glOptions=self.render_mode,
+                                       size=5)
         self.widget.addItem(scatter)
         if 'label' in kwargs:
             mid = (pos0 + pos1) / 2
@@ -185,7 +206,11 @@ class PlotterPyqtgraph:
         """
         pts = np.array([p.normalized_in_3d() for p in points])
         color = self._get_color(kwargs.get('color', 'green'), (1, 1, 1, 1))
-        line = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
+        line = gl.GLLinePlotItem(pos=pts,
+                                 color=color,
+                                 glOptions=self.render_mode,
+                                 width=2,
+                                 antialias=True)
         self.widget.addItem(line)
 
     def _plot_plane(self,
@@ -246,10 +271,17 @@ class PlotterPyqtgraph:
 
         color = self._get_color(kwargs.get('color', 'magenta'), (1, 1, 1, 1))
 
-        line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
+        line_item = gl.GLLinePlotItem(pos=pts,
+                                      color=color,
+                                      glOptions=self.render_mode,
+                                      width=2,
+                                      antialias=True)
         self.widget.addItem(line_item)
 
-        tip_point = gl.GLScatterPlotItem(pos=np.array([end_pt]), color=color, size=5)
+        tip_point = gl.GLScatterPlotItem(pos=np.array([end_pt]),
+                                         color=color,
+                                         glOptions=self.render_mode,
+                                         size=5)
         self.widget.addItem(tip_point)
 
         if 'label' in kwargs:
@@ -262,7 +294,10 @@ class PlotterPyqtgraph:
         """
         pos = np.array(point.get_plot_data())
         color = self._get_color(kwargs.get('color', 'red'), (1, 0, 0, 1))
-        scatter = gl.GLScatterPlotItem(pos=np.array([pos]), color=color, size=10)
+        scatter = gl.GLScatterPlotItem(pos=np.array([pos]),
+                                       color=color,
+                                       glOptions=self.render_mode,
+                                       size=10)
         self.widget.addItem(scatter)
 
         if 'label' in kwargs:
@@ -286,14 +321,17 @@ class PlotterPyqtgraph:
 
         x_line = gl.GLLinePlotItem(pos=x_axis,
                                    color=(1, 0, 0, 1),
+                                   glOptions=self.render_mode,
                                    width=2,
                                    antialias=True)
         y_line = gl.GLLinePlotItem(pos=y_axis,
                                    color=(0, 1, 0, 1),
+                                   glOptions=self.render_mode,
                                    width=2,
                                    antialias=True)
         z_line = gl.GLLinePlotItem(pos=z_axis,
                                    color=(0, 0, 1, 1),
+                                   glOptions=self.render_mode,
                                    width=2,
                                    antialias=True)
 
@@ -320,7 +358,11 @@ class PlotterPyqtgraph:
         x, y, z = curve.get_plot_data(interval, self.steps)
         pts = np.column_stack((x, y, z))
         color = self._get_color(kwargs.get('color', 'orange'), (1, 1, 0, 1))
-        line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
+        line_item = gl.GLLinePlotItem(pos=pts,
+                                      color=color,
+                                      glOptions=self.render_mode,
+                                      width=2,
+                                      antialias=True)
         self.widget.addItem(line_item)
 
     def _plot_rational_bezier(self,
@@ -334,13 +376,23 @@ class PlotterPyqtgraph:
         x, y, z, x_cp, y_cp, z_cp = bezier.get_plot_data(interval, self.steps)
         pts = np.column_stack((x, y, z))
         color = self._get_color(kwargs.get('color', 'yellow'), (1, 0, 1, 1))
-        line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
+        line_item = gl.GLLinePlotItem(pos=pts,
+                                      color=color,
+                                      glOptions=self.render_mode,
+                                      width=2,
+                                      antialias=True)
         self.widget.addItem(line_item)
         if plot_control_points:
             cp = np.column_stack((x_cp, y_cp, z_cp))
-            scatter = gl.GLScatterPlotItem(pos=cp, color=(1, 0, 0, 1), size=8)
+            scatter = gl.GLScatterPlotItem(pos=cp,
+                                           color=(1, 0, 0, 1),
+                                           glOptions=self.render_mode,
+                                           size=8)
             self.widget.addItem(scatter)
-            cp_line = gl.GLLinePlotItem(pos=cp, color=(1, 0, 0, 1), width=1,
+            cp_line = gl.GLLinePlotItem(pos=cp,
+                                        color=(1, 0, 0, 1),
+                                        glOptions=self.render_mode,
+                                        width=1,
                                         antialias=True)
             self.widget.addItem(cp_line)
 
@@ -352,7 +404,11 @@ class PlotterPyqtgraph:
         points = factorization.direct_kinematics(t)
         pts = np.array(points)
         color = self._get_color(kwargs.get('color', 'orange'), (1, 0.5, 0, 1))
-        line_item = gl.GLLinePlotItem(pos=pts, color=color, width=2, antialias=True)
+        line_item = gl.GLLinePlotItem(pos=pts,
+                                      color=color,
+                                      glOptions=self.render_mode,
+                                      width=2,
+                                      antialias=True)
         self.widget.addItem(line_item)
 
     def _plot_rational_mechanism(self, mechanism: RationalMechanism, **kwargs):
@@ -368,7 +424,10 @@ class PlotterPyqtgraph:
             t, mechanism.tool_frame.dq2point_via_matrix())[::-1]
         ee_points = np.concatenate((pts0, pts1))
         color = self._get_color(kwargs.get('color', 'cyan'), (0, 1, 1, 1))
-        line_item = gl.GLLinePlotItem(pos=np.array(ee_points), color=color, width=2,
+        line_item = gl.GLLinePlotItem(pos=np.array(ee_points),
+                                      color=color,
+                                      glOptions=self.render_mode,
+                                      width=2,
                                       antialias=True)
         self.widget.addItem(line_item)
         self._plot_tool_path(mechanism, **kwargs)
@@ -384,7 +443,11 @@ class PlotterPyqtgraph:
             t_vals[i], mechanism.tool_frame.dq2point_via_matrix())
             for i in range(self.steps)]
         pts = np.array(ee_points)
-        line_item = gl.GLLinePlotItem(pos=pts, color=(1, 0, 1, 1), width=2, antialias=True)
+        line_item = gl.GLLinePlotItem(pos=pts,
+                                      color=(1, 0, 1, 1),
+                                      glOptions=self.render_mode,
+                                      width=2,
+                                      antialias=True)
         self.widget.addItem(line_item)
 
     def _plot_miniball(self, ball: MiniBall, **kwargs):
@@ -406,7 +469,7 @@ class PlotterPyqtgraph:
         mesh = gl.MeshData.sphere(rows=8, cols=8, radius=radius)
         sphere = gl.GLMeshItem(meshdata=mesh,
                                color=coloring,
-                               glOptions="translucent",
+                               glOptions='translucent',
                                drawFaces=True,
                                drawEdges=False)
         sphere.translate(*center)
@@ -465,10 +528,14 @@ class PlotterPyqtgraph:
 
 
 class CustomGLViewWidget(gl.GLViewWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, white_background: bool = False, *args, **kwargs):
         super(CustomGLViewWidget, self).__init__(*args, **kwargs)
         # List to hold labels: each entry is a dict with keys 'point' and 'text'
         self.labels = []
+
+        # get white_background from kwargs
+        self.white_background = white_background
+        
 
     def add_label(self, point, text):
         """
@@ -482,7 +549,11 @@ class CustomGLViewWidget(gl.GLViewWidget):
 
         # Set up a QPainter to draw overlay text.
         painter = QtGui.QPainter(self)
-        painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.white))
+
+        if self.white_background:
+            painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.black))
+        else:
+            painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.white))
 
         # Get the Model-View-Projection (MVP) matrix.
         projection_matrix = self.projectionMatrix()
@@ -553,14 +624,17 @@ class FramePlotHelper:
         # The initial positions are placeholders; they will be set properly in setData().
         self.x_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
                                         color=(1, 0, 0, 0.5),
+                                        glOptions='translucent',
                                         width=width,
                                         antialias=antialias)
         self.y_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
                                         color=(0, 1, 0, 0.5),
+                                        glOptions='translucent',
                                         width=width,
                                         antialias=antialias)
         self.z_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
                                         color=(0, 0, 1, 0.5),
+                                        glOptions='translucent',
                                         width=width,
                                         antialias=antialias)
 
@@ -604,6 +678,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
                  steps: int = 1000,
                  joint_sliders_lim: float = 1.0,
                  arrows_length: float = 1.0,
+                 white_background: bool = False,
                  parent=None):
         super().__init__(parent)
         self.setMinimumSize(800, 600)
@@ -614,9 +689,16 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         self.joint_sliders_lim = joint_sliders_lim
         self.arrows_length = arrows_length
 
+        self.white_background = white_background
+        if self.white_background:
+            self.render_mode = 'opaque'
+        else:
+            self.render_mode = 'additive'
+
         # Create the PlotterPyqtgraph instance.
-        self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
-                                        arrows_length=self.arrows_length)
+        self.plotter = PlotterPyqtgraph(discrete_step_space=self.steps,
+                                        arrows_length=self.arrows_length,
+                                        white_background=self.white_background)
         # Optionally adjust the camera.
         self.plotter.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
 
@@ -696,11 +778,13 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
             if i % 2 == 0:
                 line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
                                               color=(0, 1, 0, 1),
+                                              glOptions=self.render_mode,
                                               width=2,
                                               antialias=True)
             else:
                 line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
                                               color=(1, 0, 0, 1),
+                                              glOptions=self.render_mode,
                                               width=2,
                                               antialias=True)
             self.lines.append(line_item)
@@ -710,6 +794,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         if self.show_tool:
             self.tool_link = gl.GLLinePlotItem(pos=np.zeros((3, 3)),
                                                color=(0.5, 0, 0.5, 1),
+                                               glOptions=self.render_mode,
                                                width=2,
                                                antialias=True)
             self.plotter.widget.addItem(self.tool_link)
@@ -774,6 +859,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         pts = np.array(ee_points)
         tool_path = gl.GLLinePlotItem(pos=pts,
                                       color=(0, 0, 1, 1),
+                                      glOptions=self.render_mode,
                                       width=2,
                                       antialias=True)
         self.plotter.widget.addItem(tool_path)
@@ -906,7 +992,8 @@ class InteractivePlotter:
                  show_tool=True,
                  steps=1000,
                  joint_sliders_lim=1.0,
-                 arrows_length=1.0):
+                 arrows_length=1.0,
+                 white_background: bool = False):
         """
         Initialize the application.
 
@@ -923,7 +1010,8 @@ class InteractivePlotter:
                                                show_tool=show_tool,
                                                steps=steps,
                                                joint_sliders_lim=joint_sliders_lim,
-                                               arrows_length=arrows_length)
+                                               arrows_length=arrows_length,
+                                               white_background=white_background)
 
     def plot(self, *args, **kwargs):
         """

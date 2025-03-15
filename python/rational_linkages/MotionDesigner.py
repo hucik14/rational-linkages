@@ -76,7 +76,8 @@ class MotionDesigner:
     def __init__(self,
                  method: str,
                  initial_points_or_poses: list[PointHomogeneous, DualQuaternion] = None,
-                 arrows_length: float = 1.0):
+                 arrows_length: float = 1.0,
+                 white_background: bool = False):
         """
         Initialize the application with the motion designer widget.
 
@@ -85,6 +86,7 @@ class MotionDesigner:
         :param list[PointHomogeneous] or list[DualQuaternion] initial_points_or_poses:
             The initial points or poses to use for the motion curve.
         :param float arrows_length: The length of the arrows for the poses.
+        :param bool white_background: Whether to use a white background for the plot.
         """
         if method not in ['cubic_from_points',
                           'cubic_from_poses',
@@ -95,7 +97,8 @@ class MotionDesigner:
         self.app = QtWidgets.QApplication(sys.argv)
         self.window = MotionDesignerWidget(method=method,
                                            initial_pts=initial_points_or_poses,
-                                           arrows_length=arrows_length)
+                                           arrows_length=arrows_length,
+                                           white_background=white_background)
 
     def plot(self, *args, **kwargs):
         """
@@ -131,13 +134,15 @@ class MotionDesignerWidget(QtWidgets.QWidget):
                  parent = None,
                  steps: int = 1000,
                  interval: tuple = (0, 1),
-                 arrows_length: float = 1.0):
+                 arrows_length: float = 1.0,
+                 white_background: bool = False):
         """
         Initialize the motion designer widget.
         """
         super().__init__(parent)
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(900, 600)
 
+        self.white_background = white_background
         self.points = self._initialize_points(method, initial_pts)
         self.method = method
         self.arrows_length = arrows_length
@@ -146,7 +151,13 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         # an instance of Pyqtgraph-based plotter
         self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
                                         interval=interval,
-                                        arrows_length=self.arrows_length)
+                                        arrows_length=self.arrows_length,
+                                        white_background=self.white_background)
+
+        if self.white_background:
+            self.render_mode = 'opaque'
+        else:
+            self.render_mode = 'additive'
 
         # array of control point coordinates (in 3D)
         if method == 'quadratic_from_points' or method == 'cubic_from_points':
@@ -155,7 +166,8 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
             # interpolated points markers
             self.markers = gl.GLScatterPlotItem(pos=self.plotted_points,
-                                                color=(0, 1, 0, 1),
+                                                color=(1, 0, 1, 1),
+                                                glOptions=self.render_mode,
                                                 size=10)
             self.plotter.widget.addItem(self.markers)
 
@@ -444,6 +456,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         if self.curve_path_vis is None:
             self.curve_path_vis = gl.GLLinePlotItem(pos=curve_points,
                                                     color=(0, 0, 1, 1),
+                                                    glOptions=self.render_mode,
                                                     width=2,
                                                     antialias=True)
             self.plotter.widget.addItem(self.curve_path_vis)
