@@ -535,7 +535,6 @@ class CustomGLViewWidget(gl.GLViewWidget):
 
         # get white_background from kwargs
         self.white_background = white_background
-        
 
     def add_label(self, point, text):
         """
@@ -727,9 +726,13 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         self.text_box_param.setPlaceholderText("Set parameter t [-]:")
         control_layout.addWidget(self.text_box_param)
 
-        self.text_box_save = QtWidgets.QLineEdit()
-        self.text_box_save.setPlaceholderText("Save with filename:")
-        control_layout.addWidget(self.text_box_save)
+        self.save_mech_pkl = QtWidgets.QLineEdit()
+        self.save_mech_pkl.setPlaceholderText("Save mechanism PKL, filename:")
+        control_layout.addWidget(self.save_mech_pkl)
+
+        self.save_figure_box = QtWidgets.QLineEdit()
+        self.save_figure_box.setPlaceholderText("Save figure PNG, filename:")
+        control_layout.addWidget(self.save_figure_box)
 
         # --- Joint connection sliders ---
         joint_sliders_layout = QtWidgets.QHBoxLayout()
@@ -810,7 +813,8 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         self.move_slider.valueChanged.connect(self.on_move_slider_changed)
         self.text_box_angle.returnPressed.connect(self.on_angle_text_entered)
         self.text_box_param.returnPressed.connect(self.on_param_text_entered)
-        self.text_box_save.returnPressed.connect(self.on_save_text_entered)
+        self.save_mech_pkl.returnPressed.connect(self.on_save_save_mech_pkl)
+        self.save_figure_box.returnPressed.connect(self.on_save_figure_box)
         for slider in self.joint_sliders:
             slider.valueChanged.connect(self.on_joint_slider_changed)
 
@@ -899,12 +903,30 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         except ValueError:
             pass
 
-    def on_save_text_entered(self):
+    def on_save_save_mech_pkl(self):
         """
         Called when the save text box is submitted.
         """
-        filename = self.text_box_save.text()
+        filename = self.save_mech_pkl.text()
         self.mechanism.save(filename=filename)
+
+        QtWidgets.QMessageBox.information(self,
+                                          "Success",
+                                          f"Mechanism saved as {filename}.pkl")
+
+    def on_save_figure_box(self):
+        """
+        Called when the filesave text box is submitted.
+
+        Saves the current figure in the specified format.
+        """
+        filename = self.save_figure_box.text()
+
+        self.plotter.widget.readQImage().save(filename + ".png")
+        QtWidgets.QMessageBox.information(self,
+                                          "Success",
+                                          f"Figure saved as {filename}.png")
+
 
     def on_joint_slider_changed(self, value):
         """
@@ -963,6 +985,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
             self.tool_frame.setData(pose_matrix)
 
         self.plotter.widget.update()
+
 
 class InteractivePlotter:
     """
