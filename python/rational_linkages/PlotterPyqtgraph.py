@@ -923,6 +923,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         filename = self.save_figure_box.text()
 
         self.plotter.widget.readQImage().save(filename + ".png")
+        # self.plotter.widget.readQImage().save(filename + ".png", quality=100)
         QtWidgets.QMessageBox.information(self,
                                           "Success",
                                           f"Figure saved as {filename}.png")
