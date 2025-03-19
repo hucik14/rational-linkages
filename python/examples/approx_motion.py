@@ -18,6 +18,9 @@ p3 = DualQuaternion([3., 0, 1, 0, 1, 0, -3, 0])
 c = MotionInterpolation.interpolate([p0, p1, p2, p3])
 
 t_sols = MotionInterpolation._solve_for_t([p0, p1, p2, p3], MotionInterpolation._obtain_k_dq([p0, p1, p2, p3]))
+t_sols2 = MotionInterpolation.solve_for_t_numerically([p0, p1, p2, p3], MotionInterpolation._obtain_k_dq([p0, p1, p2, p3]))
+print(t_sols)
+print(t_sols2)
 
 add_t = 1.7
 p4 = TransfMatrix(c.evaluate_as_matrix(add_t)) * TransfMatrix.from_rpy_xyz([5, -2, 4], [-0.3, 0, 0.2], unit='deg')
