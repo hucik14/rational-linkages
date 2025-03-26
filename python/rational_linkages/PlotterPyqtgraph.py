@@ -862,7 +862,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
                      for t in t_vals]
         pts = np.array(ee_points)
         tool_path = gl.GLLinePlotItem(pos=pts,
-                                      color=(1, 0, 1, 1),
+                                      color=(0.5, 0.5, 0.5, 1),
                                       glOptions=self.render_mode,
                                       width=2,
                                       antialias=True)

@@ -455,7 +455,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         # if the curve line has not yet been created
         if self.curve_path_vis is None:
             self.curve_path_vis = gl.GLLinePlotItem(pos=curve_points,
-                                                    color=(0, 0, 1, 1),
+                                                    color=(0.5, 0.5, 0.5, 1),
                                                     glOptions=self.render_mode,
                                                     width=2,
                                                     antialias=True)
