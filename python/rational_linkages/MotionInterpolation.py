@@ -625,9 +625,15 @@ class MotionInterpolation:
             return [val for i, (key, val) in enumerate(sols_t.items())]
 
     @staticmethod
-    def solve_for_t_numerically(poses, k):
+    def solve_for_t_numerically(poses, k) -> np.ndarray:
         """
-        Solve for t[i] numerically
+        Solve for t[1..3] numerically
+
+        :param list[DualQuaternion] poses: The rational poses to interpolate.
+        :param list[DualQuaternion] k: Additional dual quaternions for interpolation.
+
+        :return: The solutions for t[i].
+        :rtype: np.ndarray
         """
         # Define the study condition matrix
         study_cond_mat = np.array([[0, 0, 0, 0, 1, 0, 0, 0],
@@ -640,20 +646,22 @@ class MotionInterpolation:
                                    [0, 0, 0, 1, 0, 0, 0, 0]])
 
         # Calculate identity DQ product with study matrix once
-        identity_dq = DualQuaternion()
+        identity_dq = np.array([1, 0, 0, 0, 0, 0, 0, 0])
+
+        study_cond = [study_cond_mat @ poses[i].array() for i in range(1, 4)]
 
         # Pre-compute results for the divisors
-        denominators = np.array([identity_dq.array() @ study_cond_mat @ poses[i].array()
-            for i in range(1, 4)], dtype='float64')
+        denominators = np.array([identity_dq @ study_cond[i]
+            for i in range(0, 3)], dtype='float64')
 
         # Pre-compute results for the numerators
-        numerators = np.array([k[0].array() @ study_cond_mat @ poses[i].array()
-            for i in range(1, 4)], dtype='float64')
+        numerators = np.array([k[0].array() @ study_cond[i]
+            for i in range(0, 3)], dtype='float64')
 
         # Perform division for all three parameters at once
         t_values = numerators / denominators
 
-        return t_values.tolist()
+        return t_values
 
     @staticmethod
     def _lagrange_polynomial(degree, index, x, t):
