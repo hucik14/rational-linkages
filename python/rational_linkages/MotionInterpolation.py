@@ -652,11 +652,11 @@ class MotionInterpolation:
 
         # Pre-compute results for the divisors
         denominators = np.array([identity_dq @ study_cond[i]
-            for i in range(0, 3)], dtype='float64')
+            for i in range(0, 3)])
 
         # Pre-compute results for the numerators
         numerators = np.array([k[0].array() @ study_cond[i]
-            for i in range(0, 3)], dtype='float64')
+            for i in range(0, 3)])
 
         # Perform division for all three parameters at once
         t_values = numerators / denominators
