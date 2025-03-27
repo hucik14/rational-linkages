@@ -627,21 +627,7 @@ class MotionInterpolation:
     @staticmethod
     def solve_for_t_numerically(poses, k):
         """
-        Solve for t[i] numerically using decoupled scalar equations.
-        Each equation is assumed linear in t[i] (i.e. of the form a_i*t[i] + c_i = 0),
-        where the coefficients a_i and c_i are obtained via:
-            a_i = f_i(1) - f_i(0)
-            c_i = f_i(0)
-        with
-            f_i(t) = ( (t_dq[i](t) - k)ᵀ @ study_cond_mat @ poses[i+1] ).
-
-        The dual quaternion for t is constructed as:
-            t_dq[i] = [0,..., t, ...0]
-        (with t at the i-th position of the real part, assuming three such equations).
-
-        :param poses: List of 4 poses, each as an 8-element list/array.
-        :param k: An 8-element list/array for the dual quaternion used in all equations.
-        :return: List of three computed t values.
+        Solve for t[i] numerically
         """
         # Define the study condition matrix
         study_cond_mat = np.array([[0, 0, 0, 0, 1, 0, 0, 0],
@@ -653,42 +639,21 @@ class MotionInterpolation:
                                    [0, 0, 1, 0, 0, 0, 0, 0],
                                    [0, 0, 0, 1, 0, 0, 0, 0]])
 
-        # Ensure that poses and k are numpy arrays
-        poses = [np.array(p) for p in poses]
-        k = np.array(k)
+        # Calculate identity DQ product with study matrix once
+        identity_dq = DualQuaternion()
 
-        def eval_eq(i, t_val):
-            """
-            Evaluate the left-hand side of the i-th scalar equation for a given t value.
+        # Pre-compute results for the divisors
+        denominators = np.array([identity_dq.array() @ study_cond_mat @ poses[i].array()
+            for i in range(1, 4)], dtype='float64')
 
-            For each i (0,1,2) the equation is defined as:
-                f_i(t) = ( (t_dq - k)ᵀ @ study_cond_mat @ poses[i+1] )
-            where t_dq is an 8-element vector with t_val at the i-th position.
-            """
-            t_dq = np.zeros(8)
-            t_dq[i] = t_val  # place t_val in the i-th position of the real part
-            diff = t_dq - k
-            # Compute the scalar value; note that poses[i+1] corresponds to the i-th equation
-            return diff @ study_cond_mat @ poses[i + 1]
+        # Pre-compute results for the numerators
+        numerators = np.array([k[0].array() @ study_cond_mat @ poses[i].array()
+            for i in range(1, 4)], dtype='float64')
 
-        t_values = []
-        for i in range(3):
-            f0 = eval_eq(i, 0)
-            f1 = eval_eq(i, 1)
-            a_i = f1 - f0  # coefficient multiplying t[i]
-            # Check for a unique solution:
-            if a_i == 0:
-                if f0 == 0:
-                    # Equation is 0 = 0, any value of t works; choose 0 by convention.
-                    t_sol = 0
-                else:
-                    raise ValueError(
-                        f"No unique solution for t[{i}]: linear term is zero but constant is nonzero.")
-            else:
-                t_sol = -f0 / a_i
-            t_values.append(t_sol)
+        # Perform division for all three parameters at once
+        t_values = numerators / denominators
 
-        return t_values
+        return t_values.tolist()
 
     @staticmethod
     def _lagrange_polynomial(degree, index, x, t):
