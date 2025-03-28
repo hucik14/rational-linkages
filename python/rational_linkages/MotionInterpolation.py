@@ -418,6 +418,7 @@ class MotionInterpolation:
         :raises ValueError: If the interpolation has no solution, 'k' does not exist.
         """
         # obtain additional dual quaternions k1, k2
+        poses = deepcopy(poses)
         try:
             k = MotionInterpolation._obtain_k_dq(poses)
         except Exception:
@@ -491,19 +492,30 @@ class MotionInterpolation:
 
         :raises ValueError: If the interpolation has no solution, 'k' does not exist.
         """
-        poses = [DualQuaternion.as_rational(pose.array())
-                 if isinstance(pose, DualQuaternion) and not pose.is_rational
-                 else pose for pose in poses if isinstance(pose, DualQuaternion)]
+
+        poses = deepcopy(poses)
+        import time
+
+        # t_start = time.time()
+        # poses = [DualQuaternion.as_rational(pose.array())
+        #          if isinstance(pose, DualQuaternion) and not pose.is_rational
+        #          else pose for pose in poses if isinstance(pose, DualQuaternion)]
+        # print(f"Time for converting poses to rational: {time.time() - t_start:.4f} sec")
+        t_start = time.time()
 
         # obtain additional dual quaternions k1, k2
         try:
             k = MotionInterpolation._obtain_k_dq(poses, numerically=True)
         except Exception:
             raise ValueError('Interpolation has no solution.')
+        print(f"Time for obtaining k: {time.time() - t_start:.4f} sec")
 
+        t_start = time.time()
         # solve for t[i] - the parameter of the rational motion curve for i-th pose
-        t_sols = MotionInterpolation._solve_for_t(poses, k, numerically=True)
+        t_sols = MotionInterpolation._solve_for_t_numerically(poses, k)
+        print(f"Time for solving t: {time.time() - t_start:.4f} sec")
 
+        t_start = time.time()
         # Lagrange's interpolation part
         # lambdas for interpolation - scalar multiples of the poses
         lams = sp.symbols("lams1:5")
@@ -515,7 +527,8 @@ class MotionInterpolation:
 
         # obtain the Lagrange interpolation for poses p0, p1, p2, p3
         interp = MotionInterpolation._lagrange_poly_interpolation(parametric_points)
-
+        print('Time for Lagrange interpolation: ', time.time() - t_start)
+        t_start = time.time()
         t = sp.symbols("t:4")
         x = sp.symbols("x")
 
@@ -527,16 +540,24 @@ class MotionInterpolation:
                  for element in temp]
 
         # obtain additional parametric pose p4
-        lambda_val = sp.Rational(lambda_val)
+        # lambda_val = sp.Rational(lambda_val)
         poses.append(DualQuaternion([lambda_val, 0, 0, 0, 0, 0, 0, 0]) - k[0])
 
         eqs_lambda = [element.subs(x, lambda_val) - lams[-1] * poses[-1].array()[i]
                       for i, element in enumerate(temp4)]
 
         sols_lambda = sp.nsolve(eqs_lambda, lams, [1., 1., -1., -1.], dict=True)
+        print('Time for solving lambda: ', time.time() - t_start)
 
+        t_start = time.time()
         coeffs = list(map(lambda expr: [expr.coeff(x, i) for i in range(3, -1, -1)],
                           (sp.expand(element.subs(sols_lambda[0])) for element in temp4)))
+        print('Time for obtaining coeffs: ', time.time() - t_start)
+
+        # t_start = time.time()
+        # coeffs = [[expr.coeff(x, i) for i in range(3, -1, -1)] for expr in
+        #           (sp.expand(element.subs(sols_lambda[0])) for element in temp4)]
+        # print('Time for obtaining coeffs: ', time.time() - t_start)
 
         return np.array(coeffs, dtype='float64')
 
@@ -625,7 +646,7 @@ class MotionInterpolation:
             return [val for i, (key, val) in enumerate(sols_t.items())]
 
     @staticmethod
-    def solve_for_t_numerically(poses, k) -> np.ndarray:
+    def _solve_for_t_numerically(poses, k) -> np.ndarray:
         """
         Solve for t[1..3] numerically
 
@@ -647,6 +668,7 @@ class MotionInterpolation:
 
         # Calculate identity DQ product with study matrix once
         identity_dq = np.array([1, 0, 0, 0, 0, 0, 0, 0])
+        k0_array = k[0].array()
 
         study_cond = [study_cond_mat @ poses[i].array() for i in range(1, 4)]
 
@@ -655,7 +677,7 @@ class MotionInterpolation:
             for i in range(0, 3)])
 
         # Pre-compute results for the numerators
-        numerators = np.array([k[0].array() @ study_cond[i]
+        numerators = np.array([k0_array @ study_cond[i]
             for i in range(0, 3)])
 
         # Perform division for all three parameters at once
