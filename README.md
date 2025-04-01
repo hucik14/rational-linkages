@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)]()
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb)
 
-# Rational Linkages
+# Rational Linkages <img src="/docs/source/figures/rl-logo.png" width="5%">
 
 This Python-based package provides a collection of methods for the synthesis, 
 analysis, design, and rapid prototyping 
