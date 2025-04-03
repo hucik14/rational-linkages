@@ -494,6 +494,7 @@ class MotionInterpolation:
         """
 
         poses = deepcopy(poses)
+        lambda_val = 1e-16 if abs(lambda_val) < 1e-16 else lambda_val
 
         xx = sp.symbols("xx:3")
         k = DualQuaternion(poses[0].array() + xx[0] * poses[1].array()
@@ -529,32 +530,29 @@ class MotionInterpolation:
         numerators = np.array([k0_array @ study_cond[i]
                                for i in range(0, 3)])
         # Perform division for all three parameters at once
-        t_sols = numerators / denominators
+        safe_denominators = np.where(denominators == 0, 1e-16, denominators)
+        t_sols = numerators / safe_denominators
 
         # Lagrange's interpolation part
         # lambdas for interpolation - scalar multiples of the poses
         lams = sp.symbols("lams1:5")
-        parametric_points = [sp.Matrix(poses[0].array()),
-                             sp.Matrix(lams[0] * poses[1].array()),
-                             sp.Matrix(lams[1] * poses[2].array()),
-                             sp.Matrix(lams[2] * poses[3].array())]
-        # obtain the Lagrange interpolation for poses p0, p1, p2, p3
-        interp = MotionInterpolation._lagrange_poly_interpolation(parametric_points)
-
-        t = sp.symbols("t:4")
         x = sp.symbols("x")
-        subs_map = {
-            t[0]: 0,
-            t[1]: 1 / sp.Float(t_sols[0]),
-            t[2]: 1 / sp.Float(t_sols[1]),
-            t[3]: 1 / sp.Float(t_sols[2]),
-            x: 1 / x
-        }
-        temp_evaluated = sp.together((interp.subs(subs_map)) * x ** 3)
+        parametric_points = [np.array(poses[0].array()),
+                             np.array(lams[0] * poses[1].array()),
+                             np.array(lams[1] * poses[2].array()),
+                             np.array(lams[2] * poses[3].array())]
+        # obtain the Lagrange interpolation for poses p0, p1, p2, p3
+        interp = MotionInterpolation.lagrange_interpolation_numerically(
+            parametric_points,
+            1 / x,
+            [0.0, 1/t_sols[0], 1/t_sols[1], 1/t_sols[2]])
+        temp_evaluated = [el * x ** 3 for el in interp]
+
         # obtain additional parametric pose p4
         poses.append(DualQuaternion([lambda_val, 0, 0, 0, 0, 0, 0, 0]) - k[0])
         eqs_lambda = [element.subs(x, lambda_val) - lams[-1] * poses[-1].array()[i]
                       for i, element in enumerate(temp_evaluated)]
+
         sols_lambda = sp.nsolve(eqs_lambda, lams, [1., 1., -1., -1.], dict=True)
 
         coeffs = [[expr.coeff(x, i) for i in range(3, -1, -1)] for expr in
@@ -727,6 +725,31 @@ class MotionInterpolation:
         for i in range(degree + 1):
             result += poses[i] * MotionInterpolation._lagrange_polynomial(degree,
                                                                           i, x, t)
+        return result
+
+    @staticmethod
+    def lagrange_interpolation_numerically(poses, x, t):
+        """
+        Perform Lagrange interpolation for 8-dimensional poses.
+        """
+        def lagrange_polynomial(i, x, t):
+            p = 1.0
+            for j in range(len(t)):
+                if j != i:
+                    p *= (x - t[j]) / (t[i] - t[j])
+            return p
+
+        poses = np.asarray(poses)
+        n = len(t)
+        # Ensure that the number of poses matches the number of nodes
+        if poses.shape[0] != n:
+            raise ValueError(
+                "The number of poses must equal the number of interpolation nodes.")
+
+        result = np.zeros(8)
+        for i in range(n):
+            li = lagrange_polynomial(i, x, t)
+            result = result + poses[i] * li
         return result
 
     @staticmethod
