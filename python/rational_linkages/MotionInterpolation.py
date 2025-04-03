@@ -495,30 +495,54 @@ class MotionInterpolation:
 
         poses = deepcopy(poses)
 
+        xx = sp.symbols("xx:3")
+        k = DualQuaternion(poses[0].array() + xx[0] * poses[1].array()
+                           + xx[1] * poses[2].array() + xx[2] * poses[3].array())
+        eqs_xx = [k[0], k[4], k.norm().array()[4]]
         # obtain additional dual quaternions k1, k2
         try:
-            k = MotionInterpolation._obtain_k_dq(poses, numerically=True)
+            sol = sp.nsolve(eqs_xx, xx, [1., 1., 1.])
+            k1_array = poses[0].array() + sol[0] * poses[1].array() + sol[1] * poses[
+                2].array() + sol[2] * poses[3].array()
+            k = [DualQuaternion(k1_array)]
         except Exception:
             raise ValueError('Interpolation has no solution.')
 
-        # solve for t[i] - the parameter of the rational motion curve for i-th pose
-        t_sols = MotionInterpolation._solve_for_t_numerically(poses, k)
+        # # solve for t[i] - the parameter of the rational motion curve for i-th pose
+        # t_sols = MotionInterpolation._solve_for_t_numerically(poses, k)
+        study_cond_mat = np.array([[0, 0, 0, 0, 1, 0, 0, 0],
+                                   [0, 0, 0, 0, 0, 1, 0, 0],
+                                   [0, 0, 0, 0, 0, 0, 1, 0],
+                                   [0, 0, 0, 0, 0, 0, 0, 1],
+                                   [1, 0, 0, 0, 0, 0, 0, 0],
+                                   [0, 1, 0, 0, 0, 0, 0, 0],
+                                   [0, 0, 1, 0, 0, 0, 0, 0],
+                                   [0, 0, 0, 1, 0, 0, 0, 0]])
+        # Calculate identity DQ product with study matrix once
+        identity_dq = np.array([1, 0, 0, 0, 0, 0, 0, 0])
+        k0_array = k[0].array()
+        study_cond = [study_cond_mat @ poses[i].array() for i in range(1, 4)]
+        # Pre-compute results for the divisors
+        denominators = np.array([identity_dq @ study_cond[i]
+                                 for i in range(0, 3)])
+        # Pre-compute results for the numerators
+        numerators = np.array([k0_array @ study_cond[i]
+                               for i in range(0, 3)])
+        # Perform division for all three parameters at once
+        t_sols = numerators / denominators
 
         # Lagrange's interpolation part
         # lambdas for interpolation - scalar multiples of the poses
         lams = sp.symbols("lams1:5")
-
         parametric_points = [sp.Matrix(poses[0].array()),
                              sp.Matrix(lams[0] * poses[1].array()),
                              sp.Matrix(lams[1] * poses[2].array()),
                              sp.Matrix(lams[2] * poses[3].array())]
-
         # obtain the Lagrange interpolation for poses p0, p1, p2, p3
         interp = MotionInterpolation._lagrange_poly_interpolation(parametric_points)
 
         t = sp.symbols("t:4")
         x = sp.symbols("x")
-
         subs_map = {
             t[0]: 0,
             t[1]: 1 / sp.Float(t_sols[0]),
@@ -527,13 +551,10 @@ class MotionInterpolation:
             x: 1 / x
         }
         temp_evaluated = sp.together((interp.subs(subs_map)) * x ** 3)
-
         # obtain additional parametric pose p4
         poses.append(DualQuaternion([lambda_val, 0, 0, 0, 0, 0, 0, 0]) - k[0])
-
         eqs_lambda = [element.subs(x, lambda_val) - lams[-1] * poses[-1].array()[i]
                       for i, element in enumerate(temp_evaluated)]
-
         sols_lambda = sp.nsolve(eqs_lambda, lams, [1., 1., -1., -1.], dict=True)
 
         coeffs = [[expr.coeff(x, i) for i in range(3, -1, -1)] for expr in
@@ -554,7 +575,7 @@ class MotionInterpolation:
         :return: Two additional dual quaternions for interpolation.
         :rtype: list[DualQuaternion]
         """
-        x = sp.symbols("x:3")
+        x = sp.symbols("xx:3")
 
         k = DualQuaternion(poses[0].array() + x[0] * poses[1].array()
                            + x[1] * poses[2].array() + x[2] * poses[3].array())
