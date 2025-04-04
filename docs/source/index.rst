@@ -15,6 +15,9 @@
 .. |binder_badge| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb
 
+.. |blank| raw:: html
+
+   <br>
 
 Rational Linkages
 =================
@@ -35,7 +38,7 @@ Rational Linkages
    :target: https://doi.org/10.1007/978-3-031-64057-5_27
    :alt: DOI
 
-|
+|blank|
 
 .. image:: https://img.shields.io/github/issues/hucik14/rational-linkages
    :target: https://github.com/hucik14/rational-linkages/issues
