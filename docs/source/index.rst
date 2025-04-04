@@ -31,6 +31,12 @@ Rational Linkages
    :target: https://pypi.org/project/rational-linkages/
    :alt: PyPI
 
+.. image:: https://zenodo.org/badge/DOI/10.1007/978-3-031-64057-5_27.svg
+   :target: https://doi.org/10.1007/978-3-031-64057-5_27
+   :alt: DOI
+
+|
+
 .. image:: https://img.shields.io/github/issues/hucik14/rational-linkages
    :target: https://github.com/hucik14/rational-linkages/issues
    :alt: GitHub issues

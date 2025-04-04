@@ -1,8 +1,10 @@
 [![GitHub Mirror](https://img.shields.io/badge/Github-mirror_%26_issues-_?style=social&logo=github)](https://github.com/hucik14/rational-linkages)
 [![GitLab (self-managed)](https://img.shields.io/badge/Git_UIBK-repository-_?style=social&logo=gitlab)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages)
+[![PyPI version](https://img.shields.io/pypi/v/rational-linkages.svg)](https://pypi.org/project/rational-linkages/)
+[![DOI](https://zenodo.org/badge/DOI/10.1007/978-3-031-64057-5_27.svg)](https://doi.org/10.1007/978-3-031-64057-5_27)
+
 [![build](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/pipeline.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
 [![Documentation Status](https://readthedocs.org/projects/rational-linkages/badge/?version=latest)](https://rational-linkages.readthedocs.io/?badge=latest)
-[![PyPI version](https://img.shields.io/pypi/v/rational-linkages.svg)](https://pypi.org/project/rational-linkages/)
 [![GitHub issues](https://img.shields.io/github/issues/hucik14/rational-linkages)](https://github.com/hucik14/rational-linkages/issues)
 [![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=test_coverage)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
 [![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main)
