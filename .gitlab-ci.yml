@@ -33,7 +33,7 @@ test_coverage:
       name: python:3.11-bullseye
       entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
-      - pip install .
+      - pip install -use-pep517 .
       - pip install coverage pytest
       - coverage run
       - coverage report -m
