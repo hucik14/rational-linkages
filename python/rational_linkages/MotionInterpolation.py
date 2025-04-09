@@ -4,6 +4,7 @@ from warnings import warn
 
 import sympy as sp
 import numpy as np
+from sympy.utilities.lambdify import lambdastr
 
 from .DualQuaternion import DualQuaternion
 from .RationalCurve import RationalCurve
@@ -494,6 +495,43 @@ class MotionInterpolation:
         """
         import time
         start_time = time.time()
+
+        def lagrange_poly(x_indet, lambdas, t_vals, p1arr, p2arr, p3arr):
+            lam1, lam2, lam3 = lambdas
+            p10, p11, p12, p13, p14, p15, p16, p17 = p1arr
+            p20, p21, p22, p23, p24, p25, p26, p27 = p2arr
+            p30, p31, p32, p33, p34, p35, p36, p37 = p3arr
+            t2, t3, t4 = t_vals
+            x = x_indet
+            return [
+                lam1 * p10 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p10 * t2 ** 3 * t3 ** 2 * x - lam1 * p10 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p10 * t2 ** 3 * t3 * x ** 2 + lam1 * p10 * t2 ** 3 * t4 ** 2 * x - lam1 * p10 * t2 ** 3 * t4 * x ** 2 - lam2 * p20 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p20 * t2 ** 2 * t3 ** 3 * x + lam2 * p20 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p20 * t2 * t3 ** 3 * x ** 2 - lam2 * p20 * t3 ** 3 * t4 ** 2 * x + lam2 * p20 * t3 ** 3 * t4 * x ** 2 + lam3 * p30 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p30 * t2 ** 2 * t4 ** 3 * x - lam3 * p30 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p30 * t2 * t4 ** 3 * x ** 2 + lam3 * p30 * t3 ** 2 * t4 ** 3 * x - lam3 * p30 * t3 * t4 ** 3 * x ** 2 - t2 ** 3 * t3 ** 2 * t4 + t2 ** 3 * t3 ** 2 * x + t2 ** 3 * t3 * t4 ** 2 - t2 ** 3 * t3 * x ** 2 - t2 ** 3 * t4 ** 2 * x + t2 ** 3 * t4 * x ** 2 + t2 ** 2 * t3 ** 3 * t4 - t2 ** 2 * t3 ** 3 * x - t2 ** 2 * t3 * t4 ** 3 + t2 ** 2 * t3 * x ** 3 + t2 ** 2 * t4 ** 3 * x - t2 ** 2 * t4 * x ** 3 - t2 * t3 ** 3 * t4 ** 2 + t2 * t3 ** 3 * x ** 2 + t2 * t3 ** 2 * t4 ** 3 - t2 * t3 ** 2 * x ** 3 - t2 * t4 ** 3 * x ** 2 + t2 * t4 ** 2 * x ** 3 + t3 ** 3 * t4 ** 2 * x - t3 ** 3 * t4 * x ** 2 - t3 ** 2 * t4 ** 3 * x + t3 ** 2 * t4 * x ** 3 + t3 * t4 ** 3 * x ** 2 - t3 * t4 ** 2 * x ** 3,
+                lam1 * p11 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p11 * t2 ** 3 * t3 ** 2 * x - lam1 * p11 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p11 * t2 ** 3 * t3 * x ** 2 + lam1 * p11 * t2 ** 3 * t4 ** 2 * x - lam1 * p11 * t2 ** 3 * t4 * x ** 2 - lam2 * p21 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p21 * t2 ** 2 * t3 ** 3 * x + lam2 * p21 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p21 * t2 * t3 ** 3 * x ** 2 - lam2 * p21 * t3 ** 3 * t4 ** 2 * x + lam2 * p21 * t3 ** 3 * t4 * x ** 2 + lam3 * p31 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p31 * t2 ** 2 * t4 ** 3 * x - lam3 * p31 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p31 * t2 * t4 ** 3 * x ** 2 + lam3 * p31 * t3 ** 2 * t4 ** 3 * x - lam3 * p31 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p12 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p12 * t2 ** 3 * t3 ** 2 * x - lam1 * p12 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p12 * t2 ** 3 * t3 * x ** 2 + lam1 * p12 * t2 ** 3 * t4 ** 2 * x - lam1 * p12 * t2 ** 3 * t4 * x ** 2 - lam2 * p22 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p22 * t2 ** 2 * t3 ** 3 * x + lam2 * p22 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p22 * t2 * t3 ** 3 * x ** 2 - lam2 * p22 * t3 ** 3 * t4 ** 2 * x + lam2 * p22 * t3 ** 3 * t4 * x ** 2 + lam3 * p32 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p32 * t2 ** 2 * t4 ** 3 * x - lam3 * p32 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p32 * t2 * t4 ** 3 * x ** 2 + lam3 * p32 * t3 ** 2 * t4 ** 3 * x - lam3 * p32 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p13 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p13 * t2 ** 3 * t3 ** 2 * x - lam1 * p13 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p13 * t2 ** 3 * t3 * x ** 2 + lam1 * p13 * t2 ** 3 * t4 ** 2 * x - lam1 * p13 * t2 ** 3 * t4 * x ** 2 - lam2 * p23 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p23 * t2 ** 2 * t3 ** 3 * x + lam2 * p23 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p23 * t2 * t3 ** 3 * x ** 2 - lam2 * p23 * t3 ** 3 * t4 ** 2 * x + lam2 * p23 * t3 ** 3 * t4 * x ** 2 + lam3 * p33 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p33 * t2 ** 2 * t4 ** 3 * x - lam3 * p33 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p33 * t2 * t4 ** 3 * x ** 2 + lam3 * p33 * t3 ** 2 * t4 ** 3 * x - lam3 * p33 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p14 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p14 * t2 ** 3 * t3 ** 2 * x - lam1 * p14 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p14 * t2 ** 3 * t3 * x ** 2 + lam1 * p14 * t2 ** 3 * t4 ** 2 * x - lam1 * p14 * t2 ** 3 * t4 * x ** 2 - lam2 * p24 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p24 * t2 ** 2 * t3 ** 3 * x + lam2 * p24 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p24 * t2 * t3 ** 3 * x ** 2 - lam2 * p24 * t3 ** 3 * t4 ** 2 * x + lam2 * p24 * t3 ** 3 * t4 * x ** 2 + lam3 * p34 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p34 * t2 ** 2 * t4 ** 3 * x - lam3 * p34 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p34 * t2 * t4 ** 3 * x ** 2 + lam3 * p34 * t3 ** 2 * t4 ** 3 * x - lam3 * p34 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p15 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p15 * t2 ** 3 * t3 ** 2 * x - lam1 * p15 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p15 * t2 ** 3 * t3 * x ** 2 + lam1 * p15 * t2 ** 3 * t4 ** 2 * x - lam1 * p15 * t2 ** 3 * t4 * x ** 2 - lam2 * p25 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p25 * t2 ** 2 * t3 ** 3 * x + lam2 * p25 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p25 * t2 * t3 ** 3 * x ** 2 - lam2 * p25 * t3 ** 3 * t4 ** 2 * x + lam2 * p25 * t3 ** 3 * t4 * x ** 2 + lam3 * p35 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p35 * t2 ** 2 * t4 ** 3 * x - lam3 * p35 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p35 * t2 * t4 ** 3 * x ** 2 + lam3 * p35 * t3 ** 2 * t4 ** 3 * x - lam3 * p35 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p16 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p16 * t2 ** 3 * t3 ** 2 * x - lam1 * p16 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p16 * t2 ** 3 * t3 * x ** 2 + lam1 * p16 * t2 ** 3 * t4 ** 2 * x - lam1 * p16 * t2 ** 3 * t4 * x ** 2 - lam2 * p26 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p26 * t2 ** 2 * t3 ** 3 * x + lam2 * p26 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p26 * t2 * t3 ** 3 * x ** 2 - lam2 * p26 * t3 ** 3 * t4 ** 2 * x + lam2 * p26 * t3 ** 3 * t4 * x ** 2 + lam3 * p36 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p36 * t2 ** 2 * t4 ** 3 * x - lam3 * p36 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p36 * t2 * t4 ** 3 * x ** 2 + lam3 * p36 * t3 ** 2 * t4 ** 3 * x - lam3 * p36 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p17 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p17 * t2 ** 3 * t3 ** 2 * x - lam1 * p17 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p17 * t2 ** 3 * t3 * x ** 2 + lam1 * p17 * t2 ** 3 * t4 ** 2 * x - lam1 * p17 * t2 ** 3 * t4 * x ** 2 - lam2 * p27 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p27 * t2 ** 2 * t3 ** 3 * x + lam2 * p27 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p27 * t2 * t3 ** 3 * x ** 2 - lam2 * p27 * t3 ** 3 * t4 ** 2 * x + lam2 * p27 * t3 ** 3 * t4 * x ** 2 + lam3 * p37 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p37 * t2 ** 2 * t4 ** 3 * x - lam3 * p37 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p37 * t2 * t4 ** 3 * x ** 2 + lam3 * p37 * t3 ** 2 * t4 ** 3 * x - lam3 * p37 * t3 * t4 ** 3 * x ** 2
+            ]
+
+        def lagrange(lam, k_dq, t_vals, lambdas, p1arr, p2arr, p3arr):
+            k0, k1, k2, k3, k4, k5, k6, k7 = k_dq
+            lam1, lam2, lam3, lam4 = lambdas
+            p10, p11, p12, p13, p14, p15, p16, p17 = p1arr
+            p20, p21, p22, p23, p24, p25, p26, p27 = p2arr
+            p30, p31, p32, p33, p34, p35, p36, p37 = p3arr
+            t2, t3, t4 = t_vals
+            return [
+                -lam2 * p20 * lam * t4 ** 2 * t3 ** 3 + lam2 * p20 * lam * t2 ** 2 * t3 ** 3 + lam2 * p20 * lam ** 2 * t4 * t3 ** 3 - lam2 * p20 * lam ** 2 * t2 * t3 ** 3 + lam3 * p30 * lam * t4 ** 3 * t3 ** 2 - lam3 * p30 * lam * t2 ** 2 * t4 ** 3 - lam3 * p30 * lam ** 2 * t4 ** 3 * t3 + lam3 * p30 * lam ** 2 * t2 * t4 ** 3 + lam1 * p10 * lam * t2 ** 3 * t4 ** 2 - lam1 * p10 * lam * t2 ** 3 * t3 ** 2 - lam1 * p10 * lam ** 2 * t2 ** 3 * t4 + lam1 * p10 * lam ** 2 * t2 ** 3 * t3 - lam1 * p10 * t2 ** 3 * t4 ** 2 * t3 + lam1 * p10 * t2 ** 3 * t4 * t3 ** 2 + lam2 * p20 * t2 * t4 ** 2 * t3 ** 3 - lam2 * p20 * t2 ** 2 * t4 * t3 ** 3 - lam3 * p30 * t2 * t4 ** 3 * t3 ** 2 + lam3 * p30 * t2 ** 2 * t4 ** 3 * t3 + t2 * t3 ** 2 * t4 ** 3 - t2 ** 2 * t3 * t4 ** 3 + t2 ** 2 * t3 ** 3 * t4 - t2 * t3 ** 3 * t4 ** 2 - t2 ** 3 * t3 ** 2 * t4 + t2 ** 3 * t3 * t4 ** 2 + lam ** 2 * t4 ** 3 * t3 + lam * t2 ** 2 * t4 ** 3 - lam * t4 ** 3 * t3 ** 2 + lam ** 2 * t2 ** 3 * t4 + lam * t4 ** 2 * t3 ** 3 + lam * t2 ** 3 * t3 ** 2 - lam * t2 ** 2 * t3 ** 3 - lam ** 2 * t4 * t3 ** 3 - lam ** 2 * t2 * t4 ** 3 - lam ** 2 * t2 ** 3 * t3 + lam ** 3 * t2 ** 2 * t3 - lam ** 3 * t2 * t3 ** 2 + lam ** 3 * t2 * t4 ** 2 - lam ** 3 * t2 ** 2 * t4 - lam ** 3 * t4 ** 2 * t3 + lam ** 3 * t4 * t3 ** 2 - lam * t2 ** 3 * t4 ** 2 + lam ** 2 * t2 * t3 ** 3 - lam4 * (-k0 + lam),
+                lam ** 2 * lam1 * p11 * t2 ** 3 * t3 - lam ** 2 * lam1 * p11 * t2 ** 3 * t4 - lam ** 2 * lam2 * p21 * t2 * t3 ** 3 + lam ** 2 * lam2 * p21 * t3 ** 3 * t4 + lam ** 2 * lam3 * p31 * t2 * t4 ** 3 - lam ** 2 * lam3 * p31 * t3 * t4 ** 3 - lam * lam1 * p11 * t2 ** 3 * t3 ** 2 + lam * lam1 * p11 * t2 ** 3 * t4 ** 2 + lam * lam2 * p21 * t2 ** 2 * t3 ** 3 - lam * lam2 * p21 * t3 ** 3 * t4 ** 2 - lam * lam3 * p31 * t2 ** 2 * t4 ** 3 + lam * lam3 * p31 * t3 ** 2 * t4 ** 3 + lam1 * p11 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p11 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p21 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p21 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p31 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p31 * t2 * t3 ** 2 * t4 ** 3 + k1 * lam4,
+                lam ** 2 * lam1 * p12 * t2 ** 3 * t3 - lam ** 2 * lam1 * p12 * t2 ** 3 * t4 - lam ** 2 * lam2 * p22 * t2 * t3 ** 3 + lam ** 2 * lam2 * p22 * t3 ** 3 * t4 + lam ** 2 * lam3 * p32 * t2 * t4 ** 3 - lam ** 2 * lam3 * p32 * t3 * t4 ** 3 - lam * lam1 * p12 * t2 ** 3 * t3 ** 2 + lam * lam1 * p12 * t2 ** 3 * t4 ** 2 + lam * lam2 * p22 * t2 ** 2 * t3 ** 3 - lam * lam2 * p22 * t3 ** 3 * t4 ** 2 - lam * lam3 * p32 * t2 ** 2 * t4 ** 3 + lam * lam3 * p32 * t3 ** 2 * t4 ** 3 + lam1 * p12 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p12 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p22 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p22 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p32 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p32 * t2 * t3 ** 2 * t4 ** 3 + k2 * lam4,
+                lam ** 2 * lam1 * p13 * t2 ** 3 * t3 - lam ** 2 * lam1 * p13 * t2 ** 3 * t4 - lam ** 2 * lam2 * p23 * t2 * t3 ** 3 + lam ** 2 * lam2 * p23 * t3 ** 3 * t4 + lam ** 2 * lam3 * p33 * t2 * t4 ** 3 - lam ** 2 * lam3 * p33 * t3 * t4 ** 3 - lam * lam1 * p13 * t2 ** 3 * t3 ** 2 + lam * lam1 * p13 * t2 ** 3 * t4 ** 2 + lam * lam2 * p23 * t2 ** 2 * t3 ** 3 - lam * lam2 * p23 * t3 ** 3 * t4 ** 2 - lam * lam3 * p33 * t2 ** 2 * t4 ** 3 + lam * lam3 * p33 * t3 ** 2 * t4 ** 3 + lam1 * p13 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p13 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p23 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p23 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p33 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p33 * t2 * t3 ** 2 * t4 ** 3 + k3 * lam4,
+                lam ** 2 * lam1 * p14 * t2 ** 3 * t3 - lam ** 2 * lam1 * p14 * t2 ** 3 * t4 - lam ** 2 * lam2 * p24 * t2 * t3 ** 3 + lam ** 2 * lam2 * p24 * t3 ** 3 * t4 + lam ** 2 * lam3 * p34 * t2 * t4 ** 3 - lam ** 2 * lam3 * p34 * t3 * t4 ** 3 - lam * lam1 * p14 * t2 ** 3 * t3 ** 2 + lam * lam1 * p14 * t2 ** 3 * t4 ** 2 + lam * lam2 * p24 * t2 ** 2 * t3 ** 3 - lam * lam2 * p24 * t3 ** 3 * t4 ** 2 - lam * lam3 * p34 * t2 ** 2 * t4 ** 3 + lam * lam3 * p34 * t3 ** 2 * t4 ** 3 + lam1 * p14 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p14 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p24 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p24 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p34 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p34 * t2 * t3 ** 2 * t4 ** 3 + k4 * lam4,
+                lam ** 2 * lam1 * p15 * t2 ** 3 * t3 - lam ** 2 * lam1 * p15 * t2 ** 3 * t4 - lam ** 2 * lam2 * p25 * t2 * t3 ** 3 + lam ** 2 * lam2 * p25 * t3 ** 3 * t4 + lam ** 2 * lam3 * p35 * t2 * t4 ** 3 - lam ** 2 * lam3 * p35 * t3 * t4 ** 3 - lam * lam1 * p15 * t2 ** 3 * t3 ** 2 + lam * lam1 * p15 * t2 ** 3 * t4 ** 2 + lam * lam2 * p25 * t2 ** 2 * t3 ** 3 - lam * lam2 * p25 * t3 ** 3 * t4 ** 2 - lam * lam3 * p35 * t2 ** 2 * t4 ** 3 + lam * lam3 * p35 * t3 ** 2 * t4 ** 3 + lam1 * p15 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p15 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p25 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p25 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p35 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p35 * t2 * t3 ** 2 * t4 ** 3 + k5 * lam4,
+                lam ** 2 * lam1 * p16 * t2 ** 3 * t3 - lam ** 2 * lam1 * p16 * t2 ** 3 * t4 - lam ** 2 * lam2 * p26 * t2 * t3 ** 3 + lam ** 2 * lam2 * p26 * t3 ** 3 * t4 + lam ** 2 * lam3 * p36 * t2 * t4 ** 3 - lam ** 2 * lam3 * p36 * t3 * t4 ** 3 - lam * lam1 * p16 * t2 ** 3 * t3 ** 2 + lam * lam1 * p16 * t2 ** 3 * t4 ** 2 + lam * lam2 * p26 * t2 ** 2 * t3 ** 3 - lam * lam2 * p26 * t3 ** 3 * t4 ** 2 - lam * lam3 * p36 * t2 ** 2 * t4 ** 3 + lam * lam3 * p36 * t3 ** 2 * t4 ** 3 + lam1 * p16 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p16 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p26 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p26 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p36 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p36 * t2 * t3 ** 2 * t4 ** 3 + k6 * lam4,
+                lam ** 2 * lam1 * p17 * t2 ** 3 * t3 - lam ** 2 * lam1 * p17 * t2 ** 3 * t4 - lam ** 2 * lam2 * p27 * t2 * t3 ** 3 + lam ** 2 * lam2 * p27 * t3 ** 3 * t4 + lam ** 2 * lam3 * p37 * t2 * t4 ** 3 - lam ** 2 * lam3 * p37 * t3 * t4 ** 3 - lam * lam1 * p17 * t2 ** 3 * t3 ** 2 + lam * lam1 * p17 * t2 ** 3 * t4 ** 2 + lam * lam2 * p27 * t2 ** 2 * t3 ** 3 - lam * lam2 * p27 * t3 ** 3 * t4 ** 2 - lam * lam3 * p37 * t2 ** 2 * t4 ** 3 + lam * lam3 * p37 * t3 ** 2 * t4 ** 3 + lam1 * p17 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p17 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p27 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p27 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p37 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p37 * t2 * t3 ** 2 * t4 ** 3 + k7 * lam4
+            ]
+
         poses = deepcopy(poses)
         lambda_val = 1e-16 if abs(lambda_val) < 1e-16 else lambda_val
 
@@ -550,11 +588,13 @@ class MotionInterpolation:
         # Perform division for all three parameters at once
         safe_denominators = np.where(denominators == 0, 1e-16, denominators)
         t_sols = numerators / safe_denominators
-        print('time needed:', time.time() - start_time)
+
         # Lagrange's interpolation part
         # lambdas for interpolation - scalar multiples of the poses
         lams = sp.symbols("lams1:5")
         x = sp.symbols("x")
+
+
         parametric_points = [np.array(poses[0].array()),
                              np.array(lams[0] * poses[1].array()),
                              np.array(lams[1] * poses[2].array()),
@@ -570,6 +610,10 @@ class MotionInterpolation:
         poses.append(DualQuaternion([lambda_val, 0, 0, 0, 0, 0, 0, 0]) - k[0])
         eqs_lambda = [element.subs(x, lambda_val) - lams[-1] * poses[-1].array()[i]
                       for i, element in enumerate(temp_evaluated)]
+
+        # eqs_lambda = lagrange(lambda_val, k0_array, t_sols, lams, p1, p2, p3)
+        # temp_evaluated = lagrange_poly(x, lams[0:3], t_sols, p1, p2, p3)
+        print('time needed:', time.time() - start_time)
 
         sols_lambda = sp.nsolve(eqs_lambda, lams, [1., 1., -1., -1.], dict=True)
 
