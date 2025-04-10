@@ -76,8 +76,10 @@ class MotionApproximation:
                               [PointHomogeneous.from_3d_point(pose.dq2point_via_matrix())
                                for pose in poses])
 
+        num_added_poses = len(poses) - 4
+
         initial_guess = init_curve.coeffs[:,1:4].flatten()
-        initial_guess = np.concatenate((initial_guess, t_vals[-1]), axis=None)
+        initial_guess = np.concatenate((initial_guess, t_vals[-num_added_poses:]), axis=None)
 
         def objective_function(params):
             """
@@ -85,7 +87,10 @@ class MotionApproximation:
             the poses and the curve
             """
             curve = MotionApproximation._construct_curve(params[:24])
-            t_vals[-1] = params[24:][0]
+
+            for i in range(num_added_poses):
+                val = i + 1
+                t_vals[-val] = params[24:][i]
 
             sq_dist = 0.
             for i, pose in enumerate(poses):
@@ -98,8 +103,8 @@ class MotionApproximation:
             curve = MotionApproximation._construct_curve(params[:24])
             sq_err = curve.study_quadric_check()
 
-            if len(sq_err) != 6:  # expand if necessary to avoid index errors
-                sq_err = np.concatenate((sq_err, np.zeros(6 - len(sq_err))), axis=None)
+            if len(sq_err) != 8:  # expand if necessary to avoid index errors
+                sq_err = np.concatenate((sq_err, np.zeros(8 - len(sq_err))), axis=None)
 
             return sq_err
 
