@@ -1,13 +1,16 @@
+[![GitHub Mirror](https://img.shields.io/badge/Github-mirror_%26_issues-_?style=social&logo=github)](https://github.com/hucik14/rational-linkages)
+[![GitLab (self-managed)](https://img.shields.io/badge/Git_UIBK-repository-_?style=social&logo=gitlab)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages)
+[![PyPI version](https://img.shields.io/pypi/v/rational-linkages.svg)](https://pypi.org/project/rational-linkages/)
+[![DOI](https://zenodo.org/badge/DOI/10.1007/978-3-031-64057-5_27.svg)](https://doi.org/10.1007/978-3-031-64057-5_27)
+
 [![build](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/pipeline.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
 [![Documentation Status](https://readthedocs.org/projects/rational-linkages/badge/?version=latest)](https://rational-linkages.readthedocs.io/?badge=latest)
-[![PyPI version](https://img.shields.io/pypi/v/rational-linkages.svg)](https://pypi.org/project/rational-linkages/)
-[![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main)
-[![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=test_coverage)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
 [![GitHub issues](https://img.shields.io/github/issues/hucik14/rational-linkages)](https://github.com/hucik14/rational-linkages/issues)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)]()
+[![coverage](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/badges/main/coverage.svg?job=test_coverage)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/jobs)
+[![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/network/main)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb)
 
-# Rational Linkages
+# Rational Linkages <img src="/docs/source/figures/rl-logo.png" width="5%">
 
 This Python-based package provides a collection of methods for the synthesis, 
 analysis, design, and rapid prototyping 
@@ -57,6 +60,10 @@ or
 
 <code>pip install rational-linkages[opt]</code>
 
+Mac users might need to use backslashes to escape the brackets, e.g.:
+
+<code>pip install rational-linkages\\[opt\\]</code>
+
 for installing also optional dependencies (ipython - inline plotting, gmpy2 - faster
 symbolic computations, exudyn - multibody simulations, numpy-stl -
 work with meshes in exudyn).
@@ -77,7 +84,11 @@ work with meshes in exudyn).
 
    or 
     
-   <code>pip install -e .[opt,dev,doc]</code> including the development and documentation dependencies.
+   <code>pip install -e .[opt,dev,doc]</code> including the development and documentation dependencies. 
+
+   Mac users might need to use backslashes to escape the brackets, e.g.: 
+
+   <code>pip install -e .\\[opt\\]</code>
 
 ## Citing the package
 

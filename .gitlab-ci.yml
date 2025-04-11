@@ -33,6 +33,7 @@ test_coverage:
       name: python:3.11-bullseye
       entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
     script:
+      - python -m pip install --upgrade pip
       - pip install .
       - pip install coverage pytest
       - coverage run
