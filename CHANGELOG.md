@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.10.2 (2025-04-11)
+
+### added (1 change)
+
+- [new logo](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5fe45fad)
+
+
+### fixed (2 changes)
+
+- [vector check not strict enough](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/179c4868)
+- [DH params were returning wrong d for base](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/865d8f48)
+
+
+
 ## 1.10.1 (2025-03-03)
 
 ### added (1 change)
