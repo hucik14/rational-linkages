@@ -231,8 +231,15 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             self.slider_lambda.setMaximum(int(500))
             self.slider_lambda.setSingleStep(1)
             self.slider_lambda.valueChanged.connect(self.on_lambda_slider_value_changed)
+
+            # add button for swapping family
+            self.swap_family_check_box = QtWidgets.QCheckBox(text="Swap family")
+            self.motion_family_idx = 0
+            self.swap_family_check_box.stateChanged.connect(self.on_swap_family_check_box_changed)
         else:
             self.slider_lambda = None
+            self.swap_family_check_box = None
+            self.motion_family_idx = None
 
         # initially for the first point
         self.set_sliders_for_point(0)
@@ -262,6 +269,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             cp_layout.addWidget(QtWidgets.QLabel("Rotate Z:"))
             cp_layout.addWidget(self.slider_yaw)
         if method == 'cubic_from_poses':
+            cp_layout.addWidget(self.swap_family_check_box)
             cp_layout.addWidget(QtWidgets.QLabel("Lambda:"))
             cp_layout.addWidget(self.slider_lambda)
 
@@ -412,9 +420,25 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         the motion curve.
         """
         new_lambda = self.slider_lambda.value() / 100.0
-        self.update_curve_vis(new_lambda)
+        self.update_curve_vis(lambda_val=new_lambda,
+                              motion_family=self.motion_family_idx)
 
-    def update_curve_vis(self, lambda_val: float = None):
+    def on_swap_family_check_box_changed(self, state):
+        """
+        Called when the swap family checkbox changes its state. Update the
+        motion curve to reflect the new motion family.
+        """
+        if state == 2:
+            self.motion_family_idx = 1
+        else:
+            self.motion_family_idx = 0
+        # print(self.motion_family_idx)
+        self.update_curve_vis(lambda_val=self.slider_lambda.value(),
+                              motion_family=self.motion_family_idx)
+
+    def update_curve_vis(self,
+                         motion_family: int = None,
+                         lambda_val: float = None):
         """
         Recalculate the motion curve using the current control points. The
         interpolation is performed by MotionInterpolation. Then update the curve
@@ -433,7 +457,9 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             elif self.method == 'cubic_from_poses':
                 coeffs = self.mi.interpolate_cubic_numerically(self.points)
         else:  # update only lambda of cubic curve
-            coeffs = self.mi.interpolate_cubic_numerically(self.points, lambda_val)
+            coeffs = self.mi.interpolate_cubic_numerically(self.points,
+                                                           lambda_val=lambda_val,
+                                                           k_idx=motion_family)
 
         # create numpy polynomial objects
         curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]
