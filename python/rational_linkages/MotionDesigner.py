@@ -193,7 +193,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
         # combo box to select one of the points
         self.point_combo = QtWidgets.QComboBox()
-        for i in range(len(self.points)):
+        for i in range(1, len(self.points)):
             self.point_combo.addItem(f"Point {i}")
         self.point_combo.currentIndexChanged.connect(self.on_point_selection_changed)
 
@@ -327,6 +327,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         control point with the given index.
         (Here we assume that coordinates are in the range roughly –10..10.)
         """
+        index = index + 1  # skip the first point/pose
         sliders = [self.slider_x, self.slider_y, self.slider_z]
         if self.method == 'quadratic_from_points' or self.method == 'cubic_from_points':
             pt = self.plotted_points[index]
@@ -363,7 +364,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         selected control point’s x, y, or z coordinate based on the slider values,
         update the control point markers, and then recalculate the motion curve.
         """
-        index = self.point_combo.currentIndex()
+        index = self.point_combo.currentIndex() + 1
         # Convert slider values (integers) to floating‑point coordinates.
         new_x = self.slider_x.value() / 100.0
         new_y = self.slider_y.value() / 100.0
