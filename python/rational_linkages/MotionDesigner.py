@@ -186,6 +186,8 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
         self.curve_path_vis = None  # path of motion curve
         self.curve_frames_vis = None  # poses of motion curve
+        self.lambda_val = 0.0
+        self.motion_family_idx = 0
         self.update_curve_vis()  # initial curve update
 
         ###################################
@@ -239,7 +241,6 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         else:
             self.slider_lambda = None
             self.swap_family_check_box = None
-            self.motion_family_idx = None
 
         # initially for the first point
         self.set_sliders_for_point(0)
@@ -419,9 +420,8 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         of the cubic curve, update the control point markers, and then recalculate
         the motion curve.
         """
-        new_lambda = self.slider_lambda.value() / 100.0
-        self.update_curve_vis(lambda_val=new_lambda,
-                              motion_family=self.motion_family_idx)
+        self.lambda_val = self.slider_lambda.value() / 100.0
+        self.update_curve_vis()
 
     def on_swap_family_check_box_changed(self, state):
         """
@@ -433,33 +433,28 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         else:
             self.motion_family_idx = 0
 
-        self.update_curve_vis(lambda_val=self.slider_lambda.value(),
-                              motion_family=self.motion_family_idx)
+        self.update_curve_vis()
 
-    def update_curve_vis(self,
-                         motion_family: int = None,
-                         lambda_val: float = None):
+    def update_curve_vis(self):
         """
         Recalculate the motion curve using the current control points. The
         interpolation is performed by MotionInterpolation. Then update the curve
         line in the GLViewWidget.
         """
-        if lambda_val is None:
-            # get the numeric coefficients from interpolation
-            if self.method == 'cubic_from_points':
-                coeffs = self.mi.interpolate_points_cubic(self.points,
+
+        # get the numeric coefficients from interpolation
+        if self.method == 'cubic_from_points':
+            coeffs = self.mi.interpolate_points_cubic(self.points,
+                                                      return_numeric=True)
+        elif self.method == 'quadratic_from_points':
+            coeffs = self.mi.interpolate_points_quadratic(self.points,
                                                           return_numeric=True)
-            elif self.method == 'quadratic_from_points':
-                coeffs = self.mi.interpolate_points_quadratic(self.points,
-                                                              return_numeric=True)
-            elif self.method == 'quadratic_from_poses':
-                coeffs = self.mi.interpolate_quadratic_numerically(self.points)
-            elif self.method == 'cubic_from_poses':
-                coeffs = self.mi.interpolate_cubic_numerically(self.points)
-        else:  # update only lambda of cubic curve
+        elif self.method == 'quadratic_from_poses':
+            coeffs = self.mi.interpolate_quadratic_numerically(self.points)
+        elif self.method == 'cubic_from_poses':
             coeffs = self.mi.interpolate_cubic_numerically(self.points,
-                                                           lambda_val=lambda_val,
-                                                           k_idx=motion_family)
+                                                           lambda_val=self.lambda_val,
+                                                           k_idx=self.motion_family_idx)
 
         # create numpy polynomial objects
         curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]
