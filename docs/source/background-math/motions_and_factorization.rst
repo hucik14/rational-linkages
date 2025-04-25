@@ -2,8 +2,8 @@
 
 .. _motions_and_factorization:
 
-Rational Motions and its Factorization
-======================================
+Rational Motions and their Factorization
+========================================
 
 This section describes the concept of rational curves and motions in the space of
 dual quaternions. It also introduces the factorization of motions into a sequence of

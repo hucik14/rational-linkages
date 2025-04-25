@@ -23,7 +23,7 @@ or
 
     pip install rational-linkages[opt]
 
-Mac or Linux users might need to add backslashes to escape the brackets, e.g.:
+Mac users might need to add backslashes to escape the brackets, e.g.:
 
 .. code-block:: bash
 
@@ -43,7 +43,7 @@ B) from source as editable package:
 
     pip install -e .[opt]
 
-Mac or Linux users might need to add backslashes to escape the brackets, e.g.:
+Mac users might need to add backslashes to escape the brackets, e.g.:
 
 .. code-block:: bash
 

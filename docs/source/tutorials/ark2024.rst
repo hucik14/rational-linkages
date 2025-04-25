@@ -161,6 +161,7 @@ collisions happen. This value can be passed to the plotting window at the textbo
 
 .. code-block:: python
 
+        # NOT TESTED
         # IMPORTANT NOTE:
         #
         # due to Sphinx's doctest extension constraints, the following
@@ -183,7 +184,7 @@ collisions happen. This value can be passed to the plotting window at the textbo
             m.collision_check(parallel=True)
 
             # generate the design
-            dh, cp = m.get_design(unit='deg', scale=200)
+            dh, cp, _ = m.get_design(unit='deg', scale=200)
 
 This last line of the script generates the design of the mechanism with the following
 output:
@@ -207,7 +208,7 @@ The argument :code:`unit='deg'` specifies, that :math:`\alpha_i` angle is given 
 degrees. The argument :code:`scale=200` specifies the length parameters :math:`d_i`,
 :math:`a_i` and connection point parameters :math:`cp_{0i}, cp_{1i}` will be scaled by
 200, which assures that the mechanism has dimensions as shown in milimeters, suitable
-for 3D-printing. The unspecified arguments using line :code:`dh, cp = m.get_design()`
+for 3D-printing. The unspecified arguments using line :code:`dh, cp, _ = m.get_design()`
 would have output in radians and without scaling, for example:
 
 .. code-block:: text
