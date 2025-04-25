@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.0", "setuptools-rust>=1.5.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -62,6 +62,11 @@ include = ["rational_linkages*"]
 
 [tool.setuptools.package-data]
 "rational_linkages.data" = ["*.pkl"]
+
+[[tool.setuptools-rust.ext-modules]]
+target = "rational_linkages.utils_rust"
+path = "Cargo.toml"
+binding = "PyO3"
 
 [project.urls]
 Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"

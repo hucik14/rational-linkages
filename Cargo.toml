@@ -1,0 +1,13 @@
+# Cargo.toml
+[package]
+name = "rational_linkages"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pyo3 = { version = "0.24.2", features = ["extension-module"] }
+
+[lib]
+name = "utils_rust"
+path = "rust/lib.rs"
+crate-type = ["cdylib"]
