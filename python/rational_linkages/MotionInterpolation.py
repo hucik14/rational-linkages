@@ -13,6 +13,8 @@ from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
 from .RationalBezier import RationalBezier
 
+from .utils_compute import mi_x3
+
 
 class MotionInterpolation:
     """
@@ -102,7 +104,8 @@ class MotionInterpolation:
 
     @staticmethod
     def interpolate(poses_or_points: list[Union[DualQuaternion, TransfMatrix, PointHomogeneous]],
-                    lambda_val: Union[float, int] = 0) -> RationalCurve:
+                    lambda_val: Union[float, int] = 0,
+                    motion_family: int = 0) -> RationalCurve:
         """
         Interpolates the given 2, 3, 4 poses or 5 points by a rational motion in SE(3).
 
@@ -110,6 +113,8 @@ class MotionInterpolation:
             poses_or_points: The poses or points to interpolate.
         :param Union[float, int] lambda_val: The lambda parameter for the interpolation.
             Only used for cubic interpolation using 4 poses.
+        :param int motion_family: The family of the motion curve. 0 - default, 1 - other
+            solution. Only used for cubic interpolation using 4 poses.
 
         :return: The rational motion curve.
         :rtype: RationalCurve
@@ -158,7 +163,8 @@ class MotionInterpolation:
         # interpolate the rational poses
         if len(rational_poses) == 4:
             curve_eqs = MotionInterpolation.interpolate_cubic(rational_poses,
-                                                              lambda_val=lambda_val)
+                                                              lambda_val=lambda_val,
+                                                              motion_family=motion_family)
             return RationalCurve(curve_eqs)
         elif len(rational_poses) == 3:
             curve_eqs = MotionInterpolation.interpolate_quadratic(rational_poses)
@@ -399,7 +405,8 @@ class MotionInterpolation:
 
     @staticmethod
     def interpolate_cubic(poses: list[DualQuaternion],
-                          lambda_val: Union[float, int] = 0) -> list[sp.Poly]:
+                          lambda_val: Union[float, int] = 0,
+                          motion_family: int = 0) -> list[sp.Poly]:
         """
         Interpolates the given 4 rational poses by a cubic curve in SE(3).
 
@@ -411,6 +418,10 @@ class MotionInterpolation:
         :see also: :ref:`interpolation_background`
 
         :param list[DualQuaternion] poses: The rational poses to interpolate.
+        :param Union[float, int] lambda_val: The lambda parameter for the interpolation.
+        :param int motion_family: The family of the motion curve. 0 - default, 1 - other
+            solution
+
 
         :return: The rational motion curve.
         :rtype: list[sp.Poly]
@@ -418,13 +429,14 @@ class MotionInterpolation:
         :raises ValueError: If the interpolation has no solution, 'k' does not exist.
         """
         # obtain additional dual quaternions k1, k2
+        poses = deepcopy(poses)
         try:
             k = MotionInterpolation._obtain_k_dq(poses)
         except Exception:
             raise ValueError('Interpolation has no solution.')
 
         # solve for t[i] - the parameter of the rational motion curve for i-th pose
-        t_sols = MotionInterpolation._solve_for_t(poses, k)
+        t_sols = MotionInterpolation._solve_for_t(poses, k[motion_family])
 
         # Lagrange's interpolation part
         # lambdas for interpolation - scalar multiples of the poses
@@ -452,7 +464,7 @@ class MotionInterpolation:
 
         # obtain additional parametric pose p4
         lam = sp.symbols("lam")
-        poses.append(DualQuaternion([lam, 0, 0, 0, 0, 0, 0, 0]) - k[0])
+        poses.append(DualQuaternion([lam, 0, 0, 0, 0, 0, 0, 0]) - k[motion_family])
 
         eqs_lambda = [element.subs(x, lam) - lams[-1] * poses[-1].array()[i]
                       for i, element in enumerate(temp4)]
@@ -472,6 +484,7 @@ class MotionInterpolation:
 
     @staticmethod
     def interpolate_cubic_numerically(poses: list[DualQuaternion],
+                                      k_idx: int = 0,
                                       lambda_val: Union[float, int] = 0) -> np.ndarray:
         """
         Interpolates the given 4 rational poses by a cubic curve in SE(3).
@@ -491,107 +504,159 @@ class MotionInterpolation:
 
         :raises ValueError: If the interpolation has no solution, 'k' does not exist.
         """
-        poses = [DualQuaternion.as_rational(pose.array())
-                 if isinstance(pose, DualQuaternion) and not pose.is_rational
-                 else pose for pose in poses if isinstance(pose, DualQuaternion)]
+        def lagrange_poly(x_indet, lambdas, t_vals, p1arr, p2arr, p3arr):
+            lam1, lam2, lam3 = lambdas
+            p10, p11, p12, p13, p14, p15, p16, p17 = p1arr
+            p20, p21, p22, p23, p24, p25, p26, p27 = p2arr
+            p30, p31, p32, p33, p34, p35, p36, p37 = p3arr
+            t2, t3, t4 = t_vals
+            x = x_indet
+            return [
+                lam1 * p10 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p10 * t2 ** 3 * t3 ** 2 * x - lam1 * p10 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p10 * t2 ** 3 * t3 * x ** 2 + lam1 * p10 * t2 ** 3 * t4 ** 2 * x - lam1 * p10 * t2 ** 3 * t4 * x ** 2 - lam2 * p20 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p20 * t2 ** 2 * t3 ** 3 * x + lam2 * p20 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p20 * t2 * t3 ** 3 * x ** 2 - lam2 * p20 * t3 ** 3 * t4 ** 2 * x + lam2 * p20 * t3 ** 3 * t4 * x ** 2 + lam3 * p30 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p30 * t2 ** 2 * t4 ** 3 * x - lam3 * p30 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p30 * t2 * t4 ** 3 * x ** 2 + lam3 * p30 * t3 ** 2 * t4 ** 3 * x - lam3 * p30 * t3 * t4 ** 3 * x ** 2 - t2 ** 3 * t3 ** 2 * t4 + t2 ** 3 * t3 ** 2 * x + t2 ** 3 * t3 * t4 ** 2 - t2 ** 3 * t3 * x ** 2 - t2 ** 3 * t4 ** 2 * x + t2 ** 3 * t4 * x ** 2 + t2 ** 2 * t3 ** 3 * t4 - t2 ** 2 * t3 ** 3 * x - t2 ** 2 * t3 * t4 ** 3 + t2 ** 2 * t3 * x ** 3 + t2 ** 2 * t4 ** 3 * x - t2 ** 2 * t4 * x ** 3 - t2 * t3 ** 3 * t4 ** 2 + t2 * t3 ** 3 * x ** 2 + t2 * t3 ** 2 * t4 ** 3 - t2 * t3 ** 2 * x ** 3 - t2 * t4 ** 3 * x ** 2 + t2 * t4 ** 2 * x ** 3 + t3 ** 3 * t4 ** 2 * x - t3 ** 3 * t4 * x ** 2 - t3 ** 2 * t4 ** 3 * x + t3 ** 2 * t4 * x ** 3 + t3 * t4 ** 3 * x ** 2 - t3 * t4 ** 2 * x ** 3,
+                lam1 * p11 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p11 * t2 ** 3 * t3 ** 2 * x - lam1 * p11 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p11 * t2 ** 3 * t3 * x ** 2 + lam1 * p11 * t2 ** 3 * t4 ** 2 * x - lam1 * p11 * t2 ** 3 * t4 * x ** 2 - lam2 * p21 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p21 * t2 ** 2 * t3 ** 3 * x + lam2 * p21 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p21 * t2 * t3 ** 3 * x ** 2 - lam2 * p21 * t3 ** 3 * t4 ** 2 * x + lam2 * p21 * t3 ** 3 * t4 * x ** 2 + lam3 * p31 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p31 * t2 ** 2 * t4 ** 3 * x - lam3 * p31 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p31 * t2 * t4 ** 3 * x ** 2 + lam3 * p31 * t3 ** 2 * t4 ** 3 * x - lam3 * p31 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p12 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p12 * t2 ** 3 * t3 ** 2 * x - lam1 * p12 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p12 * t2 ** 3 * t3 * x ** 2 + lam1 * p12 * t2 ** 3 * t4 ** 2 * x - lam1 * p12 * t2 ** 3 * t4 * x ** 2 - lam2 * p22 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p22 * t2 ** 2 * t3 ** 3 * x + lam2 * p22 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p22 * t2 * t3 ** 3 * x ** 2 - lam2 * p22 * t3 ** 3 * t4 ** 2 * x + lam2 * p22 * t3 ** 3 * t4 * x ** 2 + lam3 * p32 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p32 * t2 ** 2 * t4 ** 3 * x - lam3 * p32 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p32 * t2 * t4 ** 3 * x ** 2 + lam3 * p32 * t3 ** 2 * t4 ** 3 * x - lam3 * p32 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p13 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p13 * t2 ** 3 * t3 ** 2 * x - lam1 * p13 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p13 * t2 ** 3 * t3 * x ** 2 + lam1 * p13 * t2 ** 3 * t4 ** 2 * x - lam1 * p13 * t2 ** 3 * t4 * x ** 2 - lam2 * p23 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p23 * t2 ** 2 * t3 ** 3 * x + lam2 * p23 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p23 * t2 * t3 ** 3 * x ** 2 - lam2 * p23 * t3 ** 3 * t4 ** 2 * x + lam2 * p23 * t3 ** 3 * t4 * x ** 2 + lam3 * p33 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p33 * t2 ** 2 * t4 ** 3 * x - lam3 * p33 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p33 * t2 * t4 ** 3 * x ** 2 + lam3 * p33 * t3 ** 2 * t4 ** 3 * x - lam3 * p33 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p14 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p14 * t2 ** 3 * t3 ** 2 * x - lam1 * p14 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p14 * t2 ** 3 * t3 * x ** 2 + lam1 * p14 * t2 ** 3 * t4 ** 2 * x - lam1 * p14 * t2 ** 3 * t4 * x ** 2 - lam2 * p24 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p24 * t2 ** 2 * t3 ** 3 * x + lam2 * p24 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p24 * t2 * t3 ** 3 * x ** 2 - lam2 * p24 * t3 ** 3 * t4 ** 2 * x + lam2 * p24 * t3 ** 3 * t4 * x ** 2 + lam3 * p34 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p34 * t2 ** 2 * t4 ** 3 * x - lam3 * p34 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p34 * t2 * t4 ** 3 * x ** 2 + lam3 * p34 * t3 ** 2 * t4 ** 3 * x - lam3 * p34 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p15 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p15 * t2 ** 3 * t3 ** 2 * x - lam1 * p15 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p15 * t2 ** 3 * t3 * x ** 2 + lam1 * p15 * t2 ** 3 * t4 ** 2 * x - lam1 * p15 * t2 ** 3 * t4 * x ** 2 - lam2 * p25 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p25 * t2 ** 2 * t3 ** 3 * x + lam2 * p25 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p25 * t2 * t3 ** 3 * x ** 2 - lam2 * p25 * t3 ** 3 * t4 ** 2 * x + lam2 * p25 * t3 ** 3 * t4 * x ** 2 + lam3 * p35 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p35 * t2 ** 2 * t4 ** 3 * x - lam3 * p35 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p35 * t2 * t4 ** 3 * x ** 2 + lam3 * p35 * t3 ** 2 * t4 ** 3 * x - lam3 * p35 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p16 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p16 * t2 ** 3 * t3 ** 2 * x - lam1 * p16 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p16 * t2 ** 3 * t3 * x ** 2 + lam1 * p16 * t2 ** 3 * t4 ** 2 * x - lam1 * p16 * t2 ** 3 * t4 * x ** 2 - lam2 * p26 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p26 * t2 ** 2 * t3 ** 3 * x + lam2 * p26 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p26 * t2 * t3 ** 3 * x ** 2 - lam2 * p26 * t3 ** 3 * t4 ** 2 * x + lam2 * p26 * t3 ** 3 * t4 * x ** 2 + lam3 * p36 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p36 * t2 ** 2 * t4 ** 3 * x - lam3 * p36 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p36 * t2 * t4 ** 3 * x ** 2 + lam3 * p36 * t3 ** 2 * t4 ** 3 * x - lam3 * p36 * t3 * t4 ** 3 * x ** 2,
+                lam1 * p17 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p17 * t2 ** 3 * t3 ** 2 * x - lam1 * p17 * t2 ** 3 * t3 * t4 ** 2 + lam1 * p17 * t2 ** 3 * t3 * x ** 2 + lam1 * p17 * t2 ** 3 * t4 ** 2 * x - lam1 * p17 * t2 ** 3 * t4 * x ** 2 - lam2 * p27 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p27 * t2 ** 2 * t3 ** 3 * x + lam2 * p27 * t2 * t3 ** 3 * t4 ** 2 - lam2 * p27 * t2 * t3 ** 3 * x ** 2 - lam2 * p27 * t3 ** 3 * t4 ** 2 * x + lam2 * p27 * t3 ** 3 * t4 * x ** 2 + lam3 * p37 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p37 * t2 ** 2 * t4 ** 3 * x - lam3 * p37 * t2 * t3 ** 2 * t4 ** 3 + lam3 * p37 * t2 * t4 ** 3 * x ** 2 + lam3 * p37 * t3 ** 2 * t4 ** 3 * x - lam3 * p37 * t3 * t4 ** 3 * x ** 2
+            ]
 
-        # obtain additional dual quaternions k1, k2
+        def lagrange(lam, k_dq, t_vals, lambdas, p1arr, p2arr, p3arr):
+            k0, k1, k2, k3, k4, k5, k6, k7 = k_dq
+            lam1, lam2, lam3, lam4 = lambdas
+            p10, p11, p12, p13, p14, p15, p16, p17 = p1arr
+            p20, p21, p22, p23, p24, p25, p26, p27 = p2arr
+            p30, p31, p32, p33, p34, p35, p36, p37 = p3arr
+            t2, t3, t4 = t_vals
+            return [
+                -lam2 * p20 * lam * t4 ** 2 * t3 ** 3 + lam2 * p20 * lam * t2 ** 2 * t3 ** 3 + lam2 * p20 * lam ** 2 * t4 * t3 ** 3 - lam2 * p20 * lam ** 2 * t2 * t3 ** 3 + lam3 * p30 * lam * t4 ** 3 * t3 ** 2 - lam3 * p30 * lam * t2 ** 2 * t4 ** 3 - lam3 * p30 * lam ** 2 * t4 ** 3 * t3 + lam3 * p30 * lam ** 2 * t2 * t4 ** 3 + lam1 * p10 * lam * t2 ** 3 * t4 ** 2 - lam1 * p10 * lam * t2 ** 3 * t3 ** 2 - lam1 * p10 * lam ** 2 * t2 ** 3 * t4 + lam1 * p10 * lam ** 2 * t2 ** 3 * t3 - lam1 * p10 * t2 ** 3 * t4 ** 2 * t3 + lam1 * p10 * t2 ** 3 * t4 * t3 ** 2 + lam2 * p20 * t2 * t4 ** 2 * t3 ** 3 - lam2 * p20 * t2 ** 2 * t4 * t3 ** 3 - lam3 * p30 * t2 * t4 ** 3 * t3 ** 2 + lam3 * p30 * t2 ** 2 * t4 ** 3 * t3 + t2 * t3 ** 2 * t4 ** 3 - t2 ** 2 * t3 * t4 ** 3 + t2 ** 2 * t3 ** 3 * t4 - t2 * t3 ** 3 * t4 ** 2 - t2 ** 3 * t3 ** 2 * t4 + t2 ** 3 * t3 * t4 ** 2 + lam ** 2 * t4 ** 3 * t3 + lam * t2 ** 2 * t4 ** 3 - lam * t4 ** 3 * t3 ** 2 + lam ** 2 * t2 ** 3 * t4 + lam * t4 ** 2 * t3 ** 3 + lam * t2 ** 3 * t3 ** 2 - lam * t2 ** 2 * t3 ** 3 - lam ** 2 * t4 * t3 ** 3 - lam ** 2 * t2 * t4 ** 3 - lam ** 2 * t2 ** 3 * t3 + lam ** 3 * t2 ** 2 * t3 - lam ** 3 * t2 * t3 ** 2 + lam ** 3 * t2 * t4 ** 2 - lam ** 3 * t2 ** 2 * t4 - lam ** 3 * t4 ** 2 * t3 + lam ** 3 * t4 * t3 ** 2 - lam * t2 ** 3 * t4 ** 2 + lam ** 2 * t2 * t3 ** 3 - lam4 * (-k0 + lam),
+                lam ** 2 * lam1 * p11 * t2 ** 3 * t3 - lam ** 2 * lam1 * p11 * t2 ** 3 * t4 - lam ** 2 * lam2 * p21 * t2 * t3 ** 3 + lam ** 2 * lam2 * p21 * t3 ** 3 * t4 + lam ** 2 * lam3 * p31 * t2 * t4 ** 3 - lam ** 2 * lam3 * p31 * t3 * t4 ** 3 - lam * lam1 * p11 * t2 ** 3 * t3 ** 2 + lam * lam1 * p11 * t2 ** 3 * t4 ** 2 + lam * lam2 * p21 * t2 ** 2 * t3 ** 3 - lam * lam2 * p21 * t3 ** 3 * t4 ** 2 - lam * lam3 * p31 * t2 ** 2 * t4 ** 3 + lam * lam3 * p31 * t3 ** 2 * t4 ** 3 + lam1 * p11 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p11 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p21 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p21 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p31 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p31 * t2 * t3 ** 2 * t4 ** 3 + k1 * lam4,
+                lam ** 2 * lam1 * p12 * t2 ** 3 * t3 - lam ** 2 * lam1 * p12 * t2 ** 3 * t4 - lam ** 2 * lam2 * p22 * t2 * t3 ** 3 + lam ** 2 * lam2 * p22 * t3 ** 3 * t4 + lam ** 2 * lam3 * p32 * t2 * t4 ** 3 - lam ** 2 * lam3 * p32 * t3 * t4 ** 3 - lam * lam1 * p12 * t2 ** 3 * t3 ** 2 + lam * lam1 * p12 * t2 ** 3 * t4 ** 2 + lam * lam2 * p22 * t2 ** 2 * t3 ** 3 - lam * lam2 * p22 * t3 ** 3 * t4 ** 2 - lam * lam3 * p32 * t2 ** 2 * t4 ** 3 + lam * lam3 * p32 * t3 ** 2 * t4 ** 3 + lam1 * p12 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p12 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p22 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p22 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p32 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p32 * t2 * t3 ** 2 * t4 ** 3 + k2 * lam4,
+                lam ** 2 * lam1 * p13 * t2 ** 3 * t3 - lam ** 2 * lam1 * p13 * t2 ** 3 * t4 - lam ** 2 * lam2 * p23 * t2 * t3 ** 3 + lam ** 2 * lam2 * p23 * t3 ** 3 * t4 + lam ** 2 * lam3 * p33 * t2 * t4 ** 3 - lam ** 2 * lam3 * p33 * t3 * t4 ** 3 - lam * lam1 * p13 * t2 ** 3 * t3 ** 2 + lam * lam1 * p13 * t2 ** 3 * t4 ** 2 + lam * lam2 * p23 * t2 ** 2 * t3 ** 3 - lam * lam2 * p23 * t3 ** 3 * t4 ** 2 - lam * lam3 * p33 * t2 ** 2 * t4 ** 3 + lam * lam3 * p33 * t3 ** 2 * t4 ** 3 + lam1 * p13 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p13 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p23 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p23 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p33 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p33 * t2 * t3 ** 2 * t4 ** 3 + k3 * lam4,
+                lam ** 2 * lam1 * p14 * t2 ** 3 * t3 - lam ** 2 * lam1 * p14 * t2 ** 3 * t4 - lam ** 2 * lam2 * p24 * t2 * t3 ** 3 + lam ** 2 * lam2 * p24 * t3 ** 3 * t4 + lam ** 2 * lam3 * p34 * t2 * t4 ** 3 - lam ** 2 * lam3 * p34 * t3 * t4 ** 3 - lam * lam1 * p14 * t2 ** 3 * t3 ** 2 + lam * lam1 * p14 * t2 ** 3 * t4 ** 2 + lam * lam2 * p24 * t2 ** 2 * t3 ** 3 - lam * lam2 * p24 * t3 ** 3 * t4 ** 2 - lam * lam3 * p34 * t2 ** 2 * t4 ** 3 + lam * lam3 * p34 * t3 ** 2 * t4 ** 3 + lam1 * p14 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p14 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p24 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p24 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p34 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p34 * t2 * t3 ** 2 * t4 ** 3 + k4 * lam4,
+                lam ** 2 * lam1 * p15 * t2 ** 3 * t3 - lam ** 2 * lam1 * p15 * t2 ** 3 * t4 - lam ** 2 * lam2 * p25 * t2 * t3 ** 3 + lam ** 2 * lam2 * p25 * t3 ** 3 * t4 + lam ** 2 * lam3 * p35 * t2 * t4 ** 3 - lam ** 2 * lam3 * p35 * t3 * t4 ** 3 - lam * lam1 * p15 * t2 ** 3 * t3 ** 2 + lam * lam1 * p15 * t2 ** 3 * t4 ** 2 + lam * lam2 * p25 * t2 ** 2 * t3 ** 3 - lam * lam2 * p25 * t3 ** 3 * t4 ** 2 - lam * lam3 * p35 * t2 ** 2 * t4 ** 3 + lam * lam3 * p35 * t3 ** 2 * t4 ** 3 + lam1 * p15 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p15 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p25 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p25 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p35 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p35 * t2 * t3 ** 2 * t4 ** 3 + k5 * lam4,
+                lam ** 2 * lam1 * p16 * t2 ** 3 * t3 - lam ** 2 * lam1 * p16 * t2 ** 3 * t4 - lam ** 2 * lam2 * p26 * t2 * t3 ** 3 + lam ** 2 * lam2 * p26 * t3 ** 3 * t4 + lam ** 2 * lam3 * p36 * t2 * t4 ** 3 - lam ** 2 * lam3 * p36 * t3 * t4 ** 3 - lam * lam1 * p16 * t2 ** 3 * t3 ** 2 + lam * lam1 * p16 * t2 ** 3 * t4 ** 2 + lam * lam2 * p26 * t2 ** 2 * t3 ** 3 - lam * lam2 * p26 * t3 ** 3 * t4 ** 2 - lam * lam3 * p36 * t2 ** 2 * t4 ** 3 + lam * lam3 * p36 * t3 ** 2 * t4 ** 3 + lam1 * p16 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p16 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p26 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p26 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p36 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p36 * t2 * t3 ** 2 * t4 ** 3 + k6 * lam4,
+                lam ** 2 * lam1 * p17 * t2 ** 3 * t3 - lam ** 2 * lam1 * p17 * t2 ** 3 * t4 - lam ** 2 * lam2 * p27 * t2 * t3 ** 3 + lam ** 2 * lam2 * p27 * t3 ** 3 * t4 + lam ** 2 * lam3 * p37 * t2 * t4 ** 3 - lam ** 2 * lam3 * p37 * t3 * t4 ** 3 - lam * lam1 * p17 * t2 ** 3 * t3 ** 2 + lam * lam1 * p17 * t2 ** 3 * t4 ** 2 + lam * lam2 * p27 * t2 ** 2 * t3 ** 3 - lam * lam2 * p27 * t3 ** 3 * t4 ** 2 - lam * lam3 * p37 * t2 ** 2 * t4 ** 3 + lam * lam3 * p37 * t3 ** 2 * t4 ** 3 + lam1 * p17 * t2 ** 3 * t3 ** 2 * t4 - lam1 * p17 * t2 ** 3 * t3 * t4 ** 2 - lam2 * p27 * t2 ** 2 * t3 ** 3 * t4 + lam2 * p27 * t2 * t3 ** 3 * t4 ** 2 + lam3 * p37 * t2 ** 2 * t3 * t4 ** 3 - lam3 * p37 * t2 * t3 ** 2 * t4 ** 3 + k7 * lam4
+            ]
+
+        poses = deepcopy(poses)
+        lambda_val = 1e-16 if abs(lambda_val) < 1e-16 else lambda_val
+
+        p0 = poses[0].array()
+        p1 = poses[1].array()
+        p2 = poses[2].array()
+        p3 = poses[3].array()
+
         try:
-            k = MotionInterpolation._obtain_k_dq(poses, numerically=True)
+            x3_sols = mi_x3(p1, p2, p3)
+            k = []
+            for x3 in x3_sols:
+                x2 = -(p1[0] * p3[4] * x3 - p1[4] * p3[0] * x3 - p1[4]) / (
+                            p1[0] * p2[4] - p1[4] * p2[0])
+                x1 = (p2[0] * p3[4] * x3 - p2[4] * p3[0] * x3 - p2[4]) / (
+                            p1[0] * p2[4] - p1[4] * p2[0])
+                k_array = p0 + x1 * p1 + x2 * p2 + x3 * p3
+                k.append(DualQuaternion(k_array))
         except Exception:
-            raise ValueError('Interpolation has no solution.')
+            raise ValueError('Interpolation failed, change input poses, as they do not '
+                             'given poses do not fulfill the interpolation conditions.')
 
-        # solve for t[i] - the parameter of the rational motion curve for i-th pose
-        t_sols = MotionInterpolation._solve_for_t(poses, k, numerically=True)
+        # # solve for t[i] - the parameter of the rational motion curve for i-th pose
+        # t_sols = MotionInterpolation._solve_for_t_numerically(poses, k)
+        study_cond_mat = np.array([[0, 0, 0, 0, 1, 0, 0, 0],
+                                   [0, 0, 0, 0, 0, 1, 0, 0],
+                                   [0, 0, 0, 0, 0, 0, 1, 0],
+                                   [0, 0, 0, 0, 0, 0, 0, 1],
+                                   [1, 0, 0, 0, 0, 0, 0, 0],
+                                   [0, 1, 0, 0, 0, 0, 0, 0],
+                                   [0, 0, 1, 0, 0, 0, 0, 0],
+                                   [0, 0, 0, 1, 0, 0, 0, 0]])
+        # Calculate identity DQ product with study matrix once
+        k0_array = k[k_idx].array()
+        study_cond = [study_cond_mat @ poses[i].array() for i in range(1, 4)]
+        # Pre-compute results for the divisors
+        denominators = np.array([p0 @ study_cond[i]
+                                 for i in range(0, 3)])
+        # Pre-compute results for the numerators
+        numerators = np.array([k0_array @ study_cond[i]
+                               for i in range(0, 3)])
+        # Perform division for all three parameters at once
+        safe_denominators = np.where(denominators == 0, 1e-16, denominators)
+        t_sols = numerators / safe_denominators
 
         # Lagrange's interpolation part
         # lambdas for interpolation - scalar multiples of the poses
         lams = sp.symbols("lams1:5")
-
-        parametric_points = [sp.Matrix(poses[0].array()),
-                             sp.Matrix(lams[0] * poses[1].array()),
-                             sp.Matrix(lams[1] * poses[2].array()),
-                             sp.Matrix(lams[2] * poses[3].array())]
-
-        # obtain the Lagrange interpolation for poses p0, p1, p2, p3
-        interp = MotionInterpolation._lagrange_poly_interpolation(parametric_points)
-
-        t = sp.symbols("t:4")
         x = sp.symbols("x")
 
-        temp = interp.subs({t[0]: 0, x: 1 / x}).evalf()
-        temp = sp.together(temp * x ** 3).evalf()
-        temp4 = [sp.together(element.subs({t[1]: 1 / t_sols[0],
-                                           t[2]: 1 / t_sols[1],
-                                           t[3]: 1 / t_sols[2]}).evalf()).evalf()
-                 for element in temp]
+
+        parametric_points = [np.array(poses[0].array()),
+                             np.array(lams[0] * poses[1].array()),
+                             np.array(lams[1] * poses[2].array()),
+                             np.array(lams[2] * poses[3].array())]
+        # obtain the Lagrange interpolation for poses p0, p1, p2, p3
+        interp = MotionInterpolation.lagrange_interpolation_numerically(
+            parametric_points,
+            1 / x,
+            [0.0, 1/t_sols[0], 1/t_sols[1], 1/t_sols[2]])
+        temp_evaluated = [el * x ** 3 for el in interp]
 
         # obtain additional parametric pose p4
-        lambda_val = sp.Rational(lambda_val)
-        poses.append(DualQuaternion([lambda_val, 0, 0, 0, 0, 0, 0, 0]) - k[0])
-
+        poses.append(DualQuaternion([lambda_val, 0, 0, 0, 0, 0, 0, 0]) - k[k_idx])
         eqs_lambda = [element.subs(x, lambda_val) - lams[-1] * poses[-1].array()[i]
-                      for i, element in enumerate(temp4)]
+                      for i, element in enumerate(temp_evaluated)]
+
+        # eqs_lambda = lagrange(lambda_val, k0_array, t_sols, lams, p1, p2, p3)
+        # temp_evaluated = lagrange_poly(x, lams[0:3], t_sols, p1, p2, p3)
 
         sols_lambda = sp.nsolve(eqs_lambda, lams, [1., 1., -1., -1.], dict=True)
 
-        coeffs = list(map(lambda expr: [expr.coeff(x, i) for i in range(3, -1, -1)],
-                          (sp.expand(element.subs(sols_lambda[0])) for element in temp4)))
+        coeffs = [[expr.coeff(x, i) for i in range(3, -1, -1)] for expr in
+                  (sp.expand(element.subs(sols_lambda[0])) for element in temp_evaluated)]
 
         return np.array(coeffs, dtype='float64')
 
 
     @staticmethod
-    def _obtain_k_dq(poses: list[DualQuaternion],
-                     numerically: bool = False) -> list[DualQuaternion]:
+    def _obtain_k_dq(poses: list[DualQuaternion]) -> list[DualQuaternion]:
         """
         Obtain additional dual quaternions k1, k2 for interpolation of 4 poses.
 
         :param list[DualQuaternion] poses: The rational poses to interpolate.
-        :param bool numerically: If True, the solution will be obtained numerically.
 
         :return: Two additional dual quaternions for interpolation.
         :rtype: list[DualQuaternion]
         """
-        x = sp.symbols("x:3")
+        x = sp.symbols("xx:3")
 
         k = DualQuaternion(poses[0].array() + x[0] * poses[1].array()
                            + x[1] * poses[2].array() + x[2] * poses[3].array())
 
         eqs = [k[0], k[4], k.norm().array()[4]]
 
-        if numerically:
-            sol = sp.nsolve(eqs, x, [1., 1., 1.])
+        sol = sp.solve(eqs, x, domain='RR')
 
-            k1_array = poses[0].array() + sol[0] * poses[1].array() + sol[1] * poses[
-                2].array() + sol[2] * poses[3].array()
-            return [DualQuaternion(k1_array)]
+        k_as_expr = [sp.Expr(el) for el in k]
 
-        else:
-            sol = sp.solve(eqs, x, domain='RR')
+        k1 = [el.subs({x[0]: sol[0][0], x[1]: sol[0][1], x[2]: sol[0][2]})
+              for el in k_as_expr]
+        k2 = [el.subs({x[0]: sol[1][0], x[1]: sol[1][1], x[2]: sol[1][2]})
+              for el in k_as_expr]
 
-            k_as_expr = [sp.Expr(el) for el in k]
+        k1_dq = DualQuaternion([el.args[0] for el in k1])
+        k2_dq = DualQuaternion([el.args[0] for el in k2])
 
-            k1 = [el.subs({x[0]: sol[0][0], x[1]: sol[0][1], x[2]: sol[0][2]})
-                  for el in k_as_expr]
-            k2 = [el.subs({x[0]: sol[1][0], x[1]: sol[1][1], x[2]: sol[1][2]})
-                  for el in k_as_expr]
-
-            k1_dq = DualQuaternion([el.args[0] for el in k1])
-            k2_dq = DualQuaternion([el.args[0] for el in k2])
-
-            return [k1_dq, k2_dq]
+        return [k1_dq, k2_dq]
 
     @staticmethod
     def _solve_for_t(poses: list[DualQuaternion],
-                     k: list[DualQuaternion],
-                     numerically: bool = False) -> list:
+                     k: DualQuaternion) -> list:
         """
         Solve for t[i] - the parameter of the rational motion curve for i-th pose.
 
         :param list[DualQuaternion] poses: The rational poses to interpolate.
         :param list[DualQuaternion] k: The additional dual quaternions for interpolation.
-        :param bool numerically: If True, the solution will be obtained numerically.
 
         :return: The solutions for t[i].
         :rtype: list
@@ -609,86 +674,16 @@ class MotionInterpolation:
 
         t_dq = [DualQuaternion([t[i], 0, 0, 0, 0, 0, 0, 0]) for i in range(3)]
 
-        eqs = [sp.Matrix((t_dq[0] - k[0]).array()).transpose() @ study_cond_mat
+        eqs = [sp.Matrix((t_dq[0] - k).array()).transpose() @ study_cond_mat
                @ sp.Matrix(poses[1].array()),
-               sp.Matrix((t_dq[1] - k[0]).array()).transpose() @ study_cond_mat
+               sp.Matrix((t_dq[1] - k).array()).transpose() @ study_cond_mat
                @ sp.Matrix(poses[2].array()),
-               sp.Matrix((t_dq[2] - k[0]).array()).transpose() @ study_cond_mat
+               sp.Matrix((t_dq[2] - k).array()).transpose() @ study_cond_mat
                @ sp.Matrix(poses[3].array())]
 
-        if numerically:
-            sols_t = sp.nsolve(eqs, t, [0.7, 0.7, 0.7])
-            return [val for val in sols_t]
-        else:
-            sols_t = sp.solve(eqs, t)
-            # covert to list and return
-            return [val for i, (key, val) in enumerate(sols_t.items())]
-
-    @staticmethod
-    def solve_for_t_numerically(poses, k):
-        """
-        Solve for t[i] numerically using decoupled scalar equations.
-        Each equation is assumed linear in t[i] (i.e. of the form a_i*t[i] + c_i = 0),
-        where the coefficients a_i and c_i are obtained via:
-            a_i = f_i(1) - f_i(0)
-            c_i = f_i(0)
-        with
-            f_i(t) = ( (t_dq[i](t) - k)ᵀ @ study_cond_mat @ poses[i+1] ).
-
-        The dual quaternion for t is constructed as:
-            t_dq[i] = [0,..., t, ...0]
-        (with t at the i-th position of the real part, assuming three such equations).
-
-        :param poses: List of 4 poses, each as an 8-element list/array.
-        :param k: An 8-element list/array for the dual quaternion used in all equations.
-        :return: List of three computed t values.
-        """
-        # Define the study condition matrix
-        study_cond_mat = np.array([[0, 0, 0, 0, 1, 0, 0, 0],
-                                   [0, 0, 0, 0, 0, 1, 0, 0],
-                                   [0, 0, 0, 0, 0, 0, 1, 0],
-                                   [0, 0, 0, 0, 0, 0, 0, 1],
-                                   [1, 0, 0, 0, 0, 0, 0, 0],
-                                   [0, 1, 0, 0, 0, 0, 0, 0],
-                                   [0, 0, 1, 0, 0, 0, 0, 0],
-                                   [0, 0, 0, 1, 0, 0, 0, 0]])
-
-        # Ensure that poses and k are numpy arrays
-        poses = [np.array(p) for p in poses]
-        k = np.array(k)
-
-        def eval_eq(i, t_val):
-            """
-            Evaluate the left-hand side of the i-th scalar equation for a given t value.
-
-            For each i (0,1,2) the equation is defined as:
-                f_i(t) = ( (t_dq - k)ᵀ @ study_cond_mat @ poses[i+1] )
-            where t_dq is an 8-element vector with t_val at the i-th position.
-            """
-            t_dq = np.zeros(8)
-            t_dq[i] = t_val  # place t_val in the i-th position of the real part
-            diff = t_dq - k
-            # Compute the scalar value; note that poses[i+1] corresponds to the i-th equation
-            return diff @ study_cond_mat @ poses[i + 1]
-
-        t_values = []
-        for i in range(3):
-            f0 = eval_eq(i, 0)
-            f1 = eval_eq(i, 1)
-            a_i = f1 - f0  # coefficient multiplying t[i]
-            # Check for a unique solution:
-            if a_i == 0:
-                if f0 == 0:
-                    # Equation is 0 = 0, any value of t works; choose 0 by convention.
-                    t_sol = 0
-                else:
-                    raise ValueError(
-                        f"No unique solution for t[{i}]: linear term is zero but constant is nonzero.")
-            else:
-                t_sol = -f0 / a_i
-            t_values.append(t_sol)
-
-        return t_values
+        sols_t = sp.solve(eqs, t)
+        # covert to list and return
+        return [val for i, (key, val) in enumerate(sols_t.items())]
 
     @staticmethod
     def _lagrange_polynomial(degree, index, x, t):
@@ -731,6 +726,31 @@ class MotionInterpolation:
         for i in range(degree + 1):
             result += poses[i] * MotionInterpolation._lagrange_polynomial(degree,
                                                                           i, x, t)
+        return result
+
+    @staticmethod
+    def lagrange_interpolation_numerically(poses, x, t):
+        """
+        Perform Lagrange interpolation for 8-dimensional poses.
+        """
+        def lagrange_polynomial(i, x, t):
+            p = 1.0
+            for j in range(len(t)):
+                if j != i:
+                    p *= (x - t[j]) / (t[i] - t[j])
+            return p
+
+        poses = np.asarray(poses)
+        n = len(t)
+        # Ensure that the number of poses matches the number of nodes
+        if poses.shape[0] != n:
+            raise ValueError(
+                "The number of poses must equal the number of interpolation nodes.")
+
+        result = np.zeros(8)
+        for i in range(n):
+            li = lagrange_polynomial(i, x, t)
+            result = result + poses[i] * li
         return result
 
     @staticmethod

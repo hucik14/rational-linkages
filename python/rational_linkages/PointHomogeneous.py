@@ -100,7 +100,7 @@ class PointHomogeneous:
         elif self.is_rational:
             return self.coordinates[0] == 0
         else:
-            return np.isclose(self.coordinates[0], 0.0)
+            return np.isclose(self.coordinates[0], 0.0, atol=1e-12)
 
     @classmethod
     def at_origin_in_2d(cls):

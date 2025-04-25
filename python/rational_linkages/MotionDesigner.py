@@ -186,6 +186,8 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
         self.curve_path_vis = None  # path of motion curve
         self.curve_frames_vis = None  # poses of motion curve
+        self.lambda_val = 0.0
+        self.motion_family_idx = 0
         self.update_curve_vis()  # initial curve update
 
         ###################################
@@ -193,7 +195,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
         # combo box to select one of the points
         self.point_combo = QtWidgets.QComboBox()
-        for i in range(len(self.points)):
+        for i in range(1, len(self.points)):
             self.point_combo.addItem(f"Point {i}")
         self.point_combo.currentIndexChanged.connect(self.on_point_selection_changed)
 
@@ -231,8 +233,14 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             self.slider_lambda.setMaximum(int(500))
             self.slider_lambda.setSingleStep(1)
             self.slider_lambda.valueChanged.connect(self.on_lambda_slider_value_changed)
+
+            # add button for swapping family
+            self.swap_family_check_box = QtWidgets.QCheckBox(text="Swap family")
+            self.motion_family_idx = 0
+            self.swap_family_check_box.stateChanged.connect(self.on_swap_family_check_box_changed)
         else:
             self.slider_lambda = None
+            self.swap_family_check_box = None
 
         # initially for the first point
         self.set_sliders_for_point(0)
@@ -262,6 +270,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             cp_layout.addWidget(QtWidgets.QLabel("Rotate Z:"))
             cp_layout.addWidget(self.slider_yaw)
         if method == 'cubic_from_poses':
+            cp_layout.addWidget(self.swap_family_check_box)
             cp_layout.addWidget(QtWidgets.QLabel("Lambda:"))
             cp_layout.addWidget(self.slider_lambda)
 
@@ -327,6 +336,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         control point with the given index.
         (Here we assume that coordinates are in the range roughly –10..10.)
         """
+        index = index + 1  # skip the first point/pose
         sliders = [self.slider_x, self.slider_y, self.slider_z]
         if self.method == 'quadratic_from_points' or self.method == 'cubic_from_points':
             pt = self.plotted_points[index]
@@ -363,7 +373,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         selected control point’s x, y, or z coordinate based on the slider values,
         update the control point markers, and then recalculate the motion curve.
         """
-        index = self.point_combo.currentIndex()
+        index = self.point_combo.currentIndex() + 1
         # Convert slider values (integers) to floating‑point coordinates.
         new_x = self.slider_x.value() / 100.0
         new_y = self.slider_y.value() / 100.0
@@ -410,29 +420,41 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         of the cubic curve, update the control point markers, and then recalculate
         the motion curve.
         """
-        new_lambda = self.slider_lambda.value() / 100.0
-        self.update_curve_vis(new_lambda)
+        self.lambda_val = self.slider_lambda.value() / 100.0
+        self.update_curve_vis()
 
-    def update_curve_vis(self, lambda_val: float = None):
+    def on_swap_family_check_box_changed(self, state):
+        """
+        Called when the swap family checkbox changes its state. Update the
+        motion curve to reflect the new motion family.
+        """
+        if state == 2:
+            self.motion_family_idx = 1
+        else:
+            self.motion_family_idx = 0
+
+        self.update_curve_vis()
+
+    def update_curve_vis(self):
         """
         Recalculate the motion curve using the current control points. The
         interpolation is performed by MotionInterpolation. Then update the curve
         line in the GLViewWidget.
         """
-        if lambda_val is None:
-            # get the numeric coefficients from interpolation
-            if self.method == 'cubic_from_points':
-                coeffs = self.mi.interpolate_points_cubic(self.points,
+
+        # get the numeric coefficients from interpolation
+        if self.method == 'cubic_from_points':
+            coeffs = self.mi.interpolate_points_cubic(self.points,
+                                                      return_numeric=True)
+        elif self.method == 'quadratic_from_points':
+            coeffs = self.mi.interpolate_points_quadratic(self.points,
                                                           return_numeric=True)
-            elif self.method == 'quadratic_from_points':
-                coeffs = self.mi.interpolate_points_quadratic(self.points,
-                                                              return_numeric=True)
-            elif self.method == 'quadratic_from_poses':
-                coeffs = self.mi.interpolate_quadratic_numerically(self.points)
-            elif self.method == 'cubic_from_poses':
-                coeffs = self.mi.interpolate_cubic_numerically(self.points)
-        else:  # update only lambda of cubic curve
-            coeffs = self.mi.interpolate_cubic_numerically(self.points, lambda_val)
+        elif self.method == 'quadratic_from_poses':
+            coeffs = self.mi.interpolate_quadratic_numerically(self.points)
+        elif self.method == 'cubic_from_poses':
+            coeffs = self.mi.interpolate_cubic_numerically(self.points,
+                                                           lambda_val=self.lambda_val,
+                                                           k_idx=self.motion_family_idx)
 
         # create numpy polynomial objects
         curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]
@@ -480,4 +502,6 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             print(pt)
         if self.slider_lambda:
             print(f"Lambda: {self.slider_lambda.value() / 100.0}")
+        if self.swap_family_check_box:
+            print(f"Motion family index: {self.motion_family_idx}")
         self.plotter.app.quit()

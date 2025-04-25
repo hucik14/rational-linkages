@@ -11,13 +11,15 @@
    :width: 24%
 .. |image4| image:: figures/r6joh.JPEG
    :width: 24%
+.. |image-logo| image:: figures/rl-logo.png
+   :width: 8%
 
 .. |binder_badge| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb
 
 
-Rational Linkages
-=================
+Rational Linkages |image-logo|
+==============================
 
 .. image:: https://img.shields.io/gitlab/v/release/21918?gitlab_url=https%3A%2F%2Fgit.uibk.ac.at%2F&style=social&logo=gitlab&label=repository
    :target: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
