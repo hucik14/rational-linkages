@@ -432,7 +432,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             self.motion_family_idx = 1
         else:
             self.motion_family_idx = 0
-        # print(self.motion_family_idx)
+
         self.update_curve_vis(lambda_val=self.slider_lambda.value(),
                               motion_family=self.motion_family_idx)
 
@@ -507,4 +507,6 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             print(pt)
         if self.slider_lambda:
             print(f"Lambda: {self.slider_lambda.value() / 100.0}")
+        if self.swap_family_check_box:
+            print(f"Motion family index: {self.motion_family_idx}")
         self.plotter.app.quit()
