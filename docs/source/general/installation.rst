@@ -33,7 +33,6 @@ for installing also optional dependencies (ipython - inline plotting from consol
 gmpy2 - faster symbolic computations, exudyn - multibody simulations, numpy-stl -
 work with meshes in exudyn).
 
-
 B) from source as editable package:
 
 .. code-block:: bash
@@ -59,3 +58,10 @@ C) from source as editable package with development and documentation dependenci
     cd rational-linkages
 
     pip install -e .[opt,dev,doc]
+
+Additionally, on linux systems, some additional libraries are required for plotting with PyQt6. Using
+Ubuntu, you can install them as follows:
+
+.. code-block:: bash
+
+    sudo apt install libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3

@@ -85,7 +85,7 @@ class Plotter:
         self.legend = show_legend
         self.interactive = interactive
         self.jupyter_notebook = jupyter_notebook
-        self.j_sliders_limit = joint_range_lim
+        self.joint_sliders_lim = joint_range_lim
         self.show_controls = show_controls
 
         # length of quiver arrows for poses and frames
@@ -100,7 +100,10 @@ class Plotter:
         :param objects_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
             MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve,
             RationalBezier, MiniBall, or list of those
-        :param kwargs: plotting options following matplotlib standards and syntax
+        :param kwargs: plotting options following matplotlib standards and syntax; optional kwargs:
+            - with_poses=True: rational curve with poses
+            - interval='closed': rational curve will be closed in the interval (tangent half-angle substitution)
+            - show_tool=True: mechanism with tool frame
         """
         # if list of objects, plot each object separately
         if isinstance(objects_to_plot, list):
@@ -526,7 +529,7 @@ class Plotter:
         if 'alpha' not in kwargs:
             kwargs['alpha'] = 0.15
 
-        x, y, z = orbit.get_plot_data()
+        x, y, z = orbit.get_plot_data_mpl()
 
         self.ax.plot_surface(x, y, z, **kwargs)
 
@@ -577,7 +580,7 @@ class Plotter:
         for i in range(mechanism.num_joints):
             slider0, slider1 = self._init_slider(idx=i,
                                                  j_sliders=self.joint_sliders,
-                                                 slider_limit=self.j_sliders_limit)
+                                                 slider_limit=self.joint_sliders_lim)
             self.joint_sliders.append(slider0)
             self.joint_sliders.append(slider1)
 

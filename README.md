@@ -86,9 +86,14 @@ work with meshes in exudyn).
     
    <code>pip install -e .[opt,dev,doc]</code> including the development and documentation dependencies. 
 
-   Mac users might need to use backslashes to escape the brackets, e.g.: 
+   Mac or Linux users might need to use backslashes to escape the brackets, e.g.: 
 
    <code>pip install -e .\\[opt\\]</code>
+
+Additionally, on Linux systems, some additional libraries are required for plotting with PyQt6. For example, 
+on Ubuntu, it can be installed as follows:
+
+   <code>sudo apt install libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3</code>
 
 ## Citing the package
 
