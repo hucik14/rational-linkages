@@ -13,8 +13,7 @@ from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
 from .RationalBezier import RationalBezier
 
-from .utils_compute import mi_x3
-
+from .utils_rust import motion_interp_x3
 
 class MotionInterpolation:
     """
@@ -549,7 +548,7 @@ class MotionInterpolation:
         p3 = poses[3].array()
 
         try:
-            x3_sols = mi_x3(p1, p2, p3)
+            x3_sols = motion_interp_x3(p1, p2, p3)
             k = []
             for x3 in x3_sols:
                 x2 = -(p1[0] * p3[4] * x3 - p1[4] * p3[0] * x3 - p1[4]) / (
