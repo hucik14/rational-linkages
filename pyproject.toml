@@ -1,5 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0", "setuptools-rust>=1.5.0", "wheel"]
+requires = [
+    "setuptools>=61",
+    "setuptools-rust>=1.6",
+    "wheel",
+    "cibuildwheel>=2.16",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -14,6 +19,7 @@ license = {"file"= "LICENSE"}
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Rust",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Operating System :: OS Independent",
 ]
@@ -21,7 +27,6 @@ classifiers = [
 dependencies = [
     "scipy >= 1.10.0",
     "sympy >= 1.10.0",
-    "matplotlib >= 3.9.0",
     "biquaternion-py >= 1.2.0",
     "PyQt6 >= 6.2.0",
     "pyqtgraph >= 0.12.4",
@@ -31,6 +36,7 @@ dependencies = [
 [project.optional-dependencies]
 opt = [
     "ipython >= 8.0.0",
+    "matplotlib >= 3.9.0",
     "gmpy2 >= 2.2.0",
     "exudyn >= 1.9.0",
     "numpy-stl >= 3.0.0",
@@ -65,8 +71,21 @@ include = ["rational_linkages*"]
 
 [[tool.setuptools-rust.ext-modules]]
 target = "rational_linkages.utils_rust"
-path = "Cargo.toml"
+path = "rust/Cargo.toml"
 binding = "PyO3"
+
+[tool.cibuildwheel]
+build = "*"
+skip = ""
+manylinux-x86_64-image = "manylinux2014"
+manylinux-aarch64-image = "manylinux2014"
+environment = { CARGO_TERM_COLOR = "always" }
+before-build = "pip install -r requirements.txt"
+test-command = "pytest {package}/python/tests"
+#test-skip = "*-macosx_arm64"  # (optional, if you have trouble testing on ARM)
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
 
 [project.urls]
 Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"

@@ -1,0 +1,13 @@
+[package]
+name = "utils_rust"  # Rust package name
+version = "1.10.2"
+edition = "2021"
+publish = false  # disable publishing the Rust crate to crates.io
+
+[dependencies]
+pyo3 = { version = "0.24.2", features = ["extension-module", "abi3-py310"] }
+
+[lib]
+name = "utils_rust"  # name of Python module `utils_rust`
+path = "src/lib.rs"
+crate-type = ["cdylib"]

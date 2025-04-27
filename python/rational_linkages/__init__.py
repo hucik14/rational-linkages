@@ -24,3 +24,4 @@ from .TransfMatrix import TransfMatrix
 from .CollisionAnalyser import CollisionAnalyser
 from .StaticMechanism import StaticMechanism, SnappingMechanism
 
+from . import utils_rust  # compiled module
