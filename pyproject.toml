@@ -80,9 +80,13 @@ skip = "pp*"
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"
 environment = { CARGO_TERM_COLOR = "always" }
+before-all = "if [ \"$CIBW_PLATFORM\" = \"linux\" ]; then apt-get update && apt-get install -y libgl1-mesa-dev libegl-dev libxkbcommon-x11-dev libdbus-1-dev; fi"
 before-build = "pip install ."
 test-command = "pytest {package}/python/tests"
 #test-skip = "*-macosx_arm64"  # (optional, if you have trouble testing on ARM)
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64"]
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
