@@ -7,6 +7,12 @@ publish = false  # disable publishing the Rust crate to crates.io
 [dependencies]
 pyo3 = { version = "0.24.2", features = ["extension-module", "abi3-py310"] }
 
+[build-dependencies]
+pyo3-build-config = "0.24.2"
+
+[build]
+rustflags = ["-C", "link-arg=-Wl,-macosx_version_min,10.12"]
+
 [lib]
 name = "utils_rust"  # name of Python module `utils_rust`
 path = "src/lib.rs"

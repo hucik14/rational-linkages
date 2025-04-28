@@ -168,4 +168,5 @@ name = "utils_rust"
 version = "1.11.0-dev.1"
 dependencies = [
  "pyo3",
+ "pyo3-build-config",
 ]

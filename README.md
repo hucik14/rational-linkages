@@ -95,6 +95,11 @@ on Ubuntu, it can be installed as follows:
 
    <code>sudo apt install libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3</code>
 
+To run the Rust functions, you need to install the [Rust toolchain](https://www.rust-lang.org) and 
+build the Rust code yourself, for example:
+
+<code>cargo build --release</code>
+
 ## Citing the package
 
 For additional information, see our preprint paper, and in the case of usage, please, 
