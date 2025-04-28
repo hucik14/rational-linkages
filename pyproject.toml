@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "1.10.2"
+version = "1.11.dev1"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -76,13 +76,16 @@ binding = "PyO3"
 
 [tool.cibuildwheel]
 build = "*"
-skip = ""
+skip = "pp*"
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"
 environment = { CARGO_TERM_COLOR = "always" }
-before-build = "pip install -r requirements.txt"
+before-build = "pip install ."
 test-command = "pytest {package}/python/tests"
 #test-skip = "*-macosx_arm64"  # (optional, if you have trouble testing on ARM)
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]

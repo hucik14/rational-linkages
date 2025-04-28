@@ -25,12 +25,16 @@ class TestRationalMechanism(TestCase):
         self.assertEqual(motion.tool_frame, DualQuaternion())
         self.assertTrue(not motion.is_linkage)
 
+
     def test_from_saved_file(self):
-        m = RationalMechanism.from_saved_file("python/tests/bennett")
+        m = bennett_ark24()
+        m.save('test_file3.pkl')
+        m = RationalMechanism.from_saved_file("test_file3")
         self.assertTrue(isinstance(m, RationalMechanism))
 
         m = bennett_ark24()
         self.assertTrue(isinstance(m, RationalMechanism))
+
         self.assertRaises(FileNotFoundError, RationalMechanism.from_saved_file,
                           "nonexistent_file.pkl")
 
