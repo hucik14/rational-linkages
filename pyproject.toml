@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "1.11.dev1"
+version = "1.11.dev2"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -31,12 +31,12 @@ dependencies = [
     "PyQt6 >= 6.2.0",
     "pyqtgraph >= 0.12.4",
     "PyOpenGL >= 3.0.0",
+    "matplotlib >= 3.9.0",
 ]
 
 [project.optional-dependencies]
 opt = [
     "ipython >= 8.0.0",
-    "matplotlib >= 3.9.0",
     "gmpy2 >= 2.2.0",
     "exudyn >= 1.9.0",
     "numpy-stl >= 3.0.0",
