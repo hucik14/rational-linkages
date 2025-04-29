@@ -23,6 +23,9 @@ test_python311:
     - apt-get update && apt-get install -y libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - source $HOME/.cargo/env
+    - cd rust
+    - cargo build --release
+    - cd ..
     - pip install .[opt]
     - pip install pytest
     - python -m pytest python/tests
@@ -39,6 +42,9 @@ test_coverage:
     - apt-get update && apt-get install -y libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - source $HOME/.cargo/env
+    - cd rust
+    - cargo build --release
+    - cd ..
     - pip install .
     - pip install coverage pytest
     - coverage run
@@ -58,6 +64,9 @@ python_versions:
     - apt-get update && apt-get install -y libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - source $HOME/.cargo/env
+    - cd rust
+    - cargo build --release
+    - cd ..
     - pip install .
     - pip install pytest
     - python -m pytest python/tests
