@@ -26,6 +26,7 @@ test_python311:
     - cd rust
     - cargo build --release
     - cd ..
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/builds/geometrie-vermessung/rational-linkages/rust/target/release
     - pip install .[opt]
     - pip install pytest
     - python -m pytest python/tests
@@ -45,6 +46,7 @@ test_coverage:
     - cd rust
     - cargo build --release
     - cd ..
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/builds/geometrie-vermessung/rational-linkages/rust/target/release
     - pip install .
     - pip install coverage pytest
     - coverage run
@@ -67,6 +69,7 @@ python_versions:
     - cd rust
     - cargo build --release
     - cd ..
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/builds/geometrie-vermessung/rational-linkages/rust/target/release
     - pip install .
     - pip install pytest
     - python -m pytest python/tests
