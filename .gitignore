@@ -3,6 +3,8 @@ python/.idea/
 python/conda-env/
 .idea/
 *coordinatesSolution.txt
+/python/examples/solution/
+/python/examples/testData/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -26,6 +28,7 @@ parts/
 sdist/
 var/
 wheels/
+wheelhouse/
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
@@ -133,4 +136,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
