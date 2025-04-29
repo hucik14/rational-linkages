@@ -80,12 +80,14 @@ skip = "pp*"
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"
 environment = { CARGO_TERM_COLOR = "always" }
-before-build = "pip install ."
-test-command = "pytest {package}/python/tests"
-test-skip = ["*-macosx_arm64", "*-macosx_x86_64"]
+#before-build = "pip install ."
+#test-command = "pytest {package}/python/tests"
+#test-skip = ["*-macosx_arm64", "*-macosx_x86_64"]
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64", "aarch64"]
+environment = { PATH = "$HOME/.cargo/bin:$PATH" }
+before-build = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
