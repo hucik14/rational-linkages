@@ -103,7 +103,7 @@ class MotionInterpolation:
 
     @staticmethod
     def interpolate(poses_or_points: list[Union[DualQuaternion, TransfMatrix, PointHomogeneous]],
-                    lambda_val: Union[float, int] = 0,
+                    lambda_val: Union[float, int] = None,
                     motion_family: int = 0) -> RationalCurve:
         """
         Interpolates the given 2, 3, 4 poses or 5 points by a rational motion in SE(3).
@@ -154,6 +154,8 @@ class MotionInterpolation:
             else:
                 raise TypeError('The given poses must be either TransfMatrix,'
                                  ' DualQuaternion, or PointHomogeneous.')
+
+        lambda_val = sp.Rational(lambda_val) if lambda_val is not None else None
 
         # normalize the DQ poses on Study quadric
         if len(rational_poses) != 5 and len(rational_poses) != 7:
@@ -479,7 +481,13 @@ class MotionInterpolation:
         t = sp.Symbol("t")
         poly = [element.subs(x, t) for element in poly]
 
-        return [sp.Poly(element, t) for element in poly]
+        try:
+            curve = [sp.Poly(element, t) for element in poly]
+        except Exception:
+            print('Rational evaluation failed, performing numerical evaluation...')
+            curve = [sp.Poly(element.evalf(), t) for element in poly]
+
+        return curve
 
     @staticmethod
     def interpolate_cubic_numerically(poses: list[DualQuaternion],
