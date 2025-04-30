@@ -9,9 +9,10 @@ import pyqtgraph.opengl as gl
 # Import your custom classes (adjust the import paths as needed)
 from .DualQuaternion import DualQuaternion
 from .MotionInterpolation import MotionInterpolation
+from .RationalMechanism import RationalMechanism
 from .PointHomogeneous import PointHomogeneous
 from .TransfMatrix import TransfMatrix
-from .PlotterPyqtgraph import PlotterPyqtgraph, FramePlotHelper
+from .PlotterPyqtgraph import PlotterPyqtgraph, FramePlotHelper, InteractivePlotterWidget
 
 
 class MotionDesigner:
@@ -154,6 +155,8 @@ class MotionDesignerWidget(QtWidgets.QWidget):
                                         arrows_length=self.arrows_length,
                                         white_background=self.white_background)
 
+        self.mechanism_plotter = []
+
         if self.white_background:
             self.render_mode = 'opaque'
         else:
@@ -242,6 +245,10 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             self.slider_lambda = None
             self.swap_family_check_box = None
 
+        # add button for mechanism synthesis
+        self.synthesize_button = QtWidgets.QPushButton("Mechanism")
+        self.synthesize_button.clicked.connect(self.on_synthesize_button_clicked)
+
         # initially for the first point
         self.set_sliders_for_point(0)
 
@@ -273,6 +280,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             cp_layout.addWidget(self.swap_family_check_box)
             cp_layout.addWidget(QtWidgets.QLabel("Lambda:"))
             cp_layout.addWidget(self.slider_lambda)
+        cp_layout.addWidget(self.synthesize_button)
 
         cp_layout.addStretch(1)
 
@@ -359,6 +367,23 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             slider.blockSignals(True)
             slider.setValue(value)
             slider.blockSignals(False)
+
+    def on_synthesize_button_clicked(self):
+        """
+        Called when the "Synthesize mechanism" button is clicked. This method
+        should be implemented to synthesize a mechanism based on the current
+        control points.
+        """
+        self.synthesize_button.setEnabled(False)
+        c = MotionInterpolation.interpolate(self.points,
+                                            lambda_val=self.lambda_val,
+                                            motion_family=self.motion_family_idx)
+        self.mechanism_plotter.append(
+            InteractivePlotterWidget(mechanism=RationalMechanism(c.factorize()),
+                                     arrows_length=self.arrows_length,
+                                     parent_app=self.plotter.app))
+        self.mechanism_plotter[-1].show()
+
 
     def on_point_selection_changed(self, index):
         """

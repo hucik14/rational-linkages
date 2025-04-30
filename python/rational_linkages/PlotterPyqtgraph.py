@@ -26,7 +26,8 @@ class PlotterPyqtgraph:
                  discrete_step_space: int = 1000,
                  interval: tuple = (0, 1),
                  arrows_length: float = 1.0,
-                 white_background: bool = False
+                 white_background: bool = False,
+                 parent_app=None
                  ):
         """
         Initialize the Pyqtgraph plotter.
@@ -35,7 +36,10 @@ class PlotterPyqtgraph:
         adds a grid and coordinate axes.
         """
         # Create a Qt application if one is not already running.
-        self.app = QApplication.instance()
+        if parent_app is not None:
+            self.app = parent_app
+        else:
+            self.app = QApplication.instance()
         if self.app is None:
             self.app = QApplication(sys.argv)
 
@@ -678,7 +682,8 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
                  joint_sliders_lim: float = 1.0,
                  arrows_length: float = 1.0,
                  white_background: bool = False,
-                 parent=None):
+                 parent=None,
+                 parent_app=None):
         super().__init__(parent)
         self.setMinimumSize(800, 600)
 
@@ -697,7 +702,8 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         # Create the PlotterPyqtgraph instance.
         self.plotter = PlotterPyqtgraph(discrete_step_space=self.steps,
                                         arrows_length=self.arrows_length,
-                                        white_background=self.white_background)
+                                        white_background=self.white_background,
+                                        parent_app=parent_app)
         # Optionally adjust the camera.
         self.plotter.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
 
