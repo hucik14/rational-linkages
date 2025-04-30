@@ -5,15 +5,6 @@
 # Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
-variables:
-  # Disable the default SAST job
-  SAST_DISABLED: "true"
-  # Disable the default Secret Detection job
-  SECRET_DETECTION_DISABLED: "true"
-  # Disable the default Dependency Scanning job
-  DEPENDENCY_SCANNING_DISABLED: "true"
-  # Disable the default Container Scanning job
-  CONTAINER_SCANNING_DISABLED: "true"
 
 .common_script: &common_script
   - apt-get update && apt-get install -y libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3
@@ -24,15 +15,20 @@ variables:
   - cd ..
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/builds/geometrie-vermessung/rational-linkages/rust/target/release
   - echo $LD_LIBRARY_PATH
+  - export PYTHONPATH=$(pwd)/python
 
 stages:
 - test
+- test_security
 - test_python_versions
 
 sast:
-  stage: test
+  stage: test_security
 include:
   - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+  - template: Jobs/Container-Scanning.gitlab-ci.yml
 
 test_python311:
   stage: test
