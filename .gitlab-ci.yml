@@ -15,12 +15,12 @@
   - cd ..
 
 stages:
-- test_code
-- security
-- test_code_python_versions
+- test
+- test_security
+- test_python_versions
 
 sast:
-  stage: security
+  stage: test_security
 include:
   - template: Jobs/SAST.gitlab-ci.yml
   - template: Jobs/Secret-Detection.gitlab-ci.yml
@@ -32,7 +32,7 @@ container_scanning:
     CS_IMAGE: python:3.11-bullseye
 
 test_python311:
-  stage: test_code
+  stage: test
   image:
     name: python:3.11-bullseye
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
@@ -46,7 +46,7 @@ test_python311:
     - if: '$CI_COMMIT_BRANCH == "nightly"'
 
 test_coverage:
-  stage: test_code_python_versions
+  stage: test
   image:
     name: python:3.11-bullseye
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
@@ -63,7 +63,7 @@ test_coverage:
     - if: '$CI_COMMIT_BRANCH == "main"'
 
 python_versions:
-  stage: test_code_python_versions
+  stage: test_python_versions
   image:
     name: $IMAGE
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
