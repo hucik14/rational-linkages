@@ -8,7 +8,7 @@
 
 .common_script: &common_script
   - apt-get update && apt-get install -y libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3
-  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --verify
+  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   - source $HOME/.cargo/env
   - cd rust
   - cargo build --release
@@ -19,23 +19,17 @@ stages:
 - security
 - test_code_python_versions
 
-security_tasks:
+sast:
   stage: security
 include:
   - template: Jobs/SAST.gitlab-ci.yml
   - template: Jobs/Secret-Detection.gitlab-ci.yml
-  - template: Jobs/Container-Scanning.gitlab-ci.yml
   - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+  - template: Jobs/Container-Scanning.gitlab-ci.yml
 
 container_scanning:
-  image: registry.gitlab.com/security-products/container-scanning:7
-  script:
-    - echo "Scanning container images..."
-    - |
-      for version in 3.10-bullseye 3.11-bullseye 3.12-bullseye 3.13-bullseye; do
-        echo "Scanning python:$version image"
-        gtcs scan --image python:$version
-      done
+  variables:
+    CS_IMAGE: python:3.11-bullseye
 
 test_python311:
   stage: test_code
