@@ -19,24 +19,13 @@ stages:
 - security
 - test_code_python_versions
 
+security_tasks:
+  stage: security
 include:
   - template: Jobs/SAST.gitlab-ci.yml
   - template: Jobs/Secret-Detection.gitlab-ci.yml
   - template: Jobs/Container-Scanning.gitlab-ci.yml
   - template: Jobs/Dependency-Scanning.gitlab-ci.yml
-
-sast:
-  stage: security
-
-secret_detection:
-  stage: security
-  script:
-    - echo "Running Secret Detection"
-
-dependency_scanning:
-  stage: security
-  script:
-    - echo "Running Dependency Scanning"
 
 container_scanning:
   image: registry.gitlab.com/security-products/container-scanning:7
