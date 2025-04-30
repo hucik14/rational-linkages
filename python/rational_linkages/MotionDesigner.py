@@ -10,6 +10,7 @@ import pyqtgraph.opengl as gl
 from .DualQuaternion import DualQuaternion
 from .MotionInterpolation import MotionInterpolation
 from .RationalMechanism import RationalMechanism
+from .RationalCurve import RationalCurve
 from .PointHomogeneous import PointHomogeneous
 from .TransfMatrix import TransfMatrix
 from .PlotterPyqtgraph import PlotterPyqtgraph, FramePlotHelper, InteractivePlotterWidget
@@ -374,10 +375,16 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         should be implemented to synthesize a mechanism based on the current
         control points.
         """
-        self.synthesize_button.setEnabled(False)
-        c = MotionInterpolation.interpolate(self.points,
-                                            lambda_val=self.lambda_val,
-                                            motion_family=self.motion_family_idx)
+        if (self.method == 'quadratic_from_points'
+                or self.method == 'cubic_from_points'
+                or self.method == 'quadratic_from_poses'):
+            c = MotionInterpolation.interpolate(self.points)
+        else:
+            p = MotionInterpolation.interpolate_cubic_numerically(
+                self.points,
+                lambda_val=self.lambda_val,
+                k_idx=self.motion_family_idx)
+            c = RationalCurve.from_coeffs(p)
         self.mechanism_plotter.append(
             InteractivePlotterWidget(mechanism=RationalMechanism(c.factorize()),
                                      arrows_length=self.arrows_length,
