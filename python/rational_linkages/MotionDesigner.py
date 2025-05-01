@@ -315,8 +315,16 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             ],
             'quadratic_from_poses': [
                 DualQuaternion(),
-                DualQuaternion([1, 0, 1, 0, 1, 0, -1, -2]),
-                DualQuaternion([1, 0, 0, 0, 1, -1, 2, -1])
+                DualQuaternion(
+                    TransfMatrix.from_vectors(
+                        approach_z=[-0.0362862, 0.400074, 0.915764],
+                        normal_x=[0.988751, -0.118680, 0.0910266],
+                        origin=[0.33635718, 0.9436004, 0.3428654]).matrix2dq()),
+                DualQuaternion(
+                    TransfMatrix.from_vectors(
+                        approach_z=[-0.0463679, -0.445622, 0.894020],
+                        normal_x=[0.985161, 0.127655, 0.114724],
+                        origin=[-0.52857769, -0.4463076, -0.81766]).matrix2dq()),
             ]
         }
 
