@@ -6,6 +6,7 @@ from warnings import warn
 
 import numpy as np
 import sympy as sp
+from mpmath import swap_row
 
 from .DualQuaternion import DualQuaternion
 from .MotionFactorization import MotionFactorization
@@ -84,7 +85,9 @@ class RationalMechanism(RationalCurve):
         self._segments = None
         self._metric = None
 
+        self._linear_motions_cycle = None
         self._relative_motions = {}
+
 
     @property
     def segments(self):
@@ -118,6 +121,24 @@ class RationalMechanism(RationalCurve):
             self._metric = AffineMetric(self.curve(), mechanism_points)
 
         return self._metric
+
+    @property
+    def linear_motions_cycle(self):
+        """
+        A cycle of linear motions of the mechanism.
+        """
+        if self._linear_motions_cycle is None:
+            # init linear motions
+            axes_cycle = (
+                    self.factorizations[0].factors_with_parameter
+                    + self.factorizations[1].factors_with_parameter[::-1])
+            axes_link_cycle = []
+            for item in axes_cycle:
+                axes_link_cycle.append(DualQuaternion())
+                axes_link_cycle.append(item)
+
+            self._linear_motions_cycle = axes_link_cycle
+        return self._linear_motions_cycle
 
     @classmethod
     def from_saved_file(cls, filename: str):
@@ -1361,7 +1382,7 @@ class RationalMechanism(RationalCurve):
         """
         pass
 
-    def relative_motion(self):
+    def relative_motion(self, static: int, moving: int) -> RationalCurve:
         """
         Calculate the relative motion between given pair of links or joints.
 
@@ -1371,5 +1392,58 @@ class RationalMechanism(RationalCurve):
         motion and adds it to the self.relative_motions attribute.
 
         """
-        pass
+        if static == moving:
+            raise ValueError("static and moving cannot be the same")
+
+        # # check if the relative motion already exists
+        # for rel_motion in self.relative_motions:
+        #     if (rel_motion.static == static and rel_motion.moving == moving) or \
+        #             (rel_motion.static == moving and rel_motion.moving == static):
+        #         return rel_motion
+
+        # calculate the relative motion
+        motion_cycle = self._shortest_path(static, moving)
+        rel_motion = DualQuaternion()
+        for idx in motion_cycle:
+            rel_motion *= self.linear_motions_cycle[idx]
+
+        t = sp.Symbol("t")
+        poly_list = [sp.Poly(element, t, greedy=False)
+                     for element in rel_motion.array()]
+
+        # # add the relative motion to the list
+        # self.relative_motions.append(rel_motion)
+
+        return RationalCurve(poly_list)
+
+    def _shortest_path(self, start: int, end: int) -> list[int]:
+        """
+        Return the shortest circular slice of `path` from index `start` to `end`.
+
+        If going “forward” (increasing index modulo n) is shorter than
+        going “backward”, you get the forward slice; otherwise the backward slice.
+
+        :param int start: start index
+        :param int end: end index
+
+        :return: list of indices of the shortest path
+        :rtype: list[int]
+        """
+        path = list(range(2*self.num_joints))
+        n = len(path)
+
+        # distance going forward (wrapping at n)
+        dist_fwd = (end - start) % n
+        # distance going backward
+        dist_bwd = (start - end) % n
+
+        if dist_fwd <= dist_bwd:
+            # walk forward dist_fwd steps, including the start (0) up to end
+            motion_indices = [path[(start + i) % n] for i in range(dist_fwd + 1)]
+        else:
+            # walk backward dist_bwd steps
+            motion_indices =  [path[(start - i) % n] for i in range(dist_bwd + 1)]
+
+        # slice out the last element
+        return motion_indices[:-1]
 
