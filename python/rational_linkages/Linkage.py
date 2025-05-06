@@ -186,7 +186,7 @@ class LineSegment:
         belongs to
     :ivar int idx: The index of the line segment in the factorization
     """
-    def __init__(self, equation, point0, point1, linkage_type, f_idx, idx):
+    def __init__(self, equation, point0, point1, linkage_type, f_idx, idx, default_line=None):
         self.equation = equation
         self.point0 = point0
         self.point1 = point1
@@ -194,6 +194,7 @@ class LineSegment:
         self.factorization_idx = f_idx
         self.idx = idx
         self.id = f"{self.type}_{self.factorization_idx}{self.idx}"
+        self.default_line = default_line if default_line else equation
 
     def __repr__(self):
         return self.id

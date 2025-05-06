@@ -6,7 +6,6 @@ from warnings import warn
 
 import numpy as np
 import sympy as sp
-from mpmath import swap_row
 
 from .DualQuaternion import DualQuaternion
 from .MotionFactorization import MotionFactorization
@@ -805,7 +804,8 @@ class RationalMechanism(RationalCurve):
         segments = [[], []]
 
         # base (static) link has index 0 in the list of the 1st factorization
-        eq, p0, p1 = self.factorizations[0].base_link(self.factorizations[1].linkage[0].points[0])
+        eq, p0, p1 = self.factorizations[0].base_link(
+            self.factorizations[1].linkage[0].points[0])
         segments[0].append(LineSegment(eq, p0, p1, linkage_type="l", f_idx=0, idx=0))
 
         # static joints
@@ -817,25 +817,29 @@ class RationalMechanism(RationalCurve):
         # moving links and joints
         for i in range(2):
             for j in range(1, self.factorizations[i].number_of_factors):
-                link, p0, p1 = self.factorizations[i].link(j)
-                link = self.factorizations[i].act(link, end_idx=j-1, param=t)
+                line, p0, p1 = self.factorizations[i].link(j)
+                link = self.factorizations[i].act(line, end_idx=j-1, param=t)
                 p0 = self.factorizations[i].act(p0, end_idx=j-1, param=t)
                 p1 = self.factorizations[i].act(p1, end_idx=j-1, param=t)
-                segments[i].append(LineSegment(link, p0, p1, linkage_type="l", f_idx=i, idx=j))
+                segments[i].append(LineSegment(link, p0, p1, default_line=line,
+                                               linkage_type="l", f_idx=i, idx=j))
 
-                joint, p0, p1 = self.factorizations[i].joint(j)
-                joint = self.factorizations[i].act(joint, end_idx=j, param=t)
+                line, p0, p1 = self.factorizations[i].joint(j)
+                joint = self.factorizations[i].act(line, end_idx=j, param=t)
                 p0 = self.factorizations[i].act(p0, end_idx=j, param=t)
                 p1 = self.factorizations[i].act(p1, end_idx=j, param=t)
-                segments[i].append(LineSegment(joint, p0, p1, linkage_type="j", f_idx=i, idx=j))
+                segments[i].append(LineSegment(joint, p0, p1, default_line=line,
+                                               linkage_type="j", f_idx=i, idx=j))
 
         # tool (moving - acted) link has index -1 in the list of the 2nd factorization
-        tool_link, p0, p1 = self.factorizations[0].tool_link(self.factorizations[1].linkage[-1].points[1])
-        tool_link = self.factorizations[0].act(tool_link, param=t)
+        tool_link_line, p0, p1 = self.factorizations[0].tool_link(
+            self.factorizations[1].linkage[-1].points[1])
+        tool_link = self.factorizations[0].act(tool_link_line, param=t)
         p0 = self.factorizations[0].act(p0, param=t)
         p1 = self.factorizations[1].act(p1, param=t)
         tool_idx = self.factorizations[1].number_of_factors
-        segments[1].append(LineSegment(tool_link, p0, p1, linkage_type="l", f_idx=1, idx=tool_idx))
+        segments[1].append(LineSegment(tool_link, p0, p1, default_line=tool_link_line,
+                                       linkage_type="l", f_idx=1, idx=tool_idx))
 
         return segments[0] + segments[1][::-1]
 
