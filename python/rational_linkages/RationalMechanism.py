@@ -786,7 +786,7 @@ class RationalMechanism(RationalCurve):
 
         return intersection_points
 
-    def _get_line_segments_of_linkage(self) -> list:
+    def _get_line_segments_of_linkage_old(self) -> list:
         """
         Return the line segments of the linkage.
 
@@ -842,6 +842,82 @@ class RationalMechanism(RationalCurve):
                                        linkage_type="l", f_idx=1, idx=tool_idx))
 
         return segments[0] + segments[1][::-1]
+
+    def _get_line_segments_of_linkage(self) -> list:
+        """
+        Return the line segments of the linkage.
+
+        Line segments are the physical realization of the linkage. This method obtains
+        their motion equations using default connection points of the factorizations
+        (default meaning the static points in the home configuration).
+
+        :return: list of LineSegment objects
+        :rtype: list[LineSegment]
+        """
+        from .Linkage import LineSegment  # inner import
+
+        t = sp.Symbol("t")
+
+        segments = []
+
+        # base (static) link has index 0 in the list of the 1st factorization
+        eq, p0, p1 = self.factorizations[0].base_link(
+            self.factorizations[1].linkage[0].points[0])
+        segments.append(LineSegment(eq, p0, p1, linkage_type="l", f_idx=0, idx=0))
+
+        # static joints
+        segments.append(LineSegment(*self.factorizations[0].joint(0),
+                                    linkage_type="j", f_idx=0, idx=0))
+
+
+        # moving links and joints
+        i = 0
+        for j in range(1, self.factorizations[i].number_of_factors):
+            line, p0, p1 = self.factorizations[i].link(j)
+            link = self.factorizations[i].act(line, end_idx=j-1, param=t)
+            p0 = self.factorizations[i].act(p0, end_idx=j-1, param=t)
+            p1 = self.factorizations[i].act(p1, end_idx=j-1, param=t)
+            segments.append(LineSegment(link, p0, p1, default_line=line,
+                                        linkage_type="l", f_idx=i, idx=j))
+
+            line, p0, p1 = self.factorizations[i].joint(j)
+            joint = self.factorizations[i].act(line, end_idx=j, param=t)
+            p0 = self.factorizations[i].act(p0, end_idx=j, param=t)
+            p1 = self.factorizations[i].act(p1, end_idx=j, param=t)
+            segments.append(LineSegment(joint, p0, p1, default_line=line,
+                                        linkage_type="j", f_idx=i, idx=j))
+
+        # tool (moving - acted) link has index -1 in the list of the 2nd factorization
+        tool_link_line, p0, p1 = self.factorizations[0].tool_link(
+            self.factorizations[1].linkage[-1].points[1])
+        tool_link = self.factorizations[0].act(tool_link_line, param=t)
+        p0 = self.factorizations[0].act(p0, param=t)
+        p1 = self.factorizations[1].act(p1, param=t)
+        tool_idx = self.factorizations[1].number_of_factors
+        segments.append(LineSegment(tool_link, p0, p1, default_line=tool_link_line,
+                                    linkage_type="l", f_idx=1, idx=tool_idx))
+
+        i = 1
+        for j in range(self.factorizations[i].number_of_factors -1, 0, -1):
+            line, p0, p1 = self.factorizations[i].joint(j)
+            joint = self.factorizations[i].act(line, end_idx=j, param=t)
+            p0 = self.factorizations[i].act(p0, end_idx=j, param=t)
+            p1 = self.factorizations[i].act(p1, end_idx=j, param=t)
+            segments.append(LineSegment(joint, p0, p1, default_line=line,
+                                        linkage_type="j", f_idx=i, idx=j))
+
+            line, p0, p1 = self.factorizations[i].link(j)
+            link = self.factorizations[i].act(line, end_idx=j-1, param=t)
+            p0 = self.factorizations[i].act(p0, end_idx=j-1, param=t)
+            p1 = self.factorizations[i].act(p1, end_idx=j-1, param=t)
+            segments.append(LineSegment(link, p0, p1, default_line=line,
+                                        linkage_type="l", f_idx=i, idx=j))
+
+
+        segments.append(LineSegment(*self.factorizations[1].joint(0),
+                                    linkage_type="j", f_idx=1, idx=0))
+
+        return segments
 
     def get_motion_curve(self):
         """

@@ -186,6 +186,10 @@ class LineSegment:
         belongs to
     :ivar int idx: The index of the line segment in the factorization
     """
+    # Class-level registry to store all instances
+    _registry = {}
+    _id_counter = 0
+
     def __init__(self, equation, point0, point1, linkage_type, f_idx, idx, default_line=None):
         self.equation = equation
         self.point0 = point0
@@ -193,8 +197,27 @@ class LineSegment:
         self.type = linkage_type
         self.factorization_idx = f_idx
         self.idx = idx
-        self.id = f"{self.type}_{self.factorization_idx}{self.idx}"
         self.default_line = default_line if default_line else equation
+
+        # counter of instances
+        self.creation_index = LineSegment._id_counter
+        LineSegment._id_counter += 1
+
+        # create a unique ID
+        self.id = f"{self.type}_{self.factorization_idx}{self.idx}"
+
+        # store the instance in the registry
+        LineSegment._registry[self.id] = self
+
+    @classmethod
+    def get_by_id(cls, segment_id):
+        """Get a line segment by its ID"""
+        return cls._registry.get(segment_id)
+
+    @classmethod
+    def get_all(cls):
+        """Get all registered line segments"""
+        return cls._registry
 
     def __repr__(self):
         return self.id
