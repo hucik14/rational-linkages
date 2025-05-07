@@ -13,6 +13,7 @@ from .NormalizedLine import NormalizedLine
 from .RationalCurve import RationalCurve
 from .TransfMatrix import TransfMatrix
 from .PointHomogeneous import PointHomogeneous
+from .Linkage import LineSegment
 
 
 class RationalMechanism(RationalCurve):
@@ -797,8 +798,6 @@ class RationalMechanism(RationalCurve):
         :return: list of LineSegment objects
         :rtype: list[LineSegment]
         """
-        from .Linkage import LineSegment  # inner import
-
         t = sp.Symbol("t")
 
         segments = [[], []]
@@ -854,8 +853,6 @@ class RationalMechanism(RationalCurve):
         :return: list of LineSegment objects
         :rtype: list[LineSegment]
         """
-        from .Linkage import LineSegment  # inner import
-
         t = sp.Symbol("t")
 
         segments = []
@@ -1454,6 +1451,8 @@ class RationalMechanism(RationalCurve):
         """
         Update the line segments of the linkage.
         """
+        self._segments = None
+        LineSegment.reset_counter()
         self._segments = self._get_line_segments_of_linkage()
 
     def get_relative_motions(self):

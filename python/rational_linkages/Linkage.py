@@ -219,6 +219,12 @@ class LineSegment:
         """Get all registered line segments"""
         return cls._registry
 
+    @classmethod
+    def reset_counter(cls):
+        """Reset the counter for the next run"""
+        cls._id_counter = 0
+        cls._registry.clear()
+
     def __repr__(self):
         return self.id
 
