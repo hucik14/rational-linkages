@@ -2,9 +2,12 @@
 python/.idea/
 python/conda-env/
 .idea/
+
+# Exudyn files
 *coordinatesSolution.txt
 /python/examples/solution/
 /python/examples/testData/
+/python/examples/images/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

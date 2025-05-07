@@ -38,8 +38,11 @@ dependencies = [
 opt = [
     "ipython >= 8.0.0",
     "gmpy2 >= 2.2.0",
+]
+exu = [
     "exudyn >= 1.9.0",
     "numpy-stl >= 3.0.0",
+    "ngsolve >= 6.2.0",
 ]
 doc = [
     "sphinx",
