@@ -86,7 +86,6 @@ class RationalMechanism(RationalCurve):
         self._metric = None
 
         self._linear_motions_cycle = None
-        self._relative_motions = {}
 
 
     @property
@@ -595,6 +594,8 @@ class RationalMechanism(RationalCurve):
             max_pair = max(iters, key=lambda x: x[1] - x[0])
             # remove the pair from the list
             iters.remove(max_pair)
+        else:  # remove the first link and last joint segments anyway (neighbours)
+            iters.remove((0, len(self.segments) - 1))
 
         print(f"--- number of tasks to solve: {len(iters)} ---")
 
@@ -1455,13 +1456,9 @@ class RationalMechanism(RationalCurve):
         LineSegment.reset_counter()
         self._segments = self._get_line_segments_of_linkage()
 
-    def get_relative_motions(self):
-        """
-        Calculate all relative motions of the mechanism.
-        """
-        pass
-
-    def relative_motion(self, static: int, moving: int) -> RationalCurve:
+    def relative_motion(self,
+                        static: LineSegment,
+                        moving: LineSegment) -> DualQuaternion:
         """
         Calculate the relative motion between given pair of links or joints.
 
@@ -1474,26 +1471,13 @@ class RationalMechanism(RationalCurve):
         if static == moving:
             raise ValueError("static and moving cannot be the same")
 
-        # # check if the relative motion already exists
-        # for rel_motion in self.relative_motions:
-        #     if (rel_motion.static == static and rel_motion.moving == moving) or \
-        #             (rel_motion.static == moving and rel_motion.moving == static):
-        #         return rel_motion
-
-        # calculate the relative motion
-        motion_cycle = self._shortest_path(static, moving)
+        motion_cycle = self._shortest_path(static.creation_index,
+                                           moving.creation_index)
         rel_motion = DualQuaternion()
         for idx in motion_cycle:
             rel_motion *= self.linear_motions_cycle[idx]
 
-        t = sp.Symbol("t")
-        poly_list = [sp.Poly(element, t, greedy=False)
-                     for element in rel_motion.array()]
-
-        # # add the relative motion to the list
-        # self.relative_motions.append(rel_motion)
-
-        return RationalCurve(poly_list)
+        return rel_motion
 
     def _shortest_path(self, start: int, end: int) -> list[int]:
         """
