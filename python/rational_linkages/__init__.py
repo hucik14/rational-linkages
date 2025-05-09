@@ -16,7 +16,7 @@ from .Plotter import Plotter
 from .PlotterPyqtgraph import PlotterPyqtgraph, FramePlotHelper, InteractivePlotter
 from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
-from .RationalBezier import RationalBezier, BezierSegment
+from .RationalBezier import RationalBezier, BezierSegment, RationalSoo
 from .RationalCurve import RationalCurve
 from .RationalDualQuaternion import RationalDualQuaternion
 from .RationalMechanism import RationalMechanism

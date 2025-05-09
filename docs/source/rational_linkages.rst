@@ -149,7 +149,7 @@ Rational Bezier
 ---------------
 
 .. automodule:: rational_linkages.RationalBezier
-   :members: RationalBezier, BezierSegment
+   :members: RationalBezier, BezierSegment, RationalSoo
    :undoc-members:
    :show-inheritance: rational_linkages.RationalCurve
 

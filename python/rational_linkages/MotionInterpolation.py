@@ -110,8 +110,10 @@ class MotionInterpolation:
 
         :param list[Union[DualQuaternion, TransfMatrix, PointHomogeneous]]
             poses_or_points: The poses or points to interpolate.
+
         :param Union[float, int] lambda_val: The lambda parameter for the interpolation.
             Only used for cubic interpolation using 4 poses.
+
         :param int motion_family: The family of the motion curve. 0 - default, 1 - other
             solution. Only used for cubic interpolation using 4 poses.
 

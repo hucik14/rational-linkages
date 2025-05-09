@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import numpy as np
 import sympy as sp
+from sympy.integrals.quadrature import gauss_legendre
 
 from .MiniBall import MiniBall
 from .PointHomogeneous import PointHomogeneous
@@ -45,7 +46,7 @@ class RationalBezier(RationalCurve):
 
         :param list[PointHomogeneous] control_points: control points of the curve
         """
-        super().__init__(self.get_coeffs_from_control_points(control_points))
+        super().__init__(self.get_polynomials_from_control_points(control_points))
 
         self.control_points = control_points
         self._ball = None
@@ -59,9 +60,9 @@ class RationalBezier(RationalCurve):
             self._ball = MiniBall(self.control_points, metric=self.metric)
         return self._ball
 
-    def get_coeffs_from_control_points(self,
-                                       control_points: list[PointHomogeneous]
-                                       ) -> (list[sp.Poly]):
+    def get_polynomials_from_control_points(self,
+                                            control_points: list[PointHomogeneous]
+                                            ) -> (list[sp.Poly]):
         """
         Calculate the coefficients of the parametric equations of the curve from
         the control points.
@@ -277,3 +278,84 @@ class BezierSegment:
         :return: bool - True if there are negative weights, False otherwise
         """
         return any(point.coordinates[0] < 0 for point in self.control_points)
+
+
+class RationalSoo(RationalCurve):
+    """
+    Class representing rational Gauss-Legendre curves in n-dimensional space.
+
+    The class implements the Gauss-Legendre curves to represent curved link segments.
+    Gauss-Legendre curves, introduced in :footcite:t:`Moon2023`, have the property that
+    the control polygon approximates the curve closely, and therefore can be used
+    for collision detection, instead of using the curve polynomials.
+    """
+    def __init__(self,
+                 control_points: list[PointHomogeneous]):
+        """
+        Initializes a RationalBezier object with the provided control points.
+
+        :param list[PointHomogeneous] control_points: control points of the curve
+        """
+        super().__init__(self.get_poly_from_control_points(control_points))
+        self.control_points = control_points
+
+    def get_poly_from_control_points(self,
+                                     control_points: list[PointHomogeneous]
+                                     ) -> (list[sp.Poly]):
+        """
+        Calculate the coefficients of the parametric equations of the curve from
+        the control points.
+
+        :param control_points: list[PointHomogeneous] - control points of the curve
+
+        :return: np.array - coefficients of the parametric equations of the curve
+        :rtype: list[sp.Poly]
+        """
+        t = sp.Symbol("t")
+
+        deg = len(control_points) - 1
+        dim = control_points[0].coordinates.size
+
+        taus, weights = np.polynomial.legendre.leggauss(deg)
+        lagrange_basis = self.lagrange_basis(taus, t, weights)
+
+        integrated_basis = []
+        for base in lagrange_basis:
+            # integrate from -1 to t
+            integrated_basis.append(sp.integrate(base, (t, -1, t)) - 0.5)
+        integrated_basis.insert(0, 0.5)
+        integrated_basis.append(-0.5)
+
+        gauss_legendre_basis = []
+        for i in range(len(integrated_basis) - 1):
+            gauss_legendre_basis.append(integrated_basis[i] - integrated_basis[i + 1])
+
+        gl_curve = [0] * dim
+        for i in range(len(control_points)):
+            gl_curve += gauss_legendre_basis[i] * control_points[i].array()
+
+        return [sp.Poly(gl_curve[i], t, greedy=False) for i in range(dim)]
+
+    @staticmethod
+    def lagrange_basis(tau, symbol, weights):
+        """
+        Generate all Lagrange basis polynomials in symbolic form.
+
+        :param tau: array-like9
+        :param symbol: sympy.Symbol
+        :param weights: array-like
+
+        :return: list of polynomials
+        :rtype: list[sp.Poly]
+        """
+        n = len(tau)
+        basis = []
+
+        for j in range(n):
+            basis_j = 1
+            for i in range(n):
+                if i != j:
+                    basis_j *= (symbol - tau[i]) / (tau[j] - tau[i])
+            basis.append(basis_j / weights[j])
+
+        return basis
