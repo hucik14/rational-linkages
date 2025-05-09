@@ -165,6 +165,7 @@ their algorithms and suggestions. These people are namely:
 - and **Zijia Li**, Chinese Academy of Sciences, China, for their help with the implementation of the Combinatorial Search Algorithm of collision-free linkages :footcite:p:`Li2020`. More on this in section :ref:`combinatorial_search`.
 - **Johannes Siegele**, Austrian Academy of Sciences, Austria, for his help with the implementation of the algorithm for motion interpolation of 4 poses. More on this in section :ref:`interpolation_background`.
 - **Severinas Zube**, Vilnius University, Lithuania, for his help with implementing the algorithm for motion interpolation of 3D points :footcite:p:`Zube2018`. More on this in section :ref:`interpolation_examples`.
+- **Soohyun Kim**, Pusan National University, Korea, for her help with the implementation of the Gauss-Legendre curves :footcite:p:`Moon2023` to represent curved links.
 
 **References**
 
