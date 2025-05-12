@@ -1,6 +1,6 @@
 [package]
 name = "utils_rust"  # Rust package name
-version = "1.11.0-dev.2"
+version = "1.11.0-dev.3"
 edition = "2021"
 publish = false  # disable publishing the Rust crate to crates.io
 
