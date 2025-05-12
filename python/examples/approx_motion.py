@@ -36,7 +36,7 @@ ts = np.concatenate((myinf, t_sols, [add_t, add_t2]), axis=None)
 a, res = MotionApproximation.approximate(c, [p0, p1, p2, p3, p4, p5], ts)
 print(res.x[24:])
 
-# p = Plotter(interactive=True, steps=1000, arrows_length=0.5)
+# p = Plotter(mechanism=m, steps=1000, arrows_length=0.5)
 p = Plotter(arrows_length=0.5)
 
 if a.is_on_study_quadric():

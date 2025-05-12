@@ -70,8 +70,7 @@ factorizator = FactorizationProvider()
 factorize = factorizator.factorize_for_motion_factorization(my_f)
 
 m = RationalMechanism(factorize)
-plt = Plotter(interactive=True, steps=200)
-plt.plot(m)
+plt = Plotter(mechanism=m, steps=200)
 
 h12 = DualQuaternion([-1 / 4, 13 / 5, -213 / 5, -68 / 15, 0, -52 / 3, -28 / 15,
                       38 / 5])

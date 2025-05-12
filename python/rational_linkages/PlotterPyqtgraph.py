@@ -998,23 +998,6 @@ class InteractivePlotter:
     Main application class for the interactive plotting of mechanisms.
 
     Encapsulates the QApplication and the InteractivePlotter widget.
-
-    :examples:
-
-    .. testcode:: [interactiveplotter_example1]
-
-        from rational_linkages import InteractivePlotter
-        from rational_linkages.models import collisions_free_6r
-
-
-        p = InteractivePlotter(mechanism=collisions_free_6r())
-        p.show()
-
-    .. testcleanup:: [motiondesigner_example1]
-
-        del p
-
-
     """
     def __init__(self,
                  mechanism: RationalMechanism,

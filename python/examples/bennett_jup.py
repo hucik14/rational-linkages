@@ -24,8 +24,7 @@ if __name__ == "__main__":
 
     design_parameters = mechanism.get_design(scale=1000, unit='deg')
 
-    myplt = Plotter(interactive=True, arrows_length=0.02, steps=300)
+    myplt = Plotter(mechanism=mechanism, arrows_length=0.02, steps=300)
     for i, pose in enumerate(poses):
         myplt.plot(pose, label=f'p{i}')
-    myplt.plot(mechanism, show_tool=True)
     myplt.show()

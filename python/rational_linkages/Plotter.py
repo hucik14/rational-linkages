@@ -30,32 +30,32 @@ class Plotter:
         if backend == 'pyqtgraph' and not jupyter_notebook:
             if show_legend:
                 print('Warning: The legend is supported only in Matplotlib backend. ')
-            elif show_controls:
+            elif not show_controls:
                 print('Warning: Hiding controls is supported only in Matplotlib backend.')
 
             if steps is None:
                 steps = 2000
 
             if interactive:
-                self.plotter = InteractivePlotter(mechanism=mechanism,
-                                                  show_tool=show_tool,
-                                                  steps=steps,
-                                                  arrows_length=arrows_length,
-                                                  joint_sliders_lim=joint_sliders_lim,
-                                                  white_background=white_background)
+                self.plt = InteractivePlotter(mechanism=mechanism,
+                                              show_tool=show_tool,
+                                              steps=steps,
+                                              arrows_length=arrows_length,
+                                              joint_sliders_lim=joint_sliders_lim,
+                                              white_background=white_background)
             else:
-                self.plotter = PlotterPyqtgraph(parent_app=parent_app,
-                                                interval=interval,
-                                                steps=steps,
-                                                arrows_length=arrows_length,
-                                                white_background=white_background)
+                self.plt = PlotterPyqtgraph(parent_app=parent_app,
+                                            interval=interval,
+                                            steps=steps,
+                                            arrows_length=arrows_length,
+                                            white_background=white_background)
 
         else:
             if steps is None:
                 steps = 200
 
             from .PlotterMatplotlib import PlotterMatplotlib
-            self.plotter = PlotterMatplotlib(interactive=interactive,
+            self.plt = PlotterMatplotlib(interactive=interactive,
                                              jupyter_notebook=jupyter_notebook,
                                              show_legend=show_legend,
                                              show_controls=show_controls,
@@ -64,7 +64,7 @@ class Plotter:
                                              arrows_length=arrows_length,
                                              joint_sliders_lim=joint_sliders_lim)
             if mechanism is not None:
-                self.plotter.plot(mechanism, show_tool=show_tool)
+                self.plt.plot(mechanism, show_tool=show_tool)
 
     def plot(self, *args, **kwargs):
         """
@@ -73,12 +73,12 @@ class Plotter:
         :param args: The arguments to plot.
         :param kwargs: The keyword arguments to plot.
         """
-        self.plotter.plot(*args, **kwargs)
+        self.plt.plot(*args, **kwargs)
 
     def show(self):
         """
         Show the plot.
         """
-        self.plotter.show()
+        self.plt.show()
 
 

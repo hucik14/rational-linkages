@@ -37,8 +37,7 @@ The basic outline can be run as follows:
                                       min_joint_segment_length=0.3)
 
         # plot mechanism
-        myplt = Plotter(interactive=True, steps=200, arrows_length=0.2, joint_range_lim=3.0)
-        myplt.plot(m, show_tool=False)
+        myplt = Plotter(mechanism=m, show_tool=False, steps=200, arrows_length=0.2, joint_sliders_lim=3.0)
         myplt.show()
 
 This will perform full search and tries to find a collision-free design of the given
@@ -89,8 +88,7 @@ and they can be set as follows:
                                   combinations_joints=[(-1, 1, 1, -1, -1, 1, 1, -1, -1, 1, 1, -1)])
 
     # plot mechanism
-    myplt = Plotter(interactive=True, steps=200, arrows_length=0.2, joint_range_lim=3.0)
-    myplt.plot(m, show_tool=False)
+    myplt = Plotter(mechanism=m, show_tool=False, steps=200, arrows_length=0.2, joint_sliders_lim=3.0)
     myplt.show()
 
 .. testoutput:: [comb_search_tutorial_example2]

@@ -239,7 +239,7 @@ class SnappingMechanism(StaticMechanism):
 
             m.get_design(unit='deg', scale=150)
 
-            p = Plotter(interactive=True, arrows_length=0.1)
+            p = Plotter(mechanism=m, arrows_length=0.1)
             p.plot(p0, label='origin')
             p.plot(p1, label='pose')
             p.plot_line_segments_between_points(m.points_discrete_poses[0] + [m.points_discrete_poses[0][0]], color='red')

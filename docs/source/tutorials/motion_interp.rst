@@ -41,7 +41,7 @@ The following example applies the method by :footcite:t:`Brunnthaler2005`.
 
     c = MotionInterpolation.interpolate([p0, p1, p2])
 
-    plt = Plotter(interactive=False, steps=500, arrows_length=0.05)
+    plt = Plotter(steps=500, arrows_length=0.05)
     plt.plot(c, interval='closed')
 
     for i, pose in enumerate([p0, p1, p2]):
@@ -86,8 +86,7 @@ Here is presented an example of cubic interpolation of 4 poses.
 
     # create an interactive plotter object, with 500 descrete steps
     # for the input rational curves, and arrows scaled to 0.05 length
-    myplt = Plotter(interactive=True, steps=500, arrows_length=0.5)
-    myplt.plot(m, show_tool=True)
+    myplt = Plotter(mechanism=m, steps=500, arrows_length=0.5)
 
     # plot the poses
     for pose in [p0, p1, p2, p3]:
@@ -171,12 +170,11 @@ position of the 3rd pose to achieve the shortest curve-path length.
     interpolated_curve = MotionInterpolation.interpolate([p0, p1])
     m = RationalMechanism(interpolated_curve.factorize())
 
-    p = Plotter(interactive=True, steps=500, arrows_length=0.05)
+    p = Plotter(mechanism=m, steps=500, arrows_length=0.05)
     p.plot(p0)
     p.plot(p1)
 
     p.plot(interpolated_curve, interval='closed', label='interpolated curve')
-    p.plot(m)
 
     p.show()
 
@@ -223,10 +221,9 @@ transformation.
     # path, get static transform 'rebase' and uncomment the line in for loop bellow
     rebase = DualQuaternion(interpolated_curve.evaluate(1e12)).normalize()
 
-    p = Plotter(interactive=True, steps=500, arrows_length=0.5)
+    p = Plotter(mechanism=m, steps=500, arrows_length=0.5)
 
     p.plot(interpolated_curve, interval='closed', label='interpolated curve')
-    p.plot(m)  # plot the mechanism
 
     for i, pt in enumerate(points):
         # pt = rebase.inv().act(pt)  # uncomment to plot the points in the mechanism path
@@ -284,10 +281,9 @@ by a static transformation.
     # path, get static transform 'rebase' and uncomment the line in for loop bellow
     rebase = DualQuaternion(interpolated_curve.evaluate(1e12)).normalize()
 
-    p = Plotter(interactive=True, steps=1000, arrows_length=0.5)
+    p = Plotter(mechanism=m, steps=1000, arrows_length=0.5)
 
     p.plot(interpolated_curve, interval='closed', label='interpolated curve')
-    # p.plot(m)  # plot the mechanism
 
     for i, pt in enumerate(points):
         # pt = rebase.inv().act(pt)  # uncomment to plot the points in the mechanism path

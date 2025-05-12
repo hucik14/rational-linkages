@@ -72,13 +72,12 @@ In the interactive mode, the mechanisms can be animated.
     m = bennett_ark24()
 
     # create an interactive plotter object
-    myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
+    myplt = Plotter(mechanism=m, steps=500, arrows_length=0.05)
 
-    # create a point with homogeneous coordinates w = 1, x = 2, y = -3, z = 1.5
+    # create a point with homogeneous coordinates w = 1, x = 0.5, y =  -0.75, z = 0.25
     point = PointHomogeneous([1, 0.5, -0.75, 0.25])
 
     myplt.plot(point, label='pt')
-    myplt.plot(m, show_tool=True)
     myplt.show()
 
 .. testcleanup:: [plotting_example2]
@@ -103,9 +102,9 @@ Scaling of plotted objects
 Sometimes, the mechanism is too large or too small to be plotted along with its
 tool frame, or the range sliders that control physical realization have very high/low
 limits. In such cases, it is possible to use key word arguments ``arrows_length`` and
-``joint_range_lim`` when initializing the plotter using :class:`.Plotter` class.
+``joint_sliders_lim`` when initializing the plotter using :class:`.Plotter` class.
 
-The ``joint_range_lim`` specifies the limits of the range sliders, and the ``arrows_length``
+The ``joint_sliders_lim`` specifies the limits of the range sliders, and the ``arrows_length``
 to adjust the size of the length of the frames/poses that are plotted.
 
 .. testcode:: [plotting_example3]
@@ -118,8 +117,7 @@ to adjust the size of the length of the frames/poses that are plotted.
 
     m = bennett()
 
-    plt = Plotter(interactive=True, arrows_length=0.05, joint_range_lim=0.5)
-    plt.plot(m, show_tool=True)
+    plt = Plotter(mechanism=m, arrows_length=0.05, joint_sliders_lim=0.5)
     plt.show()
 
 .. testcleanup:: [plotting_example3]
@@ -168,10 +166,9 @@ The following examples show the three options.
     m = RationalMechanism([f1, f2])
 
     # Create plotter
-    p = Plotter(interactive=True, steps=200, arrows_length=0.2)
+    p = Plotter(mechanism=m, steps=200, arrows_length=0.2)
 
-    # Plot mechanism, do not specify tool frame
-    p.plot(m, show_tool=True)
+    # Plot mechanism
     p.show()
 
 .. testcleanup:: [plotting_example4]
@@ -203,10 +200,7 @@ The following examples show the three options.
     m = RationalMechanism([f1, f2], tool='mid_of_last_link')
 
     # Create plotter
-    p = Plotter(interactive=True, steps=200, arrows_length=0.2)
-
-    # Plot mechanism, do not specify tool frame
-    p.plot(m, show_tool=True)
+    p = Plotter(mechanism=m, steps=200, arrows_length=0.2)
 
     # Plot the default motion curve
     p.plot(m.get_motion_curve(), label='motion curve', interval='closed',
@@ -247,10 +241,7 @@ The following examples show the three options.
     m = RationalMechanism([f1, f2], tool=tool_dq)
 
     # Create plotter
-    p = Plotter(interactive=True, steps=200, arrows_length=0.2)
-
-    # Plot mechanism, do not specify tool frame
-    p.plot(m, show_tool=True)
+    p = Plotter(mechanism=m, steps=200, arrows_length=0.2)
 
     # Plot the default motion curve
     p.plot(m.get_motion_curve(), label='motion curve', interval='closed',

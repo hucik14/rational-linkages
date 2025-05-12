@@ -79,7 +79,7 @@ class MotionInterpolation:
 
         c = MotionInterpolation.interpolate([p0, p1, p2])
 
-        plt = Plotter(interactive=False, steps=500, arrows_length=0.05)
+        plt = Plotter(steps=500, arrows_length=0.05)
         plt.plot(c, interval='closed')
 
         for i, pose in enumerate([p0, p1, p2]):
