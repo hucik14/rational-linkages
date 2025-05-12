@@ -151,7 +151,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         self.mi = MotionInterpolation()
 
         # an instance of Pyqtgraph-based plotter
-        self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
+        self.plotter = PlotterPyqtgraph(steps=steps,
                                         interval=interval,
                                         arrows_length=self.arrows_length,
                                         white_background=self.white_background)

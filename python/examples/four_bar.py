@@ -19,8 +19,7 @@ if __name__ == '__main__':
     m = RationalMechanism([f1, f2], tool=tool_dq)
     #m = RationalMechanism([f1, f2])
 
-    p = Plotter(interactive=True, steps=200, arrows_length=0.2)
-    p.plot(m, show_tool=True)
+    p = Plotter(mechanism=m, steps=200, arrows_length=0.2)
     p.plot(m.get_motion_curve(), label='motion curve', interval='closed', color='red',
            linewidth='0.7', linestyle=':')
     p.show()

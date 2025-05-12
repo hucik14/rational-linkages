@@ -51,9 +51,7 @@ class MotionInterpolation:
 
         # create an interactive plotter object, with 1000 descrete steps
         # for the input rational curves, and arrows scaled to 0.5 length
-        myplt = Plotter(interactive=True, steps=1000, arrows_length=0.5)
-        myplt.plot(m, show_tool=True)
-
+        myplt = Plotter(mechanism=m, steps=1000, arrows_length=0.5)
         # plot the poses
         for pose in [p0, p1, p2, p3]:
             myplt.plot(pose)

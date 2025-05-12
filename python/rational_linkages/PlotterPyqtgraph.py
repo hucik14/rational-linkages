@@ -23,8 +23,8 @@ class PlotterPyqtgraph:
     PyQtGraph plotter for 3D visualization of geometric objects.
     """
     def __init__(self,
-                 discrete_step_space: int = 1000,
-                 interval: tuple = (0, 1),
+                 steps: int = 1000,
+                 interval: tuple = (-1, 1),
                  arrows_length: float = 1.0,
                  white_background: bool = False,
                  parent_app=None
@@ -68,8 +68,8 @@ class PlotterPyqtgraph:
         self.widget.addItem(grid)
 
         # store parameters
-        self.t_space = np.linspace(interval[0], interval[1], discrete_step_space)
-        self.steps = discrete_step_space
+        self.t_space = np.linspace(interval[0], interval[1], steps)
+        self.steps = steps
         self.arrows_length = arrows_length
 
         # add origin coordinates
@@ -700,7 +700,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
             self.render_mode = 'additive'
 
         # Create the PlotterPyqtgraph instance.
-        self.plotter = PlotterPyqtgraph(discrete_step_space=self.steps,
+        self.plotter = PlotterPyqtgraph(steps=self.steps,
                                         arrows_length=self.arrows_length,
                                         white_background=self.white_background,
                                         parent_app=parent_app)
