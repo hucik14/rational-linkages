@@ -500,38 +500,68 @@ class PlotterPyqtgraph:
 
 
 class CustomGLViewWidget(gl.GLViewWidget):
-    def __init__(self,
-                 white_background: bool = False,
-                 *args,
-                 **kwargs):
-        super(CustomGLViewWidget, self).__init__(*args, **kwargs)
+    def __init__(self, white_background=False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.labels = []
         self.white_background = white_background
+        # Create an overlay widget for displaying text
+        self.text_overlay = QtWidgets.QWidget(self)
+        self.text_overlay.setAttribute(
+            QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.text_overlay.setStyleSheet("background:transparent;")
+        self.text_overlay.resize(self.size())
+        self.text_overlay.show()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, 'text_overlay'):
+            self.text_overlay.resize(self.size())
 
     def add_label(self, point, text):
-        """
-        Adds a label for a 3D point.
-        """
+        """Adds a label for a 3D point."""
         self.labels.append({'point': point, 'text': text})
+        self.update()
 
     def paintEvent(self, event):
-        # Draw the usual 3D scene first
-        super(CustomGLViewWidget, self).paintEvent(event)
+        # Only handle standard OpenGL rendering here - no mixing with QPainter
+        super().paintEvent(event)
 
-        # Save the current OpenGL state
-        gl_widget = self
-        gl_widget.makeCurrent()
+        # Schedule label painting as a separate operation
+        QtCore.QTimer.singleShot(0, self.update_text_overlay)
 
-        # Now start QPainter operations
-        painter = QtGui.QPainter()
-        painter.begin(self)
+    def update_text_overlay(self):
+        """Update the text overlay with current labels"""
+        # Create a new painter for the overlay widget
+        self.text_overlay.update()
 
+    def _obtain_label_vec(self, pt):
+        """Obtain the label vector."""
+        # Convert the 3D point to homogeneous coordinates
+        if isinstance(pt, np.ndarray):
+            point_vec = pt
+        elif isinstance(pt, PointHomogeneous):
+            point_vec = [pt.coordinates_normalized[1],
+                         pt.coordinates_normalized[2],
+                         pt.coordinates_normalized[3]]
+        elif isinstance(pt, TransfMatrix):
+            point_vec = [pt.t[0], pt.t[1], pt.t[2]]
+        elif isinstance(pt, FramePlotHelper):
+            point_vec = [pt.tr.t[0], pt.tr.t[1], pt.tr.t[2]]
+        else:  # is pyqtgraph marker (scatter)
+            point_vec = [pt.pos[0][0], pt.pos[0][1], pt.pos[0][2]]
+
+        return QtGui.QVector4D(point_vec[0], point_vec[1], point_vec[2], 1.0)
+
+    # This method renders text on the overlay
+    def paintOverlay(self, event):
+        painter = QtGui.QPainter(self.text_overlay)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
         if self.white_background:
             painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.black))
         else:
             painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.white))
 
-        # Get the Model-View-Projection (MVP) matrix
+        # Get the Model-View-Projection matrix
         projection_matrix = self.projectionMatrix()
         view_matrix = self.viewMatrix()
         mvp = projection_matrix * view_matrix
@@ -545,43 +575,23 @@ class CustomGLViewWidget(gl.GLViewWidget):
             if projected.w() != 0:
                 ndc_x = projected.x() / projected.w()
                 ndc_y = projected.y() / projected.w()
-            else:
-                ndc_x, ndc_y = 0, 0
-
-            x = int((ndc_x * 0.5 + 0.5) * self.width())
-            y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
-            painter.drawText(x, y, text)
+                # Check if the point is in front of the camera
+                if projected.z() / projected.w() < 1.0:
+                    x = int((ndc_x * 0.5 + 0.5) * self.width())
+                    y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
+                    painter.drawText(x, y, text)
 
         painter.end()
 
-        # Restore GL context for next frame
-        gl_widget.doneCurrent()
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.text_overlay.installEventFilter(self)
 
-    @staticmethod
-    def _obtain_label_vec(pt):
-        """
-        Obtain the label vector.
-        """
-        # Convert the 3D point to homogeneous coordinates.
-
-        if isinstance(pt, np.ndarray):
-            point_vec = pt
-
-        elif isinstance(pt, PointHomogeneous):
-            point_vec = [pt.coordinates_normalized[1],
-                         pt.coordinates_normalized[2],
-                         pt.coordinates_normalized[3]]
-
-        elif isinstance(pt, TransfMatrix):
-            point_vec = [pt.t[0], pt.t[1], pt.t[2]]
-
-        elif isinstance(pt, FramePlotHelper):
-            point_vec = [pt.tr.t[0], pt.tr.t[1], pt.tr.t[2]]
-
-        else:  # is pyqtgraph marker (scatter)
-            point_vec = [pt.pos[0][0], pt.pos[0][1], pt.pos[0][2]]
-
-        return QtGui.QVector4D(point_vec[0], point_vec[1], point_vec[2], 1.0)
+    def eventFilter(self, obj, event):
+        if obj is self.text_overlay and event.type() == QtCore.QEvent.Type.Paint:
+            self.paintOverlay(event)
+            return True
+        return super().eventFilter(obj, event)
 
 
 class FramePlotHelper:
