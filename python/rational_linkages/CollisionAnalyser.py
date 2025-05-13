@@ -1,5 +1,3 @@
-from sympy.plotting.intervalmath import interval
-
 from .RationalMechanism import RationalMechanism
 from .RationalCurve import RationalCurve
 from .MiniBall import MiniBall

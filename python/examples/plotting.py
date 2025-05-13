@@ -38,10 +38,9 @@ if __name__ == '__main__':
     # load the mechanism
     m = bennett_ark24()
 
-    myplt2 = Plotter(interactive=True, steps=500, arrows_length=0.05)
+    myplt2 = Plotter(mechanism=m, steps=500, arrows_length=0.05)
 
     point = PointHomogeneous([1, 0.5, -0.75, 0.25])
     myplt2.plot(point, label='pt')
-    myplt2.plot(m, show_tool=True)
     myplt2.show()
 

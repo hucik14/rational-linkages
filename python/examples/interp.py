@@ -31,8 +31,7 @@ if __name__ == "__main__":
 
     #m.collision_free_optimization()
 
-    p = Plotter(interactive=True, steps=1000, arrows_length=0.5)
-    p.plot(m, show_tool=True)
+    p = Plotter(mechanism=m, steps=1000, arrows_length=0.5)
 
     for pose in [p0, p1, p2,]:
         p.plot(pose)

@@ -58,10 +58,9 @@ This equation serves as the input for the following script.
 
         # define a plotter object, set interactive mode and number of discrete steps
         # to plot the curve
-        p = Plotter(interactive=True, steps=500, arrows_length=0.05)
+        p = Plotter(mechanism=m, steps=500, arrows_length=0.05)
 
         # plot the mechanism
-        p.plot(m, show_tool=True)
         p.show()
 
 .. testcleanup:: [ark2024_example]

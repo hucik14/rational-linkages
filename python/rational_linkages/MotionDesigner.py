@@ -36,8 +36,8 @@ class MotionDesigner:
 
         Closing the window... generated points for interpolation:
         [1, 0, 0, 0, 0, 0, 0, 0]
-        [ 1,  0,  1,  0,  1,  0, -1, -2]
-        [ 1,  0,  0,  0,  1, -1,  2, -1]
+        [ 1.          , -0.207522406 , -0.0333866662, -0.0691741237, -0.0625113682, -0.141265791 , -0.4478576802, -0.2637268902]
+        [ 1.          ,  0.2333739522, -0.0427838517,  0.0777914503, -0.0839342318,  0.2991396249,  0.2980046603,  0.345444421 ]
 
     .. testcleanup:: [motiondesigner_example1]
 
@@ -151,7 +151,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         self.mi = MotionInterpolation()
 
         # an instance of Pyqtgraph-based plotter
-        self.plotter = PlotterPyqtgraph(discrete_step_space=steps,
+        self.plotter = PlotterPyqtgraph(steps=steps,
                                         interval=interval,
                                         arrows_length=self.arrows_length,
                                         white_background=self.white_background)

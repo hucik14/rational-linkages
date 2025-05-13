@@ -23,8 +23,8 @@ class PlotterPyqtgraph:
     PyQtGraph plotter for 3D visualization of geometric objects.
     """
     def __init__(self,
-                 discrete_step_space: int = 1000,
-                 interval: tuple = (0, 1),
+                 steps: int = 1000,
+                 interval: tuple = (-1, 1),
                  arrows_length: float = 1.0,
                  white_background: bool = False,
                  parent_app=None
@@ -46,7 +46,7 @@ class PlotterPyqtgraph:
         self.white_background = white_background
 
         # Create the GLViewWidget.
-        self.widget = CustomGLViewWidget(white_background=self.white_background)  # gl.GLViewWidget()
+        self.widget = CustomGLViewWidget(white_background=self.white_background)
         self.widget.setWindowTitle('Rational Linkages')
         self.widget.opts['distance'] = 10
         self.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
@@ -58,6 +58,7 @@ class PlotterPyqtgraph:
             self.render_mode = 'additive'
 
         self.widget.show()
+        self.app.processEvents()
 
         # add a grid
         grid = gl.GLGridItem()
@@ -68,8 +69,8 @@ class PlotterPyqtgraph:
         self.widget.addItem(grid)
 
         # store parameters
-        self.t_space = np.linspace(interval[0], interval[1], discrete_step_space)
-        self.steps = discrete_step_space
+        self.t_space = np.linspace(interval[0], interval[1], steps)
+        self.steps = steps
         self.arrows_length = arrows_length
 
         # add origin coordinates
@@ -305,7 +306,7 @@ class PlotterPyqtgraph:
         self.widget.addItem(scatter)
 
         if 'label' in kwargs:
-            self.widget.add_label(scatter, kwargs['label'])
+            self.widget.add_label(pos, kwargs['label'])
 
     def _plot_dual_quaternion(self, dq: DualQuaternion, **kwargs):
         """
@@ -485,42 +486,9 @@ class PlotterPyqtgraph:
         """
         raise NotImplementedError("TODO, see matplotlib version")
 
-    def paintEvent(self, event):
-        # Draw the usual 3D scene first.
-        super(PlotterPyqtgraph, self).paintEvent(event)
-
-        # Set up a QPainter to draw overlay text.
-        painter = QtGui.QPainter(self)
-        painter.setPen(QtCore.Qt.white)
-        painter.setFont(QtGui.QFont("Arial", 12))
-
-        # Get the Model-View-Projection (MVP) matrix.
-        projection_matrix = self.projectionMatrix()
-        view_matrix = self.viewMatrix()
-        mvp = projection_matrix * view_matrix
-
-        # Iterate over each label and project its 3D point to 2D screen coordinates.
-        for entry in self.labels:
-            point = entry['point']
-            text = entry['text']
-            # Convert the 3D point to homogeneous coordinates.
-            point_vec = QtGui.QVector4D(point.pos[0][0], point.pos[0][1], point.pos[0][2], 1.0)
-            projected = mvp.map(point_vec)
-            # Perform perspective division
-            if projected.w() != 0:
-                ndc_x = projected.x() / projected.w()
-                ndc_y = projected.y() / projected.w()
-            else:
-                ndc_x, ndc_y = 0, 0
-            # Convert normalized device coordinates to screen coordinates.
-            x = int((ndc_x * 0.5 + 0.5) * self.width())
-            y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
-            painter.drawText(x, y, text)
-
-        painter.end()
-
     def show(self):
         """Start the Qt event loop."""
+        self.widget.show()
         self.app.exec()
 
     def closeEvent(self, event):
@@ -532,81 +500,98 @@ class PlotterPyqtgraph:
 
 
 class CustomGLViewWidget(gl.GLViewWidget):
-    def __init__(self, white_background: bool = False, *args, **kwargs):
-        super(CustomGLViewWidget, self).__init__(*args, **kwargs)
-        # List to hold labels: each entry is a dict with keys 'point' and 'text'
+    def __init__(self, white_background=False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.labels = []
-
-        # get white_background from kwargs
         self.white_background = white_background
+        # Create an overlay widget for displaying text
+        self.text_overlay = QtWidgets.QWidget(self)
+        self.text_overlay.setAttribute(
+            QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.text_overlay.setStyleSheet("background:transparent;")
+        self.text_overlay.resize(self.size())
+        self.text_overlay.show()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, 'text_overlay'):
+            self.text_overlay.resize(self.size())
 
     def add_label(self, point, text):
-        """
-        Adds a label for a 3D point.
-        """
+        """Adds a label for a 3D point."""
         self.labels.append({'point': point, 'text': text})
+        self.update()
 
     def paintEvent(self, event):
-        # Draw the usual 3D scene first.
-        super(CustomGLViewWidget, self).paintEvent(event)
+        # Only handle standard OpenGL rendering here - no mixing with QPainter
+        super().paintEvent(event)
 
-        # Set up a QPainter to draw overlay text.
-        painter = QtGui.QPainter(self)
+        # Schedule label painting as a separate operation
+        QtCore.QTimer.singleShot(0, self.update_text_overlay)
 
+    def update_text_overlay(self):
+        """Update the text overlay with current labels"""
+        # Create a new painter for the overlay widget
+        self.text_overlay.update()
+
+    def _obtain_label_vec(self, pt):
+        """Obtain the label vector."""
+        # Convert the 3D point to homogeneous coordinates
+        if isinstance(pt, np.ndarray):
+            point_vec = pt
+        elif isinstance(pt, PointHomogeneous):
+            point_vec = [pt.coordinates_normalized[1],
+                         pt.coordinates_normalized[2],
+                         pt.coordinates_normalized[3]]
+        elif isinstance(pt, TransfMatrix):
+            point_vec = [pt.t[0], pt.t[1], pt.t[2]]
+        elif isinstance(pt, FramePlotHelper):
+            point_vec = [pt.tr.t[0], pt.tr.t[1], pt.tr.t[2]]
+        else:  # is pyqtgraph marker (scatter)
+            point_vec = [pt.pos[0][0], pt.pos[0][1], pt.pos[0][2]]
+
+        return QtGui.QVector4D(point_vec[0], point_vec[1], point_vec[2], 1.0)
+
+    # This method renders text on the overlay
+    def paintOverlay(self, event):
+        painter = QtGui.QPainter(self.text_overlay)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
         if self.white_background:
             painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.black))
         else:
             painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.white))
 
-        # Get the Model-View-Projection (MVP) matrix.
+        # Get the Model-View-Projection matrix
         projection_matrix = self.projectionMatrix()
         view_matrix = self.viewMatrix()
         mvp = projection_matrix * view_matrix
 
-        # Iterate over each label and project its 3D point to 2D screen coordinates.
+        # Draw all labels
         for entry in self.labels:
             point = entry['point']
             text = entry['text']
 
             projected = mvp.map(self._obtain_label_vec(point))
-            # Perform perspective division
             if projected.w() != 0:
                 ndc_x = projected.x() / projected.w()
                 ndc_y = projected.y() / projected.w()
-            else:
-                ndc_x, ndc_y = 0, 0
-            # Convert normalized device coordinates to screen coordinates.
-            x = int((ndc_x * 0.5 + 0.5) * self.width())
-            y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
-            painter.drawText(x, y, text)
+                # Check if the point is in front of the camera
+                if projected.z() / projected.w() < 1.0:
+                    x = int((ndc_x * 0.5 + 0.5) * self.width())
+                    y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
+                    painter.drawText(x, y, text)
 
         painter.end()
 
-    @staticmethod
-    def _obtain_label_vec(pt):
-        """
-        Obtain the label vector.
-        """
-        # Convert the 3D point to homogeneous coordinates.
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.text_overlay.installEventFilter(self)
 
-        if isinstance(pt, np.ndarray):
-            point_vec = pt
-
-        elif isinstance(pt, PointHomogeneous):
-            point_vec = [pt.coordinates_normalized[1],
-                         pt.coordinates_normalized[2],
-                         pt.coordinates_normalized[3]]
-
-        elif isinstance(pt, TransfMatrix):
-            point_vec = [pt.t[0], pt.t[1], pt.t[2]]
-
-        elif isinstance(pt, FramePlotHelper):
-            point_vec = [pt.tr.t[0], pt.tr.t[1], pt.tr.t[2]]
-
-        else:  # is pyqtgraph marker (scatter)
-            point_vec = [pt.pos[0][0], pt.pos[0][1], pt.pos[0][2]]
-
-        return QtGui.QVector4D(point_vec[0], point_vec[1], point_vec[2], 1.0)
+    def eventFilter(self, obj, event):
+        if obj is self.text_overlay and event.type() == QtCore.QEvent.Type.Paint:
+            self.paintOverlay(event)
+            return True
+        return super().eventFilter(obj, event)
 
 
 class FramePlotHelper:
@@ -700,7 +685,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
             self.render_mode = 'additive'
 
         # Create the PlotterPyqtgraph instance.
-        self.plotter = PlotterPyqtgraph(discrete_step_space=self.steps,
+        self.plotter = PlotterPyqtgraph(steps=self.steps,
                                         arrows_length=self.arrows_length,
                                         white_background=self.white_background,
                                         parent_app=parent_app)
@@ -998,23 +983,6 @@ class InteractivePlotter:
     Main application class for the interactive plotting of mechanisms.
 
     Encapsulates the QApplication and the InteractivePlotter widget.
-
-    :examples:
-
-    .. testcode:: [interactiveplotter_example1]
-
-        from rational_linkages import InteractivePlotter
-        from rational_linkages.models import collisions_free_6r
-
-
-        p = InteractivePlotter(mechanism=collisions_free_6r())
-        p.show()
-
-    .. testcleanup:: [motiondesigner_example1]
-
-        del p
-
-
     """
     def __init__(self,
                  mechanism: RationalMechanism,
@@ -1040,7 +1008,11 @@ class InteractivePlotter:
                                                steps=steps,
                                                joint_sliders_lim=joint_sliders_lim,
                                                arrows_length=arrows_length,
-                                               white_background=white_background)
+                                               white_background=white_background,
+                                               parent_app=self.app)
+        # self.window.show()
+        # self.app.processEvents()
+        # self.window.hide()
 
     def plot(self, *args, **kwargs):
         """
@@ -1049,6 +1021,9 @@ class InteractivePlotter:
         :param args: The objects to plot.
         :param kwargs: Additional keyword arguments for the plotter.
         """
+        # self.window.show()
+        # self.app.processEvents()
+        # self.window.hide()
         self.window.plotter.plot(*args, **kwargs)
 
     def show(self):

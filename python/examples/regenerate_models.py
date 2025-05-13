@@ -66,6 +66,6 @@ plane_fold_6r = RationalMechanism(f1.factorize())
 plane_fold_6r.save('plane_fold_6r')
 
 
-# p = Plotter(interactive=True, arrows_length=0.05, joint_range_lim=0.5)
+# p = Plotter(mechanism=m, arrows_length=0.05, joint_sliders_lim=0.5)
 # p.plot(plane_fold_6r)
 # p.show()

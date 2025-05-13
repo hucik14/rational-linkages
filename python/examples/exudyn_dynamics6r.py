@@ -13,8 +13,7 @@ if __name__ == '__main__':
     m = collisions_free_6r()
 
     if False:
-        p = Plotter(interactive=True, steps=200, arrows_length=0.2)
-        p.plot(m, show_tool=True)
+        p = Plotter(mechanism=m, steps=200, arrows_length=0.2)
         p.plot(DualQuaternion())
         p.show()
 

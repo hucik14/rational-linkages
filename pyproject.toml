@@ -25,19 +25,19 @@ classifiers = [
 ]
 
 dependencies = [
+    "biquaternion-py >= 1.2.0",
     "scipy >= 1.10.0",
     "sympy >= 1.10.0",
-    "biquaternion-py >= 1.2.0",
     "PyQt6 >= 6.2.0",
     "pyqtgraph >= 0.12.4",
     "PyOpenGL >= 3.0.0",
-    "matplotlib >= 3.9.0",
 ]
 
 [project.optional-dependencies]
 opt = [
     "ipython >= 8.0.0",
     "gmpy2 >= 2.2.0",
+    "matplotlib >= 3.9.0",
 ]
 exu = [
     "exudyn >= 1.9.0",

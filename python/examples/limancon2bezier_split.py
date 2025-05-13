@@ -20,7 +20,7 @@ bezier_inv = BezierSegment(limancon_inv.curve2bezier_control_points(reparametriz
 b_left, b_right = bezier.split_de_casteljau(0.4)
 b_left_inv, b_right_inv = bezier_inv.split_de_casteljau()
 
-p = Plotter(interactive=False, arrows_length=0.5, joint_range_lim=2, steps=200)
+p = Plotter(arrows_length=0.5, joint_sliders_lim=2, steps=200)
 bezier_segments = [b_left, b_right, b_left_inv, b_right_inv]
 
 for bezier_curve in bezier_segments:

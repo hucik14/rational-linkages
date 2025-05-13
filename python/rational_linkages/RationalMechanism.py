@@ -45,10 +45,7 @@ class RationalMechanism(RationalCurve):
 
         # create an interactive plotter object, with 500 descrete steps
         # for the input rational curves, and arrows scaled to 0.05 length
-        myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
-
-        # plot the model with tool frame
-        myplt.plot(m, show_tool=True)
+        myplt = Plotter(mechanism=m, steps=500, arrows_length=0.05)
 
         ##### additional plotting options #####
         # create a pose of the identity
