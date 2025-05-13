@@ -5,9 +5,10 @@ import numpy as np
 
 from rational_linkages import (DualQuaternion, MotionFactorization, NormalizedLine,
                                RationalMechanism, CollisionFreeOptimization,
-                               PointHomogeneous, RationalCurve, StaticMechanism,
+                               PointHomogeneous, RationalCurve,
                                TransfMatrix)
 from rational_linkages.models import bennett_ark24, collisions_free_6r
+from rational_linkages.StaticMechanism import StaticMechanism
 
 
 class TestRationalMechanism(TestCase):

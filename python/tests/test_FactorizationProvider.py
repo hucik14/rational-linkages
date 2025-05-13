@@ -4,12 +4,12 @@ import numpy as np
 import sympy as sp
 
 from rational_linkages import (
-    FactorizationProvider,
     MotionFactorization,
     RationalCurve,
     RationalDualQuaternion,
 )
 
+from rational_linkages.FactorizationProvider import FactorizationProvider
 
 class TestFactorizationProvider(TestCase):
     def test_factorize_motion_curve(self):

@@ -1,13 +1,13 @@
 import unittest
 
 import sympy
-import numpy as np
 
 from rational_linkages import (
-    AffineMetric,
     PointHomogeneous,
     RationalMechanism,
     RationalCurve)
+
+from rational_linkages.AffineMetric import AffineMetric
 
 
 class TestAffineMetric(unittest.TestCase):

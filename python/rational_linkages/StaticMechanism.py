@@ -35,7 +35,8 @@ class StaticMechanism(RationalMechanism):
     .. testcode:: [StaticMechanism_example1]
 
         # Define a 4-bar mechanism from points
-        from rational_linkages import StaticMechanism, NormalizedLine
+        from rational_linkages import NormalizedLine
+        from rational_linkages.StaticMechanism import StaticMechanism
 
 
         l0 = NormalizedLine.from_two_points([0.0, 0.0, 0.0],
@@ -64,7 +65,7 @@ class StaticMechanism(RationalMechanism):
     .. testcode:: [StaticMechanism_example2]
 
         # Define a 6-bar mechanism from algebraic IJK representation
-        from rational_linkages import StaticMechanism
+        from rational_linkages.StaticMechanism import StaticMechanism
         from sympy import symbols
 
         epsilon, i, j, k = symbols('epsilon i j k')
