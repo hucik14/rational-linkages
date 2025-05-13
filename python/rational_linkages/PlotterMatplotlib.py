@@ -481,20 +481,19 @@ class PlotterMatplotlib:
         :param kwargs: t-curve parameter of driving joint axis and matplotlib options
         """
         self.plotted['mechanism'] = mechanism
-        if 't' in kwargs:
-            t = kwargs['t']
-            kwargs.pop('t')
-        else:
-            t = 0
+
+        show_tool = kwargs.pop('show_tool', False)
+        t = kwargs.pop('t', 0)
 
         # plot factorizations
         for factorization in mechanism.factorizations:
             self._plot_motion_factorization(factorization, t=t, **kwargs)
 
-        # plot end effector triangle
-        pts0 = mechanism.factorizations[0].direct_kinematics_of_tool_with_link(t, mechanism.tool_frame.dq2point_via_matrix())
-        pts1 = mechanism.factorizations[1].direct_kinematics_of_tool_with_link(t, mechanism.tool_frame.dq2point_via_matrix())[::-1]
-        ee_points = np.concatenate((pts0, pts1))
+        if show_tool:
+            # plot end effector triangle
+            pts0 = mechanism.factorizations[0].direct_kinematics_of_tool_with_link(t, mechanism.tool_frame.dq2point_via_matrix())
+            pts1 = mechanism.factorizations[1].direct_kinematics_of_tool_with_link(t, mechanism.tool_frame.dq2point_via_matrix())[::-1]
+            ee_points = np.concatenate((pts0, pts1))
 
         if 'label' not in kwargs:
             kwargs['label'] = "end effector"
