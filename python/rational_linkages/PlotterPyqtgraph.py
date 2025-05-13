@@ -1010,9 +1010,9 @@ class InteractivePlotter:
                                                arrows_length=arrows_length,
                                                white_background=white_background,
                                                parent_app=self.app)
-        self.window.show()
-        self.app.processEvents()
-        self.window.hide()
+        # self.window.show()
+        # self.app.processEvents()
+        # self.window.hide()
 
     def plot(self, *args, **kwargs):
         """
