@@ -46,7 +46,7 @@ class PlotterPyqtgraph:
         self.white_background = white_background
 
         # Create the GLViewWidget.
-        self.widget = CustomGLViewWidget(white_background=self.white_background)  # gl.GLViewWidget()
+        self.widget = CustomGLViewWidget(white_background=self.white_background)
         self.widget.setWindowTitle('Rational Linkages')
         self.widget.opts['distance'] = 10
         self.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
@@ -58,6 +58,7 @@ class PlotterPyqtgraph:
             self.render_mode = 'additive'
 
         self.widget.show()
+        self.app.processEvents()
 
         # add a grid
         grid = gl.GLGridItem()
@@ -485,42 +486,9 @@ class PlotterPyqtgraph:
         """
         raise NotImplementedError("TODO, see matplotlib version")
 
-    def paintEvent(self, event):
-        # Draw the usual 3D scene first.
-        super(PlotterPyqtgraph, self).paintEvent(event)
-
-        # Set up a QPainter to draw overlay text.
-        painter = QtGui.QPainter(self)
-        painter.setPen(QtCore.Qt.white)
-        painter.setFont(QtGui.QFont("Arial", 12))
-
-        # Get the Model-View-Projection (MVP) matrix.
-        projection_matrix = self.projectionMatrix()
-        view_matrix = self.viewMatrix()
-        mvp = projection_matrix * view_matrix
-
-        # Iterate over each label and project its 3D point to 2D screen coordinates.
-        for entry in self.labels:
-            point = entry['point']
-            text = entry['text']
-            # Convert the 3D point to homogeneous coordinates.
-            point_vec = QtGui.QVector4D(point.pos[0][0], point.pos[0][1], point.pos[0][2], 1.0)
-            projected = mvp.map(point_vec)
-            # Perform perspective division
-            if projected.w() != 0:
-                ndc_x = projected.x() / projected.w()
-                ndc_y = projected.y() / projected.w()
-            else:
-                ndc_x, ndc_y = 0, 0
-            # Convert normalized device coordinates to screen coordinates.
-            x = int((ndc_x * 0.5 + 0.5) * self.width())
-            y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
-            painter.drawText(x, y, text)
-
-        painter.end()
-
     def show(self):
         """Start the Qt event loop."""
+        self.widget.show()
         self.app.exec()
 
     def closeEvent(self, event):
@@ -532,12 +500,12 @@ class PlotterPyqtgraph:
 
 
 class CustomGLViewWidget(gl.GLViewWidget):
-    def __init__(self, white_background: bool = False, *args, **kwargs):
+    def __init__(self,
+                 white_background: bool = False,
+                 *args,
+                 **kwargs):
         super(CustomGLViewWidget, self).__init__(*args, **kwargs)
-        # List to hold labels: each entry is a dict with keys 'point' and 'text'
         self.labels = []
-
-        # get white_background from kwargs
         self.white_background = white_background
 
     def add_label(self, point, text):
@@ -1023,7 +991,8 @@ class InteractivePlotter:
                                                steps=steps,
                                                joint_sliders_lim=joint_sliders_lim,
                                                arrows_length=arrows_length,
-                                               white_background=white_background)
+                                               white_background=white_background,
+                                               parent_app=self.app)
         self.window.show()
         self.app.processEvents()
         self.window.hide()
@@ -1035,6 +1004,9 @@ class InteractivePlotter:
         :param args: The objects to plot.
         :param kwargs: Additional keyword arguments for the plotter.
         """
+        # self.window.show()
+        # self.app.processEvents()
+        # self.window.hide()
         self.window.plotter.plot(*args, **kwargs)
 
     def show(self):
