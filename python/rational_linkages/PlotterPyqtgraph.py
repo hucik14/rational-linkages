@@ -305,7 +305,7 @@ class PlotterPyqtgraph:
         self.widget.addItem(scatter)
 
         if 'label' in kwargs:
-            self.widget.add_label(scatter, kwargs['label'])
+            self.widget.add_label(pos, kwargs['label'])
 
     def _plot_dual_quaternion(self, dq: DualQuaternion, **kwargs):
         """
@@ -1024,6 +1024,9 @@ class InteractivePlotter:
                                                joint_sliders_lim=joint_sliders_lim,
                                                arrows_length=arrows_length,
                                                white_background=white_background)
+        self.window.show()
+        self.app.processEvents()
+        self.window.hide()
 
     def plot(self, *args, **kwargs):
         """
