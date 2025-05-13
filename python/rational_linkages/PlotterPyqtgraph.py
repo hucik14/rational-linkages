@@ -515,40 +515,47 @@ class CustomGLViewWidget(gl.GLViewWidget):
         self.labels.append({'point': point, 'text': text})
 
     def paintEvent(self, event):
-        # Draw the usual 3D scene first.
+        # Draw the usual 3D scene first
         super(CustomGLViewWidget, self).paintEvent(event)
 
-        # Set up a QPainter to draw overlay text.
-        painter = QtGui.QPainter(self)
+        # Save the current OpenGL state
+        gl_widget = self
+        gl_widget.makeCurrent()
+
+        # Now start QPainter operations
+        painter = QtGui.QPainter()
+        painter.begin(self)
 
         if self.white_background:
             painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.black))
         else:
             painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.white))
 
-        # Get the Model-View-Projection (MVP) matrix.
+        # Get the Model-View-Projection (MVP) matrix
         projection_matrix = self.projectionMatrix()
         view_matrix = self.viewMatrix()
         mvp = projection_matrix * view_matrix
 
-        # Iterate over each label and project its 3D point to 2D screen coordinates.
+        # Draw all labels
         for entry in self.labels:
             point = entry['point']
             text = entry['text']
 
             projected = mvp.map(self._obtain_label_vec(point))
-            # Perform perspective division
             if projected.w() != 0:
                 ndc_x = projected.x() / projected.w()
                 ndc_y = projected.y() / projected.w()
             else:
                 ndc_x, ndc_y = 0, 0
-            # Convert normalized device coordinates to screen coordinates.
+
             x = int((ndc_x * 0.5 + 0.5) * self.width())
             y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
             painter.drawText(x, y, text)
 
         painter.end()
+
+        # Restore GL context for next frame
+        gl_widget.doneCurrent()
 
     @staticmethod
     def _obtain_label_vec(pt):
