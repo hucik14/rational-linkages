@@ -30,7 +30,7 @@ class MotionInterpolation:
 
         # 4-pose interpolation
 
-        from rational_linkages import (DualQuaternion, Plotter, FactorizationProvider,
+        from rational_linkages import (DualQuaternion, Plotter,
                                        MotionInterpolation, RationalMechanism)
 
 
@@ -44,7 +44,7 @@ class MotionInterpolation:
         c = MotionInterpolation.interpolate([p0, p1, p2, p3])
 
         # factorize the motion curve
-        f = FactorizationProvider().factorize_motion_curve(c)
+        f = c.factorize()
 
         # create a mechanism from the factorization
         m = RationalMechanism(f)
@@ -61,7 +61,7 @@ class MotionInterpolation:
 
     .. testcleanup:: [motion_interpolation_example1]
 
-        del DualQuaternion, Plotter, FactorizationProvider, MotionInterpolation
+        del DualQuaternion, Plotter, MotionInterpolation
         del RationalMechanism
         del p0, p1, p2, p3, c, f, m, myplt, pose
 

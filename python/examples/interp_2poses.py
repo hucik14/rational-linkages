@@ -26,6 +26,6 @@ p = Plotter(mechanism=m, steps=500, arrows_length=0.05)
 p.plot(p0)
 p.plot(p1)
 
-p.plot(interpolated_curve, interval='closed', label='interpolated curve')
+p.plot(interpolated_curve, interval='closed')
 
 p.show()

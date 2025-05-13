@@ -66,7 +66,7 @@ Here is presented an example of cubic interpolation of 4 poses.
 
     # Cubic interpolation of 4 poses
 
-    from rational_linkages import DualQuaternion, Plotter, FactorizationProvider, MotionInterpolation, RationalMechanism
+    from rational_linkages import DualQuaternion, Plotter, MotionInterpolation, RationalMechanism
 
 
     # 4 poses
@@ -98,7 +98,7 @@ Here is presented an example of cubic interpolation of 4 poses.
 .. testcleanup:: [motion_interp_example2]
 
     del myplt, p0, p1, p2, p3, c, fs, m
-    del DualQuaternion, Plotter, FactorizationProvider, MotionInterpolation
+    del DualQuaternion, Plotter, MotionInterpolation
     del RationalMechanism
 
 The input are 4 dual quaternions, :math:`p_0, p_1, p_2, p_3`, and the output is a
@@ -174,7 +174,7 @@ position of the 3rd pose to achieve the shortest curve-path length.
     p.plot(p0)
     p.plot(p1)
 
-    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
+    p.plot(interpolated_curve, interval='closed')
 
     p.show()
 
@@ -223,7 +223,7 @@ transformation.
 
     p = Plotter(mechanism=m, steps=500, arrows_length=0.5)
 
-    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
+    p.plot(interpolated_curve, interval='closed')
 
     for i, pt in enumerate(points):
         # pt = rebase.inv().act(pt)  # uncomment to plot the points in the mechanism path
@@ -283,7 +283,7 @@ by a static transformation.
 
     p = Plotter(mechanism=m, steps=1000, arrows_length=0.5)
 
-    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
+    p.plot(interpolated_curve, interval='closed')
 
     for i, pt in enumerate(points):
         # pt = rebase.inv().act(pt)  # uncomment to plot the points in the mechanism path

@@ -80,5 +80,3 @@ class Plotter:
         Show the plot.
         """
         self.plt.show()
-
-
