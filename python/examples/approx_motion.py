@@ -3,7 +3,7 @@ import numpy as np
 from rational_linkages import (
     DualQuaternion,
     MotionInterpolation,
-    PlotterPyqtgraph as Plotter,
+    Plotter,
     RationalMechanism,
     TransfMatrix,
     MotionApproximation,
@@ -19,7 +19,7 @@ c = MotionInterpolation.interpolate([p0, p1, p2, p3])
 
 # t_sols2 = MotionInterpolation._solve_for_t([p0, p1, p2, p3], MotionInterpolation._obtain_k_dq([p0, p1, p2, p3]))
 # print(t_sols2)
-t_sols = MotionInterpolation._solve_for_t_numerically([p0, p1, p2, p3], MotionInterpolation._obtain_k_dq([p0, p1, p2, p3]))
+t_sols = MotionInterpolation._solve_for_t([p0, p1, p2, p3], MotionInterpolation._obtain_k_dq([p0, p1, p2, p3])[0])
 # print(t_sols)
 
 add_t = 1.7
@@ -34,20 +34,24 @@ myinf = 1/np.finfo(float).eps
 ts = np.concatenate((myinf, t_sols, [add_t, add_t2]), axis=None)
 
 a, res = MotionApproximation.approximate(c, [p0, p1, p2, p3, p4, p5], ts)
-print(res.x[24:])
+
+af, res2 = MotionApproximation.force_study_quadric(a)
 
 # p = Plotter(mechanism=m, steps=1000, arrows_length=0.5)
 p = Plotter(arrows_length=0.5)
 
-if a.is_on_study_quadric():
-    m = RationalMechanism(a.factorize())
-    p.plot(m.curve(), interval='closed', with_poses=True)
-    print("")
-    print("Result on Study Quadric")
-else:
-    p.plot(a, interval='closed')
-    print("")
-    print("Optimization did not converge (result not on study quadric)")
+p.plot(a, interval='closed', color='blue')
+p.plot(af, interval='closed', color='red')
+
+# if a.is_on_study_quadric():
+#     m = RationalMechanism(a.factorize())
+#     p.plot(m.curve(), interval='closed', with_poses=True)
+#     print("")
+#     print("Result on Study Quadric")
+# else:
+#     p.plot(a, interval='closed')
+#     print("")
+#     print("Optimization did not converge (result not on study quadric)")
 
 
 poses_to_plot = [p0, p1, p2, p3, p4, p5]
@@ -55,6 +59,6 @@ poses_to_plot = [p0, p1, p2, p3, p4, p5]
 for i, pose in enumerate(poses_to_plot):
     p.plot(pose, label=f"p{i}")
 
-p.plot(c, interval='closed', linestyle=':', color='gray')
+# p.plot(c, interval='closed', linestyle=':', color='gray')
 
 p.show()

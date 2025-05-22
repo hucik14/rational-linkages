@@ -148,7 +148,7 @@ class MotionApproximation:
                           initial_guess,
                           constraints=constraints,
                           callback=callback,
-                          options={'maxiter': 200,
+                          options={'maxiter': 50,
                                    'ftol': 1e-16,
                                    },
                           )
