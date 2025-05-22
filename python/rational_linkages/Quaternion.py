@@ -52,6 +52,15 @@ class Quaternion:
         element = element[idx]  # or, p.dob = p.dob.__getitem__(indx)
         return element
 
+    def __setitem__(self, idx, value):
+        """
+        Set an element of Quaternion
+
+        :param idx: index of the Quaternion element to call 0..3
+        :param value: float
+        """
+        self.q[idx] = value
+
     def __repr__(self):
         """
         Printing method override
