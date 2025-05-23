@@ -69,7 +69,11 @@ class MotionFactorization(RationalCurve):
     @property
     def linkage(self):
         if self._linkage is None:
-            self._linkage = self.get_joint_connection_points()
+            try:
+                self._linkage = self.get_joint_connection_points()
+            except ValueError:
+                raise ValueError("Failed to create line model of mechanism. Motion "
+                                 "curve might be out of Study quadric.")
         return self._linkage
 
     def __repr__(self):
