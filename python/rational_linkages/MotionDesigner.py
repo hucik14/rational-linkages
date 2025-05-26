@@ -217,10 +217,19 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         # sliders for adjusting x, y, and z
         self.slider_x = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         self.textbox_x = QtWidgets.QLineEdit()
+        self.textbox_x.editingFinished.connect(
+            lambda: self.on_textbox_changed(self.textbox_x.text(), self.slider_x)
+        )
         self.slider_y = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         self.textbox_y = QtWidgets.QLineEdit()
+        self.textbox_y.editingFinished.connect(
+            lambda: self.on_textbox_changed(self.textbox_y.text(), self.slider_y)
+        )
         self.slider_z = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         self.textbox_z = QtWidgets.QLineEdit()
+        self.textbox_z.editingFinished.connect(
+            lambda: self.on_textbox_changed(self.textbox_z.text(), self.slider_z)
+        )
         # slider range
         for slider, textbox in [(self.slider_x, self.textbox_x),
                                 (self.slider_y, self.textbox_y),
@@ -234,10 +243,19 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             # sliders for adjusting roll, pitch, and yaw with textboxes
             self.slider_roll = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
             self.textbox_roll = QtWidgets.QLineEdit()
+            self.textbox_roll.editingFinished.connect(
+                lambda: self.on_textbox_changed(self.textbox_roll.text(), self.slider_roll)
+            )
             self.slider_pitch = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
             self.textbox_pitch = QtWidgets.QLineEdit()
+            self.textbox_pitch.editingFinished.connect(
+                lambda: self.on_textbox_changed(self.textbox_pitch.text(), self.slider_pitch)
+            )
             self.slider_yaw = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
             self.textbox_yaw = QtWidgets.QLineEdit()
+            self.textbox_yaw.editingFinished.connect(
+                lambda: self.on_textbox_changed(self.textbox_yaw.text(), self.slider_yaw)
+            )
 
             self.slider_roll_prev = 0
             self.slider_pitch_prev = 0
@@ -528,6 +546,21 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             self.motion_family_idx = 0
 
         self.update_curve_vis()
+
+    def on_textbox_changed(self, text, slider):
+        """
+        Update the given slider with the value from the corresponding textbox.
+        """
+        if text is not None:
+            try:
+                value = float(text)
+                slider.blockSignals(True)
+                slider.setValue(int(value * 100))
+                slider.blockSignals(False)
+
+                self.on_slider_value_changed(value)
+            except ValueError:
+                raise ValueError(f"Invalid input for slider: {text}")
 
     def update_curve_vis(self):
         """
