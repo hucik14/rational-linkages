@@ -163,6 +163,8 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         else:
             self.render_mode = 'additive'
 
+        self.previous_rpy_sliders_values = []
+
         # array of control point coordinates (in 3D)
         if method == 'quadratic_from_points' or method == 'cubic_from_points':
             self.plotted_points = np.array([pt.normalized_in_3d()
@@ -187,6 +189,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             for i, pose in enumerate(self.plotted_poses):
                 pose.addToView(self.plotter.widget)
                 self.plotter.widget.add_label(pose, f"p{i}")
+                self.previous_rpy_sliders_values.append(pose.tr.rpy() * 100)
 
         self.curve_path_vis = None  # path of motion curve
         self.curve_frames_vis = None  # poses of motion curve
@@ -196,6 +199,14 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
         ###################################
         # --- build the Control Panel --- #
+        def create_separator():
+            """
+            Create a horizontal line separator (QFrame).
+            """
+            separator = QtWidgets.QFrame()
+            separator.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+            separator.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+            return separator
 
         # combo box to select one of the points
         self.point_combo = QtWidgets.QComboBox()
@@ -205,38 +216,73 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
         # sliders for adjusting x, y, and z
         self.slider_x = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        self.textbox_x = QtWidgets.QLineEdit()
+        self.textbox_x.editingFinished.connect(
+            lambda: self.on_textbox_changed(self.textbox_x.text(), self.slider_x)
+        )
         self.slider_y = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        self.textbox_y = QtWidgets.QLineEdit()
+        self.textbox_y.editingFinished.connect(
+            lambda: self.on_textbox_changed(self.textbox_y.text(), self.slider_y)
+        )
         self.slider_z = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        self.textbox_z = QtWidgets.QLineEdit()
+        self.textbox_z.editingFinished.connect(
+            lambda: self.on_textbox_changed(self.textbox_z.text(), self.slider_z)
+        )
         # slider range
-        for slider in (self.slider_x, self.slider_y, self.slider_z):
+        for slider, textbox in [(self.slider_x, self.textbox_x),
+                                (self.slider_y, self.textbox_y),
+                                (self.slider_z, self.textbox_z)]:
             slider.setMinimum(-1000)
             slider.setMaximum(1000)
             slider.setSingleStep(1)
             slider.valueChanged.connect(self.on_slider_value_changed)
 
         if method == 'quadratic_from_poses' or method == 'cubic_from_poses':
-            # sliders for adjusting x, y, and z
+            # sliders for adjusting roll, pitch, and yaw with textboxes
             self.slider_roll = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+            self.textbox_roll = QtWidgets.QLineEdit()
+            self.textbox_roll.editingFinished.connect(
+                lambda: self.on_textbox_changed(self.textbox_roll.text(), self.slider_roll)
+            )
             self.slider_pitch = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+            self.textbox_pitch = QtWidgets.QLineEdit()
+            self.textbox_pitch.editingFinished.connect(
+                lambda: self.on_textbox_changed(self.textbox_pitch.text(), self.slider_pitch)
+            )
             self.slider_yaw = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+            self.textbox_yaw = QtWidgets.QLineEdit()
+            self.textbox_yaw.editingFinished.connect(
+                lambda: self.on_textbox_changed(self.textbox_yaw.text(), self.slider_yaw)
+            )
 
             self.slider_roll_prev = 0
             self.slider_pitch_prev = 0
             self.slider_yaw_prev = 0
+
             # slider range
-            for slider in (self.slider_roll, self.slider_pitch, self.slider_yaw):
+            for slider, textbox in [(self.slider_roll, self.textbox_roll),
+                                    (self.slider_pitch, self.textbox_pitch),
+                                    (self.slider_yaw, self.textbox_yaw)]:
                 slider.setMinimum(int(-np.pi * 100))
                 slider.setMaximum(int(np.pi * 100))
                 slider.setSingleStep(1)
                 slider.valueChanged.connect(self.on_slider_value_changed)
 
-        # slider for lambda of cubic curve
+        # slider for lambda of cubic curve with textbox
         if method == 'cubic_from_poses':
             self.slider_lambda = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+            self.textbox_lambda = QtWidgets.QLineEdit()
+
             self.slider_lambda.setMinimum(int(-500))
             self.slider_lambda.setMaximum(int(500))
             self.slider_lambda.setSingleStep(1)
+
             self.slider_lambda.valueChanged.connect(self.on_lambda_slider_value_changed)
+            self.textbox_lambda.editingFinished.connect(
+                lambda: self.on_lambda_textbox_changed(self.textbox_lambda.text(),
+                                                       self.slider_lambda))
 
             # add button for swapping family
             self.swap_family_check_box = QtWidgets.QCheckBox(text="Swap family")
@@ -245,6 +291,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         else:
             self.slider_lambda = None
             self.swap_family_check_box = None
+            self.textbox_lambda = None
 
         # add button for mechanism synthesis
         self.synthesize_button = QtWidgets.QPushButton("Mechanism")
@@ -264,23 +311,39 @@ class MotionDesignerWidget(QtWidgets.QWidget):
 
         cp_layout.addWidget(QtWidgets.QLabel("Select control point:"))
         cp_layout.addWidget(self.point_combo)
+        cp_layout.addSpacing(10)
+
         cp_layout.addWidget(QtWidgets.QLabel("Adjust X:"))
         cp_layout.addWidget(self.slider_x)
+        cp_layout.addWidget(self.textbox_x)
         cp_layout.addWidget(QtWidgets.QLabel("Adjust Y:"))
         cp_layout.addWidget(self.slider_y)
+        cp_layout.addWidget(self.textbox_y)
         cp_layout.addWidget(QtWidgets.QLabel("Adjust Z:"))
         cp_layout.addWidget(self.slider_z)
+        cp_layout.addWidget(self.textbox_z)
         if method == 'quadratic_from_poses' or method == 'cubic_from_poses':
+            cp_layout.addSpacing(10)  # Add 10 pixels of space before the separator
+            cp_layout.addWidget(create_separator())
             cp_layout.addWidget(QtWidgets.QLabel("Rotate X:"))
             cp_layout.addWidget(self.slider_roll)
+            cp_layout.addWidget(self.textbox_roll)
             cp_layout.addWidget(QtWidgets.QLabel("Rotate Y:"))
             cp_layout.addWidget(self.slider_pitch)
+            cp_layout.addWidget(self.textbox_pitch)
             cp_layout.addWidget(QtWidgets.QLabel("Rotate Z:"))
             cp_layout.addWidget(self.slider_yaw)
+            cp_layout.addWidget(self.textbox_yaw)
         if method == 'cubic_from_poses':
+            cp_layout.addSpacing(10)  # Add 10 pixels of space before the separator
+            cp_layout.addWidget(create_separator())
+            cp_layout.addSpacing(10)
             cp_layout.addWidget(self.swap_family_check_box)
             cp_layout.addWidget(QtWidgets.QLabel("Lambda:"))
             cp_layout.addWidget(self.slider_lambda)
+            cp_layout.addWidget(self.textbox_lambda)
+
+        cp_layout.addSpacing(20)
         cp_layout.addWidget(self.synthesize_button)
 
         cp_layout.addStretch(1)
@@ -355,26 +418,30 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         """
         index = index + 1  # skip the first point/pose
         sliders = [self.slider_x, self.slider_y, self.slider_z]
+        text_boxes = [self.textbox_x, self.textbox_y, self.textbox_z]
         if self.method == 'quadratic_from_points' or self.method == 'cubic_from_points':
             pt = self.plotted_points[index]
             values = [int(pt[i] * 100) for i in range(3)]
         else:
             sliders.extend([self.slider_roll, self.slider_pitch, self.slider_yaw])
+            text_boxes.extend([self.textbox_roll, self.textbox_pitch, self.textbox_yaw])
             pt = self.plotted_poses[index]
+            rpy = self.previous_rpy_sliders_values[index]
             values = [
                 int(pt.tr.t[0] * 100),
                 int(pt.tr.t[1] * 100),
                 int(pt.tr.t[2] * 100),
-                int(pt.tr.rpy()[0] * 100),
-                int(pt.tr.rpy()[1] * 100),
-                int(pt.tr.rpy()[2] * 100)
+                int(rpy[0]),  # Roll
+                int(rpy[1]),  # Pitch
+                int(rpy[2])  # Yaw
             ]
             (self.slider_roll_prev, self.slider_pitch_prev,
              self.slider_yaw_prev) = values[3:]
-
-        for slider, value in zip(sliders, values):
+        #
+        for slider, text_box, value in zip(sliders, text_boxes, values):
             slider.blockSignals(True)
             slider.setValue(value)
+            text_box.setText(str(value / 100.0))
             slider.blockSignals(False)
 
     def on_synthesize_button_clicked(self):
@@ -419,26 +486,38 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         new_y = self.slider_y.value() / 100.0
         new_z = self.slider_z.value() / 100.0
 
+        self.textbox_x.setText(str(new_x))
+        self.textbox_y.setText(str(new_y))
+        self.textbox_z.setText(str(new_z))
+
         if self.method == 'quadratic_from_poses' or self.method == 'cubic_from_poses':
             if self.slider_roll.value() != self.slider_roll_prev:
-                new_roll = (self.slider_roll_prev - self.slider_roll.value()) / 100.0
+                new_roll = (self.slider_roll.value() - self.slider_roll_prev) / 100.0
                 new_mat = TransfMatrix.from_rotation('x', new_roll)
                 new_tr = self.plotted_poses[index].tr * new_mat
                 self.slider_roll_prev = self.slider_roll.value()
+                self.textbox_roll.setText(str(self.slider_roll.value() / 100.0))
 
             elif self.slider_pitch.value() != self.slider_pitch_prev:
-                new_pitch = (self.slider_pitch_prev - self.slider_pitch.value()) / 100.0
+                new_pitch = (self.slider_pitch.value() - self.slider_pitch_prev) / 100.0
                 new_mat = TransfMatrix.from_rotation('y', new_pitch)
                 new_tr = self.plotted_poses[index].tr * new_mat
                 self.slider_pitch_prev = self.slider_pitch.value()
+                self.textbox_pitch.setText(str(self.slider_pitch.value() / 100.0))
 
             elif self.slider_yaw.value() != self.slider_yaw_prev:
-                new_yaw = (self.slider_yaw_prev - self.slider_yaw.value()) / 100.0
+                new_yaw = (self.slider_yaw.value() - self.slider_yaw_prev) / 100.0
                 new_mat = TransfMatrix.from_rotation('z', new_yaw)
                 new_tr = self.plotted_poses[index].tr * new_mat
                 self.slider_yaw_prev = self.slider_yaw.value()
+                self.textbox_yaw.setText(str(self.slider_yaw.value() / 100.0))
             else:
-                new_tr = TransfMatrix.from_rpy_xyz(self.plotted_poses[index].tr.rpy(), [new_x, new_y, new_z])
+                new_tr = TransfMatrix.from_rpy_xyz(self.plotted_poses[index].tr.rpy(),
+                                                   [new_x, new_y, new_z])
+
+            self.previous_rpy_sliders_values[index][0] = self.slider_roll.value()
+            self.previous_rpy_sliders_values[index][1] = self.slider_pitch.value()
+            self.previous_rpy_sliders_values[index][2] = self.slider_yaw.value()
 
             new_dq = DualQuaternion(new_tr.matrix2dq())
             self.points[index] = new_dq
@@ -461,6 +540,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         the motion curve.
         """
         self.lambda_val = self.slider_lambda.value() / 100.0
+        self.textbox_lambda.setText(str(self.lambda_val))
         self.update_curve_vis()
 
     def on_swap_family_check_box_changed(self, state):
@@ -474,6 +554,43 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             self.motion_family_idx = 0
 
         self.update_curve_vis()
+
+    def on_lambda_textbox_changed(self, text, slider):
+        """
+        Update the given slider with the value from the corresponding textbox.
+
+        :param str text: The text input from the textbox. Should be a number.
+        :param slider: The slider to update with the new value.
+        """
+        if text is not None:
+            try:
+                value = float(text)
+                slider.blockSignals(True)
+                slider.setValue(int(value * 100))
+                slider.blockSignals(False)
+
+                if abs(value - 1.0) < 1e-10:
+                    value = 1.00000001  # avoid numerical issues with 1.0
+                    print("Warning: lambda value set to 1.0, using 1.00000001 instead.")
+                self.lambda_val = value
+                self.update_curve_vis()
+            except ValueError:
+                raise ValueError(f"Invalid input for slider: {text}")
+
+    def on_textbox_changed(self, text, slider):
+        """
+        Update the given slider with the value from the corresponding textbox.
+        """
+        if text is not None:
+            try:
+                value = float(text)
+                slider.blockSignals(True)
+                slider.setValue(int(value * 100))
+                slider.blockSignals(False)
+
+                self.on_slider_value_changed(value)
+            except ValueError:
+                raise ValueError(f"Invalid input for slider: {text}")
 
     def update_curve_vis(self):
         """
