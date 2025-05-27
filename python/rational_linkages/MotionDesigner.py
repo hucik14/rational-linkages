@@ -558,15 +558,22 @@ class MotionDesignerWidget(QtWidgets.QWidget):
     def on_lambda_textbox_changed(self, text, slider):
         """
         Update the given slider with the value from the corresponding textbox.
+
+        :param str text: The text input from the textbox. Should be a number.
+        :param slider: The slider to update with the new value.
         """
         if text is not None:
             try:
                 value = float(text)
-                slider.blockSignals(True) # TODO 1 is not accepted
+                slider.blockSignals(True)
                 slider.setValue(int(value * 100))
                 slider.blockSignals(False)
 
-                self.on_lambda_slider_value_changed(value)
+                if abs(value - 1.0) < 1e-10:
+                    value = 1.00000001  # avoid numerical issues with 1.0
+                    print("Warning: lambda value set to 1.0, using 1.00000001 instead.")
+                self.lambda_val = value
+                self.update_curve_vis()
             except ValueError:
                 raise ValueError(f"Invalid input for slider: {text}")
 
