@@ -609,7 +609,6 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         elif self.method == 'quadratic_from_poses':
             coeffs = self.mi.interpolate_quadratic_numerically(self.points)
         elif self.method == 'cubic_from_poses':
-            print(self.lambda_val)
             coeffs = self.mi.interpolate_cubic_numerically(self.points,
                                                            lambda_val=self.lambda_val,
                                                            k_idx=self.motion_family_idx)
