@@ -244,7 +244,10 @@ class RationalMechanism(RationalCurve):
         :param bool onshape_print: if True, print the parameters in a form that can be
             directly copied to Onshape
 
-        :return: design parameters of the linkage
+        :return: design parameters of the linkage (dh, design_params, design_points)
+            dh - Denavit-Hartenberg parameters of the linkage, design_params - point
+            parameters on the joint axes in respect to the screw, design_points - points
+            on the joint axes
         :rtype: tuple (np.ndarray, np.ndarray, list)
         """
         screws = deepcopy(self.get_screw_axes())
