@@ -274,10 +274,15 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         if method == 'cubic_from_poses':
             self.slider_lambda = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
             self.textbox_lambda = QtWidgets.QLineEdit()
+
             self.slider_lambda.setMinimum(int(-500))
             self.slider_lambda.setMaximum(int(500))
             self.slider_lambda.setSingleStep(1)
+
             self.slider_lambda.valueChanged.connect(self.on_lambda_slider_value_changed)
+            self.textbox_lambda.editingFinished.connect(
+                lambda: self.on_lambda_textbox_changed(self.textbox_lambda.text(),
+                                                       self.slider_lambda))
 
             # add button for swapping family
             self.swap_family_check_box = QtWidgets.QCheckBox(text="Swap family")
@@ -286,6 +291,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         else:
             self.slider_lambda = None
             self.swap_family_check_box = None
+            self.textbox_lambda = None
 
         # add button for mechanism synthesis
         self.synthesize_button = QtWidgets.QPushButton("Mechanism")
@@ -335,6 +341,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             cp_layout.addWidget(self.swap_family_check_box)
             cp_layout.addWidget(QtWidgets.QLabel("Lambda:"))
             cp_layout.addWidget(self.slider_lambda)
+            cp_layout.addWidget(self.textbox_lambda)
 
         cp_layout.addSpacing(20)
         cp_layout.addWidget(self.synthesize_button)
@@ -533,6 +540,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         the motion curve.
         """
         self.lambda_val = self.slider_lambda.value() / 100.0
+        self.textbox_lambda.setText(str(self.lambda_val))
         self.update_curve_vis()
 
     def on_swap_family_check_box_changed(self, state):
@@ -546,6 +554,21 @@ class MotionDesignerWidget(QtWidgets.QWidget):
             self.motion_family_idx = 0
 
         self.update_curve_vis()
+
+    def on_lambda_textbox_changed(self, text, slider):
+        """
+        Update the given slider with the value from the corresponding textbox.
+        """
+        if text is not None:
+            try:
+                value = float(text)
+                slider.blockSignals(True) # TODO 1 is not accepted
+                slider.setValue(int(value * 100))
+                slider.blockSignals(False)
+
+                self.on_lambda_slider_value_changed(value)
+            except ValueError:
+                raise ValueError(f"Invalid input for slider: {text}")
 
     def on_textbox_changed(self, text, slider):
         """
@@ -579,6 +602,7 @@ class MotionDesignerWidget(QtWidgets.QWidget):
         elif self.method == 'quadratic_from_poses':
             coeffs = self.mi.interpolate_quadratic_numerically(self.points)
         elif self.method == 'cubic_from_poses':
+            print(self.lambda_val)
             coeffs = self.mi.interpolate_cubic_numerically(self.points,
                                                            lambda_val=self.lambda_val,
                                                            k_idx=self.motion_family_idx)
