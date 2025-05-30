@@ -1,6 +1,6 @@
 import numpy as np
 
-from rational_linkages import RationalCurve, Plotter, RationalMechanism, DualQuaternion, MotionFactorization, PointHomogeneous
+from rational_linkages import RationalCurve, Plotter, RationalMechanism, DualQuaternion, MotionFactorization, PointHomogeneous, MotionInterpolation
 
 
 ### Bennett linkage
@@ -13,9 +13,26 @@ coeffs = np.array([[0, 0, 0],
                    [-2664, -1473, 6510],
                    [-1332, -1881, -3906]])
 
+# define a rational curve object
 c = RationalCurve.from_coeffs(coeffs)
-bennett_ark24 = RationalMechanism(c.factorize())
+# factorize the curve
+factors = c.factorize()
+
+factors[0].set_joint_connection_points(
+    [PointHomogeneous([1, -0.09766832, 0.04903487, -0.43889732]),
+     PointHomogeneous([1, -0.00154614, -0.05103096, -0.34090308]),
+     PointHomogeneous([1, -0.06544225, -0.19215265, -0.05421835]),
+     PointHomogeneous([1, -4.53371421e-03, -1.93493200e-01, 3.07273305e-04])])
+factors[1].set_joint_connection_points(
+    [PointHomogeneous([1, -0.12325908, -0.05714298, 0.21982814]),
+     PointHomogeneous([1, -0.03221804, -0.01370668, 0.18784829]),
+     PointHomogeneous([1, -0.06937755, 0.22790725, 0.07179236]),
+     PointHomogeneous([1, 0.00681783, 0.2248944, -0.00213832])])
+
+# define a mechanism object
+bennett_ark24 = RationalMechanism(factors)
 bennett_ark24.save('bennett_ark24')
+print('bennett_ark24 saved')
 
 ### Collision-free 6R
 h1li = np.array([0, 1, 0, 0, 0, 0, 0, 0])
@@ -55,6 +72,7 @@ f2.set_joint_connection_points([PointHomogeneous([1, -0.67209203533440663286, 1.
                                 PointHomogeneous([1, -0.1135709493, -0.1602769278, 0.2114655719])])
 collisions_free_6r = RationalMechanism([f1, f2])
 collisions_free_6r.save('collisions_free_6r')
+print('collisions_free_6r saved')
 
 ### Plane-fold 6R
 h1 = DualQuaternion.as_rational([0, 1, 0, 0, 0, 0, 0, 0])
@@ -64,7 +82,19 @@ h3 = DualQuaternion.as_rational([0, 1, 1, 0, 0, 0, 0, -2])
 f1 = MotionFactorization([h1, h2, h3])
 plane_fold_6r = RationalMechanism(f1.factorize())
 plane_fold_6r.save('plane_fold_6r')
+print('plane_fold_6r saved')
 
+
+### 6R motion interpolation
+p0 = DualQuaternion()
+p1 = DualQuaternion.as_rational([0, 0, 0, 1, 1, 0, 1, 0])
+p2 = DualQuaternion.as_rational([1, 2, 0, 0, -2, 1, 0, 0])
+p3 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
+
+c = MotionInterpolation.interpolate([p0, p1, p2, p3])
+interp_4poses_6r = RationalMechanism(c.factorize())
+interp_4poses_6r.save('interp_4poses_6r')
+print('interp_4poses_6r saved')
 
 # p = Plotter(mechanism=m, arrows_length=0.05, joint_sliders_lim=0.5)
 # p.plot(plane_fold_6r)

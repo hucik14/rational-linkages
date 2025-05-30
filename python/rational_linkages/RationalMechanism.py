@@ -220,11 +220,13 @@ class RationalMechanism(RationalCurve):
     def get_design(self,
                    unit: str = 'rad',
                    scale: float = 1.0,
-                   joint_length: float = 20.0,
-                   washer_length: float = 1.0,
+                   joint_length: float = 0.02,
+                   washer_length: float = 0.001,
+                   return_point_homogeneous: bool = False,
                    update_design: bool = False,
                    pretty_print: bool = True,
-                   onshape_print: bool = False) -> tuple[np.ndarray, np.ndarray, list]:
+                   onshape_print: bool = False,
+                   ) -> tuple[np.ndarray, np.ndarray, list]:
         """
         Get the design parameters of the linkage for the CAD model.
 
@@ -233,18 +235,25 @@ class RationalMechanism(RationalCurve):
 
         :param str unit: desired unit of the angle parameters, can be 'deg' or 'rad'
         :param float scale: scale of the length parameters of the linkage
-        :param float joint_length: length of the joint segment in mm; default is 20 mm
-            which corresponds to the CAD model that connects two 20 mm joint parts and
-            has 1 mm thick washer between. Total length of the joint is 41 mm. It is
-            used to calculate a midpoint distance between the two links that connect.
+        :param float joint_length: length of the joint segment in mm; default is 0.02 m
+            (20 mm) which corresponds to the CAD model that connects two 20 mm joint
+            parts and has 0.001 m (1 mm) thick washer between. Total length of the
+            joint is 41 mm. It is used to calculate a midpoint distance between
+            the two links that connect.
         :param float washer_length: length of the washer in mm; default is 1 mm
-        :param bool update_design: if True, update the design of the mechanism (including joint segments)
+        :param bool return_point_homogeneous: if True, return the design points as
+            PointHomogeneous objects, otherwise return them as 3D numpy arrays
+        :param bool update_design: if True, update the design of the mechanism
+            (including joint segments)
         :param bool pretty_print: if True, print the parameters in a readable form,
             otherwise return a numpy array
         :param bool onshape_print: if True, print the parameters in a form that can be
             directly copied to Onshape
 
-        :return: design parameters of the linkage
+        :return: design parameters of the linkage (dh, design_params, design_points)
+            dh - Denavit-Hartenberg parameters of the linkage, design_params - point
+            parameters on the joint axes in respect to the screw, design_points - points
+            on the joint axes
         :rtype: tuple (np.ndarray, np.ndarray, list)
         """
         screws = deepcopy(self.get_screw_axes())
@@ -252,7 +261,7 @@ class RationalMechanism(RationalCurve):
         frames = self.get_frames()
 
         connection_params = self.get_segment_connections()
-        mid_pts_dist = (joint_length + washer_length) / scale
+        mid_pts_dist = (joint_length + washer_length)
         connection_params = self.map_connection_params(connection_params, mid_pts_dist)
 
         if update_design:
@@ -276,18 +285,24 @@ class RationalMechanism(RationalCurve):
         design_params = np.zeros((self.num_joints, 2))
 
         for i in range(self.num_joints):
+            # compensate d-ith parameter of DH
             design_params[i, 0] = (connection_params[i, 1]
                                    - screws[i].get_point_param(frames[i].t))
             design_params[i, 1] = (connection_params[i+1, 0]
                                    - screws[i+1].get_point_param(frames[i+1].t))
 
-        design_params = design_params * scale
-
         design_points = []
         for i in range(self.num_joints):
-            design_points.append(
-                [screws[i].direction + design_params[i, 0] * screws[i].direction,
-                 screws[i].direction + design_params[i, 1] * screws[i].direction])
+            if return_point_homogeneous:
+                design_points.append(
+                    [PointHomogeneous.from_3d_point(
+                        screws[i].point_on_line(connection_params[i, 0])),
+                     PointHomogeneous.from_3d_point(
+                         screws[i].point_on_line(connection_params[i, 1]))])
+            else:
+                design_points.append(
+                    [screws[i].point_on_line(connection_params[i, 0]),
+                     screws[i].point_on_line(connection_params[i, 1])])
 
         # ignore the first row (base frame)
         dh = self.get_dh_params(unit=unit, scale=scale)

@@ -236,11 +236,21 @@ class TestRationalMechanism(TestCase):
                                 [0., 0., 10 * 1 / 6, 0.],
                                 [3.14159265, 0., 5, 0.],
                                 [0., 0., 10 * 1 / 6, 0.]])
-        expected_design_params = np.array([[13.5, -8.], [13., -10.],
-                                           [11., -11.], [10., -7.5]])
+        expected_design_params = np.array([[0.3105, 0.2395],
+                                           [0.2605, 0.0395],
+                                           [0.060500000000000005,
+                                            -0.060500000000000005],
+                                           [-0.0395, 0.2895]])
+        expected_points = np.array([[[0., 0., 0.2895], [0., 0., 0.3105]],
+                                    [[-0.5,0., 0.2395], [-0.5,0.,0.2605]],
+                                    [[-0.66666667,  0., 0.0395],
+                                     [-0.66666667,  0., 0.0605]],
+                                    [[-0.16666667,  0., -0.0605],
+                                     [-0.16666667, 0., -0.0395,]]])
 
         self.assertTrue(np.allclose(dh, expected_dh))
         self.assertTrue(np.allclose(design_params, expected_design_params))
+        self.assertTrue(np.allclose(design_points, expected_points))
 
         dh, design_params, design_points = m.get_design(unit='deg')
         expected_dh = np.array([[180, 0., 0.5, 0.],
@@ -248,6 +258,17 @@ class TestRationalMechanism(TestCase):
                                 [180, 0., 0.5, 0.],
                                 [0., 0., 1 / 6, 0.]])
         self.assertTrue(np.allclose(dh, expected_dh))
+
+        m = bennett_ark24()
+        dh, design_params, design_points = m.get_design(scale=200,
+                                                        joint_length=20,
+                                                        washer_length=1)
+        expected_dh = np.array([[-2.278633566902332, 1.1102230246251565e-14, 48.517960986215606, -2.525127906877729], [1.507333611505304, -1.795166417008937e-14, 83.708761121296, -1.6415475452692962], [2.278633566902332, 1.330912817342702e-14, 48.51796098621555, -2.525127906877729], [-1.507333611505304, 6.2063353831181824e-15, 83.70876112129604, -1.6415475452692958]])
+
+        expected_design_params = np.array([[10.13590812892104, 10.540989104548187], [-10.459010895451813, 10.44486486722908], [-10.55513513277092, -10.256494380292528], [10.743505619707472, -10.86409187107896]])
+
+        self.assertTrue(np.allclose(dh, expected_dh))
+        self.assertTrue(np.allclose(design_params, expected_design_params))
 
         with self.assertRaises(ValueError):
             m.get_design(unit='invalid_unit')
