@@ -211,7 +211,7 @@ for 3D-printing. The unspecified arguments using line :code:`dh, cp, _ = m.get_d
 would have output in radians and without scaling, for example:
 
 .. code-block:: text
-        :caption: Exemple of default output
+        :caption: Example of default output
 
         Link 0: d = 0.322901, a = 0.242590, alpha = -2.525128
         cp_0 = 10.457928, cp_1 = 10.541352
