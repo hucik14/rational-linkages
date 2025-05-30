@@ -285,6 +285,7 @@ class RationalMechanism(RationalCurve):
         design_params = np.zeros((self.num_joints, 2))
 
         for i in range(self.num_joints):
+            # compensate d-ith parameter of DH
             design_params[i, 0] = (connection_params[i, 1]
                                    - screws[i].get_point_param(frames[i].t))
             design_params[i, 1] = (connection_params[i+1, 0]
@@ -295,13 +296,13 @@ class RationalMechanism(RationalCurve):
             if return_point_homogeneous:
                 design_points.append(
                     [PointHomogeneous.from_3d_point(
-                        screws[i].point_on_line(design_params[i, 0])),
+                        screws[i].point_on_line(connection_params[i, 0])),
                      PointHomogeneous.from_3d_point(
-                         screws[i].point_on_line(design_params[i, 1]))])
+                         screws[i].point_on_line(connection_params[i, 1]))])
             else:
                 design_points.append(
-                    [screws[i].point_on_line(design_params[i, 0]),
-                     screws[i].point_on_line(design_params[i, 1])])
+                    [screws[i].point_on_line(connection_params[i, 0]),
+                     screws[i].point_on_line(connection_params[i, 1])])
 
         # ignore the first row (base frame)
         dh = self.get_dh_params(unit=unit, scale=scale)
