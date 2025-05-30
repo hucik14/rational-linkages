@@ -53,7 +53,7 @@ class PlotterPyqtgraph:
 
         if self.white_background:
             self.widget.setBackgroundColor(255, 255, 255, 255)
-            self.render_mode = 'opaque'
+            self.render_mode = 'translucent'
         else:
             self.render_mode = 'additive'
 
@@ -680,7 +680,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
 
         self.white_background = white_background
         if self.white_background:
-            self.render_mode = 'opaque'
+            self.render_mode = 'translucent'
         else:
             self.render_mode = 'additive'
 
@@ -913,8 +913,22 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         """
         filename = self.save_figure_box.text()
 
-        self.plotter.widget.readQImage().save(filename + ".png")
-        # self.plotter.widget.readQImage().save(filename + ".png", quality=100)
+        # better quality but does not save the text overlay
+        #self.plotter.widget.readQImage().save(filename + "_old.png")
+        #self.plotter.widget.readQImage().save(filename + "_old.png", quality=100)
+
+        image = QtGui.QImage(self.plotter.widget.size(),
+                             QtGui.QImage.Format.Format_ARGB32_Premultiplied)
+        image.fill(QtCore.Qt.GlobalColor.transparent)
+
+        # Create a painter and render the widget into the image
+        painter = QtGui.QPainter(image)
+        self.plotter.widget.render(painter)
+        painter.end()
+
+        # Save the image
+        image.save(filename + ".png", "PNG", 80)
+
         QtWidgets.QMessageBox.information(self,
                                           "Success",
                                           f"Figure saved as {filename}.png")

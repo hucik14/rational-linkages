@@ -48,16 +48,16 @@ class PlotterMatplotlib:
         # use interactive backend for interactive plotting
         if interactive and not jupyter_notebook:
             try:
-                matplotlib.use("Qt5Agg")
+                matplotlib.use("macosx")
             except:
                 try:
-                    matplotlib.use("qtagg")
+                    matplotlib.use("QtAgg")
                 except:
                     try:
-                        matplotlib.use("macosx")
+                        matplotlib.use("qtagg")
                     except:
                         raise RuntimeError(
-                            "Qt5Agg backend is not available. Please install PyQt5."
+                            "Try to "
                         )
 
         self.fig = plt.figure()
