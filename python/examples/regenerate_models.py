@@ -1,6 +1,6 @@
 import numpy as np
 
-from rational_linkages import RationalCurve, Plotter, RationalMechanism, DualQuaternion, MotionFactorization, PointHomogeneous
+from rational_linkages import RationalCurve, Plotter, RationalMechanism, DualQuaternion, MotionFactorization, PointHomogeneous, MotionInterpolation
 
 
 ### Bennett linkage
@@ -84,6 +84,17 @@ plane_fold_6r = RationalMechanism(f1.factorize())
 plane_fold_6r.save('plane_fold_6r')
 print('plane_fold_6r saved')
 
+
+### 6R motion interpolation
+p0 = DualQuaternion()
+p1 = DualQuaternion.as_rational([0, 0, 0, 1, 1, 0, 1, 0])
+p2 = DualQuaternion.as_rational([1, 2, 0, 0, -2, 1, 0, 0])
+p3 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
+
+c = MotionInterpolation.interpolate([p0, p1, p2, p3])
+interp_4poses_6r = RationalMechanism(c.factorize())
+interp_4poses_6r.save('interp_4poses_6r')
+print('interp_4poses_6r saved')
 
 # p = Plotter(mechanism=m, arrows_length=0.05, joint_sliders_lim=0.5)
 # p.plot(plane_fold_6r)
