@@ -66,8 +66,7 @@ frequency = 20  # Hz
 num_points = int(total_time_of_motion * frequency)
 
 # visualize the mechanism and the poses
-p = Plotter(interactive=True, steps=500, arrows_length=0.05, joint_range_lim=0.1)
-p.plot(m, show_tool=True)
+p = Plotter(mechanism=m, backend='matplotlib', steps=500, arrows_length=0.05, joint_sliders_lim=0.1)
 #p.plot(m.curve(), interval='closed')
 p.plot(p0, label=r'$\mathbf{p}_0$ (origin)')
 p.plot(p1, label=r'$\mathbf{p}_1$')
@@ -90,7 +89,7 @@ plt.plot(vel)
 plt.plot(acc)
 plt.xlabel('Time-step')
 plt.ylabel('Joint pos [rad], vel [rad/s], acc [rad/s^2]')
-plt.legend(['Pos (origin)', 'Vel (origin)', 'Acc (origin)'])
+plt.legend(['Pos (quintic)', 'Vel', 'Acc'])
 plt.title('Smooth joint-space trajectory')
 plt.grid()
 plt.show()
@@ -121,7 +120,7 @@ plt.plot(acc2, 'C4', linestyle=':')
 plt.xlabel('Time-step')
 plt.ylabel('Joint pos [rad], vel [rad/s], acc [rad/s^2]')
 plt.title('Smooth tool motion trajectory')
-plt.legend(['Pos (origin)', 'Vel (origin)', 'Acc (origin)',
+plt.legend(['Pos (identity)', 'Vel (identity)', 'Acc (identity)',
             'Pos (tool on side)', 'Vel (tool on side)', 'Acc (tool on side)'])
 plt.grid()
 plt.show()

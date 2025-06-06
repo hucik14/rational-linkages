@@ -373,7 +373,6 @@ class TestDualQuaternion(unittest.TestCase):
         expected_imag = np.array([2, 3, 4, 6, 7, 8])
         self.assertTrue(np.array_equal(dq.imag(), expected_imag))
 
-
     def test_normalize(self):
         dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
         normalized_dq = dq.normalize()
@@ -387,6 +386,32 @@ class TestDualQuaternion(unittest.TestCase):
         dq = DualQuaternion([0, 2, 3, 4, 5, 6, 7, 8])
         self.assertRaises(ValueError, dq.normalize)
 
+    def test_setitem(self):
+        # Initialize a DualQuaternion with specific values
+        dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
 
+        # Modify elements in the primal quaternion (indices 0 to 3)
+        dq[0] = 10
+        dq[1] = 20
+        dq[2] = 30
+        dq[3] = 40
 
+        # Verify the changes in the primal quaternion
+        self.assertTrue(np.allclose(dq.p.array(), np.array([10, 20, 30, 40])))
 
+        # Modify elements in the dual quaternion (indices 4 to 7)
+        dq[4] = 50
+        dq[5] = 60
+        dq[6] = 70
+        dq[7] = 80
+
+        # Verify the changes in the dual quaternion
+        self.assertTrue(np.allclose(dq.d.array(), np.array([50, 60, 70, 80])))
+
+        # Verify the updated array representation of the DualQuaternion
+        expected_array = np.array([10, 20, 30, 40, 50, 60, 70, 80])
+        self.assertTrue(np.allclose(dq.array(), expected_array))
+
+        # Test invalid index
+        with self.assertRaises(IndexError):
+            dq[8] = 100

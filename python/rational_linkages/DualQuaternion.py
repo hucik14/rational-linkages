@@ -291,6 +291,20 @@ class DualQuaternion:
         element = element[idx]  # or, p.dob = p.dob.__getitem__(idx)
         return element
 
+    def __setitem__(self, idx, value):
+        """
+        Set an element of DualQuaternion
+
+        :param int idx: index of the element to set (0..7)
+        :param value: value to set
+        """
+        if idx < 4:
+            self.p[idx] = value
+        else:
+            self.d[idx - 4] = value
+        # Update the array representation
+        self.dq = self.array()
+
     def __eq__(self, other) -> bool:
         """
         Compare two DualQuaternions if they are equal

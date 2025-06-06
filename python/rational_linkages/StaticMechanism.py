@@ -35,7 +35,8 @@ class StaticMechanism(RationalMechanism):
     .. testcode:: [StaticMechanism_example1]
 
         # Define a 4-bar mechanism from points
-        from rational_linkages import StaticMechanism, NormalizedLine
+        from rational_linkages import NormalizedLine
+        from rational_linkages.StaticMechanism import StaticMechanism
 
 
         l0 = NormalizedLine.from_two_points([0.0, 0.0, 0.0],
@@ -64,7 +65,7 @@ class StaticMechanism(RationalMechanism):
     .. testcode:: [StaticMechanism_example2]
 
         # Define a 6-bar mechanism from algebraic IJK representation
-        from rational_linkages import StaticMechanism
+        from rational_linkages.StaticMechanism import StaticMechanism
         from sympy import symbols
 
         epsilon, i, j, k = symbols('epsilon i j k')
@@ -239,7 +240,7 @@ class SnappingMechanism(StaticMechanism):
 
             m.get_design(unit='deg', scale=150)
 
-            p = Plotter(interactive=True, arrows_length=0.1)
+            p = Plotter(mechanism=m, arrows_length=0.1)
             p.plot(p0, label='origin')
             p.plot(p1, label='pose')
             p.plot_line_segments_between_points(m.points_discrete_poses[0] + [m.points_discrete_poses[0][0]], color='red')

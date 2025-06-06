@@ -1,10 +1,15 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = [
+    "setuptools>=61",
+    "setuptools-rust>=1.6",
+    "wheel",
+    "cibuildwheel>=2.16",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "1.10.2"
+version = "1.11.dev2"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -14,24 +19,30 @@ license = {"file"= "LICENSE"}
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Rust",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Operating System :: OS Independent",
 ]
 
 dependencies = [
+    "biquaternion-py >= 1.2.0",
     "scipy >= 1.10.0",
     "sympy >= 1.10.0",
-    "matplotlib >= 3.7.0",
-    "biquaternion-py >= 1.2.0",
-    "PyQt5 >= 5.15.10",
+    "PyQt6 >= 6.2.0",
+    "pyqtgraph >= 0.12.4",
+    "PyOpenGL >= 3.0.0",
 ]
 
 [project.optional-dependencies]
 opt = [
     "ipython >= 8.0.0",
     "gmpy2 >= 2.2.0",
+    "matplotlib >= 3.9.0",
+]
+exu = [
     "exudyn >= 1.9.0",
     "numpy-stl >= 3.0.0",
+    "ngsolve >= 6.2.0",
 ]
 doc = [
     "sphinx",
@@ -61,6 +72,35 @@ include = ["rational_linkages*"]
 [tool.setuptools.package-data]
 "rational_linkages.data" = ["*.pkl"]
 
+[[tool.setuptools-rust.ext-modules]]
+target = "rational_linkages.utils_rust"
+path = "rust/Cargo.toml"
+binding = "PyO3"
+
+[tool.cibuildwheel]
+build = "*"
+skip = "pp*"
+manylinux-x86_64-image = "manylinux2014"
+manylinux-aarch64-image = "manylinux2014"
+environment = { CARGO_TERM_COLOR = "always" }
+#before-build = "pip install ."
+#test-command = "pytest {package}/python/tests"
+#test-skip = ["*-macosx_arm64", "*-macosx_x86_64"]
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64"]
+environment = { PATH = "$HOME/.cargo/bin:$PATH" }
+before-build = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+# run at host before cibuildwheel: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]
+# archs = ["arm64"]
+
+[tool.cibuildwheel.macos]
+archs = ["arm64", "x86_64"]
+environment = { MACOSX_DEPLOYMENT_TARGET = "12.0.1" }
+
 [project.urls]
 Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"
 Documentation = "http://rational-linkages.readthedocs.io/"
@@ -88,8 +128,12 @@ command_line = "-m pytest python/tests"
 omit = [
     "*/test*",
     "*__init__.py",
-    "*Plotter.py",
+    "*PlotterMatplotlib.py",
+    "*PlotterPyqtgraph.py",
+    "*MotionDesigner.py",
     "*MotionApproximation.py",
     "*StaticMechanism.py",
     "*AffineMetric.py",
+    "*CollisionAnalyser.py",
+    "*Miniball.py",
     ]

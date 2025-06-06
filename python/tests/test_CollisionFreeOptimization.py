@@ -2,7 +2,8 @@ import unittest
 from unittest.mock import MagicMock
 from itertools import product
 from rational_linkages.models import bennett_ark24
-from rational_linkages import CollisionFreeOptimization, CombinatorialSearch
+from rational_linkages import CollisionFreeOptimization
+from rational_linkages.CollisionFreeOptimization import CombinatorialSearch
 
 
 class CollisionFreeOptimizationTests(unittest.TestCase):

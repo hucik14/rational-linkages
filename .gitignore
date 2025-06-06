@@ -2,7 +2,12 @@
 python/.idea/
 python/conda-env/
 .idea/
+
+# Exudyn files
 *coordinatesSolution.txt
+/python/examples/solution/
+/python/examples/testData/
+/python/examples/images/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -26,6 +31,7 @@ parts/
 sdist/
 var/
 wheels/
+wheelhouse/
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
@@ -133,4 +139,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-

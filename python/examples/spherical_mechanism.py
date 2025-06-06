@@ -26,8 +26,7 @@ f2 = MotionFactorization([k1, k2])
 
 f = 20000
 m = RationalMechanism([f1, f2], tool=DualQuaternion([1, 0, 0, 0, 0, -1/f, 2/f, 0]))
-plt = Plotter(interactive=True, steps=500, arrows_length=1/f, joint_range_lim=1/f)
-plt.plot(m, show_tool=True)
+plt = Plotter(mechanism=m, steps=500, arrows_length=1/f, joint_sliders_lim=1 / f)
 plt.show()
 
 

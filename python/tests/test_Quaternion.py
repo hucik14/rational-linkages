@@ -70,3 +70,21 @@ class TestQuaternion(TestCase):
     def test__neg__(self):
         q = Quaternion([0.5, 2, -1, 5])
         self.assertTrue(np.allclose((-q).array(), np.array([-0.5, -2, 1, -5])))
+
+    def test_setitem(self):
+        # Initialize a Quaternion with specific values
+        q = Quaternion([1, 2, 3, 4])
+
+        # Modify elements in the quaternion (indices 0 to 3)
+        q[0] = 10
+        q[1] = 20
+        q[2] = 30
+        q[3] = 40
+
+        # Verify the changes in the quaternion
+        expected_array = np.array([10, 20, 30, 40])
+        self.assertTrue(np.allclose(q.array(), expected_array))
+
+        # Test invalid index
+        with self.assertRaises(IndexError):
+            q[4] = 50

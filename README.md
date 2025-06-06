@@ -86,9 +86,23 @@ work with meshes in exudyn).
     
    <code>pip install -e .[opt,dev,doc]</code> including the development and documentation dependencies. 
 
-   Mac users might need to use backslashes to escape the brackets, e.g.: 
+   Mac or Linux users might need to use backslashes to escape the brackets, e.g.: 
 
    <code>pip install -e .\\[opt\\]</code>
+
+Additionally, on Linux systems, some additional libraries are required for plotting with PyQt6. For example, 
+on Ubuntu, it can be installed as follows:
+
+   <code>sudo apt install libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3</code>
+
+or on Ubuntu 24.04 and higher:
+
+   <code>sudo apt install libgl1 libxkbcommon-x11-0 libegl1 libdbus-1-3</code>
+
+To run the Rust functions, you need to install the [Rust toolchain](https://www.rust-lang.org) and 
+build the Rust code yourself, for example:
+
+<code>cargo build --release</code>
 
 ## Citing the package
 

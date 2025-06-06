@@ -3,6 +3,8 @@ from unittest import TestCase
 import numpy as np
 
 from rational_linkages import PointHomogeneous, RationalBezier, BezierSegment
+from rational_linkages.RationalBezier import RationalSoo
+
 
 
 class TestRationalBezier(TestCase):
@@ -92,3 +94,21 @@ class TestRationalBezier(TestCase):
                     expected_right_curve_control_points[i].array(),
                 )
             )
+
+
+class TestRationalSoo(TestCase):
+
+    def test_init(self):
+        c0 = PointHomogeneous()
+        c1 = PointHomogeneous([1, 1, 2, 3])
+        c2 = PointHomogeneous([1, 3, -1, 2])
+        control_points = [c0, c1, c2]
+        gl_curve = RationalSoo(control_points)
+
+        self.assertIsInstance(gl_curve, RationalSoo)
+
+        expected_coeffs = np.array([[0.0, 0.0, 1.0],
+                                    [0.4330127018922193, 1.5, 1.0669872981077808],
+                                    [-2.165063509461097, -0.5, 1.665063509461097],
+                                    [-1.7320508075688772, 1.0, 2.7320508075688776]])
+        self.assertTrue(np.allclose(gl_curve.coeffs, expected_coeffs))
