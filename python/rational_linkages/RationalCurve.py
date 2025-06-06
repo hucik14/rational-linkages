@@ -33,6 +33,28 @@ class RationalCurve:
 
     :examples:
 
+    .. testcode:: [rationalcurve_example0]
+
+        # From symbolic equations
+
+        from rational_linkages import RationalCurve, Plotter
+        from sympy import symbols, Poly
+
+        t = symbols('t')
+
+        c = [t ** 2 + 3, -2*t, 2, 0, 0, 1, t, 0,]
+
+        c = RationalCurve([Poly(p, t) for p in c])
+
+        p = Plotter(backend='matplotlib', arrows_length=0.05)
+        p.plot(c, interval='closed', with_poses=True)
+        p.show()
+
+    .. testcleanup:: [rationalcurve_example0]
+
+        del RationalCurve, Plotter, symbols, Poly, t, c, p
+
+
     .. testcode:: [rationalcurve_example1]
 
         # Limancon of Pascal -- from polynomial equations
