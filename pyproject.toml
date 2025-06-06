@@ -15,7 +15,8 @@ authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
 ]
 requires-python = ">=3.10"
-license = {"file"= "LICENSE"}
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
