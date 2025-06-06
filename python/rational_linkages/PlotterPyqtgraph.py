@@ -486,6 +486,47 @@ class PlotterPyqtgraph:
         """
         raise NotImplementedError("TODO, see matplotlib version")
 
+    def animate_rotation(self, save_images: bool = True, num_frames: int = 20):
+        """
+        Rotate the view around the z-axis to create a turntable effect.
+
+        If save_images is True, it will save images of each frame.
+
+        :param bool save_images: If True, save images of each frame.
+        :param int num_frames: Number of frames to generate.
+        """
+        if save_images:
+            azimuth_step = 360 / num_frames
+        else:
+            azimuth_step = 5  # Default step if not saving images
+
+        img_counter = 0
+
+        def rotate():
+            nonlocal img_counter
+            # Check if we've completed the full rotation
+            if img_counter >= num_frames:
+                # Animation complete, show message and stop recursion
+                if save_images:
+                    QtWidgets.QMessageBox.information(
+                        self.widget, "Save Images",
+                        f"{num_frames} images were saved as frame_XXX.png files."
+                    )
+                return
+
+            self.widget.opts['azimuth'] += azimuth_step
+            self.widget.update()
+
+            if save_images:
+                filename = f"frame_{img_counter:03d}.png"
+                self.widget.grabFramebuffer().save(filename)
+
+            img_counter += 1
+            QtCore.QTimer.singleShot(50, rotate)
+
+        # Start the rotation
+        rotate()
+
     def show(self):
         """Start the Qt event loop."""
         self.widget.show()
