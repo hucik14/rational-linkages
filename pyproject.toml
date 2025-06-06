@@ -95,6 +95,7 @@ before-build = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
+# archs = ["arm64"]
 
 [tool.cibuildwheel.macos]
 archs = ["arm64", "x86_64"]
@@ -127,8 +128,12 @@ command_line = "-m pytest python/tests"
 omit = [
     "*/test*",
     "*__init__.py",
-    "*Plotter.py",
+    "*PlotterMatplotlib.py",
+    "*PlotterPyqtgraph.py",
+    "*MotionDesigner.py",
     "*MotionApproximation.py",
     "*StaticMechanism.py",
     "*AffineMetric.py",
+    "*CollisionAnalyser.py",
+    "*Miniball.py",
     ]

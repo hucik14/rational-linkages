@@ -4,14 +4,13 @@ from importlib.metadata import version, PackageNotFoundError
 try:
     __version__ = version("rational_linkages")
 except PackageNotFoundError:
-    # Package is not installed
+    # package is not installed
     __version__ = "unknown"
 
 from .CollisionFreeOptimization import CollisionFreeOptimization
 from .DualQuaternion import DualQuaternion
 from .ExudynAnalysis import ExudynAnalysis
 from .Linkage import LineSegment, Linkage, PointsConnection
-from .MotionApproximation import MotionApproximation
 from .MotionDesigner import MotionDesigner
 from .MotionFactorization import MotionFactorization
 from .MotionInterpolation import MotionInterpolation
@@ -20,7 +19,7 @@ from .NormalizedPlane import NormalizedPlane
 from .Plotter import Plotter
 from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
-from .RationalBezier import RationalBezier, BezierSegment, RationalSoo
+from .RationalBezier import RationalBezier, BezierSegment
 from .RationalCurve import RationalCurve
 from .RationalDualQuaternion import RationalDualQuaternion
 from .RationalMechanism import RationalMechanism
