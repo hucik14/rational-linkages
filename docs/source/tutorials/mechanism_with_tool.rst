@@ -5,7 +5,7 @@ This tutorial will guide you through the process of designing a mechanism with e
 the tool frame corresponds to identity pose, i.e., the end-effector is at the origin of the world frame
 in its home configuration.
 
-Home configuration is given when parameter :math:`t=\infty` (or number like :math:`t=1^{12}` or higher in practice).
+Home configuration is given when parameter :math:`t=\infty` (or number like :math:`t=10^{12}` or higher in practice).
 To design a mechanism with a tool, the home configuration can be used in combination with the joint axes. The method
 :meth:`.RationalMechanism.get_design()` can be used to generate the needed design parameters, as it returns
 the Denavit--Hartenberg parameters, axes-line connection parameters for prepared Onshape model (see
@@ -66,6 +66,6 @@ and therefore the number of joints and links is variable.
 The joint axes :math:`\mathbf{h}_i` and :math:`\mathbf{k}_i` correspond to the dual quaterionions defined in
 the :ref:`motions_and_factorization` section. Physically, these mechanism create :class:`.LineSegment` objects, i.e.
 a polyline that connects the physical realization of the joint-link segments. For 4R mechanism, there are
-8 segments :math:`\mathbf{s}_{0..7}`. The attribute :code:`RationalMechanism.segments` then keeps the naming
+8 segments :math:`\mathbf{s}_{0..7}`. The attribute :code:`.RationalMechanism.segments` then keeps the naming
 as base link is :math:`\mathbf{l}_{00}`, first joint of right factorization is :math:`\mathbf{j}_{00}`, while
 the first joint of the left factorization is :math:`\mathbf{j}_{10}`, etc. The last link is :math:`\mathbf{l}_{12}`.
