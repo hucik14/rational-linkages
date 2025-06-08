@@ -1376,6 +1376,10 @@ class RationalMechanism(RationalCurve):
         """
         Generate smooth trajectory for the tool of the mechanism.
 
+        The mechod implements :footcite:p:`Huczala2025kinematics` and generates a
+        joint-space trajectory so that the tool travels with approximately constant
+        velocity. The arc-length reparameterization is used in the background.
+
         :param float joint_angle_start: start parameter value
         :param float joint_angle_end: end parameter value
         :param float time_sec: time of the trajectory [seconds]

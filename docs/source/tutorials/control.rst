@@ -70,3 +70,6 @@ The method :meth:`.RationalMechanism.traj_smooth_tool()` delivers tool-space tra
 travel of the tool along the path (the tool velocity is approximately constant). The method uses arc-length
 reparameterization of the path. See more details in :footcite:t:`Huczala2025kinematics` and the jupyter notebook
 `trajectory_planning` tutorial. Again, the output can be generated as CSV file.
+
+
+.. footbibliography::
