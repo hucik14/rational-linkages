@@ -23,7 +23,7 @@ to assembly your mechanism correctly. See the example below:
     # obtain points on joint0
     base_joint0_pts = design_points[0]
 
-    # obtain points on joint3
+    # obtain points on the last joint (joint3)
     base_joint3_pts = design_points[-1]
 
     p = Plotter(m, arrows_length=0.1)

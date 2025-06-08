@@ -12,14 +12,12 @@ Source code is available at https://github.com/jgerstmayr/EXUDYN
 
 We would like to thank prof. Johannes Gerstmayr for his help with the integration.
 
-Exudyn **is NOT** listed in the *Rational Linkages* dependencies, since it does not
-support Python 3.12 yet, and it is not used in the background. To install Exudyn,
-please follow the instructions in the `Exudyn documentation`_, the usual way with
-pip is:
+Exudyn is in the optional dependencies of the *Rational Linkages* dependencies. To install Exudyn,
+please follow the instructions in the `Exudyn documentation`_ or get this way:
 
 .. code-block:: bash
 
-    pip install exudyn
+    pip install rational_linkages[exu]
 
 Exudyn is lightweight, written in C++, and provides a Python interface
 for easy usage and integration. The library supports large deformations

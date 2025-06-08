@@ -82,10 +82,11 @@ daniel.huczala@uibk.ac.at
 Main Features:
 --------------
 
-- Synthesis of single-loop rational linkages for a given task (set of poses),
+- Synthesis of single-loop rational linkages for a given task - set of poses or points,
 - search of full-cycle collision-free design of the linkages,
 - design of 3D-printable mechanisms,
-- basic control algorithms for velocity motion planning.
+- basic control algorithms for velocity motion planning,
+- interactive motion design.
 
 
 .. toctree::
