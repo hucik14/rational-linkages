@@ -57,7 +57,7 @@ class PlotterMatplotlib:
                         matplotlib.use("qtagg")
                     except:
                         raise RuntimeError(
-                            "Try to "
+                            "Matplotlib backend error. Use Pyqtgraph backend instead."
                         )
 
         self.fig = plt.figure()
@@ -844,8 +844,11 @@ class PlotterMatplotlib:
         ax.set_zlim3d(float(self.min_z), float(self.max_z))
         ax.set_aspect("equal")
 
-    def animate(self, number_of_frames: int = 10, file_type: str = "png",
-                filename_prefix: str = "frame_", output_dir: str = "animation_frames"):
+    def animate(self,
+                number_of_frames: int = 10,
+                file_type: str = "png",
+                filename_prefix: str = "frame_",
+                output_dir: str = "animation_frames"):
         """
         Animate the mechanism and save frames in a folder.
 
@@ -894,7 +897,7 @@ class PlotterMatplotlib:
             self.plot_slider_update(val)
             sleep(sleep_time)
 
-    def save(self, filename: str, file_type: str = "png"):
+    def save_image(self, filename: str, file_type: str = "png"):
         """
         Save the current canvas to a file
 

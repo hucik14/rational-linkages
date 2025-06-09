@@ -486,7 +486,9 @@ class PlotterPyqtgraph:
         """
         raise NotImplementedError("TODO, see matplotlib version")
 
-    def animate_rotation(self, save_images: bool = True, num_frames: int = 20):
+    def animate_rotation(self,
+                         save_images: bool = True,
+                         number_of_frames: int = 20):
         """
         Rotate the view around the z-axis to create a turntable effect.
 
@@ -496,7 +498,7 @@ class PlotterPyqtgraph:
         :param int num_frames: Number of frames to generate.
         """
         if save_images:
-            azimuth_step = 360 / num_frames
+            azimuth_step = 360 / number_of_frames
         else:
             azimuth_step = 5  # Default step if not saving images
 
@@ -505,12 +507,13 @@ class PlotterPyqtgraph:
         def rotate():
             nonlocal img_counter
             # Check if we've completed the full rotation
-            if img_counter >= num_frames:
+            if img_counter >= number_of_frames:
                 # Animation complete, show message and stop recursion
                 if save_images:
                     QtWidgets.QMessageBox.information(
                         self.widget, "Save Images",
-                        f"{num_frames} images were saved as frame_XXX.png files."
+                        f"{number_of_frames} images were saved as frame_XXX.png "
+                        f"files."
                     )
                 return
 

@@ -15,7 +15,7 @@
    :width: 8%
 
 .. |gif-bennett| image:: figures/tombennett.gif
-   :width: 100%
+   :width: 540 px
 
 .. |binder_badge| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb
@@ -124,6 +124,7 @@ Austria. Namely, the following people contributed to the development:
 - Daniel Huczala (author, maintainer)
 - Hans-Peter Schröcker (supervisor, contributor)
 - Martin Pfurner (contributor)
+- Andreas Mair (contributor)
 - Daren A. Thimm (contributor)
 
 Citing the Package

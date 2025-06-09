@@ -10,6 +10,7 @@ Tutorials
    tutorials/ark2024
    tutorials/motion_factorization
    tutorials/motion_interp
+   tutorials/motion_designer
    tutorials/combinatorial_search
    tutorials/synthesis_bennett
    tutorials/mechanism_with_tool
