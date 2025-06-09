@@ -22,6 +22,12 @@ collision-free mechanisms synthesised for a given task (set of poses).
 The package is developed as a part of the research project at the 
 Unit of Geometry and Surveying, University of Innsbruck, Austria. 
 
+The results may look like this Bennett manipulator made by our collaborators from the Department of Robotics, 
+VSB -- Technical University
+of Ostrava. See [full video on Youtube](https://www.youtube.com/watch?v=T_7lkPjdcCg).
+
+![Bennett mechanism in motion](./docs/source/figures/tombennett.gif)
+
 ## Documentation, tutorials, issues
 
 [Rational Linkages Documentation](https://rational-linkages.readthedocs.io/) is 

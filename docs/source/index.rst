@@ -14,6 +14,9 @@
 .. |image-logo| image:: figures/rl-logo.png
    :width: 8%
 
+.. |gif-bennett| image:: figures/tombennett.gif
+   :width: 100%
+
 .. |binder_badge| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb
 
@@ -88,6 +91,11 @@ Main Features:
 - basic control algorithms for velocity motion planning,
 - interactive motion design.
 
+The results may look like this Bennett manipulator made by our collaborators from the Department of Robotics,
+VSB -- Technical University
+of Ostrava. See `full video on Youtube <https://www.youtube.com/watch?v=T_7lkPjdcCg>`_.
+
+|gif-bennett|
 
 .. toctree::
    :maxdepth: 2
