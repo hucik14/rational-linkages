@@ -3,7 +3,7 @@ Designing Mechanism with Tool
 
 This tutorial will guide you through the process of designing a mechanism with end-effector. By default,
 the tool frame corresponds to identity pose, i.e., the end-effector is at the origin of the world frame
-in its home configuration.
+in its home configuration. See :ref:`alternative_tools` for more details how differently specify a tool frame.
 
 Home configuration is given when parameter :math:`t=\infty` (or number like :math:`t=10^{12}` or higher in practice).
 To design a mechanism with a tool, the home configuration can be used in combination with the joint axes. The method

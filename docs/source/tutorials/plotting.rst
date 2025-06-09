@@ -136,7 +136,7 @@ to adjust the size of the length of the frames/poses that are plotted.
         del plt, m
         del Plotter, bennett
 
-
+.. _alternative_tools:
 
 Optional tool frames
 ^^^^^^^^^^^^^^^^^^^^
