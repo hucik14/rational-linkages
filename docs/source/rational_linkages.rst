@@ -121,6 +121,14 @@ Plotter
    :undoc-members:
    :show-inheritance:
 
+PlotterMatplotlib
+-----------------
+
+.. automodule:: rational_linkages.PlotterMatplotlib
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 PlotterPyqtgraph
 ----------------
 

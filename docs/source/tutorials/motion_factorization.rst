@@ -5,7 +5,7 @@ Motion Factorization
 
 This tutorial demonstrates how to use the method
 :meth:`.MotionFactorization.factorize()`
-and related class :class:`.FactorizationProvider()` to factorize a rational motion,
+and related class :class:`rational_linkages.FactorizationProvider` to factorize a rational motion,
 as described by :footcite:t:`Hegeds2012` and :footcite:p:`Hegeds2013`.
 
 The theory behind the motion factorization is described in section
