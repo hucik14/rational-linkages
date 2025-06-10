@@ -90,7 +90,8 @@ intersphinx_mapping = {'python': ('http://docs.python.org/3', None),
                        'matplotlib': ('http://matplotlib.org/stable', None),
                        'sympy': ('https://docs.sympy.org/latest/', None),
                        'biquaternion_py': ('https://biquaternion-py.readthedocs.io/en/latest/', None),
-                       'PyQt5': ('https://www.riverbankcomputing.com/static/Docs/PyQt5/', None),
+                       'PyQt6': ('https://www.riverbankcomputing.com/static/Docs/PyQt6/', None),
+                       'pyqt6': ('https://doc.qt.io/qtforpython-6/', None),
                        'pyqtgraph': ('https://pyqtgraph.readthedocs.io/en/latest/', None),
                        }
 

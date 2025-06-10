@@ -274,4 +274,4 @@ Generating frames (for animation)
 Both classes :class:`.PlotterPyqtgraph` and :class:`.PlotterMatplotlib` have various methods to generate a figure
 or set of figures for animation purposes. See for more details the implementation:
 :meth:`.PlotterMatplotlib.save_image`, :meth:`.PlotterMatplotlib.animate`, :meth:`.PlotterMatplotlib.animate_angles`,
-:meth:`.PlotterPyqtgraph.on_save_figure_box` (use GUI), :meth:`.PlotterPyqtgraph.animate_rotation`.
+:meth:`.InteractivePlotterWidget.on_save_figure_box` (use GUI), :meth:`.PlotterPyqtgraph.animate_rotation`.

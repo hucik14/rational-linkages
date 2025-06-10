@@ -714,8 +714,9 @@ class FramePlotHelper:
 
 class InteractivePlotterWidget(QtWidgets.QWidget):
     """
-    A QWidget that contains a PlotterPyqtgraph 3D view and interactive controls
-    (sliders and text boxes) for plotting and manipulating a mechanism.
+    A QWidget that contains a PlotterPyqtgraph 3D view and interactive controls.
+
+    Containts (sliders and text boxes) for plotting and manipulating a mechanism.
     """
     def __init__(self,
                  mechanism: RationalMechanism,

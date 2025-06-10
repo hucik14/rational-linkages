@@ -140,7 +140,7 @@ class MiniBall:
         :param AffineMetric metric: alternative metric to be used for the ball
 
         :return: center and the squared radius of the circumsphere
-        :rtype: (nd.array, float)
+        :rtype: (np.ndarray, float)
         """
         # calculate vectors from the first point to all other points (redefine origin)
         u = points[1:] - points[0]
@@ -176,7 +176,7 @@ class MiniBall:
         """
         Computes the smallest bounding ball of a set of points
 
-        :param nd.array points: array of points in the space
+        :param np.ndarray points: array of points in the space
         :param AffineMetric metric: alternative metric to be used for the ball
         :param float epsilon: tolerance used when testing if a set of point belongs to
             the same sphere, default is 1e-7
@@ -184,7 +184,7 @@ class MiniBall:
             default is the default one provided by numpy
 
         :return: center and the squared radius of the circumsphere
-        :rtype: (nd.array, float)
+        :rtype: (np.ndarray, float)
         """
 
         def circle_contains(ball, point):
