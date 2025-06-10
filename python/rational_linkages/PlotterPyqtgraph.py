@@ -1084,6 +1084,24 @@ class InteractivePlotter:
         # self.window.hide()
         self.window.plotter.plot(*args, **kwargs)
 
+    def plot_axis_between_two_points(self, *args, **kwargs):
+        """
+        Plot an axis between two points in the motion designer widget.
+
+        :param args: The points to plot.
+        :param kwargs: Additional keyword arguments for the plotter.
+        """
+        self.window.plotter.plot_axis_between_two_points(*args, **kwargs)
+
+    def plot_line_segments_between_points(self, *args, **kwargs):
+        """
+        Plot line segments between two points in the motion designer widget.
+
+        :param args: The points to plot.
+        :param kwargs: Additional keyword arguments for the plotter.
+        """
+        self.window.plotter.plot_line_segments_between_points(*args, **kwargs)
+
     def show(self):
         """
         Run the application, showing the motion designer widget.
