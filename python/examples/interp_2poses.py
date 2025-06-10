@@ -1,3 +1,5 @@
+# NOT TESTED
+
 # Quadratic interpolation of 2 poses with an optimized 3rd pose
 
 from rational_linkages import (DualQuaternion, Plotter, MotionInterpolation,
@@ -22,7 +24,7 @@ p1 = DualQuaternion(p1.matrix2dq())
 interpolated_curve = MotionInterpolation.interpolate([p0, p1])
 m = RationalMechanism(interpolated_curve.factorize())
 
-p = Plotter(mechanism=m, steps=500, arrows_length=0.05)
+p = Plotter(mechanism=m, arrows_length=0.05)
 p.plot(p0)
 p.plot(p1)
 

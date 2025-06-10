@@ -1,3 +1,5 @@
+# NOT TESTED
+
 import numpy as np
 
 from rational_linkages import (
@@ -6,8 +8,9 @@ from rational_linkages import (
     Plotter,
     RationalMechanism,
     TransfMatrix,
-    MotionApproximation,
 )
+
+from rational_linkages.MotionApproximation import MotionApproximation
 
 
 p0 = DualQuaternion([1., 0, 0, 0, 0, 0, 0, 0])

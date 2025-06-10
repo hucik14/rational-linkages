@@ -7,7 +7,7 @@ from rational_linkages import (
     TransfMatrix,
 )
 
-# Daniel's testing code, for examples see 'examples' folder or read
+# testing code, for examples see 'examples' folder or read
 # the documentation/docstrings of classes
 
 if __name__ == '__main__':

@@ -3,12 +3,13 @@ import sympy as sp
 
 from rational_linkages import (
     DualQuaternion,
-    FactorizationProvider,
     MotionFactorization,
     Plotter,
     RationalDualQuaternion,
     RationalMechanism,
 )
+
+from rational_linkages.FactorizationProvider import FactorizationProvider
 
 # Setting up the symbols
 t = sp.Symbol("t")

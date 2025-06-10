@@ -4,16 +4,16 @@ import sympy as sp
 from rational_linkages.utils import color_rgba
 
 from rational_linkages import (
-    InteractivePlotter as Plotter,
+    Plotter,
     RationalCurve,
     RationalBezier,
     RationalMechanism,
     AffineMetric,
     PointHomogeneous,
     DualQuaternion,
-    CollisionAnalyser,
 )
 from rational_linkages.models import bennett_ark24, collisions_free_6r, plane_fold_6r, interp_4poses_6r
+from rational_linkages.CollisionAnalyser import CollisionAnalyser
 
 from time import time
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     l0 = 'l_01'
     # l0 = 'b_00'
-    l1 = 't_13'
+    l1 = 'l_13'
     orbits0 = ca.get_segment_orbit(l0)
     orbits1 = ca.get_segment_orbit(l1)
 

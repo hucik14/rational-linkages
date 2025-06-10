@@ -5,7 +5,7 @@ from rational_linkages.models import bennett_ark24, collisions_free_6r
 
 # choose 4-bar or 6-bar mechanism
 mechanism_case = '4r'
-mechanism_case = '6r'
+# mechanism_case = '6r'
 
 
 if __name__ == '__main__':

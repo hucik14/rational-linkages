@@ -125,7 +125,7 @@ if __name__ == '__main__':
     simulationSettings = exu.SimulationSettings()
 
     simulationSettings.timeIntegration.numberOfSteps = 1000
-    simulationSettings.timeIntegration.endTime = 5
+    simulationSettings.timeIntegration.endTime = 1.5
     simulationSettings.timeIntegration.verboseMode = 1
 
     simulationSettings.linearSolverSettings.ignoreSingularJacobian = True

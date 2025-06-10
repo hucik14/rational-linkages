@@ -1,4 +1,7 @@
-from rational_linkages import Plotter, MotionInterpolation, PointHomogeneous, MotionApproximation, DualQuaternion, RationalMechanism
+# NOT TESTED
+
+from rational_linkages import Plotter, MotionInterpolation, PointHomogeneous, DualQuaternion, RationalMechanism
+from rational_linkages.MotionApproximation import MotionApproximation
 
 import numpy as np
 
