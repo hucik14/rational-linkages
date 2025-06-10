@@ -23,6 +23,7 @@ class PlotterPyqtgraph:
     PyQtGraph plotter for 3D visualization of geometric objects.
     """
     def __init__(self,
+                 base=None,
                  steps: int = 1000,
                  interval: tuple = (-1, 1),
                  arrows_length: float = 1.0,
@@ -42,6 +43,18 @@ class PlotterPyqtgraph:
             self.app = QApplication.instance()
         if self.app is None:
             self.app = QApplication(sys.argv)
+
+        if base is not None:
+            if isinstance(base, TransfMatrix):
+                if not base.is_rotation():
+                    raise ValueError("Given matrix is not proper rotation.")
+                self.base = base
+                self.base_arr = self.base.array()
+            elif isinstance(base, DualQuaternion):
+                self.base = TransfMatrix(base.dq2matrix())
+                self.base_arr = self.base.array()
+            else:
+                raise TypeError("Base must be a TransfMatrix or DualQuaternion instance.")
 
         self.white_background = white_background
 
@@ -706,6 +719,7 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
     """
     def __init__(self,
                  mechanism: RationalMechanism,
+                 base=None,
                  show_tool: bool = True,
                  steps: int = 1000,
                  joint_sliders_lim: float = 1.0,
@@ -722,6 +736,21 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         self.joint_sliders_lim = joint_sliders_lim
         self.arrows_length = arrows_length
 
+        if base is not None:
+            if isinstance(base, TransfMatrix):
+                if not base.is_rotation():
+                    raise ValueError("Given matrix is not proper rotation.")
+                self.base = base
+                self.base_arr = self.base.array()
+            elif isinstance(base, DualQuaternion):
+                self.base = TransfMatrix(base.dq2matrix())
+                self.base_arr = self.base.array()
+            else:
+                raise TypeError("Base must be a TransfMatrix or DualQuaternion instance.")
+        else:
+            self.base = None
+            self.base_arr = None
+
         self.white_background = white_background
         if self.white_background:
             self.render_mode = 'translucent'
@@ -729,7 +758,8 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
             self.render_mode = 'additive'
 
         # Create the PlotterPyqtgraph instance.
-        self.plotter = PlotterPyqtgraph(steps=self.steps,
+        self.plotter = PlotterPyqtgraph(base=None,
+                                        steps=self.steps,
                                         arrows_length=self.arrows_length,
                                         white_background=self.white_background,
                                         parent_app=parent_app)
@@ -895,6 +925,13 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         ee_points = [self.mechanism.factorizations[0].direct_kinematics_of_tool(
                         t, self.mechanism.tool_frame.dq2point_via_matrix())
                      for t in t_vals]
+
+        if self.base_arr is not None:
+            # transform the end-effector points by the base transformation
+            ee_points = [self.base_arr @ np.insert(p, 0, 1) for p in ee_points]
+            # normalize
+            ee_points = [p[1:4]/p[0] for p in ee_points]
+
         pts = np.array(ee_points)
         tool_path = gl.GLLinePlotItem(pos=pts,
                                       color=(0.5, 0.5, 0.5, 1),
@@ -1009,7 +1046,13 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
         # Compute link positions.
         links = (self.mechanism.factorizations[0].direct_kinematics(t) +
                  self.mechanism.factorizations[1].direct_kinematics(t)[::-1])
-        links.insert(0, links[-1])  # as in your original code
+        links.insert(0, links[-1])
+
+        if self.base is not None:
+            # Transform the links by the base transformation.
+            links = [self.base_arr @ np.insert(p, 0, 1) for p in links]
+            # Normalize the homogeneous coordinates.
+            links = [p[1:4] / p[0] for p in links]
 
         # Update each line segment.
         for i, line in enumerate(self.lines):
@@ -1020,17 +1063,31 @@ class InteractivePlotterWidget(QtWidgets.QWidget):
 
         if self.show_tool:
             pts0 = self.mechanism.factorizations[0].direct_kinematics(t)[-1]
-            pts1 = self.mechanism.factorizations[0].direct_kinematics_of_tool(t, self.mechanism.tool_frame.dq2point_via_matrix())
+            pts1 = self.mechanism.factorizations[0].direct_kinematics_of_tool(
+                t, self.mechanism.tool_frame.dq2point_via_matrix())
             pts2 = self.mechanism.factorizations[1].direct_kinematics(t)[-1]
 
             tool_triangle = [pts0, pts1, pts2]
+
+            if self.base is not None:
+                # Transform the tool triangle by the base transformation.
+                tool_triangle = [self.base_arr @ np.insert(p, 0, 1)
+                                 for p in tool_triangle]
+                # Normalize the homogeneous coordinates.
+                tool_triangle = [p[1:4] / p[0] for p in tool_triangle]
 
             self.tool_link.setData(pos=np.array(tool_triangle))
 
             # Update tool frame (pose) arrows.
             pose_dq = DualQuaternion(self.mechanism.evaluate(t))
             # Compute the pose matrix by composing the mechanism’s pose and tool frame.
-            pose_matrix = TransfMatrix(pose_dq.dq2matrix()) * TransfMatrix(self.mechanism.tool_frame.dq2matrix())
+            pose_matrix = TransfMatrix(pose_dq.dq2matrix()) * TransfMatrix(
+                self.mechanism.tool_frame.dq2matrix())
+
+            if self.base is not None:
+                # Transform the pose matrix by the base transformation.
+                pose_matrix = self.base * pose_matrix
+
             self.tool_frame.setData(pose_matrix)
 
         self.plotter.widget.update()
@@ -1044,6 +1101,7 @@ class InteractivePlotter:
     """
     def __init__(self,
                  mechanism: RationalMechanism,
+                 base=None,
                  show_tool=True,
                  steps=1000,
                  joint_sliders_lim=1.0,
@@ -1053,6 +1111,7 @@ class InteractivePlotter:
         Initialize the application.
 
         :param RationalMechanism mechanism: The mechanism to be plotted
+        :param base: The base frame.
         :param bool show_tool: whether to show the tool (end-effector) frame
         :param int steps: the number of discrete steps for the curve path
         :param float joint_sliders_lim: the limit for the joint sliders
@@ -1062,6 +1121,7 @@ class InteractivePlotter:
         if self.app is None:
             self.app = QApplication(sys.argv)
         self.window = InteractivePlotterWidget(mechanism=mechanism,
+                                               base=base,
                                                show_tool=show_tool,
                                                steps=steps,
                                                joint_sliders_lim=joint_sliders_lim,

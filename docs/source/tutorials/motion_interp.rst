@@ -191,6 +191,8 @@ position of the 3rd pose to achieve the shortest curve-path length.
     del Plotter, MotionInterpolation, TransfMatrix, RationalMechanism
 
 
+.. _changing_bases_interpolation:
+
 Quadratic interpolation of 5 points
 -----------------------------------
 
@@ -218,15 +220,14 @@ transformation.
     m = RationalMechanism(interpolated_curve.factorize())
 
     # due to non-monic solution, to transform the given points and plot them in mechanism
-    # path, get static transform 'rebase' and uncomment the line in for loop bellow
-    rebase = DualQuaternion(interpolated_curve.evaluate(1e12)).normalize()
+    # path, get static transform 'rebase'
+    rebase = DualQuaternion(interpolated_curve.evaluate(1e12))
 
-    p = Plotter(mechanism=m, steps=500, arrows_length=0.5)
+    p = Plotter(mechanism=m, base=rebase, arrows_length=0.5)
 
     p.plot(interpolated_curve, interval='closed')
 
     for i, pt in enumerate(points):
-        # pt = rebase.inv().act(pt)  # uncomment to plot the points in the mechanism path
         p.plot(pt, label=f'a{i}')
 
     p.show()

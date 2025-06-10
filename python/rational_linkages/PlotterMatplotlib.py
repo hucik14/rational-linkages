@@ -23,6 +23,7 @@ from .Linkage import LineSegment
 class PlotterMatplotlib:
     def __init__(self,
                  interactive: bool = False,
+                 base=None,
                  jupyter_notebook: bool = False,
                  show_legend: bool = False,
                  show_controls: bool = True,
@@ -72,6 +73,21 @@ class PlotterMatplotlib:
         self.min_x, self.max_x = float('inf'), float('-inf')
         self.min_y, self.max_y = float('inf'), float('-inf')
         self.min_z, self.max_z = float('inf'), float('-inf')
+
+        if base is not None:
+            if isinstance(base, TransfMatrix):
+                if not base.is_rotation():
+                    raise ValueError("Given matrix is not proper rotation.")
+                self.base = base
+                self.base_arr = self.base.array()
+            elif isinstance(base, DualQuaternion):
+                self.base = TransfMatrix(base.dq2matrix())
+                self.base_arr = self.base.array()
+            else:
+                raise TypeError("Base must be a TransfMatrix or DualQuaternion instance.")
+        else:
+            self.base = None
+            self.base_arr = None
 
         if interactive:
             plt.subplots_adjust(
@@ -513,6 +529,13 @@ class PlotterMatplotlib:
         ee_points = [mechanism.factorizations[0].direct_kinematics_of_tool(
             t[i], mechanism.tool_frame.dq2point_via_matrix()) for i in range(self.steps)]
 
+        if self.base_arr is not None:
+            # transform points to base frame
+            ee_points = [self.base_arr @ np.insert(p, 0, 1)
+                         for p in ee_points]
+            # normalize
+            ee_points = [p[1:4]/p[0] for p in ee_points]
+
         kwargs['label'] = "tool path"
 
         x, y, z = zip(*ee_points)
@@ -740,6 +763,12 @@ class PlotterMatplotlib:
                  + self.plotted['mechanism'].factorizations[1].direct_kinematics(t)[::-1])
         links.insert(0, links[-1])
 
+        if self.base_arr is not None:
+            # transform points to base frame
+            links = [self.base_arr @ np.insert(p, 0, 1) for p in links]
+            # normalize
+            links = [p[1:4]/p[0] for p in links]
+
         x, y, z = zip(*[links[j] for j in range(len(links))])
 
         for i, line in enumerate(self.lines):
@@ -769,12 +798,24 @@ class PlotterMatplotlib:
             # add tool point to tool triangle
             tool_triangle.insert(1, tool)
 
+            if self.base_arr is not None:
+                # transform points to base frame
+                tool_triangle = [self.base_arr @ np.insert(p, 0, 1)
+                                 for p in tool_triangle]
+                # normalize
+                tool_triangle = [p[1:4]/p[0] for p in tool_triangle]
+
             x, y, z = zip(*[tool_triangle[j] for j in range(len(tool_triangle))])
             self.tool_plot.set_data_3d(x, y, z)
 
             # plot tool frame
             pose_dq = DualQuaternion(self.plotted['mechanism'].evaluate(t))
-            pose_matrix = TransfMatrix(pose_dq.dq2matrix()) * TransfMatrix(self.plotted['mechanism'].tool_frame.dq2matrix())
+            pose_matrix = TransfMatrix(pose_dq.dq2matrix()) * TransfMatrix(
+                self.plotted['mechanism'].tool_frame.dq2matrix())
+
+            if self.base_arr is not None:
+                # transform pose in respect to base frame
+                pose_matrix = self.base * pose_matrix
 
             x_vec, y_vec, z_vec = pose_matrix.get_plot_data()
 

@@ -5,6 +5,7 @@ from .PlotterPyqtgraph import PlotterPyqtgraph, InteractivePlotter
 class Plotter:
     def __new__(cls,
                mechanism: RationalMechanism = None,
+               base = None,
                show_tool: bool = True,
                backend: str = 'pyqtgraph',
                jupyter_notebook: bool = False,
@@ -24,6 +25,7 @@ class Plotter:
         # delegate to the create method
         return cls.create(
             mechanism=mechanism,
+            base=base,
             show_tool=show_tool,
             backend=backend,
             jupyter_notebook=jupyter_notebook,
@@ -39,6 +41,7 @@ class Plotter:
     @classmethod
     def create(cls,
                mechanism: RationalMechanism = None,
+               base = None,
                show_tool: bool = True,
                backend: str = 'pyqtgraph',
                jupyter_notebook: bool = False,
@@ -69,6 +72,7 @@ class Plotter:
 
             if interactive:
                 return InteractivePlotter(mechanism=mechanism,
+                                          base=base,
                                           show_tool=show_tool,
                                           steps=steps,
                                           arrows_length=arrows_length,
@@ -76,6 +80,7 @@ class Plotter:
                                           white_background=white_background)
             else:
                 return PlotterPyqtgraph(parent_app=parent_app,
+                                        base=base,
                                         interval=interval,
                                         steps=steps,
                                         arrows_length=arrows_length,
@@ -86,6 +91,7 @@ class Plotter:
 
             from .PlotterMatplotlib import PlotterMatplotlib
             plotter = PlotterMatplotlib(interactive=interactive,
+                                        base=base,
                                         jupyter_notebook=jupyter_notebook,
                                         show_legend=show_legend,
                                         show_controls=show_controls,

@@ -2,8 +2,13 @@ Mechanism in the World Frame
 ============================
 
 This tutorial will guide you through the process of designing a mechanism with end-effector (tool)
-in the world frame. By default,
-the tool frame corresponds to identity pose, i.e., the end-effector is at the origin of the world frame
+in the world frame.
+
+Default (home) configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+By default, the tool frame corresponds to identity pose, i.e., the end-effector is at the origin of the world frame
 in its home configuration.
 
 See :ref:`alternative_tools` for more details how differently specify a tool frame.
@@ -72,3 +77,11 @@ a polyline that connects the physical realization of the joint-link segments. Fo
 8 segments :math:`\mathbf{s}_{0..7}`. The attribute :code:`RationalMechanism.segments` then keeps the naming
 as base link is :math:`\mathbf{l}_{00}`, first joint of right factorization is :math:`\mathbf{j}_{00}`, while
 the first joint of the left factorization is :math:`\mathbf{j}_{10}`, etc. The last link is :math:`\mathbf{l}_{12}`.
+
+
+Changing base frame of the mechanism
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For plotting, it is possible to change the base frame of the mechanism.
+See the example in :ref:`changing_bases_interpolation`
+in the quadratic interpolation of 5 points how to do it.
