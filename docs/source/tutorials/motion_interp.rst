@@ -201,6 +201,7 @@ non-monic polynomial, i.e. the factorized mechanism will be transformed by a sta
 transformation.
 
 .. testcode:: [motion_interp_example4]
+    :skipif: skip_this_doctest == True
 
     # Quadratic interpolation of 5 points
 
@@ -233,10 +234,10 @@ transformation.
     p.show()
 
 .. testcleanup:: [motion_interp_example4]
+    :skipif: skip_this_doctest == True
 
-    del p, points, interpolated_curve, m, rebase
-    del Plotter, MotionInterpolation, PointHomogeneous, DualQuaternion
-    del RationalMechanism
+    del p, points, interpolated_curve, m, rebase, a0, a1, a2, a3, a4
+    del Plotter, MotionInterpolation, PointHomogeneous, DualQuaternion, RationalMechanism
 
 
 The resulting curve is plotted in the following figure.
@@ -258,6 +259,7 @@ again non-monic polynomial, i.e. the factorized mechanism will be transformed
 by a static transformation.
 
 .. testcode:: [motion_interp_example5]
+    :skipif: skip_this_doctest == True
 
     # Cubic interpolation of 7 points
 
@@ -293,10 +295,10 @@ by a static transformation.
     p.show()
 
 .. testcleanup:: [motion_interp_example5]
+    :skipif: skip_this_doctest == True
 
-    del p, points, interpolated_curve, m, rebase
-    del Plotter, MotionInterpolation, PointHomogeneous, DualQuaternion
-    del RationalMechanism
+    del p, points, interpolated_curve, m, rebase, a0, a1, a2, a3, a4, a5, a6
+    del Plotter, MotionInterpolation, PointHomogeneous, DualQuaternion, RationalMechanism
 
 
 The resulting curve is plotted in the following figure.

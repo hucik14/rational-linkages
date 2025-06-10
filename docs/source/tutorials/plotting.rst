@@ -66,6 +66,7 @@ Interactive plotting
 In the interactive mode, the mechanisms can be animated.
 
 .. testcode:: [plotting_example2]
+    :skipif: skip_this_doctest == True
 
     # Interactive plotting with a loaded mechanism model
 
@@ -86,6 +87,7 @@ In the interactive mode, the mechanisms can be animated.
     plt.show()
 
 .. testcleanup:: [plotting_example2]
+    :skipif: skip_this_doctest == True
 
     del plt, m, point
     del Plotter, PointHomogeneous, bennett_ark24
@@ -219,7 +221,7 @@ The following examples show the three options.
 
 .. testcleanup:: [plotting_example5]
 
-    del p, m, f1, f2
+    del plt, m, f1, f2
     del RationalMechanism, DualQuaternion, Plotter, MotionFactorization
 
 
@@ -260,7 +262,7 @@ The following examples show the three options.
 
 .. testcleanup:: [plotting_example6]
 
-    del p, m, f1, f2, tool_matrix, tool_dq
+    del plt, m, f1, f2, tool_matrix, tool_dq
     del RationalMechanism, DualQuaternion, TransfMatrix, Plotter, MotionFactorization
 
 .. figure:: figures/plot_tool3.png

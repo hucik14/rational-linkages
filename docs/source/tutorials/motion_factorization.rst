@@ -36,13 +36,13 @@ Factorization of planar 4-bar
     m = RationalMechanism(factorizations, tool='mid_of_last_link')
 
     # plot mechanism
-    myplt = Plotter(mechanism=m, steps=200, arrows_length=0.05)
-    myplt.show()
+    plt = Plotter(mechanism=m, arrows_length=0.05)
+    plt.show()
 
 .. testcleanup:: [motion_factorization_example1]
 
     del DualQuaternion, MotionFactorization, RationalMechanism, Plotter
-    del f1, factorizations, m, myplt
+    del f1, factorizations, m, plt
 
 Which results in the following plot:
 
@@ -74,13 +74,13 @@ Factorization of spatial 6R mechanism
     m = RationalMechanism(factorizations)
 
     # plot mechanism
-    myplt = Plotter(mechanism=m, steps=200, arrows_length=0.2)
-    myplt.show()
+    plt = Plotter(mechanism=m, arrows_length=0.2)
+    plt.show()
 
 .. testcleanup:: [motion_factorization_example2]
 
     del DualQuaternion, MotionFactorization, RationalMechanism, Plotter
-    del h1, h2, h3, f1, factorizations, m, myplt
+    del h1, h2, h3, f1, factorizations, m, plt
 
 Which results in the following plot:
 

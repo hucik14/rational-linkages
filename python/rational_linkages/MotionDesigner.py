@@ -41,7 +41,7 @@ class MotionDesigner:
 
     .. testcleanup:: [motiondesigner_example1]
 
-        del d
+        del d, MotionDesigner
 
     .. testcode:: [motiondesigner_example2]
 
@@ -72,7 +72,7 @@ class MotionDesigner:
 
     .. testcleanup:: [motiondesigner_example2]
 
-        del d
+        del d, MotionDesigner, PointHomogeneous, chosen_points
 
     """
     def __init__(self,

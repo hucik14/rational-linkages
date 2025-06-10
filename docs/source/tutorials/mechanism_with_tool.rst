@@ -26,7 +26,7 @@ to assembly your mechanism correctly. See the example below:
     from rational_linkages.models import bennett_ark24
 
     m = bennett_ark24()
-    dh, design_params, design_points = m.get_design(return_point_homogeneous=True)
+    dh, design_params, design_points = m.get_design(return_point_homogeneous=True, pretty_print=False)
 
     # obtain points on joint0
     base_joint0_pts = design_points[0]
@@ -47,7 +47,7 @@ to assembly your mechanism correctly. See the example below:
 
 .. testcleanup:: [assembling-mechanism-with-tool]
 
-        del Plotter, bennett_ark24, m, dh, design_params, design_points, p, base_joint0_pts, base_joint1_pts, i, pt
+        del Plotter, bennett_ark24, m, dh, design_params, design_points, p, base_joint0_pts, base_joint3_pts, i, pt
 
 
 The output will look similar (different backend) like in the figure below, where the points belonging

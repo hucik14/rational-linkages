@@ -14,12 +14,22 @@ supported for designing rational motions. They correspond to the :ref:`interpola
 
 In the code, use it as follows:
 
+
 .. testcode:: [motion_designer_example]
 
     from rational_linkages import MotionDesigner
 
     designer = MotionDesigner(method='quadratic_from_poses')
     designer.show()
+
+.. testoutput:: [motion_designer_example]
+    :hide:
+
+    Closing the window... generated points for interpolation:
+    [1, 0, 0, 0, 0, 0, 0, 0]
+    [ 1.          , -0.207522406 , -0.0333866662, -0.0691741237, -0.0625113682, -0.141265791 , -0.4478576802, -0.2637268902]
+    [ 1.          ,  0.2333739522, -0.0427838517,  0.0777914503, -0.0839342318,  0.2991396249,  0.2980046603,  0.345444421 ]
+
 
 .. testcleanup:: [motion_designer_example]
 
