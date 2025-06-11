@@ -165,7 +165,7 @@ checksum = "7264e107f553ccae879d21fbea1d6724ac785e8c3bfc762137959b5802826ef3"
 
 [[package]]
 name = "utils_rust"
-version = "1.11.0-dev.3"
+version = "2.0.0"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
