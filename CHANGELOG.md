@@ -1,5 +1,92 @@
 # Changelog
 
+## 2.0.0 (2025-06-11)
+
+### added (48 changes)
+
+- [for plotting, the mechanisms base can be altered](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/13b858c4)
+- [motion designer added to docs](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/7ea5dcf3)
+- [gif added to readme and index](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/76ef90b0)
+- [dk, ik, and motion plannings docs](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/151eda7a)
+- [create PNG animation of rotation](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/7cf377e7)
+- [new simple rational curve example](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/23f6489a)
+- [tutorial for physical construction of mechanism](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/4837ea1f)
+- [generation of interpolated 6r](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9853ccba)
+- [MotionDesigner point values can be edited by textbox](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5470f622)
+- [MotionDesigner point values can be edited by textbox](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/e8430702)
+- [MotionDesigner now shows values of control points](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/ca347381)
+- [error handling of mechanism creation](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/07906b24)
+- [approximation for points draft (not working); force study quadric optimization](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/8eaa5832)
+- [Quaternons and DualQuaternions elements can be set directly](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/c179a726)
+- [Plotter.py returns a class instance based on given parameters](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/c939847e)
+- [class for Gauss-Legendre curves](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9176c76d)
+- [reset of LineSegment counter at update](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/c4630718)
+- [LineSegment class has registry, segments are created in circular order of two factorizations](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/6767e89c)
+- [LineSegment new arg: default (at inf) line coeffs](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/8785ab71)
+- [new method for obtaining a relative motion between two links-joints](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/6df4c29f)
+- [MotionsDesigner synthesizes and plots mechanism right away](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/bba4fafa)
+- [k-dq x3 calculation in Rust](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5a7293f5)
+- [rust backend - library import and test methods](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/464eca5f)
+- [cubic interpolation for both families](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1fee76fd)
+- [swap in visualization of both families solutions](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/832e6fb3)
+- [heavy calculations separate lib](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/3c71bb5c)
+- [new logo](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/b7c4b7e2)
+- [save PNG figure](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1617916e)
+- [pyqtgraph white background option](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/af662eb1)
+- [new dependencies](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/e4ee7c64)
+- [new utility to extract coefficients from sympy expression](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/4e3dadf0)
+- [Cubic interpolation accepts lambda parameter](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1ca2e2b8)
+- [Motion Designer for Cubic curve - experimental](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5e62490c)
+- [normalized plane default plot](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/66bc6c7d)
+- [interactive plotting with Pyqtgraph](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5d52f043)
+- [construction of TransfMatrix from single rotation](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d2afa3cb)
+- [motion designer for quadratic curve from poses](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/7dd1d8d9)
+- [numerical interpolation of quadratic curve](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/14edeec0)
+- [MotionDesigner for quadratic curves via 5 points](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/80ad7653)
+- [adding motion designer, not yet working](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/13df3c58)
+- [interpolation of Bezier curves numerically](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/3408016c)
+- [Vispy plotter backend](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/6c0f1cb6)
+- [PointHomogeneous can be multiplied or divided by scalar](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/267aaa92)
+- [obtain point orbits using Welzl's algroithm](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1f3021de)
+- [CollisionAnalyser.py takes over calculation for segments orbits](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/4df5d2f4)
+- [BezierSegmentControlPoints class avoids init of sympy objects for splitting](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/b84373c0)
+- [RationalCurve has the "metric" attribute](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/28390132)
+- [added metric attribute RationalMechanism.py](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/fb2aecee)
+
+
+### removed (2 changes)
+
+- [first point/pose cannot be modified (identity)](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/29a67ea0)
+- [Vispy backend removed](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1127babb)
+
+
+### changed (8 changes)
+
+- [plotting docs updated for Qt6 backend](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/70b62dec)
+- [PyQt6 update for Matplotlib backend, saving PyQtgraph with text overlay](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1f14b9ea)
+- [update of models for latest RL version](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/949f28f0)
+- [get_design returns correct points which do not take into account Onshape's design params](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/bf0de27c)
+- [__init__.py cleanup](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/74e706f5)
+- [new class for Plotting, handling PyQtGraph as default, Matplotlib as secondary backend that is not required](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5226e0eb)
+- [changes in dependencies, exudyn option](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/e93f0754)
+- [new default poses for quadratic MD, added test](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/f48dd268)
+
+
+### fixed (10 changes)
+
+- [get_design returns correct points; newly input is in meters by default](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/87e0c6fe)
+- [labeling erased previous render, Gl not processed well](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/427024cf)
+- [debug in case of difficult interpolation - perfomed numerically](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d02844ed)
+- [Bennett DH docs fix](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/58ffdf7d)
+- [debug example](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/52f5c095)
+- [vector check not strict enough](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/50d5bb2e)
+- [debug - poses append; solve for t optimized](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/c7e022ef)
+- [macos fix for segmentation - too small init windows](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/313fc2fb)
+- [DH params were returning wrong d for base](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/13ae0ff1)
+- [debug when normal z-coord was 0, cleanup](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/8d9e55c6)
+
+
+
 ## 1.10.2 (2025-04-11)
 
 ### added (1 change)
