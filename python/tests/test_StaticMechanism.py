@@ -2,7 +2,7 @@ import pytest
 import sympy
 import numpy
 
-from rational_linkages import StaticMechanism
+from rational_linkages.StaticMechanism import StaticMechanism
 from rational_linkages import NormalizedLine
 
 

@@ -1,6 +1,7 @@
+.. _joint-angle-to-t:
+
 Joint Angle to Curve Parameter
 ==============================
-
 
 The packages uses rational motion parametrization, i.e. every curve :math:`C(t)` is
 defined by a list of linear factors (parametric equations) in Dual Quaternion space :math:`\mathbb{DH}`

@@ -5,7 +5,7 @@ Motion Factorization
 
 This tutorial demonstrates how to use the method
 :meth:`.MotionFactorization.factorize()`
-and related class :class:`.FactorizationProvider` to factorize a rational motion,
+and related class :class:`rational_linkages.FactorizationProvider` to factorize a rational motion,
 as described by :footcite:t:`Hegeds2012` and :footcite:p:`Hegeds2013`.
 
 The theory behind the motion factorization is described in section
@@ -14,7 +14,7 @@ The theory behind the motion factorization is described in section
 For better **computational stability**, it is recommended (but not necessary) to use
 rational dual quaternions, constructed using the method
 :meth:`.DualQuaternion.as_rational()`, which will take the input and applies Sympy's
-`Rational` function to each element of the give 8-vector array.
+``Rational`` function to each element of the give 8-vector array.
 
 
 Factorization of planar 4-bar
@@ -36,14 +36,13 @@ Factorization of planar 4-bar
     m = RationalMechanism(factorizations, tool='mid_of_last_link')
 
     # plot mechanism
-    myplt = Plotter(interactive=True, steps=200, arrows_length=0.05)
-    myplt.plot(m, show_tool=True)
-    myplt.show()
+    plt = Plotter(mechanism=m, arrows_length=0.05)
+    plt.show()
 
 .. testcleanup:: [motion_factorization_example1]
 
     del DualQuaternion, MotionFactorization, RationalMechanism, Plotter
-    del f1, factorizations, m, myplt
+    del f1, factorizations, m, plt
 
 Which results in the following plot:
 
@@ -75,14 +74,13 @@ Factorization of spatial 6R mechanism
     m = RationalMechanism(factorizations)
 
     # plot mechanism
-    myplt = Plotter(interactive=True, steps=200, arrows_length=0.2)
-    myplt.plot(m, show_tool=True)
-    myplt.show()
+    plt = Plotter(mechanism=m, arrows_length=0.2)
+    plt.show()
 
 .. testcleanup:: [motion_factorization_example2]
 
     del DualQuaternion, MotionFactorization, RationalMechanism, Plotter
-    del h1, h2, h3, f1, factorizations, m, myplt
+    del h1, h2, h3, f1, factorizations, m, plt
 
 Which results in the following plot:
 

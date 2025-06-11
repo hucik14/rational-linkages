@@ -13,19 +13,22 @@ from .NormalizedLine import NormalizedLine
 from .RationalCurve import RationalCurve
 from .TransfMatrix import TransfMatrix
 from .PointHomogeneous import PointHomogeneous
+from .Linkage import LineSegment
 
 
 class RationalMechanism(RationalCurve):
     """
     Class representing rational mechanisms in dual quaternion space.
 
-    :ivar factorizations: list of MotionFactorization objects
-    :ivar num_joints: number of joints in the mechanism
-    :ivar is_linkage: True if the mechanism is a linkage, False if it is 1 branch of a
-        linkage
-    :ivar tool_frame: end effector of the mechanism
-    :ivar segments: list of LineSegment objects representing the physical realization of
-        the linkage
+    :ivar list factorizations: list of MotionFactorization objects
+    :ivar int num_joints: number of joints in the mechanism
+    :ivar bool is_linkage: True if the mechanism is a linkage, False if it is 1 branch
+        of a linkage
+    :ivar DualQuaternion tool_frame: end effector of the mechanism
+    :ivar AffineMetric metric: object representing the metric of the mechanism
+    :ivar LineSegment segments: list of LineSegment objects representing the physical
+        realization of the linkage
+
 
     :examples:
 
@@ -42,10 +45,7 @@ class RationalMechanism(RationalCurve):
 
         # create an interactive plotter object, with 500 descrete steps
         # for the input rational curves, and arrows scaled to 0.05 length
-        myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
-
-        # plot the model with tool frame
-        myplt.plot(m, show_tool=True)
+        myplt = Plotter(mechanism=m, steps=500, arrows_length=0.05)
 
         ##### additional plotting options #####
         # create a pose of the identity
@@ -75,14 +75,66 @@ class RationalMechanism(RationalCurve):
         self.factorizations = factorizations
         self.num_joints = sum([f.number_of_factors for f in factorizations])
 
-        self.is_linkage = True if len(self.factorizations) == 2 else False
-
         self.tool_frame = self._determine_tool(tool)
 
-        self.segments = None
+        self.is_linkage = len(self.factorizations) == 2
 
-        if self.is_linkage:
-            self.update_segments()
+        self._segments = None
+        self._metric = None
+
+        self._linear_motions_cycle = None
+
+
+    @property
+    def segments(self):
+        """
+        Return the line segments of the linkage.
+
+        Line segments are the physical realization of the linkage.
+
+        :return: list of LineSegment objects
+        :rtype: list[LineSegment]
+        """
+        if self._segments is None and self.is_linkage:
+            self._segments = self._get_line_segments_of_linkage()
+        else:
+            ValueError("Segments are available only for linkages.")
+
+        return self._segments
+
+    @property
+    def metric(self):
+        """
+        Define a metric in R12 for the mechanism.
+
+        This metric is used for collision detection.
+        """
+        if self._metric is None:
+            from .AffineMetric import AffineMetric  # inner import
+            mechanism_points = self.points_at_parameter(0,
+                                                        inverted_part=True,
+                                                        only_links=False)
+            self._metric = AffineMetric(self.curve(), mechanism_points)
+
+        return self._metric
+
+    @property
+    def linear_motions_cycle(self):
+        """
+        A cycle of linear motions of the mechanism.
+        """
+        if self._linear_motions_cycle is None:
+            # init linear motions
+            axes_cycle = (
+                    self.factorizations[0].factors_with_parameter
+                    + self.factorizations[1].factors_with_parameter[::-1])
+            axes_link_cycle = []
+            for item in axes_cycle:
+                axes_link_cycle.append(DualQuaternion())
+                axes_link_cycle.append(item)
+
+            self._linear_motions_cycle = axes_link_cycle
+        return self._linear_motions_cycle
 
     @classmethod
     def from_saved_file(cls, filename: str):
@@ -168,11 +220,13 @@ class RationalMechanism(RationalCurve):
     def get_design(self,
                    unit: str = 'rad',
                    scale: float = 1.0,
-                   joint_length: float = 20.0,
-                   washer_length: float = 1.0,
+                   joint_length: float = 0.02,
+                   washer_length: float = 0.001,
+                   return_point_homogeneous: bool = False,
                    update_design: bool = False,
                    pretty_print: bool = True,
-                   onshape_print: bool = False) -> tuple[np.ndarray, np.ndarray, list]:
+                   onshape_print: bool = False,
+                   ) -> tuple[np.ndarray, np.ndarray, list]:
         """
         Get the design parameters of the linkage for the CAD model.
 
@@ -181,18 +235,25 @@ class RationalMechanism(RationalCurve):
 
         :param str unit: desired unit of the angle parameters, can be 'deg' or 'rad'
         :param float scale: scale of the length parameters of the linkage
-        :param float joint_length: length of the joint segment in mm; default is 20 mm
-            which corresponds to the CAD model that connects two 20 mm joint parts and
-            has 1 mm thick washer between. Total length of the joint is 41 mm. It is
-            used to calculate a midpoint distance between the two links that connect.
+        :param float joint_length: length of the joint segment in mm; default is 0.02 m
+            (20 mm) which corresponds to the CAD model that connects two 20 mm joint
+            parts and has 0.001 m (1 mm) thick washer between. Total length of the
+            joint is 41 mm. It is used to calculate a midpoint distance between
+            the two links that connect.
         :param float washer_length: length of the washer in mm; default is 1 mm
-        :param bool update_design: if True, update the design of the mechanism (including joint segments)
+        :param bool return_point_homogeneous: if True, return the design points as
+            PointHomogeneous objects, otherwise return them as 3D numpy arrays
+        :param bool update_design: if True, update the design of the mechanism
+            (including joint segments)
         :param bool pretty_print: if True, print the parameters in a readable form,
             otherwise return a numpy array
         :param bool onshape_print: if True, print the parameters in a form that can be
             directly copied to Onshape
 
-        :return: design parameters of the linkage
+        :return: design parameters of the linkage (dh, design_params, design_points)
+            dh - Denavit-Hartenberg parameters of the linkage, design_params - point
+            parameters on the joint axes in respect to the screw, design_points - points
+            on the joint axes
         :rtype: tuple (np.ndarray, np.ndarray, list)
         """
         screws = deepcopy(self.get_screw_axes())
@@ -200,7 +261,7 @@ class RationalMechanism(RationalCurve):
         frames = self.get_frames()
 
         connection_params = self.get_segment_connections()
-        mid_pts_dist = (joint_length + washer_length) / scale
+        mid_pts_dist = (joint_length + washer_length)
         connection_params = self.map_connection_params(connection_params, mid_pts_dist)
 
         if update_design:
@@ -224,18 +285,24 @@ class RationalMechanism(RationalCurve):
         design_params = np.zeros((self.num_joints, 2))
 
         for i in range(self.num_joints):
+            # compensate d-ith parameter of DH
             design_params[i, 0] = (connection_params[i, 1]
                                    - screws[i].get_point_param(frames[i].t))
             design_params[i, 1] = (connection_params[i+1, 0]
                                    - screws[i+1].get_point_param(frames[i+1].t))
 
-        design_params = design_params * scale
-
         design_points = []
         for i in range(self.num_joints):
-            design_points.append(
-                [screws[i].direction + design_params[i, 0] * screws[i].direction,
-                 screws[i].direction + design_params[i, 1] * screws[i].direction])
+            if return_point_homogeneous:
+                design_points.append(
+                    [PointHomogeneous.from_3d_point(
+                        screws[i].point_on_line(connection_params[i, 0])),
+                     PointHomogeneous.from_3d_point(
+                         screws[i].point_on_line(connection_params[i, 1]))])
+            else:
+                design_points.append(
+                    [screws[i].point_on_line(connection_params[i, 0]),
+                     screws[i].point_on_line(connection_params[i, 1])])
 
         # ignore the first row (base frame)
         dh = self.get_dh_params(unit=unit, scale=scale)
@@ -539,6 +606,8 @@ class RationalMechanism(RationalCurve):
             max_pair = max(iters, key=lambda x: x[1] - x[0])
             # remove the pair from the list
             iters.remove(max_pair)
+        else:  # remove the first link and last joint segments anyway (neighbours)
+            iters.remove((0, len(self.segments) - 1))
 
         print(f"--- number of tasks to solve: {len(iters)} ---")
 
@@ -704,7 +773,8 @@ class RationalMechanism(RationalCurve):
 
         return solutions, intersection_points
 
-    def get_intersection_points(self, l0: NormalizedLine, l1: NormalizedLine,
+    @staticmethod
+    def get_intersection_points(l0: NormalizedLine, l1: NormalizedLine,
                                 t_params: list[float]):
         """
         Return the intersection points of two lines.
@@ -716,7 +786,6 @@ class RationalMechanism(RationalCurve):
         :return: list of intersection points
         :rtype: list[PointHomogeneous]
         """
-        from .PointHomogeneous import PointHomogeneous
         intersection_points = [PointHomogeneous()] * len(t_params)
 
         for i, t_val in enumerate(t_params):
@@ -731,11 +800,60 @@ class RationalMechanism(RationalCurve):
 
         return intersection_points
 
-    def update_segments(self):
+    def _get_line_segments_of_linkage_old(self) -> list:
         """
-        Update the line segments of the linkage.
+        Return the line segments of the linkage.
+
+        Line segments are the physical realization of the linkage. This method obtains
+        their motion equations using default connection points of the factorizations
+        (default meaning the static points in the home configuration).
+
+        :return: list of LineSegment objects
+        :rtype: list[LineSegment]
         """
-        self.segments = self._get_line_segments_of_linkage()
+        t = sp.Symbol("t")
+
+        segments = [[], []]
+
+        # base (static) link has index 0 in the list of the 1st factorization
+        eq, p0, p1 = self.factorizations[0].base_link(
+            self.factorizations[1].linkage[0].points[0])
+        segments[0].append(LineSegment(eq, p0, p1, linkage_type="l", f_idx=0, idx=0))
+
+        # static joints
+        segments[0].append(LineSegment(*self.factorizations[0].joint(0),
+                                       linkage_type="j", f_idx=0, idx=0))
+        segments[1].append(LineSegment(*self.factorizations[1].joint(0),
+                                       linkage_type="j", f_idx=1, idx=0))
+
+        # moving links and joints
+        for i in range(2):
+            for j in range(1, self.factorizations[i].number_of_factors):
+                line, p0, p1 = self.factorizations[i].link(j)
+                link = self.factorizations[i].act(line, end_idx=j-1, param=t)
+                p0 = self.factorizations[i].act(p0, end_idx=j-1, param=t)
+                p1 = self.factorizations[i].act(p1, end_idx=j-1, param=t)
+                segments[i].append(LineSegment(link, p0, p1, default_line=line,
+                                               linkage_type="l", f_idx=i, idx=j))
+
+                line, p0, p1 = self.factorizations[i].joint(j)
+                joint = self.factorizations[i].act(line, end_idx=j, param=t)
+                p0 = self.factorizations[i].act(p0, end_idx=j, param=t)
+                p1 = self.factorizations[i].act(p1, end_idx=j, param=t)
+                segments[i].append(LineSegment(joint, p0, p1, default_line=line,
+                                               linkage_type="j", f_idx=i, idx=j))
+
+        # tool (moving - acted) link has index -1 in the list of the 2nd factorization
+        tool_link_line, p0, p1 = self.factorizations[0].tool_link(
+            self.factorizations[1].linkage[-1].points[1])
+        tool_link = self.factorizations[0].act(tool_link_line, param=t)
+        p0 = self.factorizations[0].act(p0, param=t)
+        p1 = self.factorizations[1].act(p1, param=t)
+        tool_idx = self.factorizations[1].number_of_factors
+        segments[1].append(LineSegment(tool_link, p0, p1, default_line=tool_link_line,
+                                       linkage_type="l", f_idx=1, idx=tool_idx))
+
+        return segments[0] + segments[1][::-1]
 
     def _get_line_segments_of_linkage(self) -> list:
         """
@@ -748,46 +866,68 @@ class RationalMechanism(RationalCurve):
         :return: list of LineSegment objects
         :rtype: list[LineSegment]
         """
-        from .Linkage import LineSegment
-
         t = sp.Symbol("t")
 
-        segments = [[], []]
+        segments = []
 
         # base (static) link has index 0 in the list of the 1st factorization
-        eq, p0, p1 = self.factorizations[0].base_link(self.factorizations[1].linkage[0].points[0])
-        segments[0].append(LineSegment(eq, p0, p1, linkage_type="b", f_idx=0, idx=0))
+        eq, p0, p1 = self.factorizations[0].base_link(
+            self.factorizations[1].linkage[0].points[0])
+        segments.append(LineSegment(eq, p0, p1, linkage_type="l", f_idx=0, idx=0))
 
         # static joints
-        segments[0].append(LineSegment(*self.factorizations[0].joint(0),
-                                       linkage_type="j", f_idx=0, idx=0))
-        segments[1].append(LineSegment(*self.factorizations[1].joint(0),
-                                       linkage_type="j", f_idx=1, idx=0))
+        segments.append(LineSegment(*self.factorizations[0].joint(0),
+                                    linkage_type="j", f_idx=0, idx=0))
+
 
         # moving links and joints
-        for i in range(2):
-            for j in range(1, self.factorizations[i].number_of_factors):
-                link, p0, p1 = self.factorizations[i].link(j)
-                link = self.factorizations[i].act(link, end_idx=j-1, param=t)
-                p0 = self.factorizations[i].act(p0, end_idx=j-1, param=t)
-                p1 = self.factorizations[i].act(p1, end_idx=j-1, param=t)
-                segments[i].append(LineSegment(link, p0, p1, linkage_type="l", f_idx=i, idx=j))
+        i = 0
+        for j in range(1, self.factorizations[i].number_of_factors):
+            line, p0, p1 = self.factorizations[i].link(j)
+            link = self.factorizations[i].act(line, end_idx=j-1, param=t)
+            p0 = self.factorizations[i].act(p0, end_idx=j-1, param=t)
+            p1 = self.factorizations[i].act(p1, end_idx=j-1, param=t)
+            segments.append(LineSegment(link, p0, p1, default_line=line,
+                                        linkage_type="l", f_idx=i, idx=j))
 
-                joint, p0, p1 = self.factorizations[i].joint(j)
-                joint = self.factorizations[i].act(joint, end_idx=j, param=t)
-                p0 = self.factorizations[i].act(p0, end_idx=j, param=t)
-                p1 = self.factorizations[i].act(p1, end_idx=j, param=t)
-                segments[i].append(LineSegment(joint, p0, p1, linkage_type="j", f_idx=i, idx=j))
+            line, p0, p1 = self.factorizations[i].joint(j)
+            joint = self.factorizations[i].act(line, end_idx=j, param=t)
+            p0 = self.factorizations[i].act(p0, end_idx=j, param=t)
+            p1 = self.factorizations[i].act(p1, end_idx=j, param=t)
+            segments.append(LineSegment(joint, p0, p1, default_line=line,
+                                        linkage_type="j", f_idx=i, idx=j))
 
         # tool (moving - acted) link has index -1 in the list of the 2nd factorization
-        tool_link, p0, p1 = self.factorizations[0].tool_link(self.factorizations[1].linkage[-1].points[1])
-        tool_link = self.factorizations[0].act(tool_link, param=t)
+        tool_link_line, p0, p1 = self.factorizations[0].tool_link(
+            self.factorizations[1].linkage[-1].points[1])
+        tool_link = self.factorizations[0].act(tool_link_line, param=t)
         p0 = self.factorizations[0].act(p0, param=t)
         p1 = self.factorizations[1].act(p1, param=t)
         tool_idx = self.factorizations[1].number_of_factors
-        segments[1].append(LineSegment(tool_link, p0, p1, linkage_type="t", f_idx=1, idx=tool_idx))
+        segments.append(LineSegment(tool_link, p0, p1, default_line=tool_link_line,
+                                    linkage_type="l", f_idx=1, idx=tool_idx))
 
-        return segments[0] + segments[1][::-1]
+        i = 1
+        for j in range(self.factorizations[i].number_of_factors -1, 0, -1):
+            line, p0, p1 = self.factorizations[i].joint(j)
+            joint = self.factorizations[i].act(line, end_idx=j, param=t)
+            p0 = self.factorizations[i].act(p0, end_idx=j, param=t)
+            p1 = self.factorizations[i].act(p1, end_idx=j, param=t)
+            segments.append(LineSegment(joint, p0, p1, default_line=line,
+                                        linkage_type="j", f_idx=i, idx=j))
+
+            line, p0, p1 = self.factorizations[i].link(j)
+            link = self.factorizations[i].act(line, end_idx=j-1, param=t)
+            p0 = self.factorizations[i].act(p0, end_idx=j-1, param=t)
+            p1 = self.factorizations[i].act(p1, end_idx=j-1, param=t)
+            segments.append(LineSegment(link, p0, p1, default_line=line,
+                                        linkage_type="l", f_idx=i, idx=j))
+
+
+        segments.append(LineSegment(*self.factorizations[1].joint(0),
+                                    linkage_type="j", f_idx=1, idx=0))
+
+        return segments
 
     def get_motion_curve(self):
         """
@@ -802,7 +942,7 @@ class RationalMechanism(RationalCurve):
         """
         Perform singularity check of the mechanism.
         """
-        from .SingularityAnalysis import SingularityAnalysis
+        from .SingularityAnalysis import SingularityAnalysis  # inner import
 
         sa = SingularityAnalysis()
         return sa.check_singularity(self)
@@ -817,7 +957,7 @@ class RationalMechanism(RationalCurve):
             result of the optimization
         :rtype: list, list, float
         """
-        from .CollisionFreeOptimization import CollisionFreeOptimization
+        from .CollisionFreeOptimization import CollisionFreeOptimization  # inner import
 
         # get smallest polyline
         pts, points_params, res = CollisionFreeOptimization(self).smallest_polyline()
@@ -873,13 +1013,13 @@ class RationalMechanism(RationalCurve):
         return results
 
     def points_at_parameter(self,
-                            t: float,
+                            t_param: float,
                             inverted_part: bool = False,
                             only_links: bool = False) -> list[PointHomogeneous]:
         """
         Get the points of the mechanism at the given parameter.
 
-        :param float t: parameter value
+        :param float t_param: parameter value
         :param bool inverted_part: if True, return the evaluated points for the inverted
             part of the mechanism
         :param bool only_links: if True, instead of two points per joint segment,
@@ -888,10 +1028,9 @@ class RationalMechanism(RationalCurve):
         :return: list of connection points of the mechanism
         :rtype: list[PointHomogeneous]
         """
-
-        branch0 = self.factorizations[0].direct_kinematics(t,
+        branch0 = self.factorizations[0].direct_kinematics(t_param,
                                                            inverted_part=inverted_part)
-        branch1 = self.factorizations[1].direct_kinematics(t,
+        branch1 = self.factorizations[1].direct_kinematics(t_param,
                                                            inverted_part=inverted_part)
 
         points = branch0 + branch1[::-1]
@@ -1237,6 +1376,10 @@ class RationalMechanism(RationalCurve):
         """
         Generate smooth trajectory for the tool of the mechanism.
 
+        The mechod implements :footcite:p:`Huczala2025kinematics` and generates a
+        joint-space trajectory so that the tool travels with approximately constant
+        velocity. The arc-length reparameterization is used in the background.
+
         :param float joint_angle_start: start parameter value
         :param float joint_angle_end: end parameter value
         :param float time_sec: time of the trajectory [seconds]
@@ -1312,3 +1455,74 @@ class RationalMechanism(RationalCurve):
 
         # Save the stacked array to a CSV file
         np.savetxt('trajectory.csv', data, delimiter=',', fmt='%1.6f')
+
+    def update_metric(self):
+        """
+        Update the metric of the mechanism.
+
+        Set to none so that the metric is recalculated when needed.
+        """
+        self._metric = None
+
+    def update_segments(self):
+        """
+        Update the line segments of the linkage.
+        """
+        self._segments = None
+        LineSegment.reset_counter()
+        self._segments = self._get_line_segments_of_linkage()
+
+    def relative_motion(self,
+                        static: LineSegment,
+                        moving: LineSegment) -> DualQuaternion:
+        """
+        Calculate the relative motion between given pair of links or joints.
+
+        The method checks if the relative motion between the two links or joints
+        already exists in the self.relative_motions attribute. If it does, the method
+        returns the relative motion. If it does not, the method calculates the relative
+        motion and adds it to the self.relative_motions attribute.
+
+        """
+        if static == moving:
+            raise ValueError("static and moving cannot be the same")
+
+        motion_cycle = self._shortest_path(static.creation_index,
+                                           moving.creation_index)
+        rel_motion = DualQuaternion()
+        for idx in motion_cycle:
+            rel_motion *= self.linear_motions_cycle[idx]
+
+        return rel_motion
+
+    def _shortest_path(self, start: int, end: int) -> list[int]:
+        """
+        Return the shortest circular slice of `path` from index `start` to `end`.
+
+        If going “forward” (increasing index modulo n) is shorter than
+        going “backward”, you get the forward slice; otherwise the backward slice.
+
+        :param int start: start index
+        :param int end: end index
+
+        :return: list of indices of the shortest path
+        :rtype: list[int]
+        """
+        path = list(range(2*self.num_joints))
+        n = len(path)
+
+        # distance going forward (wrapping at n)
+        dist_fwd = (end - start) % n
+        # distance going backward
+        dist_bwd = (start - end) % n
+
+        if dist_fwd <= dist_bwd:
+            # walk forward dist_fwd steps, including the start (0) up to end
+            motion_indices = [path[(start + i) % n] for i in range(dist_fwd + 1)]
+        else:
+            # walk backward dist_bwd steps
+            motion_indices =  [path[(start - i) % n] for i in range(dist_bwd + 1)]
+
+        # slice out the last element
+        return motion_indices[:-1]
+

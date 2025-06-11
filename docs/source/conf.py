@@ -75,10 +75,13 @@ nitpick_ignore = [
     ('py:class', 'numpy.ndarray'),
     ('py:class', 'numpy.array'),
     ('py:class', 'np.array'),
+    ('py:class', 'np.polynomial.Polynomial'),
     ('py:class', 'sp.Symbol'),
     ('py:class', 'sp.Poly'),
     ('py:class', 'sp.Matrix'),
     ('py:class', 'bq.Poly'),
+    ('py:class', 'gl.GLViewWidget'),
+    ('py:class', 'PyQt5.QtWidgets.QWidget'),
 ]
 
 intersphinx_mapping = {'python': ('http://docs.python.org/3', None),
@@ -87,6 +90,9 @@ intersphinx_mapping = {'python': ('http://docs.python.org/3', None),
                        'matplotlib': ('http://matplotlib.org/stable', None),
                        'sympy': ('https://docs.sympy.org/latest/', None),
                        'biquaternion_py': ('https://biquaternion-py.readthedocs.io/en/latest/', None),
+                       'PyQt6': ('https://www.riverbankcomputing.com/static/Docs/PyQt6/', None),
+                       'pyqt6': ('https://doc.qt.io/qtforpython-6/', None),
+                       'pyqtgraph': ('https://pyqtgraph.readthedocs.io/en/latest/', None),
                        }
 
 hoverxref_auto_ref = True
@@ -144,18 +150,3 @@ doctest_test_doctest_blocks = 'default'
 doctest_global_setup = """
 skip_this_doctest = False
 """
-
-# doctest_global_cleanup = """
-# def doctest_cleanup():
-#     global_dict = globals()
-#     to_remove = [
-#         key for key in global_dict.keys()
-#         if key not in {'__builtins__', '__name__', '__doc__', '__file__',
-#                        '__package__', '__loader__', '__spec__', 'doctest_cleanup'}
-#     ]
-#
-#     return to_remove
-#
-# for element in doctest_cleanup():
-#     del globals()[element]
-# """

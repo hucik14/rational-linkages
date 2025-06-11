@@ -14,6 +14,9 @@
 .. |image-logo| image:: figures/rl-logo.png
    :width: 8%
 
+.. |gif-bennett| image:: figures/tombennett.gif
+   :width: 540 px
+
 .. |binder_badge| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb
 
@@ -82,20 +85,26 @@ daniel.huczala@uibk.ac.at
 Main Features:
 --------------
 
-- Synthesis of single-loop rational linkages for a given task (set of poses),
+- Synthesis of single-loop rational linkages for a given task - set of poses or points,
 - search of full-cycle collision-free design of the linkages,
 - design of 3D-printable mechanisms,
-- basic control algorithms for velocity motion planning.
+- basic control algorithms for velocity motion planning,
+- interactive motion design.
 
+The results may look like this Bennett manipulator made by our collaborators from the Department of Robotics,
+VSB -- Technical University
+of Ostrava. See `full video on Youtube <https://www.youtube.com/watch?v=T_7lkPjdcCg>`_.
+
+|gif-bennett|
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    general
-   modules
    tutorials
    background-math
+   modules
 
 
 Indices and Tables:
@@ -115,6 +124,7 @@ Austria. Namely, the following people contributed to the development:
 - Daniel Huczala (author, maintainer)
 - Hans-Peter Schröcker (supervisor, contributor)
 - Martin Pfurner (contributor)
+- Andreas Mair (contributor)
 - Daren A. Thimm (contributor)
 
 Citing the Package
@@ -165,6 +175,7 @@ their algorithms and suggestions. These people are namely:
 - and **Zijia Li**, Chinese Academy of Sciences, China, for their help with the implementation of the Combinatorial Search Algorithm of collision-free linkages :footcite:p:`Li2020`. More on this in section :ref:`combinatorial_search`.
 - **Johannes Siegele**, Austrian Academy of Sciences, Austria, for his help with the implementation of the algorithm for motion interpolation of 4 poses. More on this in section :ref:`interpolation_background`.
 - **Severinas Zube**, Vilnius University, Lithuania, for his help with implementing the algorithm for motion interpolation of 3D points :footcite:p:`Zube2018`. More on this in section :ref:`interpolation_examples`.
+- **Soohyun Kim**, Pusan National University, Korea, for her help with the implementation of the Gauss-Legendre curves :footcite:p:`Moon2023` to represent curved links.
 
 **References**
 

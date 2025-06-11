@@ -33,6 +33,28 @@ class RationalCurve:
 
     :examples:
 
+    .. testcode:: [rationalcurve_example0]
+
+        # From symbolic equations
+
+        from rational_linkages import RationalCurve, Plotter
+        from sympy import symbols, Poly
+
+        t = symbols('t')
+
+        c = [t ** 2 + 3, -2*t, 2, 0, 0, 1, t, 0,]
+
+        c = RationalCurve([Poly(p, t) for p in c])
+
+        p = Plotter(backend='matplotlib', arrows_length=0.05)
+        p.plot(c, interval='closed', with_poses=True)
+        p.show()
+
+    .. testcleanup:: [rationalcurve_example0]
+
+        del RationalCurve, Plotter, symbols, Poly, t, c, p
+
+
     .. testcode:: [rationalcurve_example1]
 
         # Limancon of Pascal -- from polynomial equations
@@ -71,13 +93,15 @@ class RationalCurve:
 
     def __init__(self,
                  polynomials: list[sp.Poly],
-                 coeffs: Union[np.array, sp.Matrix] = None):
+                 coeffs: Union[np.array, sp.Matrix] = None,
+                 metric: "AffineMetric" = None):
         """
         Initializes a RationalCurve object with the provided coefficients.
 
         :param polynomials: list of polynomial equations of the curve
         :param coeffs: coefficients of the curve
         """
+
         self.set_of_polynomials = polynomials
 
         self.dimension = len(self.set_of_polynomials) - 1
@@ -96,6 +120,31 @@ class RationalCurve:
         # check if the curve is a motion curve
         self.is_motion = self.dimension == 7
         self.is_affine_motion = self.dimension == 12
+
+        self._metric = metric
+
+    @property
+    def metric(self):
+        """
+        Define a metric in R12 for the mechanism.
+
+        This metric is used for collision detection.
+        """
+        if self._metric is None:
+            return "euclidean"
+        else:
+            return self._metric
+
+    @metric.setter
+    def metric(self, metric: "AffineMetric"):
+        from .AffineMetric import AffineMetric  # inner import
+
+        if isinstance(metric, AffineMetric):
+            self._metric = metric
+        elif metric == "euclidean" or metric is None:
+            self._metric = None
+        else:
+            raise TypeError("The 'metric' property must be of type 'AffineMetric'")
 
     @property
     def symbolic(self):
@@ -282,7 +331,7 @@ class RationalCurve:
 
         # Get the coefficients of the equations
         equations_coeffs = [
-            sp.Poly((bernstein_basis[i] - self.symbolic[i]), t).all_coeffs()
+            sp.Poly((bernstein_basis[i] - self.symbolic[i]), t, greedy=False).all_coeffs()
             for i in range(self.dimension + 1)
         ]
         # Flatten the list
@@ -511,7 +560,6 @@ class RationalCurve:
         return RationalCurve(curve_poly)
 
     def split_in_beziers(self,
-                         metric: Union[str, "AffineMetric"] = "euclidean",
                          min_splits: int = 0) -> list["BezierSegment"]:
         """
         Split the curve into Bezier curves with positive weights of control points.
@@ -519,47 +567,49 @@ class RationalCurve:
         The curve is split into Bezier curves using the De Casteljau algorithm.
 
         :param int min_splits: minimal number of splits to be performed
-        :param Union[str, AffineMetric] metric: metric for the optimization
 
         :return: list of RationalBezier objects
-        :rtype: list[RationalBezier]
+        :rtype: list[BezierSegment]
         """
-        if self.is_motion:
-            curve = self.get_curve_in_pr12()
-        else:
-            raise ValueError("The curve is not a motion curve, cannot "
-                             "split into Bezier curves")
+        if not self.is_motion:
+            raise ValueError("Not a motion curve, cannot split into Bezier curves.")
 
-        from .RationalBezier import BezierSegment  # method import
+        from .RationalBezier import BezierSegment  # inner import
+
+        curve = self.get_curve_in_pr12()
 
         # obtain Bezier curves for the curve and its reparametrized inverse part
         bezier_curve_segments = [
             # reparametrize the curve from the intervals [-1, 1]
             BezierSegment(curve.curve2bezier_control_points(reparametrization=True),
-                          metric=metric,
-                          t_param=(False, [-1.0, 1.0])),
+                          t_param=(False, [-1.0, 1.0]),
+                          metric=self.metric),
             BezierSegment(curve.inverse_curve().curve2bezier_control_points(
                 reparametrization=True),
-                          metric=metric,
-                          t_param=(True, [-1.0, 1.0]))
+                t_param=(True, [-1.0, 1.0]),
+                metric=self.metric)
         ]
 
         # split the Bezier curves until all control points have positive weights
+        # or no weights at infinity, or the minimal number of splits is reached
         while True:
             new_segments = [
                 part for b_curve in bezier_curve_segments
                 for part in (
-                    b_curve.split_de_casteljau(metric=metric) if b_curve.check_for_control_points_at_infinity() or b_curve.check_for_negative_weights() else [b_curve])
+                    b_curve.split_de_casteljau()
+                    if b_curve.check_for_control_points_at_infinity()
+                       or b_curve.check_for_negative_weights() else [b_curve])
             ]
 
+            # if all control points have positive weights and no weights at infinity,
+            # but the minimal number of splits is not reached, continue splitting
             if not any(
-                    b_curve.check_for_control_points_at_infinity() or b_curve.check_for_negative_weights()
+                    b_curve.check_for_control_points_at_infinity()
+                    or b_curve.check_for_negative_weights()
                     for b_curve in new_segments):
                 if len(new_segments) < min_splits:
-                    new_segments = [
-                        part for b_curve in new_segments
-                        for part in b_curve.split_de_casteljau(metric=metric)
-                    ]
+                    new_segments = [part for b_curve in new_segments
+                                    for part in b_curve.split_de_casteljau()]
                 else:
                     bezier_curve_segments = new_segments
                     break

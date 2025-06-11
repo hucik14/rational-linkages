@@ -13,8 +13,7 @@ if __name__ == '__main__':
     m = collisions_free_6r()
 
     if False:
-        p = Plotter(interactive=True, steps=200, arrows_length=0.2)
-        p.plot(m, show_tool=True)
+        p = Plotter(mechanism=m, steps=200, arrows_length=0.2)
         p.plot(DualQuaternion())
         p.show()
 
@@ -126,7 +125,7 @@ if __name__ == '__main__':
     simulationSettings = exu.SimulationSettings()
 
     simulationSettings.timeIntegration.numberOfSteps = 1000
-    simulationSettings.timeIntegration.endTime = 5
+    simulationSettings.timeIntegration.endTime = 1.5
     simulationSettings.timeIntegration.verboseMode = 1
 
     simulationSettings.linearSolverSettings.ignoreSingularJacobian = True

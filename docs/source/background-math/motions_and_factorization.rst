@@ -69,14 +69,14 @@ Applying the factorization technique, the curve can be factorized into a sequenc
 following linear factors:
 
 .. math::
-    f_0: (t - \mathbf{h}_0)(t - \mathbf{h}_1)
+    f_0: (t - \mathbf{h}_1)(t - \mathbf{h}_2)
 
-    f_1: (t - \mathbf{k}_0)(t - \mathbf{k}_1)
+    f_1: (t - \mathbf{k}_1)(t - \mathbf{k}_2)
 
 .. math::
 
-    C(t) = f_0 = f_1 = (t - \mathbf{h}_0)(t - \mathbf{h}_1) =
-    (t - \mathbf{k}_0)(t - \mathbf{k}_1)
+    C(t) = f_0 = f_1 = (t - \mathbf{h}_1)(t - \mathbf{h}_2) =
+    (t - \mathbf{k}_1)(t - \mathbf{k}_2)
 
 The two factorizations :math:`f_0` and :math:`f_1` represent two branches of a serial
 mechanism, which can be connected in the base and tool frame to create
@@ -88,7 +88,7 @@ The output can be visualized as shown in the following figure.
     :align: center
     :alt: Visualization of the synthesized Bennett mechanism
 
-The dual quaternions :math:`\mathbf{h}_0, \mathbf{h}_1, \mathbf{k}_0, \mathbf{k}_1`
+The dual quaternions :math:`\mathbf{h}_1, \mathbf{h}_2, \mathbf{k}_1, \mathbf{k}_2`
 represent the rotational joints of
 the mechanism, and are related to their Plücker coordinates.
 In the presented example, the dual quaternions have the following form:

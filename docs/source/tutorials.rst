@@ -10,9 +10,11 @@ Tutorials
    tutorials/ark2024
    tutorials/motion_factorization
    tutorials/motion_interp
+   tutorials/motion_designer
    tutorials/combinatorial_search
-   tutorials/control
    tutorials/synthesis_bennett
+   tutorials/mechanism_with_tool
+   tutorials/control
    tutorials/trajectory_planning
    tutorials/exudyn_analysis
 

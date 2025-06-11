@@ -41,7 +41,7 @@ The following example applies the method by :footcite:t:`Brunnthaler2005`.
 
     c = MotionInterpolation.interpolate([p0, p1, p2])
 
-    plt = Plotter(interactive=False, steps=500, arrows_length=0.05)
+    plt = Plotter(steps=500, arrows_length=0.05)
     plt.plot(c, interval='closed')
 
     for i, pose in enumerate([p0, p1, p2]):
@@ -66,7 +66,7 @@ Here is presented an example of cubic interpolation of 4 poses.
 
     # Cubic interpolation of 4 poses
 
-    from rational_linkages import DualQuaternion, Plotter, FactorizationProvider, MotionInterpolation, RationalMechanism
+    from rational_linkages import DualQuaternion, Plotter, MotionInterpolation, RationalMechanism
 
 
     # 4 poses
@@ -86,8 +86,7 @@ Here is presented an example of cubic interpolation of 4 poses.
 
     # create an interactive plotter object, with 500 descrete steps
     # for the input rational curves, and arrows scaled to 0.05 length
-    myplt = Plotter(interactive=True, steps=500, arrows_length=0.5)
-    myplt.plot(m, show_tool=True)
+    myplt = Plotter(mechanism=m, steps=500, arrows_length=0.5)
 
     # plot the poses
     for pose in [p0, p1, p2, p3]:
@@ -99,7 +98,7 @@ Here is presented an example of cubic interpolation of 4 poses.
 .. testcleanup:: [motion_interp_example2]
 
     del myplt, p0, p1, p2, p3, c, fs, m
-    del DualQuaternion, Plotter, FactorizationProvider, MotionInterpolation
+    del DualQuaternion, Plotter, MotionInterpolation
     del RationalMechanism
 
 The input are 4 dual quaternions, :math:`p_0, p_1, p_2, p_3`, and the output is a
@@ -171,12 +170,11 @@ position of the 3rd pose to achieve the shortest curve-path length.
     interpolated_curve = MotionInterpolation.interpolate([p0, p1])
     m = RationalMechanism(interpolated_curve.factorize())
 
-    p = Plotter(interactive=True, steps=500, arrows_length=0.05)
+    p = Plotter(mechanism=m, steps=500, arrows_length=0.05)
     p.plot(p0)
     p.plot(p1)
 
-    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
-    p.plot(m)
+    p.plot(interpolated_curve, interval='closed')
 
     p.show()
 
@@ -193,6 +191,8 @@ position of the 3rd pose to achieve the shortest curve-path length.
     del Plotter, MotionInterpolation, TransfMatrix, RationalMechanism
 
 
+.. _changing_bases_interpolation:
+
 Quadratic interpolation of 5 points
 -----------------------------------
 
@@ -201,6 +201,7 @@ non-monic polynomial, i.e. the factorized mechanism will be transformed by a sta
 transformation.
 
 .. testcode:: [motion_interp_example4]
+    :skipif: skip_this_doctest == True
 
     # Quadratic interpolation of 5 points
 
@@ -220,25 +221,23 @@ transformation.
     m = RationalMechanism(interpolated_curve.factorize())
 
     # due to non-monic solution, to transform the given points and plot them in mechanism
-    # path, get static transform 'rebase' and uncomment the line in for loop bellow
-    rebase = DualQuaternion(interpolated_curve.evaluate(1e12)).normalize()
+    # path, get static transform 'rebase'
+    rebase = DualQuaternion(interpolated_curve.evaluate(1e12))
 
-    p = Plotter(interactive=True, steps=500, arrows_length=0.5)
+    p = Plotter(mechanism=m, base=rebase, arrows_length=0.5)
 
-    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
-    p.plot(m)  # plot the mechanism
+    p.plot(interpolated_curve, interval='closed')
 
     for i, pt in enumerate(points):
-        # pt = rebase.inv().act(pt)  # uncomment to plot the points in the mechanism path
         p.plot(pt, label=f'a{i}')
 
     p.show()
 
 .. testcleanup:: [motion_interp_example4]
+    :skipif: skip_this_doctest == True
 
-    del p, points, interpolated_curve, m, rebase
-    del Plotter, MotionInterpolation, PointHomogeneous, DualQuaternion
-    del RationalMechanism
+    del p, points, interpolated_curve, m, rebase, a0, a1, a2, a3, a4
+    del Plotter, MotionInterpolation, PointHomogeneous, DualQuaternion, RationalMechanism
 
 
 The resulting curve is plotted in the following figure.
@@ -260,6 +259,7 @@ again non-monic polynomial, i.e. the factorized mechanism will be transformed
 by a static transformation.
 
 .. testcode:: [motion_interp_example5]
+    :skipif: skip_this_doctest == True
 
     # Cubic interpolation of 7 points
 
@@ -284,10 +284,9 @@ by a static transformation.
     # path, get static transform 'rebase' and uncomment the line in for loop bellow
     rebase = DualQuaternion(interpolated_curve.evaluate(1e12)).normalize()
 
-    p = Plotter(interactive=True, steps=1000, arrows_length=0.5)
+    p = Plotter(mechanism=m, steps=1000, arrows_length=0.5)
 
-    p.plot(interpolated_curve, interval='closed', label='interpolated curve')
-    # p.plot(m)  # plot the mechanism
+    p.plot(interpolated_curve, interval='closed')
 
     for i, pt in enumerate(points):
         # pt = rebase.inv().act(pt)  # uncomment to plot the points in the mechanism path
@@ -296,10 +295,10 @@ by a static transformation.
     p.show()
 
 .. testcleanup:: [motion_interp_example5]
+    :skipif: skip_this_doctest == True
 
-    del p, points, interpolated_curve, m, rebase
-    del Plotter, MotionInterpolation, PointHomogeneous, DualQuaternion
-    del RationalMechanism
+    del p, points, interpolated_curve, m, rebase, a0, a1, a2, a3, a4, a5, a6
+    del Plotter, MotionInterpolation, PointHomogeneous, DualQuaternion, RationalMechanism
 
 
 The resulting curve is plotted in the following figure.

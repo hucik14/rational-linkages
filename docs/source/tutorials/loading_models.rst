@@ -4,12 +4,12 @@ Loading Prepared Models
 .. include:: ../refs-weblinks.rst
 
 The package can load a prepared model from its source. So far, a **Bennett mechanism**
-model from :ref:`ARK 2024 paper - extended information<ark2024extended>` is supported,
-and a **collision-free 6R mechanism**.
+model from :ref:`ARK 2024 paper - extended information<ark2024extended>` is available,
+**collision-free 6R mechanism**, and **6R mechanism with plane-fold configuration**.
 
 .. testcode:: [loading_models_example1]
 
-    from rational_linkages.models import bennett_ark24, collisions_free_6r
+    from rational_linkages.models import bennett_ark24, collisions_free_6r, plane_fold_6r
 
     # load the model of the Bennett's linkage
     bennett = bennett_ark24()
@@ -17,9 +17,12 @@ and a **collision-free 6R mechanism**.
     # load the model of the 6R mechanism
     r6 = collisions_free_6r()
 
+    # load the model with plane-fold configuration
+    r6plane = plane_fold_6r()
+
 .. testcleanup:: [loading_models_example1]
 
-    del bennett_ark24, collisions_free_6r
+    del bennett_ark24, collisions_free_6r, plane_fold_6r
     del bennett, r6
 
 Plotting a model can be done as in the following example.
@@ -37,10 +40,7 @@ Plotting a model can be done as in the following example.
 
     # create an interactive plotter object, with 500 descrete steps
     # for the input rational curves, and arrows scaled to 0.05 length
-    myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
-
-    # plot the model with tool frame
-    myplt.plot(m, show_tool=True)
+    myplt = Plotter(mechanism=m, steps=500, arrows_length=0.05)
 
     ##### additional plotting options #####
     # create a pose of the identity

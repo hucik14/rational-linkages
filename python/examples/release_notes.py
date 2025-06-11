@@ -7,7 +7,7 @@ SOURCE_BRANCH = 'develop'  # Replace with your source branch
 TARGET_BRANCH = 'main'  # Replace with your target branch
 CHANGELOG_FILE = 'CHANGELOG.md'  # Name of the changelog file
 
-NEW_VERSION = '1.10.2'
+NEW_VERSION = '2.0.0'
 
 
 def get_changelog_commits(commits):

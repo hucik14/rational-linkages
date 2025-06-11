@@ -97,11 +97,14 @@ class DualQuaternionAction:
             return factors_multiplied
 
     @staticmethod
-    def _act_on_line(
-        acting_dq: DualQuaternion, affected_object: NormalizedLine
-    ) -> NormalizedLine:
+    def _act_on_line(acting_dq: DualQuaternion,
+                     affected_object: NormalizedLine) -> NormalizedLine:
         """
         Act on a line with a Dual Quaternion
+
+        The line is already conjugated in the line2dq_array method, therefore the
+        equation dq * line_as_dq * dq.conjugate() is used, not
+        dq.eps_conjugate() * line * dq.eps_conjugate().conjugate()
 
         :param acting_dq: DualQuaternion
         :param affected_object: NormalizedLine

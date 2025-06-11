@@ -4,6 +4,11 @@ Plotting Examples
 The package class :class:`.Plotter` provides a simple interface to plotting rational
 mechanisms, and related objects like curves, poses, lines, points, etc.
 
+The :class:`.Plotter` returns either :class:`.PlotterPyqtgraph` or :class:`.PlotterMatplotlib`, as both backends
+are supported and share most of the functionality. The default backend is :class:`.PlotterPyqtgraph`, which is
+faster and therefore more suitable for interactive plotting. The :class:`.PlotterMatplotlib` is more suitable for
+publishing, as it provides better quality and cleanness (thanks to vector graphics) of the output images.
+
 Static plotting
 ---------------
 
@@ -17,9 +22,9 @@ static objects:
     from rational_linkages import Plotter, DualQuaternion, PointHomogeneous, NormalizedLine, TransfMatrix
 
 
-    # create plotter object, arg steps says how many descrete steps will be used for
+    # create plotter object, arg steps says how many discrete steps will be used for
     # plotting curves
-    myplt = Plotter()
+    plt = Plotter(backend='matplotlib')
 
     # create two DualQuaternion objects
     identity = DualQuaternion()
@@ -34,18 +39,18 @@ static objects:
 
     # plot the objects
     # 1-line command
-    myplt.plot(identity, label='base')
-    myplt.plot(point, label='pt')
-    myplt.plot(line, label='l1')
+    plt.plot(identity, label='base')
+    plt.plot(point, label='pt')
+    plt.plot(line, label='l1')
     # or for cycle
     for i, obj in enumerate([pose1, pose2]):
-        myplt.plot(obj, label='p{}'.format(i + 1))
+        plt.plot(obj, label='p{}'.format(i + 1))
 
-    myplt.show()
+    plt.show()
 
 .. testcleanup:: [plotting_example1]
 
-    del myplt, identity, pose1, pose2, point, line
+    del plt, identity, pose1, pose2, point, line
     del Plotter, DualQuaternion, PointHomogeneous, NormalizedLine, TransfMatrix
 
 Which will result in the following image:
@@ -61,10 +66,11 @@ Interactive plotting
 In the interactive mode, the mechanisms can be animated.
 
 .. testcode:: [plotting_example2]
+    :skipif: skip_this_doctest == True
 
     # Interactive plotting with a loaded mechanism model
 
-    from rational_linkages import RationalMechanism, Plotter, PointHomogeneous
+    from rational_linkages import Plotter, PointHomogeneous
     from rational_linkages.models import bennett_ark24
 
 
@@ -72,30 +78,36 @@ In the interactive mode, the mechanisms can be animated.
     m = bennett_ark24()
 
     # create an interactive plotter object
-    myplt = Plotter(interactive=True, steps=500, arrows_length=0.05)
+    plt = Plotter(mechanism=m, arrows_length=0.05)
 
     # create a point with homogeneous coordinates w = 1, x = 2, y = -3, z = 1.5
     point = PointHomogeneous([1, 0.5, -0.75, 0.25])
 
-    myplt.plot(point, label='pt')
-    myplt.plot(m, show_tool=True)
-    myplt.show()
+    plt.plot(point, label='pt')
+    plt.show()
 
 .. testcleanup:: [plotting_example2]
+    :skipif: skip_this_doctest == True
 
-    del myplt, m, point
-    del RationalMechanism, Plotter, PointHomogeneous, bennett_ark24
+    del plt, m, point
+    del Plotter, PointHomogeneous, bennett_ark24
 
-Which will result in the following image:
+Which will result in the following image. The interactive plotter can be used to animate
+the mechanism using the slider widget
+bellow the plot. The sliders on the left side of the plot can be used to change the
+design parameters of the mechanism.
 
-.. figure:: figures/plotting_interactive.svg
+.. figure:: figures/plotting_interactive.png
     :width: 500 px
     :align: center
     :alt: Output interactive plot
 
-The interactive plotter can be used to animate the mechanism using the slider widget
-bellow the plot. The sliders on the left side of the plot can be used to change the
-design parameters of the mechanism.
+If the argument ``backend='matplotlib'`` is used, the plot will switch to this mode:
+
+.. figure:: figures/plotting_interactive.svg
+    :width: 500 px
+    :align: center
+    :alt: Output interactive plot using Matplotlib
 
 Scaling of plotted objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -103,9 +115,9 @@ Scaling of plotted objects
 Sometimes, the mechanism is too large or too small to be plotted along with its
 tool frame, or the range sliders that control physical realization have very high/low
 limits. In such cases, it is possible to use key word arguments ``arrows_length`` and
-``joint_range_lim`` when initializing the plotter using :class:`.Plotter` class.
+``joint_sliders_lim`` when initializing the plotter using :class:`.Plotter` class.
 
-The ``joint_range_lim`` specifies the limits of the range sliders, and the ``arrows_length``
+The ``joint_sliders_lim`` specifies the limits of the range sliders, and the ``arrows_length``
 to adjust the size of the length of the frames/poses that are plotted.
 
 .. testcode:: [plotting_example3]
@@ -118,8 +130,7 @@ to adjust the size of the length of the frames/poses that are plotted.
 
     m = bennett()
 
-    plt = Plotter(interactive=True, arrows_length=0.05, joint_range_lim=0.5)
-    plt.plot(m, show_tool=True)
+    plt = Plotter(mechanism=m, arrows_length=0.05, joint_sliders_lim=0.5)
     plt.show()
 
 .. testcleanup:: [plotting_example3]
@@ -127,6 +138,7 @@ to adjust the size of the length of the frames/poses that are plotted.
         del plt, m
         del Plotter, bennett
 
+.. _alternative_tools:
 
 Optional tool frames
 ^^^^^^^^^^^^^^^^^^^^
@@ -168,15 +180,12 @@ The following examples show the three options.
     m = RationalMechanism([f1, f2])
 
     # Create plotter
-    p = Plotter(interactive=True, steps=200, arrows_length=0.2)
-
-    # Plot mechanism, do not specify tool frame
-    p.plot(m, show_tool=True)
-    p.show()
+    plt = Plotter(mechanism=m, backend='matplotlib', arrows_length=0.2)
+    plt.show()
 
 .. testcleanup:: [plotting_example4]
 
-    del p, m, f1, f2
+    del plt, m, f1, f2
     del RationalMechanism, DualQuaternion, Plotter, MotionFactorization
 
 .. figure:: figures/plot_tool1.png
@@ -203,19 +212,16 @@ The following examples show the three options.
     m = RationalMechanism([f1, f2], tool='mid_of_last_link')
 
     # Create plotter
-    p = Plotter(interactive=True, steps=200, arrows_length=0.2)
-
-    # Plot mechanism, do not specify tool frame
-    p.plot(m, show_tool=True)
+    plt = Plotter(mechanism=m, backend='matplotlib', arrows_length=0.2)
 
     # Plot the default motion curve
-    p.plot(m.get_motion_curve(), label='motion curve', interval='closed',
+    plt.plot(m.get_motion_curve(), label='motion curve', interval='closed',
            color='red', linewidth='0.7', linestyle=':')
-    p.show()
+    plt.show()
 
 .. testcleanup:: [plotting_example5]
 
-    del p, m, f1, f2
+    del plt, m, f1, f2
     del RationalMechanism, DualQuaternion, Plotter, MotionFactorization
 
 
@@ -247,19 +253,16 @@ The following examples show the three options.
     m = RationalMechanism([f1, f2], tool=tool_dq)
 
     # Create plotter
-    p = Plotter(interactive=True, steps=200, arrows_length=0.2)
-
-    # Plot mechanism, do not specify tool frame
-    p.plot(m, show_tool=True)
+    plt = Plotter(mechanism=m, backend='matplotlib', arrows_length=0.2)
 
     # Plot the default motion curve
-    p.plot(m.get_motion_curve(), label='motion curve', interval='closed',
+    plt.plot(m.get_motion_curve(), label='motion curve', interval='closed',
            color='red', linewidth='0.7', linestyle=':')
-    p.show()
+    plt.show()
 
 .. testcleanup:: [plotting_example6]
 
-    del p, m, f1, f2, tool_matrix, tool_dq
+    del plt, m, f1, f2, tool_matrix, tool_dq
     del RationalMechanism, DualQuaternion, TransfMatrix, Plotter, MotionFactorization
 
 .. figure:: figures/plot_tool3.png
@@ -267,9 +270,10 @@ The following examples show the three options.
     :align: center
     :alt: Tool frame in the middle of the last link
 
-Generating frames for animation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Generating frames (for animation)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-It is possible to generate frames for the mechanism using the
-method :meth:`.Plotter.animate` which will generate `png` files by default (`pdf`
-is an option).
+Both classes :class:`.PlotterPyqtgraph` and :class:`.PlotterMatplotlib` have various methods to generate a figure
+or set of figures for animation purposes. See for more details the implementation:
+:meth:`.PlotterMatplotlib.save_image`, :meth:`.PlotterMatplotlib.animate`, :meth:`.PlotterMatplotlib.animate_angles`,
+:meth:`.InteractivePlotterWidget.on_save_figure_box` (use GUI), :meth:`.PlotterPyqtgraph.animate_rotation`.

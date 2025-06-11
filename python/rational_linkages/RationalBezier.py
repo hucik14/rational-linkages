@@ -1,6 +1,8 @@
 from copy import deepcopy
 
+import numpy as np
 import sympy as sp
+from sympy.integrals.quadrature import gauss_legendre
 
 from .MiniBall import MiniBall
 from .PointHomogeneous import PointHomogeneous
@@ -44,7 +46,7 @@ class RationalBezier(RationalCurve):
 
         :param list[PointHomogeneous] control_points: control points of the curve
         """
-        super().__init__(self.get_coeffs_from_control_points(control_points))
+        super().__init__(self.get_polynomials_from_control_points(control_points))
 
         self.control_points = control_points
         self._ball = None
@@ -55,12 +57,12 @@ class RationalBezier(RationalCurve):
         Get the smallest ball enclosing the control points of the curve
         """
         if self._ball is None:
-            self._ball = MiniBall(self.control_points)
+            self._ball = MiniBall(self.control_points, metric=self.metric)
         return self._ball
 
-    def get_coeffs_from_control_points(self,
-                                       control_points: list[PointHomogeneous]
-                                       ) -> (list[sp.Poly]):
+    def get_polynomials_from_control_points(self,
+                                            control_points: list[PointHomogeneous]
+                                            ) -> (list[sp.Poly]):
         """
         Calculate the coefficients of the parametric equations of the curve from
         the control points.
@@ -84,6 +86,26 @@ class RationalBezier(RationalCurve):
         bezier_polynomials = [
             sp.Poly(bezier_curve[i], t) for i in range(dimension + 1)]
         return bezier_polynomials
+
+    @staticmethod
+    def get_numerical_coeffs(control_points: list[PointHomogeneous]
+                             ) -> np.ndarray:
+        """
+        Get the numerical coefficients of the Bezier curve
+        """
+        from scipy.special import comb  # INNER IMPORT
+
+        control_pts = np.array([point.array() for point in control_points])
+        degree = len(control_points) - 1
+
+        mat = np.zeros((degree + 1, degree + 1))
+
+        for j in range(degree + 1):
+            for k in range(j + 1):
+                mat[j, k] = comb(degree, k) * comb(degree - k, j - k) * (-1)**(j - k)
+
+        return mat.dot(control_pts).T
+
 
     def get_plot_data(self, interval: tuple = (0, 1), steps: int = 50) -> tuple:
         """
@@ -132,9 +154,9 @@ class RationalBezier(RationalCurve):
         return any(point.coordinates[0] < 0 for point in self.control_points)
 
 
-class BezierSegment(RationalBezier):
+class BezierSegment:
     """
-    Bezier curves that reparameterize a motion curve in split segments.
+    Bezier curves that reparameterizes a motion curve in split segments.
     """
     def __init__(self,
                  control_points: list[PointHomogeneous],
@@ -149,12 +171,21 @@ class BezierSegment(RationalBezier):
             list of two floats representing the original parameter interval of the
             motion curve
         """
-        super().__init__(control_points)
-
-        self.metric = metric
-        self._ball = None
-
+        self.control_points = control_points
         self.t_param_of_motion_curve = t_param
+        self._metric = metric
+
+        self._ball = None
+        self._curve = None
+
+    @property
+    def curve(self):
+        """
+        Get the Bezier curve
+        """
+        if self._curve is None:
+            self._curve = RationalBezier(self.control_points)
+        return self._curve
 
     @property
     def ball(self):
@@ -165,14 +196,36 @@ class BezierSegment(RationalBezier):
             self._ball = MiniBall(self.control_points, metric=self.metric)
         return self._ball
 
+    @property
+    def metric(self):
+        """
+        Define a metric in R12 for the mechanism.
+
+        This metric is used for collision detection.
+        """
+        if self._metric is None:
+            return "euclidean"
+        else:
+            return self._metric
+
+    @metric.setter
+    def metric(self, metric: "AffineMetric"):
+        from .AffineMetric import AffineMetric  # inner import
+
+        if isinstance(metric, AffineMetric):
+            self._metric = metric
+        elif metric == "euclidean" or metric is None:
+            self._metric = None
+        else:
+            raise TypeError("The 'metric' property must be of type 'AffineMetric'")
+
     def split_de_casteljau(self,
                            t: float = 0.5,
-                           metric: "AffineMetric" = None) -> tuple:
+                           ) -> tuple:
         """
         Split the curve at the given parameter value t
 
         :param float t: parameter value to split the curve at
-        :param AffineMetric metric: metric to be used for the ball
 
         :return: tuple - two new Bezier curves
         :rtype: tuple
@@ -207,5 +260,102 @@ class BezierSegment(RationalBezier):
         new_t_right = (self.t_param_of_motion_curve[0],
                        [mid_t, self.t_param_of_motion_curve[1][1]])
 
-        return (BezierSegment(left_curve, metric=metric, t_param=new_t_left),
-                BezierSegment(right_curve, metric=metric, t_param=new_t_right))
+        return (BezierSegment(left_curve, t_param=new_t_left, metric=self.metric),
+                BezierSegment(right_curve, t_param=new_t_right, metric=self.metric))
+
+    def check_for_control_points_at_infinity(self):
+        """
+        Check if there is a control point at infinity
+
+        :return: bool - True if there is a control point at infinity, False otherwise
+        """
+        return any(point.is_at_infinity for point in self.control_points)
+
+    def check_for_negative_weights(self):
+        """
+        Check if there are negative weights in the control points
+
+        :return: bool - True if there are negative weights, False otherwise
+        """
+        return any(point.coordinates[0] < 0 for point in self.control_points)
+
+
+class RationalSoo(RationalCurve):
+    """
+    Class representing rational Gauss-Legendre curves in n-dimensional space.
+
+    The class implements the Gauss-Legendre curves to represent curved link segments.
+    Gauss-Legendre curves, introduced in :footcite:t:`Moon2023`, have the property that
+    the control polygon approximates the curve closely, and therefore can be used
+    for collision detection, instead of using the curve polynomials.
+    """
+    def __init__(self,
+                 control_points: list[PointHomogeneous]):
+        """
+        Initializes a RationalBezier object with the provided control points.
+
+        :param list[PointHomogeneous] control_points: control points of the curve
+        """
+        super().__init__(self.get_poly_from_control_points(control_points))
+        self.control_points = control_points
+
+    def get_poly_from_control_points(self,
+                                     control_points: list[PointHomogeneous]
+                                     ) -> (list[sp.Poly]):
+        """
+        Calculate the coefficients of the parametric equations of the curve from
+        the control points.
+
+        :param control_points: list[PointHomogeneous] - control points of the curve
+
+        :return: np.array - coefficients of the parametric equations of the curve
+        :rtype: list[sp.Poly]
+        """
+        t = sp.Symbol("t")
+
+        deg = len(control_points) - 1
+        dim = control_points[0].coordinates.size
+
+        taus, weights = np.polynomial.legendre.leggauss(deg)
+        lagrange_basis = self.lagrange_basis(taus, t, weights)
+
+        integrated_basis = []
+        for base in lagrange_basis:
+            # integrate from -1 to t
+            integrated_basis.append(sp.integrate(base, (t, -1, t)) - 0.5)
+        integrated_basis.insert(0, 0.5)
+        integrated_basis.append(-0.5)
+
+        gauss_legendre_basis = []
+        for i in range(len(integrated_basis) - 1):
+            gauss_legendre_basis.append(integrated_basis[i] - integrated_basis[i + 1])
+
+        gl_curve = [0] * dim
+        for i in range(len(control_points)):
+            gl_curve += gauss_legendre_basis[i] * control_points[i].array()
+
+        return [sp.Poly(gl_curve[i], t, greedy=False) for i in range(dim)]
+
+    @staticmethod
+    def lagrange_basis(tau, symbol, weights):
+        """
+        Generate all Lagrange basis polynomials in symbolic form.
+
+        :param tau: array-like9
+        :param symbol: sympy.Symbol
+        :param weights: array-like
+
+        :return: list of polynomials
+        :rtype: list[sp.Poly]
+        """
+        n = len(tau)
+        basis = []
+
+        for j in range(n):
+            basis_j = 1
+            for i in range(n):
+                if i != j:
+                    basis_j *= (symbol - tau[i]) / (tau[j] - tau[i])
+            basis.append(basis_j / weights[j])
+
+        return basis

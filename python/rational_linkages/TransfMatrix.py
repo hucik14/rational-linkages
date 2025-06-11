@@ -224,6 +224,49 @@ class TransfMatrix:
 
         return cls(mat)
 
+    @classmethod
+    def from_rotation(cls,
+                      axis: str,
+                      angle: float,
+                      xyz: list[float] = np.array([0, 0, 0]),
+                      unit: str = 'rad') -> np.array:
+        """
+        Create a transformation matrix from a rotation around an axis.
+
+        :param str axis: The axis of rotation ('x', 'y', or 'z').
+        :param float angle: The angle of rotation in radians.
+        :param list xyz: The translation vector. Default is [0, 0, 0].
+        :param str unit: The unit of the angle ('rad' or 'deg'). Default is 'rad'.
+
+        :return: A 4x4 transformation matrix.
+        :rtype: np.ndarray
+        """
+        if unit == 'deg':
+            angle = np.deg2rad(angle)
+        elif unit != 'rad':
+            raise ValueError("Unit must be 'rad' or 'deg'")
+
+        c = np.cos(angle)
+        s = np.sin(angle)
+
+        if axis == 'x':
+            return cls(np.array([[1, 0, 0, 0],
+                                 [xyz[0], 1, 0, 0],
+                                 [xyz[1], 0, c, -s],
+                                 [xyz[2], 0, s, c]]))
+        elif axis == 'y':
+            return cls(np.array([[1, 0, 0, 0],
+                                 [xyz[0], c, 0, s],
+                                 [xyz[1], 0, 1, 0],
+                                 [xyz[2], -s, 0, c]]))
+        elif axis == 'z':
+            return cls(np.array([[1, 0, 0, 0],
+                                 [xyz[0], c, -s, 0],
+                                 [xyz[1], s, c, 0],
+                                 [xyz[2], 0, 0, 1]]))
+        else:
+            raise ValueError("Axis must be 'x', 'y', or 'z'")
+
     def array(self) -> np.array:
         """
         Return transformation matrix as 4x4 numpy array

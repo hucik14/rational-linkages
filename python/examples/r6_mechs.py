@@ -7,7 +7,7 @@ from rational_linkages import (
     TransfMatrix,
 )
 
-# Daniel's testing code, for examples see 'examples' folder or read
+# testing code, for examples see 'examples' folder or read
 # the documentation/docstrings of classes
 
 if __name__ == '__main__':
@@ -50,8 +50,7 @@ if __name__ == '__main__':
     #res = m.collision_check(parallel=False)
     #print(res)
 
-    p = Plotter(interactive=True, steps=200, arrows_length=0.2)
-    p.plot(m, show_tool=True)
+    p = Plotter(mechanism=m, steps=200, arrows_length=0.2)
     p.plot(m.get_motion_curve(), label='motion curve', interval='closed', color='red', linewidth='0.7', linestyle=':')
     p.show()
 
@@ -104,7 +103,6 @@ if __name__ == '__main__':
                                     PointHomogeneous([1, -0.1135709493, -0.1602769278, 0.2114655719])])
     
     m = RationalMechanism([f1, f2])
-    p = Plotter(interactive=True, steps=500)
-    p.plot(m, show_tool=False)
+    p = Plotter(mechanism=m, show_tool=False, steps=500)
     
     """

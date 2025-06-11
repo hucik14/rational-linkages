@@ -5,58 +5,77 @@
 # Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+
+.common_script: &common_script
+  - apt-get update && apt-get install -y libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3
+  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  - source $HOME/.cargo/env
+  - cd rust
+  - cargo build --release
+  - cd ..
+
 stages:
 - test
+- test_security
 - test_python_versions
 
 sast:
-  stage: test
+  stage: test_security
 include:
   - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+  - template: Jobs/Container-Scanning.gitlab-ci.yml
+
+container_scanning:
+  variables:
+    CS_IMAGE: python:3.11-bullseye
 
 test_python311:
-    stage: test
-    image:
-      name: python:3.11-bullseye
-      entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
-    script:
-      - pip install .[opt]
-      - pip install pytest
-      - python -m pytest python/tests
-    coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
-    rules:
-      - if: '$CI_COMMIT_BRANCH == "nightly"'
+  stage: test
+  image:
+    name: python:3.11-bullseye
+    entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
+  script:
+    - *common_script
+    - pip install -e .[opt]
+    - pip install pytest
+    - python -m pytest python/tests
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "nightly"'
 
 test_coverage:
-    stage: test
-    image:
-      name: python:3.11-bullseye
-      entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
-    script:
-      - python -m pip install --upgrade pip
-      - pip install .
-      - pip install coverage pytest
-      - coverage run
-      - coverage report -m
-    coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
-    rules:
-      - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      - if: '$CI_COMMIT_BRANCH == "develop"'
-      - if: '$CI_COMMIT_BRANCH == "main"'
+  stage: test
+  image:
+    name: python:3.11-bullseye
+    entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
+  script:
+    - *common_script
+    - pip install -e .
+    - pip install coverage pytest
+    - coverage run
+    - coverage report -m
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
 
 python_versions:
-    stage: test_python_versions
-    image:
-        name: $IMAGE
-        entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
-    script:
-        - pip install .
-        - pip install pytest
-        - python -m pytest python/tests
-    parallel:
-      matrix:
-        - IMAGE: [python:3.13-bullseye, python:3.12-bullseye, python:3.10-bullseye]
-    rules:
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-        - if: '$CI_COMMIT_BRANCH == "develop"'
-        - if: '$CI_COMMIT_BRANCH == "main"'
+  stage: test_python_versions
+  image:
+    name: $IMAGE
+    entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
+  script:
+    - *common_script
+    - pip install -e .
+    - pip install pytest
+    - python -m pytest python/tests
+  parallel:
+    matrix:
+      - IMAGE: [python:3.13-bullseye, python:3.12-bullseye, python:3.10-bullseye]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "main"'

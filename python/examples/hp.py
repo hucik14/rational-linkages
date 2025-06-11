@@ -45,8 +45,7 @@ tool_dq = DualQuaternion(tool.matrix2dq())
 m = RationalMechanism([f1, f2], tool=tool_dq)
 
 # initialize the plotter
-plt = Plotter(interactive=True, steps=200, arrows_length=0.2)
-plt.plot(m, show_tool=True)
+plt = Plotter(mechanism=m, steps=200, arrows_length=0.2)
 
 # plot also the original motion path
 plt.plot(m.get_motion_curve(), interval='closed', color='red', linewidth=0.5, linestyle=':')

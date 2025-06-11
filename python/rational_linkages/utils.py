@@ -28,6 +28,58 @@ def dq_algebraic2vector(ugly_expression: list) -> list:
 
     return primal_coeffs + dual_coeffs
 
+def extract_coeffs(expr, var, deg: int, expand: bool = True):
+    """
+    Extracts the coefficients of a polynomial expression.
+
+    :param sympy.Expr expr: Polynomial expression.
+    :param sympy.Symbol var: Variable to extract coefficients with respect to.
+    :param int deg: Degree of the polynomial.
+    :param bool expand: Expand the expression before extracting coefficients.
+
+    :return: List of coefficients of the polynomial.
+    :rtype: list
+    """
+    if expand:
+        from sympy import expand  # inner import
+        expr = expand(expr)
+    return [expr.coeff(var, i) for i in range(deg, -1, -1)]
+
+def color_rgba(color: str, transparency: float = 1.0) -> tuple:
+    """
+    Convert a common color name to RGB tuple.
+
+    :param str color: color name or shortcut
+    :param float transparency: transparency value
+
+    :return: RGBA color scheme
+    :rtype: tuple
+    """
+    color_map = {
+        'red': (1, 0, 0),
+        'r': (1, 0, 0),
+        'green': (0, 1, 0),
+        'g': (0, 1, 0),
+        'blue': (0, 0, 1),
+        'b': (0, 0, 1),
+        'yellow': (1, 1, 0),
+        'y': (1, 1, 0),
+        'cyan': (0, 1, 1),
+        'c': (0, 1, 1),
+        'magenta': (1, 0, 1),
+        'm': (1, 0, 1),
+        'black': (0, 0, 0),
+        'k': (0, 0, 0),
+        'white': (1, 1, 1),
+        'w': (1, 1, 1),
+        'orange': (1, 0.5, 0),
+        'purple': (0.5, 0, 0.5),
+        'pink': (1, 0.75, 0.8),
+        'brown': (0.65, 0.16, 0.16),
+        'gray': (0.5, 0.5, 0.5),
+        'grey': (0.5, 0.5, 0.5)
+    }
+    return (*color_map.get(color, (1, 0, 0)), transparency)
 
 def sum_of_squares(list_of_values: list) -> float:
     """
