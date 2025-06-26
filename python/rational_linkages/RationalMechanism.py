@@ -310,18 +310,18 @@ class RationalMechanism(RationalCurve):
         if onshape_print:
             for i in range(self.num_joints):
                 print(f"link{i}: "
-                      f"[{dh[i, 1]:.6f}, {dh[i, 2]:.6f}, {dh[i, 3]:.6f}], "
-                      f"{design_params[i, 0]:.6f}, {design_params[i, 1]:.6f}")
+                      f"[{dh[i, 1]:.15f}, {dh[i, 2]:.15f}, {dh[i, 3]:.15f}], "
+                      f"{design_params[i, 0]:.15f}, {design_params[i, 1]:.15f}")
             pretty_print = False
 
         if pretty_print:
             for i in range(self.num_joints):
                 print("---")
-                print(f"Link {i}: d = {dh[i, 1]:.6f}, "
-                      f"a = {dh[i, 2]:.6f}, "
-                      f"alpha = {dh[i, 3]:.6f}")
-                print(f"cp_0 = {design_params[i, 0]:.6f}, "
-                      f"cp_1 = {design_params[i, 1]:.6f}")
+                print(f"Link {i}: d = {dh[i, 1]:.15f}, "
+                      f"a = {dh[i, 2]:.15f}, "
+                      f"alpha = {dh[i, 3]:.15f}")
+                print(f"cp_0 = {design_params[i, 0]:.15f}, "
+                      f"cp_1 = {design_params[i, 1]:.15f}")
 
         return dh, design_params, design_points
 
