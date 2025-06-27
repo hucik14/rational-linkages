@@ -1,6 +1,5 @@
 from .RationalMechanism import RationalMechanism
 from .RationalCurve import RationalCurve
-from .MiniBall import MiniBall
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointOrbit
 
@@ -22,7 +21,7 @@ class CollisionAnalyser:
             self.segments[segment.id] = segment
 
         self.motions = self.get_motions()
-        self.bezier_splits = self.get_bezier_splits(50)
+        self.bezier_splits = self.get_bezier_splits(20)
 
     def get_bezier_splits(self, min_splits: int = 0) -> list:
         """
@@ -48,7 +47,8 @@ class CollisionAnalyser:
 
         motions = []
         for motion in relative_motions:
-            motions.append(RationalCurve([sympy.Poly(c, t) for c in motion],
+            motions.append(RationalCurve([sympy.Poly(c, t, greedy=False)
+                                          for c in motion],
                                          metric=self.metric))
         return motions
 
@@ -63,11 +63,9 @@ class CollisionAnalyser:
         """
         Get the orbit of a segment.
         """
-        import time
-
         segment = self.segments[segment_id]
 
-        if segment.type == 'l' or segment.type == 't' or segment.type == 'b':
+        if segment.type == 'l':
             if segment.factorization_idx == 0:
                 split_idx = segment.idx - 1
                 p0_idx = 2 * segment.idx - 1
@@ -197,14 +195,6 @@ class CollisionAnalyser:
         return it_collides
 
     @staticmethod
-    def get_object_type(obj):
-        """
-        Get the type of an object.
-        """
-        if isinstance(obj, MiniBall):
-            return 'is_miniball'
-
-    @staticmethod
     def check_two_miniballs(ball0, ball1):
         """
         Check if two miniballs collide.
@@ -212,3 +202,70 @@ class CollisionAnalyser:
         diff = ball0.center.coordinates - ball1.center.coordinates
         center_dist_squared = numpy.dot(diff, diff)
         return center_dist_squared < ball0.radius_squared + ball1.radius_squared
+
+    def get_split_and_point_indices(self, segment):
+        """
+        Compute split index and point indices for a segment.
+        """
+        if segment.type == 'l':
+            if segment.factorization_idx == 0:
+                split_idx = segment.idx - 1
+                p0_idx = 2 * segment.idx - 1
+                p1_idx = 2 * segment.idx
+            else:
+                split_idx = -1 * segment.idx
+                p0_idx = -2 * segment.idx - 1
+                p1_idx = -2 * segment.idx
+        else:  # type == 'j'
+            if segment.factorization_idx == 0:
+                split_idx = segment.idx - 1
+                p0_idx = 2 * segment.idx
+                p1_idx = 2 * segment.idx + 1
+            else:
+                split_idx = -1 * segment.idx
+                p0_idx = -2 * segment.idx - 1
+                p1_idx = -2 * segment.idx - 2
+        return split_idx, p0_idx, p1_idx
+
+    def optimize_curved_link(self, segment_id: str, min_splits: int = 20):
+        """
+        Optimize the curved link to avoid collisions.
+        """
+        if segment_id.startswith('j'):
+            raise ValueError('Joints cannot be optimized as curved lines, only links.')
+
+        # get segment creation index
+        segment_id_num = None
+        for s_id, segment in enumerate(self.segments.values()):
+            if segment.id == segment_id:
+                segment_id_num = s_id
+                break
+
+        indices = list(range(len(self.mechanism.segments)))
+
+        # remove index of segment to optimize and the two neighboring segments
+        indices.remove(segment_id_num)
+        if segment_id_num != 0:
+            indices.remove(segment_id_num - 1)
+        else:
+            indices.remove(indices[-1])  # remove last if first segment is optimized
+        if segment_id_num != len(self.mechanism.segments) - 1:
+            indices.remove(segment_id_num + 1)
+        else:
+            indices.remove(indices[0])  # remove first if last segment is optimized
+
+        # remove every second index as they have the same relative motion
+        # as the previous one
+        indices_reduced = [idx for i, idx in enumerate(indices) if i % 2 == 0]
+
+        t = sympy.symbols('t')
+        motions = []
+        for i, idx in enumerate(indices_reduced):
+            rel_motion = self.mechanism.relative_motion(segment_id_num, idx)
+            motions.append(RationalCurve([sympy.Poly(c, t, greedy=False)
+                                          for c in rel_motion],
+                                         metric=self.metric))
+
+        bezier_splits = [motion.split_in_beziers(min_splits) for motion in motions]
+
+        return True

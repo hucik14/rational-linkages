@@ -1473,8 +1473,8 @@ class RationalMechanism(RationalCurve):
         self._segments = self._get_line_segments_of_linkage()
 
     def relative_motion(self,
-                        static: LineSegment,
-                        moving: LineSegment) -> DualQuaternion:
+                        static: int,
+                        moving: int) -> DualQuaternion:
         """
         Calculate the relative motion between given pair of links or joints.
 
@@ -1487,8 +1487,8 @@ class RationalMechanism(RationalCurve):
         if static == moving:
             raise ValueError("static and moving cannot be the same")
 
-        motion_cycle = self._shortest_path(static.creation_index,
-                                           moving.creation_index)
+        motion_cycle = self._shortest_path(static, moving)
+
         rel_motion = DualQuaternion()
         for idx in motion_cycle:
             rel_motion *= self.linear_motions_cycle[idx]
