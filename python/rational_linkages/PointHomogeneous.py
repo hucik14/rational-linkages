@@ -386,6 +386,9 @@ class PointOrbit:
 
         self.t_interval = t_interval
 
+    def __repr__(self):
+        return f"PointOrbit(center={self.center}, radius_squared={self.radius_squared}, t_interval={self.t_interval})"
+
     @property
     def radius(self):
         if self._radius is None:

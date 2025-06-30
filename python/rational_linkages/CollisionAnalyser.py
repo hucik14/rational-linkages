@@ -268,4 +268,52 @@ class CollisionAnalyser:
 
         bezier_splits = [motion.split_in_beziers(min_splits) for motion in motions]
 
-        return True
+        all_orbits = []
+        for i, segment_idx in enumerate(indices_reduced):
+
+            split_idx = i
+            p0_idx = segment_idx - 1
+            p1_idx = segment_idx
+
+            rel_bezier_splits = bezier_splits[split_idx]
+
+            p0 = self.mechanism_points[p0_idx]
+            p1 = self.mechanism_points[p1_idx]
+
+            orbits0 = [PointOrbit(*p0.get_point_orbit(acting_center=split.ball.center,
+                                                      acting_radius=split.ball.radius_squared,
+                                                      metric=self.metric),
+                                  t_interval=split.t_param_of_motion_curve)
+                       for split in rel_bezier_splits]
+            orbits1 = [PointOrbit(*p1.get_point_orbit(acting_center=split.ball.center,
+                                                      acting_radius=split.ball.radius_squared,
+                                                      metric=self.metric),
+                                  t_interval=split.t_param_of_motion_curve)
+                       for split in rel_bezier_splits]
+
+            all_orbits_of_a_link = []
+            for i in range(len(orbits0)):
+                orbits_for_t = [orbits0[i].t_interval, orbits0[i]]
+                dist = numpy.linalg.norm(orbits0[i].center.normalized_in_3d() - orbits1[
+                    i].center.normalized_in_3d())
+                radius_sum = orbits0[i].radius + orbits1[i].radius
+                if dist > radius_sum:
+                    add_balls = dist / radius_sum
+                    num_steps = int(add_balls) * 2 + 1
+
+                    # linear interpolation from smaller ball to bigger ball
+                    radii = 0
+                    radius_diff = orbits1[i].radius - orbits0[i].radius
+                    center_diff = orbits1[i].center - orbits0[i].center
+                    for j in range(1, num_steps):
+                        new_radius = orbits0[i].radius + j * radius_diff / num_steps
+                        radii += new_radius
+                        new_center = orbits0[i].center + 2 * radii * center_diff / (
+                                    dist * 2)
+                        orbits_for_t.append(PointOrbit(new_center, new_radius ** 2,
+                                                       orbits0[i].t_interval))
+                orbits_for_t.append(orbits1[i])
+                all_orbits_of_a_link.append(orbits_for_t)
+            all_orbits.append(all_orbits_of_a_link)
+
+        return all_orbits
