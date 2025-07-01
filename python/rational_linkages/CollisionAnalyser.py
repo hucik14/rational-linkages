@@ -1,10 +1,14 @@
 from .RationalMechanism import RationalMechanism
 from .RationalCurve import RationalCurve
 from .DualQuaternion import DualQuaternion
-from .PointHomogeneous import PointOrbit
+from .PointHomogeneous import PointOrbit, PointHomogeneous
+
+from .RationalBezier import RationalSoo
 
 import numpy
 import sympy
+
+from scipy.optimize import minimize
 
 
 class CollisionAnalyser:
@@ -227,7 +231,10 @@ class CollisionAnalyser:
                 p1_idx = -2 * segment.idx - 2
         return split_idx, p0_idx, p1_idx
 
-    def optimize_curved_link(self, segment_id: str, min_splits: int = 20):
+    def optimize_curved_link(self,
+                             segment_id: str,
+                             min_splits: int = 20,
+                             curve_degree: int = 3):
         """
         Optimize the curved link to avoid collisions.
         """
@@ -254,14 +261,94 @@ class CollisionAnalyser:
         else:
             indices.remove(indices[0])  # remove first if last segment is optimized
 
-        # remove every second index as they have the same relative motion
-        # as the previous one
-        indices_reduced = [idx for i, idx in enumerate(indices) if i % 2 == 0]
+        # remove odd indices which correspond to joints; keep also zero
+        indices_reduced = [idx for i, idx in enumerate(indices)
+                           if idx % 2 == 0 or idx == 0]
+
+        bounding_balls = self.obtain_global_bounding_balls(segment_id_num,
+                                                           indices_reduced,
+                                                           min_splits)
+
+        dh, design_params, design_points = self.mechanism.get_design(
+            return_point_homogeneous=True,
+            update_design=True,
+            pretty_print=False)
+
+        # TODO error
+        joint_id = segment_id_num // 2
+        pt0 = design_points[joint_id][1]
+        pt1 = design_points[joint_id + 1][0]
+
+        link_cps = RationalSoo.control_points_between_two_points(pt0,
+                                                                 pt1,
+                                                                 degree=curve_degree)
+        init_control_points = link_cps[1:-1]  # remove the first and last control points
+
+        new_cps = self.optimize_control_points(init_control_points,
+                                               bounding_balls)
+        new_cps.insert(0, pt0)
+        new_cps.append(pt1)
+
+        return RationalSoo(new_cps)
+
+    @staticmethod
+    def optimize_control_points(init_points: list[PointHomogeneous],
+                                bounding_orbits: list[list[PointOrbit]]):
+        """
+        Optimize the link control points to avoid collisions with the bounding orbits.
+        """
+        def flatten_cps(cps):
+            return numpy.array([cp.normalized_in_3d() for cp in cps]).flatten()
+
+        def unflatten_cps(cps_flat):
+            return [PointHomogeneous([1, cps_flat[i], cps_flat[i + 1], cps_flat[i + 2]])
+                    for i in range(0, len(cps_flat), 3)]
+
+        flattened_orbits = []
+        for i in range(len(bounding_orbits)):
+            for j in range(len(bounding_orbits[i])):
+                flattened_orbits.extend(bounding_orbits[i][j][1:])
+
+        orbit_centers = [orbit.center.normalized_in_3d() for orbit in flattened_orbits]
+        orbit_radii = [orbit.radius for orbit in flattened_orbits]
+
+        init_cps = flatten_cps(init_points)
+        lambda_reg = 0.1
+
+        def loss(params):
+            cps = unflatten_cps(params)
+            margin = 0.01
+            penalty = 0.0
+            for cp in cps:
+                for i, orbit in enumerate(flattened_orbits):
+                    dist = numpy.linalg.norm(cp.normalized_in_3d() - orbit_centers[i])
+                    if dist < orbit_radii[i] + margin:
+                        penalty += (orbit_radii[i] + margin - dist) ** 2
+            # Regularization: keep cps close to initial guess
+            penalty += lambda_reg * numpy.sum((params - init_cps) ** 2)
+            return penalty
+
+        res = minimize(loss, init_cps)
+
+        if not res.success:
+            raise RuntimeError(f'Optimization failed: {res.message}')
+        else:
+            new_control_points = unflatten_cps(res.x)
+
+        return new_control_points
+
+    def obtain_global_bounding_balls(self,
+                                     segment_id_number: int,
+                                     reduced_indices: list[int],
+                                     min_splits: int = 20):
+        """
+        Obtain global covering balls for a segment to optimize it as a curved link.
+        """
 
         t = sympy.symbols('t')
         motions = []
-        for i, idx in enumerate(indices_reduced):
-            rel_motion = self.mechanism.relative_motion(segment_id_num, idx)
+        for i, idx in enumerate(reduced_indices):
+            rel_motion = self.mechanism.relative_motion(segment_id_number, idx)
             motions.append(RationalCurve([sympy.Poly(c, t, greedy=False)
                                           for c in rel_motion],
                                          metric=self.metric))
@@ -269,7 +356,7 @@ class CollisionAnalyser:
         bezier_splits = [motion.split_in_beziers(min_splits) for motion in motions]
 
         all_orbits = []
-        for i, segment_idx in enumerate(indices_reduced):
+        for i, segment_idx in enumerate(reduced_indices):
 
             split_idx = i
             p0_idx = segment_idx - 1
