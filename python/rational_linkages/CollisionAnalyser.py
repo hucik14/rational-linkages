@@ -276,8 +276,8 @@ class CollisionAnalyser:
 
         # TODO error
         joint_id = segment_id_num // 2
-        pt0 = design_points[joint_id][1]
-        pt1 = design_points[joint_id + 1][0]
+        pt0 = design_points[joint_id - 1][1]
+        pt1 = design_points[joint_id][0]
 
         link_cps = RationalSoo.control_points_between_two_points(pt0,
                                                                  pt1,
