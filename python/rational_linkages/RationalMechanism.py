@@ -310,18 +310,18 @@ class RationalMechanism(RationalCurve):
         if onshape_print:
             for i in range(self.num_joints):
                 print(f"link{i}: "
-                      f"[{dh[i, 1]:.6f}, {dh[i, 2]:.6f}, {dh[i, 3]:.6f}], "
-                      f"{design_params[i, 0]:.6f}, {design_params[i, 1]:.6f}")
+                      f"[{dh[i, 1]:.15f}, {dh[i, 2]:.15f}, {dh[i, 3]:.15f}], "
+                      f"{design_params[i, 0]:.15f}, {design_params[i, 1]:.15f}")
             pretty_print = False
 
         if pretty_print:
             for i in range(self.num_joints):
                 print("---")
-                print(f"Link {i}: d = {dh[i, 1]:.6f}, "
-                      f"a = {dh[i, 2]:.6f}, "
-                      f"alpha = {dh[i, 3]:.6f}")
-                print(f"cp_0 = {design_params[i, 0]:.6f}, "
-                      f"cp_1 = {design_params[i, 1]:.6f}")
+                print(f"Link {i}: d = {dh[i, 1]:.15f}, "
+                      f"a = {dh[i, 2]:.15f}, "
+                      f"alpha = {dh[i, 3]:.15f}")
+                print(f"cp_0 = {design_params[i, 0]:.15f}, "
+                      f"cp_1 = {design_params[i, 1]:.15f}")
 
         return dh, design_params, design_points
 
@@ -1473,8 +1473,8 @@ class RationalMechanism(RationalCurve):
         self._segments = self._get_line_segments_of_linkage()
 
     def relative_motion(self,
-                        static: LineSegment,
-                        moving: LineSegment) -> DualQuaternion:
+                        static: int,
+                        moving: int) -> DualQuaternion:
         """
         Calculate the relative motion between given pair of links or joints.
 
@@ -1487,8 +1487,8 @@ class RationalMechanism(RationalCurve):
         if static == moving:
             raise ValueError("static and moving cannot be the same")
 
-        motion_cycle = self._shortest_path(static.creation_index,
-                                           moving.creation_index)
+        motion_cycle = self._shortest_path(static, moving)
+
         rel_motion = DualQuaternion()
         for idx in motion_cycle:
             rel_motion *= self.linear_motions_cycle[idx]

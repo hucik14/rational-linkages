@@ -10,7 +10,7 @@ from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
 from .NormalizedPlane import NormalizedPlane
 from .PointHomogeneous import PointHomogeneous, PointOrbit
-from .RationalBezier import RationalBezier
+from .RationalBezier import RationalBezier, RationalSoo
 from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
@@ -142,6 +142,8 @@ class PlotterPyqtgraph:
             self._plot_dual_quaternion(object_to_plot, **kwargs)
         elif type_to_plot == "is_transf_matrix":
             self._plot_transf_matrix(object_to_plot, **kwargs)
+        elif type_to_plot == "is_gauss_legendre":
+            self._plot_gauss_legendre(object_to_plot, **kwargs)
         elif type_to_plot == "is_rational_curve":
             self._plot_rational_curve(object_to_plot, **kwargs)
         elif type_to_plot == "is_rational_bezier":
@@ -171,6 +173,8 @@ class PlotterPyqtgraph:
             return "is_line"
         elif isinstance(object_to_plot, PointHomogeneous):
             return "is_point"
+        elif isinstance(object_to_plot, RationalSoo):
+            return "is_gauss_legendre"
         elif isinstance(object_to_plot, RationalBezier):
             return "is_rational_bezier"
         elif isinstance(object_to_plot, RationalCurve):
@@ -392,6 +396,44 @@ class PlotterPyqtgraph:
         """
         interval = kwargs.pop('interval', (0, 1))
         x, y, z, x_cp, y_cp, z_cp = bezier.get_plot_data(interval, self.steps)
+        pts = np.column_stack((x, y, z))
+        color = self._get_color(kwargs.get('color', 'yellow'), (1, 0, 1, 1))
+        line_item = gl.GLLinePlotItem(pos=pts,
+                                      color=color,
+                                      glOptions=self.render_mode,
+                                      width=2,
+                                      antialias=True)
+        self.widget.addItem(line_item)
+        if plot_control_points:
+            cp = np.column_stack((x_cp, y_cp, z_cp))
+            scatter = gl.GLScatterPlotItem(pos=cp,
+                                           color=(1, 0, 0, 1),
+                                           glOptions=self.render_mode,
+                                           size=8)
+            self.widget.addItem(scatter)
+            cp_line = gl.GLLinePlotItem(pos=cp,
+                                        color=(1, 0, 0, 1),
+                                        glOptions=self.render_mode,
+                                        width=1,
+                                        antialias=True)
+            self.widget.addItem(cp_line)
+
+    def _plot_gauss_legendre(self,
+                             curve: RationalSoo,
+                             plot_control_points: bool = True,
+                             **kwargs):
+        """
+        Plot a Gauss-Legendre rational curve along with its control points.
+        
+        Similar to plot Bezier, but specifically for Gauss-Legendre curves.
+        
+        :param RationalSoo curve: The Gauss-Legendre curve to plot.
+        :param bool plot_control_points: Whether to plot the control points.
+        :param kwargs: Additional keyword arguments for customization.
+        """
+        interval = kwargs.pop('interval', (-1, 1))
+        x, y, z, x_cp, y_cp, z_cp = curve.get_plot_data(interval, self.steps)
+
         pts = np.column_stack((x, y, z))
         color = self._get_color(kwargs.get('color', 'yellow'), (1, 0, 1, 1))
         line_item = gl.GLLinePlotItem(pos=pts,
