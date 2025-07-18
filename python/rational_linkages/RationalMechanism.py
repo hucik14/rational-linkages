@@ -1103,7 +1103,7 @@ class RationalMechanism(RationalCurve):
         elif not isinstance(pose, DualQuaternion):
             raise ValueError("pose must be either DualQuaternion or TransfMatrix")
 
-        if unit != 'rad' and unit != 'deg':
+        if unit not in {'rad', 'deg', 't'}:
             raise ValueError("unit must be deg or rad")
 
         if method == 'algebraic':
