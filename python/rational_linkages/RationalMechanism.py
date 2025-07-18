@@ -1213,7 +1213,7 @@ class RationalMechanism(RationalCurve):
                 t_res = t_min[0]
 
             if inversed_part:
-                if t_res == 0.0:
+                if np.isclose(t_res, 0.0):
                     t_res = np.finfo(np.float64).tiny
                 t_res = 1 / t_res
 
