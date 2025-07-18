@@ -1087,7 +1087,8 @@ class RationalMechanism(RationalCurve):
         Calculate inverse kinematics for given pose. Returns the joint angle in radians.
 
         :param Union[DualQuaternion, TransfMatrix] pose: pose of the mechanism
-        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+        :param str unit: unit of the joint angle, can be 'rad', 'deg', or 't' as
+            t is the parameter of the motion curve. Default is 'rad'.
         :param str method: numerically for 'gauss-newton' or 'algebraic'; 'algebraic'
             requires the input pose to be "achievable" by the mechanism, i.e. the pose
             must be on Study quadric and the mechanism must be able to reach it
@@ -1113,12 +1114,13 @@ class RationalMechanism(RationalCurve):
         else:
             raise ValueError("method must be either 'algebraic' or 'gauss-newton")
 
-        joint_angle = self.factorizations[0].t_param_to_joint_angle(t)
-
-        if unit == 'deg':
-            joint_angle = np.rad2deg(joint_angle)
-
-        return joint_angle
+        if unit == 't':
+            return t
+        else:
+            joint_angle = self.factorizations[0].t_param_to_joint_angle(t)
+            if unit == 'deg':
+                joint_angle = np.rad2deg(joint_angle)
+            return joint_angle
 
     def _ik_gauss_newton(self,
                          goal_pose: DualQuaternion,
