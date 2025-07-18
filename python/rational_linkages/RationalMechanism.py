@@ -1154,6 +1154,7 @@ class RationalMechanism(RationalCurve):
             if robust:
                 t_init_set = np.linspace(-1.0, 1.0, 30)
                 max_iterations = 50
+                tol = 1e-15
 
             for inv, curve in enumerate(curves):
                 if inv == 1:
@@ -1164,23 +1165,35 @@ class RationalMechanism(RationalCurve):
 
                 c_diff = [element.diff(t) for element in norm_curve]
 
+                # numerical preparation of the derivatives
+                c_diff_funcs = [sp.lambdify(t, expr, modules='numpy')
+                                for expr in c_diff]
+                def c_diff_lambdified(x: float):
+                    return np.array([f(x) for f in c_diff_funcs])
+
+                curve_funcs = [sp.lambdify(t, expr, modules='numpy')
+                               for expr in curve.symbolic]
+                def curve_lambdified(x: float):
+                    return np.array([f(x) for f in curve_funcs])
+
                 for t_val in t_init_set:
                     step_size = 1.0
                     previous_error = float('inf')
 
                     for i in range(max_iterations):
 
-                        if not robust:
-                            if t_val == sp.nan or t_val > 1.0 or t_val < -1.0:
-                                break
+                        # check if t_val is valid, i.e. must be in the range [-1, 1]
+                        if (t_val == sp.nan or np.isnan(t_val) or t_val > 10.0
+                                or t_val < -10.0):
+                            break
 
                         target_pose = pose.array()
-                        current_pose = curve.evaluate(t_val)
-                        c_diff_eval = np.array([element.subs(t, t_val).evalf()
-                                                for element in c_diff])
+                        current_pose = curve_lambdified(t_val)
+                        c_diff_eval = c_diff_lambdified(t_val)
 
                         # error to desired pose
-                        if (target_pose[0] == 0. or current_pose[0] == 0.):
+                        if (np.isclose(target_pose[0], 0.0)
+                                or np.isclose(current_pose[0], 0.0)):
                             twist_to_desired = target_pose - current_pose
                         else:
                             twist_to_desired = (target_pose / target_pose[0]
