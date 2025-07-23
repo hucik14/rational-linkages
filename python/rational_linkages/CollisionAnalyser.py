@@ -274,7 +274,6 @@ class CollisionAnalyser:
             update_design=True,
             pretty_print=False)
 
-        # TODO error
         joint_id = segment_id_num // 2
         pt0 = design_points[joint_id - 1][1]
         pt1 = design_points[joint_id][0]
