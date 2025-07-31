@@ -343,6 +343,10 @@ class CollisionAnalyser:
                                      min_splits: int = 20):
         """
         Obtain global covering balls for a segment to optimize it as a curved link.
+
+        :param segment_id_number: The index of the segment to optimize.
+        :param reduced_indices: Indices of segments to consider for bounding balls.
+        :param min_splits: Minimum number of splits for the bezier curves.
         """
 
         t = sympy.symbols('t')
