@@ -390,7 +390,7 @@ class TestRationalMechanism(TestCase):
         fk_expected = DualQuaternion(m.evaluate(expexted_t))
         self.assertTrue(np.allclose(fk.array(), fk_expected.array()))
 
-        ik_angle = m.inverse_kinematics(fk)
+        ik_angle = m.inverse_kinematics(fk, robust=True)
         ik_t = m.factorizations[0].joint_angle_to_t_param(ik_angle)
         self.assertTrue(np.allclose(ik_t, expexted_t))
 
