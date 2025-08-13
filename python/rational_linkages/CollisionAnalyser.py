@@ -498,6 +498,7 @@ class CollisionAnalyser:
 
         :param float x: The input value in the range [0, x_max].
         :param float x_max: The maximum value of the input range.
+        :param float weight: The weight to scale the output value. Default is 1.0.
 
         :return: The mapped value in the range [1, 2].
         :rtype: float
