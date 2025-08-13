@@ -77,7 +77,7 @@ class MotionDesigner:
     """
     def __init__(self,
                  method: str,
-                 initial_points_or_poses: list[PointHomogeneous, DualQuaternion] = None,
+                 initial_points_or_poses: list[Union[PointHomogeneous, DualQuaternion]] = None,
                  arrows_length: float = 1.0,
                  white_background: bool = False):
         """
