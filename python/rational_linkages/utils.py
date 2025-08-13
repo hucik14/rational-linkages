@@ -13,7 +13,7 @@ def dq_algebraic2vector(ugly_expression: list) -> list:
     :return: 8-vector representation of the algebraic equation
     :rtype: list
     """
-    from sympy import symbols, expand  # inner import
+    from sympy import expand, symbols  # inner import
     i, j, k, epsilon = symbols('i j k epsilon')
 
     expr = expand(ugly_expression)

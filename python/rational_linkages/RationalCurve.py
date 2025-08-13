@@ -1,13 +1,12 @@
 from copy import deepcopy
 from typing import Union
 
-from scipy.integrate import quad
-
 import numpy as np
 import sympy as sp
+from scipy.integrate import quad
 
-from .PointHomogeneous import PointHomogeneous
 from .DualQuaternion import DualQuaternion
+from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
 
 MotionFactorization = "MotionFactorization"

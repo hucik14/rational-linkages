@@ -1,6 +1,6 @@
-import numpy as np
-
 from typing import Optional, Sequence
+
+import numpy as np
 from sympy import Rational
 
 from .TransfMatrix import TransfMatrix
@@ -332,7 +332,7 @@ class PointHomogeneous:
         :return: evaluated point with float elements
         :rtype: PointHomogeneous
         """
-        from sympy import Expr, Symbol, Number
+        from sympy import Expr, Number, Symbol
 
         t = Symbol("t")
 

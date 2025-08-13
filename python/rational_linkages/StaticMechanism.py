@@ -1,15 +1,14 @@
-from warnings import warn
 from typing import Union
+from warnings import warn
 
 import numpy as np
 
-from .RationalMechanism import RationalMechanism
-from .MotionFactorization import MotionFactorization
 from .DualQuaternion import DualQuaternion
+from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
-from .TransfMatrix import TransfMatrix
 from .PointHomogeneous import PointHomogeneous
-
+from .RationalMechanism import RationalMechanism
+from .TransfMatrix import TransfMatrix
 from .utils import dq_algebraic2vector
 
 

@@ -4,10 +4,10 @@ import numpy as np
 import sympy as sp
 from sympy.integrals.quadrature import gauss_legendre
 
+from .DualQuaternion import DualQuaternion
 from .MiniBall import MiniBall
 from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
-from .DualQuaternion import DualQuaternion
 
 
 class RationalBezier(RationalCurve):

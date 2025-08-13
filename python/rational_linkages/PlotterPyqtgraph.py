@@ -1,11 +1,13 @@
 import sys
-import numpy as np
 
-from PyQt6.QtWidgets import QApplication
-from PyQt6 import QtCore, QtGui, QtWidgets
+import numpy as np
 import pyqtgraph.opengl as gl
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtWidgets import QApplication
 
 from .DualQuaternion import DualQuaternion
+from .Linkage import LineSegment
+from .MiniBall import MiniBall
 from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
 from .NormalizedPlane import NormalizedPlane
@@ -14,8 +16,6 @@ from .RationalBezier import RationalBezier, RationalSoo
 from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
-from .MiniBall import MiniBall
-from .Linkage import LineSegment
 
 
 class PlotterPyqtgraph:

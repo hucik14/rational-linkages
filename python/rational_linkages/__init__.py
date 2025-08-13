@@ -1,6 +1,7 @@
 # __init__.py
 
-from importlib.metadata import version, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, version
+
 try:
     __version__ = version("rational_linkages")
 except PackageNotFoundError:
@@ -19,7 +20,7 @@ from .NormalizedPlane import NormalizedPlane
 from .Plotter import Plotter
 from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
-from .RationalBezier import RationalBezier, BezierSegment
+from .RationalBezier import BezierSegment, RationalBezier
 from .RationalCurve import RationalCurve
 from .RationalDualQuaternion import RationalDualQuaternion
 from .RationalMechanism import RationalMechanism

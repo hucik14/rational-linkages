@@ -1,19 +1,24 @@
-from typing import Union
-import numpy as np
 import sys
+from typing import Union
+
+import numpy as np
+import pyqtgraph.opengl as gl
 
 # PyQt and Pyqtgraph imports
 from PyQt6 import QtCore, QtWidgets
-import pyqtgraph.opengl as gl
 
 # Import your custom classes (adjust the import paths as needed)
 from .DualQuaternion import DualQuaternion
 from .MotionInterpolation import MotionInterpolation
-from .RationalMechanism import RationalMechanism
-from .RationalCurve import RationalCurve
+from .PlotterPyqtgraph import (
+    FramePlotHelper,
+    InteractivePlotterWidget,
+    PlotterPyqtgraph,
+)
 from .PointHomogeneous import PointHomogeneous
+from .RationalCurve import RationalCurve
+from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
-from .PlotterPyqtgraph import PlotterPyqtgraph, FramePlotHelper, InteractivePlotterWidget
 
 
 class MotionDesigner:

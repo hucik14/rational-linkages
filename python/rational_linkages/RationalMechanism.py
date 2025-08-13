@@ -8,12 +8,12 @@ import numpy as np
 import sympy as sp
 
 from .DualQuaternion import DualQuaternion
+from .Linkage import LineSegment
 from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
 from .TransfMatrix import TransfMatrix
-from .PointHomogeneous import PointHomogeneous
-from .Linkage import LineSegment
 
 
 class RationalMechanism(RationalCurve):

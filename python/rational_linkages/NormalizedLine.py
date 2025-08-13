@@ -399,7 +399,7 @@ class NormalizedLine:
         :return: evaluated line with float elements
         :rtype: NormalizedLine
         """
-        from sympy import Expr, Symbol, Number
+        from sympy import Expr, Number, Symbol
 
         t = Symbol("t")
 

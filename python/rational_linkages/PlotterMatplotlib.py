@@ -1,14 +1,16 @@
 from functools import wraps
 from itertools import cycle
-from os.path import join, isdir
 from os import makedirs
+from os.path import isdir, join
 
-import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.widgets import Slider, TextBox
 
 from .DualQuaternion import DualQuaternion
+from .Linkage import LineSegment
+from .MiniBall import MiniBall
 from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
 from .PointHomogeneous import PointHomogeneous, PointOrbit
@@ -16,8 +18,6 @@ from .RationalBezier import RationalBezier
 from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
-from .MiniBall import MiniBall
-from .Linkage import LineSegment
 
 
 class PlotterMatplotlib:

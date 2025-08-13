@@ -1,5 +1,5 @@
+from .PlotterPyqtgraph import InteractivePlotter, PlotterPyqtgraph
 from .RationalMechanism import RationalMechanism
-from .PlotterPyqtgraph import PlotterPyqtgraph, InteractivePlotter
 
 
 class Plotter:

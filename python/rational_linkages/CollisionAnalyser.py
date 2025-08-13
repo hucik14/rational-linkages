@@ -1,16 +1,14 @@
-from . import LineSegment
-from .RationalMechanism import RationalMechanism
-from .RationalCurve import RationalCurve
-from .DualQuaternion import DualQuaternion
-from .PointHomogeneous import PointOrbit, PointHomogeneous
-from .NormalizedLine import NormalizedLine
-
-from .RationalBezier import RationalSoo
-
 import numpy
 import sympy
-
 from scipy.optimize import minimize
+
+from . import LineSegment
+from .DualQuaternion import DualQuaternion
+from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous, PointOrbit
+from .RationalBezier import RationalSoo
+from .RationalCurve import RationalCurve
+from .RationalMechanism import RationalMechanism
 
 
 class CollisionAnalyser:
