@@ -1,7 +1,9 @@
+from . import LineSegment
 from .RationalMechanism import RationalMechanism
 from .RationalCurve import RationalCurve
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointOrbit, PointHomogeneous
+from .NormalizedLine import NormalizedLine
 
 from .RationalBezier import RationalSoo
 
@@ -407,3 +409,105 @@ class CollisionAnalyser:
             all_orbits.append(all_orbits_of_a_link)
 
         return all_orbits
+
+    @staticmethod
+    def quantify_collision(segment0: LineSegment,
+                           segment1: LineSegment,
+                           t_val):
+        """
+        Quantify the collision between two line segments.
+        """
+        p00 = segment0.point0.evaluate(t_val)
+        p01 = segment0.point1.evaluate(t_val)
+
+        p10 = segment1.point0.evaluate(t_val)
+        p11 = segment1.point1.evaluate(t_val)
+
+        l0 = NormalizedLine.from_two_points(p00, p01)
+        l1 = NormalizedLine.from_two_points(p10, p11)
+
+        pts, dist, cos_alpha = l0.common_perpendicular_to_other_line(l1)
+
+        if numpy.isclose(dist, 0.0):  # lines are intersecting
+            quantif = CollisionAnalyser.quatif_intersection_location(
+                PointHomogeneous.from_3d_point(pts[0]),
+                p00,
+                p01)
+        else:  # lines are not intersecting, there is a distance
+            quantif_l0 = CollisionAnalyser.quatif_intersection_location(
+                PointHomogeneous.from_3d_point(pts[0]),
+                p00,
+                p01)
+            quantif_l1 = CollisionAnalyser.quatif_intersection_location(
+                PointHomogeneous.from_3d_point(pts[1]),
+                p10,
+                p11)
+            quantif_dist = CollisionAnalyser.map_to_exponential_decay(dist, k=10.0)
+
+            quantif = quantif_dist * (quantif_l0 + quantif_l1)
+
+        return quantif
+
+    @staticmethod
+    def quatif_intersection_location(interection_pt, segment_pt0, segment_pt1):
+        a = numpy.linalg.norm(
+            segment_pt0.normalized_in_3d() - interection_pt.normalized_in_3d())
+        b = numpy.linalg.norm(
+            segment_pt1.normalized_in_3d() - interection_pt.normalized_in_3d())
+
+        segment_lenght = numpy.linalg.norm(
+            segment_pt0.normalized_in_3d() - segment_pt1.normalized_in_3d())
+        if a + b > segment_lenght:
+            val = a + b - segment_lenght
+            quantif_val = CollisionAnalyser.map_to_exponential_decay(val, k=2.0)
+        else:
+            val = a if a < b else b
+            quantif_val = CollisionAnalyser.map_to_range_inside(val, segment_lenght, 2)
+
+        return quantif_val
+
+    @staticmethod
+    def map_to_exponential_decay(x, k=1.0):
+        """
+        Maps a value x using an exponential decay function to the range [0, 1].
+
+        Maps a value x from the range [0, inf) to the interval [0, 1] using an
+        exponential decay function.
+
+        :param float x: The input value in the range [0, inf).
+        :param float k: The decay rate (must be positive). Default is 1.0.
+
+        :return: The mapped value in the range [0, 1].
+        :rtype: float
+        """
+        if x < 0:
+            raise ValueError("x must be non-negative")
+        if k <= 0:
+            raise ValueError("k must be positive")
+
+        # Exponential decay formula
+        y = numpy.exp(-k * x)
+        return y
+
+    @staticmethod
+    def map_to_range_inside(x, x_max, weight=1.0):
+        """
+        Maps a value x from the range [0, x_max] to a value y in the range [1, 2].
+
+        Function preserves the ratio of the input value relative to the maximum value.
+
+        :param float x: The input value in the range [0, x_max].
+        :param float x_max: The maximum value of the input range.
+        :param float weight: The weight to scale the output value. Default is 1.0.
+
+        :return: The mapped value in the range [1, 2].
+        :rtype: float
+        """
+        if x < 0 or x > x_max:
+            raise ValueError("x must be in the range [0, x_max]")
+        if x_max <= 0:
+            raise ValueError("x_max must be greater than 0")
+
+        # linear mapping formula
+        y = 1 + (x / x_max) * weight
+        return y
