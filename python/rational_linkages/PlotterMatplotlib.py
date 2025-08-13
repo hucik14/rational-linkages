@@ -501,23 +501,25 @@ class PlotterMatplotlib:
         show_tool = kwargs.pop('show_tool', False)
         t = kwargs.pop('t', 0)
 
+        self._plot_tool_path(mechanism, **kwargs)
+
         # plot factorizations
         for factorization in mechanism.factorizations:
-            self._plot_motion_factorization(factorization, t=t, **kwargs)
+            self._plot_motion_factorization(factorization, t=t, **kwargs, color='black')
 
         if show_tool:
             # plot end effector triangle
-            pts0 = mechanism.factorizations[0].direct_kinematics_of_tool_with_link(t, mechanism.tool_frame.dq2point_via_matrix())
-            pts1 = mechanism.factorizations[1].direct_kinematics_of_tool_with_link(t, mechanism.tool_frame.dq2point_via_matrix())[::-1]
+            pts0 = mechanism.factorizations[0].direct_kinematics_of_tool_with_link(
+                t, mechanism.tool_frame.dq2point_via_matrix())
+            pts1 = mechanism.factorizations[1].direct_kinematics_of_tool_with_link(
+                t, mechanism.tool_frame.dq2point_via_matrix())[::-1]
             ee_points = np.concatenate((pts0, pts1))
 
         if 'label' not in kwargs:
             kwargs['label'] = "end effector"
 
         x, y, z = zip(*ee_points)
-        self.ax.plot(x, y, z, **kwargs)
-
-        self._plot_tool_path(mechanism, **kwargs)
+        self.ax.plot(x, y, z, color='black', **kwargs)
 
     @_plotting_decorator
     def _plot_tool_path(self, mechanism: RationalMechanism, **kwargs):
