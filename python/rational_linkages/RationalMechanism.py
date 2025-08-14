@@ -8,12 +8,12 @@ import numpy as np
 import sympy as sp
 
 from .DualQuaternion import DualQuaternion
+from .Linkage import LineSegment
 from .MotionFactorization import MotionFactorization
 from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
 from .TransfMatrix import TransfMatrix
-from .PointHomogeneous import PointHomogeneous
-from .Linkage import LineSegment
 
 
 class RationalMechanism(RationalCurve):
@@ -310,18 +310,18 @@ class RationalMechanism(RationalCurve):
         if onshape_print:
             for i in range(self.num_joints):
                 print(f"link{i}: "
-                      f"[{dh[i, 1]:.6f}, {dh[i, 2]:.6f}, {dh[i, 3]:.6f}], "
-                      f"{design_params[i, 0]:.6f}, {design_params[i, 1]:.6f}")
+                      f"[{dh[i, 1]:.15f}, {dh[i, 2]:.15f}, {dh[i, 3]:.15f}], "
+                      f"{design_params[i, 0]:.15f}, {design_params[i, 1]:.15f}")
             pretty_print = False
 
         if pretty_print:
             for i in range(self.num_joints):
                 print("---")
-                print(f"Link {i}: d = {dh[i, 1]:.6f}, "
-                      f"a = {dh[i, 2]:.6f}, "
-                      f"alpha = {dh[i, 3]:.6f}")
-                print(f"cp_0 = {design_params[i, 0]:.6f}, "
-                      f"cp_1 = {design_params[i, 1]:.6f}")
+                print(f"Link {i}: d = {dh[i, 1]:.15f}, "
+                      f"a = {dh[i, 2]:.15f}, "
+                      f"alpha = {dh[i, 3]:.15f}")
+                print(f"cp_0 = {design_params[i, 0]:.15f}, "
+                      f"cp_1 = {design_params[i, 1]:.15f}")
 
         return dh, design_params, design_points
 
@@ -1087,7 +1087,8 @@ class RationalMechanism(RationalCurve):
         Calculate inverse kinematics for given pose. Returns the joint angle in radians.
 
         :param Union[DualQuaternion, TransfMatrix] pose: pose of the mechanism
-        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+        :param str unit: unit of the joint angle, can be 'rad', 'deg', or 't' as
+            t is the parameter of the motion curve. Default is 'rad'.
         :param str method: numerically for 'gauss-newton' or 'algebraic'; 'algebraic'
             requires the input pose to be "achievable" by the mechanism, i.e. the pose
             must be on Study quadric and the mechanism must be able to reach it
@@ -1102,7 +1103,7 @@ class RationalMechanism(RationalCurve):
         elif not isinstance(pose, DualQuaternion):
             raise ValueError("pose must be either DualQuaternion or TransfMatrix")
 
-        if unit != 'rad' and unit != 'deg':
+        if unit not in {'rad', 'deg', 't'}:
             raise ValueError("unit must be deg or rad")
 
         if method == 'algebraic':
@@ -1113,12 +1114,13 @@ class RationalMechanism(RationalCurve):
         else:
             raise ValueError("method must be either 'algebraic' or 'gauss-newton")
 
-        joint_angle = self.factorizations[0].t_param_to_joint_angle(t)
-
-        if unit == 'deg':
-            joint_angle = np.rad2deg(joint_angle)
-
-        return joint_angle
+        if unit == 't':
+            return t
+        else:
+            joint_angle = self.factorizations[0].t_param_to_joint_angle(t)
+            if unit == 'deg':
+                joint_angle = np.rad2deg(joint_angle)
+            return joint_angle
 
     def _ik_gauss_newton(self,
                          goal_pose: DualQuaternion,
@@ -1152,6 +1154,7 @@ class RationalMechanism(RationalCurve):
             if robust:
                 t_init_set = np.linspace(-1.0, 1.0, 30)
                 max_iterations = 50
+                tol = 1e-15
 
             for inv, curve in enumerate(curves):
                 if inv == 1:
@@ -1162,23 +1165,35 @@ class RationalMechanism(RationalCurve):
 
                 c_diff = [element.diff(t) for element in norm_curve]
 
+                # numerical preparation of the derivatives
+                c_diff_funcs = [sp.lambdify(t, expr, modules='numpy')
+                                for expr in c_diff]
+                def c_diff_lambdified(x: float):
+                    return np.array([f(x) for f in c_diff_funcs])
+
+                curve_funcs = [sp.lambdify(t, expr, modules='numpy')
+                               for expr in curve.symbolic]
+                def curve_lambdified(x: float):
+                    return np.array([f(x) for f in curve_funcs])
+
                 for t_val in t_init_set:
                     step_size = 1.0
                     previous_error = float('inf')
 
                     for i in range(max_iterations):
 
-                        if not robust:
-                            if t_val == sp.nan or t_val > 1.0 or t_val < -1.0:
-                                break
+                        # check if t_val is valid, i.e. must be in the range [-1, 1]
+                        if (t_val == sp.nan or np.isnan(t_val) or t_val > 10.0
+                                or t_val < -10.0):
+                            break
 
                         target_pose = pose.array()
-                        current_pose = curve.evaluate(t_val)
-                        c_diff_eval = np.array([element.subs(t, t_val).evalf()
-                                                for element in c_diff])
+                        current_pose = curve_lambdified(t_val)
+                        c_diff_eval = c_diff_lambdified(t_val)
 
                         # error to desired pose
-                        if (target_pose[0] == 0. or current_pose[0] == 0.):
+                        if (np.isclose(target_pose[0], 0.0)
+                                or np.isclose(current_pose[0], 0.0)):
                             twist_to_desired = target_pose - current_pose
                         else:
                             twist_to_desired = (target_pose / target_pose[0]
@@ -1211,7 +1226,7 @@ class RationalMechanism(RationalCurve):
                 t_res = t_min[0]
 
             if inversed_part:
-                if t_res == 0.0:
+                if np.isclose(t_res, 0.0):
                     t_res = np.finfo(np.float64).tiny
                 t_res = 1 / t_res
 
@@ -1473,8 +1488,8 @@ class RationalMechanism(RationalCurve):
         self._segments = self._get_line_segments_of_linkage()
 
     def relative_motion(self,
-                        static: LineSegment,
-                        moving: LineSegment) -> DualQuaternion:
+                        static: int,
+                        moving: int) -> DualQuaternion:
         """
         Calculate the relative motion between given pair of links or joints.
 
@@ -1487,8 +1502,8 @@ class RationalMechanism(RationalCurve):
         if static == moving:
             raise ValueError("static and moving cannot be the same")
 
-        motion_cycle = self._shortest_path(static.creation_index,
-                                           moving.creation_index)
+        motion_cycle = self._shortest_path(static, moving)
+
         rel_motion = DualQuaternion()
         for idx in motion_cycle:
             rel_motion *= self.linear_motions_cycle[idx]

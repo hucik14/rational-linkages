@@ -1,19 +1,19 @@
-from typing import Union
 from copy import deepcopy
+from typing import Union
 from warnings import warn
 
-import sympy as sp
 import numpy as np
+import sympy as sp
 
 from .DualQuaternion import DualQuaternion
-from .RationalCurve import RationalCurve
-from .RationalDualQuaternion import RationalDualQuaternion
-from .TransfMatrix import TransfMatrix
 from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
 from .RationalBezier import RationalBezier
-
+from .RationalCurve import RationalCurve
+from .RationalDualQuaternion import RationalDualQuaternion
+from .TransfMatrix import TransfMatrix
 from .utils_rust import motion_interp_x3
+
 
 class MotionInterpolation:
     """

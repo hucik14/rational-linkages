@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.optimize import minimize
 
-from .PointHomogeneous import PointHomogeneous
 from .AffineMetric import AffineMetric
+from .PointHomogeneous import PointHomogeneous
 
 
 class MiniBall:

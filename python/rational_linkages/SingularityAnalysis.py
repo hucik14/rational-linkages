@@ -1,7 +1,7 @@
-from .RationalMechanism import RationalMechanism
-from .Linkage import LineSegment
-
 import sympy
+
+from .Linkage import LineSegment
+from .RationalMechanism import RationalMechanism
 
 
 class SingularityAnalysis:

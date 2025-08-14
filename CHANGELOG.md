@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.1.0 (2025-08-13)
+
+### added (6 changes)
+
+- [docstring update](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/0b0d2d63)
+- [ik evaluation is lambified](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/72cd77df)
+- [ik method can return t param](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/3d630e63)
+- [optimization for a curved link](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/b25d4d09)
+- [print design params with high precision](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/4b00414b)
+- [plotting of GL curves](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1fc6301a)
+
+
+### fixed (1 change)
+
+- [sympy's zero was not handled](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/fc02caf7)
+
+
 ## 2.0.0 (2025-06-11)
 
 ### added (48 changes)

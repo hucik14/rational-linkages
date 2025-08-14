@@ -1,11 +1,14 @@
-from .RationalMechanism import RationalMechanism
-from .RationalCurve import RationalCurve
-from .MiniBall import MiniBall
-from .DualQuaternion import DualQuaternion
-from .PointHomogeneous import PointOrbit
-
 import numpy
 import sympy
+from scipy.optimize import minimize
+
+from . import LineSegment
+from .DualQuaternion import DualQuaternion
+from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous, PointOrbit
+from .RationalBezier import RationalSoo
+from .RationalCurve import RationalCurve
+from .RationalMechanism import RationalMechanism
 
 
 class CollisionAnalyser:
@@ -22,7 +25,7 @@ class CollisionAnalyser:
             self.segments[segment.id] = segment
 
         self.motions = self.get_motions()
-        self.bezier_splits = self.get_bezier_splits(50)
+        self.bezier_splits = self.get_bezier_splits(20)
 
     def get_bezier_splits(self, min_splits: int = 0) -> list:
         """
@@ -48,7 +51,8 @@ class CollisionAnalyser:
 
         motions = []
         for motion in relative_motions:
-            motions.append(RationalCurve([sympy.Poly(c, t) for c in motion],
+            motions.append(RationalCurve([sympy.Poly(c, t, greedy=False)
+                                          for c in motion],
                                          metric=self.metric))
         return motions
 
@@ -63,11 +67,9 @@ class CollisionAnalyser:
         """
         Get the orbit of a segment.
         """
-        import time
-
         segment = self.segments[segment_id]
 
-        if segment.type == 'l' or segment.type == 't' or segment.type == 'b':
+        if segment.type == 'l':
             if segment.factorization_idx == 0:
                 split_idx = segment.idx - 1
                 p0_idx = 2 * segment.idx - 1
@@ -197,14 +199,6 @@ class CollisionAnalyser:
         return it_collides
 
     @staticmethod
-    def get_object_type(obj):
-        """
-        Get the type of an object.
-        """
-        if isinstance(obj, MiniBall):
-            return 'is_miniball'
-
-    @staticmethod
     def check_two_miniballs(ball0, ball1):
         """
         Check if two miniballs collide.
@@ -212,3 +206,306 @@ class CollisionAnalyser:
         diff = ball0.center.coordinates - ball1.center.coordinates
         center_dist_squared = numpy.dot(diff, diff)
         return center_dist_squared < ball0.radius_squared + ball1.radius_squared
+
+    def get_split_and_point_indices(self, segment):
+        """
+        Compute split index and point indices for a segment.
+        """
+        if segment.type == 'l':
+            if segment.factorization_idx == 0:
+                split_idx = segment.idx - 1
+                p0_idx = 2 * segment.idx - 1
+                p1_idx = 2 * segment.idx
+            else:
+                split_idx = -1 * segment.idx
+                p0_idx = -2 * segment.idx - 1
+                p1_idx = -2 * segment.idx
+        else:  # type == 'j'
+            if segment.factorization_idx == 0:
+                split_idx = segment.idx - 1
+                p0_idx = 2 * segment.idx
+                p1_idx = 2 * segment.idx + 1
+            else:
+                split_idx = -1 * segment.idx
+                p0_idx = -2 * segment.idx - 1
+                p1_idx = -2 * segment.idx - 2
+        return split_idx, p0_idx, p1_idx
+
+    def optimize_curved_link(self,
+                             segment_id: str,
+                             min_splits: int = 20,
+                             curve_degree: int = 3):
+        """
+        Optimize the curved link to avoid collisions.
+        """
+        if segment_id.startswith('j'):
+            raise ValueError('Joints cannot be optimized as curved lines, only links.')
+
+        # get segment creation index
+        segment_id_num = None
+        for s_id, segment in enumerate(self.segments.values()):
+            if segment.id == segment_id:
+                segment_id_num = s_id
+                break
+
+        indices = list(range(len(self.mechanism.segments)))
+
+        # remove index of segment to optimize and the two neighboring segments
+        indices.remove(segment_id_num)
+        if segment_id_num != 0:
+            indices.remove(segment_id_num - 1)
+        else:
+            indices.remove(indices[-1])  # remove last if first segment is optimized
+        if segment_id_num != len(self.mechanism.segments) - 1:
+            indices.remove(segment_id_num + 1)
+        else:
+            indices.remove(indices[0])  # remove first if last segment is optimized
+
+        # remove odd indices which correspond to joints; keep also zero
+        indices_reduced = [idx for i, idx in enumerate(indices)
+                           if idx % 2 == 0 or idx == 0]
+
+        bounding_balls = self.obtain_global_bounding_balls(segment_id_num,
+                                                           indices_reduced,
+                                                           min_splits)
+
+        dh, design_params, design_points = self.mechanism.get_design(
+            return_point_homogeneous=True,
+            update_design=True,
+            pretty_print=False)
+
+        joint_id = segment_id_num // 2
+        pt0 = design_points[joint_id - 1][1]
+        pt1 = design_points[joint_id][0]
+
+        link_cps = RationalSoo.control_points_between_two_points(pt0,
+                                                                 pt1,
+                                                                 degree=curve_degree)
+        init_control_points = link_cps[1:-1]  # remove the first and last control points
+
+        new_cps = self.optimize_control_points(init_control_points,
+                                               bounding_balls)
+        new_cps.insert(0, pt0)
+        new_cps.append(pt1)
+
+        return RationalSoo(new_cps)
+
+    @staticmethod
+    def optimize_control_points(init_points: list[PointHomogeneous],
+                                bounding_orbits: list[list[PointOrbit]]):
+        """
+        Optimize the link control points to avoid collisions with the bounding orbits.
+        """
+        def flatten_cps(cps):
+            return numpy.array([cp.normalized_in_3d() for cp in cps]).flatten()
+
+        def unflatten_cps(cps_flat):
+            return [PointHomogeneous([1, cps_flat[i], cps_flat[i + 1], cps_flat[i + 2]])
+                    for i in range(0, len(cps_flat), 3)]
+
+        flattened_orbits = []
+        for i in range(len(bounding_orbits)):
+            for j in range(len(bounding_orbits[i])):
+                flattened_orbits.extend(bounding_orbits[i][j][1:])
+
+        orbit_centers = [orbit.center.normalized_in_3d() for orbit in flattened_orbits]
+        orbit_radii = [orbit.radius for orbit in flattened_orbits]
+
+        init_cps = flatten_cps(init_points)
+        lambda_reg = 0.1
+
+        def loss(params):
+            cps = unflatten_cps(params)
+            margin = 0.01
+            penalty = 0.0
+            for cp in cps:
+                for i, orbit in enumerate(flattened_orbits):
+                    dist = numpy.linalg.norm(cp.normalized_in_3d() - orbit_centers[i])
+                    if dist < orbit_radii[i] + margin:
+                        penalty += (orbit_radii[i] + margin - dist) ** 2
+            # Regularization: keep cps close to initial guess
+            penalty += lambda_reg * numpy.sum((params - init_cps) ** 2)
+            return penalty
+
+        res = minimize(loss, init_cps)
+
+        if not res.success:
+            raise RuntimeError(f'Optimization failed: {res.message}')
+        else:
+            new_control_points = unflatten_cps(res.x)
+
+        return new_control_points
+
+    def obtain_global_bounding_balls(self,
+                                     segment_id_number: int,
+                                     reduced_indices: list[int],
+                                     min_splits: int = 20):
+        """
+        Obtain global covering balls for a segment to optimize it as a curved link.
+
+        :param segment_id_number: The index of the segment to optimize.
+        :param reduced_indices: Indices of segments to consider for bounding balls.
+        :param min_splits: Minimum number of splits for the bezier curves.
+        """
+
+        t = sympy.symbols('t')
+        motions = []
+        for i, idx in enumerate(reduced_indices):
+            rel_motion = self.mechanism.relative_motion(segment_id_number, idx)
+            motions.append(RationalCurve([sympy.Poly(c, t, greedy=False)
+                                          for c in rel_motion],
+                                         metric=self.metric))
+
+        bezier_splits = [motion.split_in_beziers(min_splits) for motion in motions]
+
+        all_orbits = []
+        for i, segment_idx in enumerate(reduced_indices):
+
+            split_idx = i
+            p0_idx = segment_idx - 1
+            p1_idx = segment_idx
+
+            rel_bezier_splits = bezier_splits[split_idx]
+
+            p0 = self.mechanism_points[p0_idx]
+            p1 = self.mechanism_points[p1_idx]
+
+            orbits0 = [PointOrbit(*p0.get_point_orbit(acting_center=split.ball.center,
+                                                      acting_radius=split.ball.radius_squared,
+                                                      metric=self.metric),
+                                  t_interval=split.t_param_of_motion_curve)
+                       for split in rel_bezier_splits]
+            orbits1 = [PointOrbit(*p1.get_point_orbit(acting_center=split.ball.center,
+                                                      acting_radius=split.ball.radius_squared,
+                                                      metric=self.metric),
+                                  t_interval=split.t_param_of_motion_curve)
+                       for split in rel_bezier_splits]
+
+            all_orbits_of_a_link = []
+            for i in range(len(orbits0)):
+                orbits_for_t = [orbits0[i].t_interval, orbits0[i]]
+                dist = numpy.linalg.norm(orbits0[i].center.normalized_in_3d() - orbits1[
+                    i].center.normalized_in_3d())
+                radius_sum = orbits0[i].radius + orbits1[i].radius
+                if dist > radius_sum:
+                    add_balls = dist / radius_sum
+                    num_steps = int(add_balls) * 2 + 1
+
+                    # linear interpolation from smaller ball to bigger ball
+                    radii = 0
+                    radius_diff = orbits1[i].radius - orbits0[i].radius
+                    center_diff = orbits1[i].center - orbits0[i].center
+                    for j in range(1, num_steps):
+                        new_radius = orbits0[i].radius + j * radius_diff / num_steps
+                        radii += new_radius
+                        new_center = orbits0[i].center + 2 * radii * center_diff / (
+                                    dist * 2)
+                        orbits_for_t.append(PointOrbit(new_center, new_radius ** 2,
+                                                       orbits0[i].t_interval))
+                orbits_for_t.append(orbits1[i])
+                all_orbits_of_a_link.append(orbits_for_t)
+            all_orbits.append(all_orbits_of_a_link)
+
+        return all_orbits
+
+    @staticmethod
+    def quantify_collision(segment0: LineSegment,
+                           segment1: LineSegment,
+                           t_val):
+        """
+        Quantify the collision between two line segments.
+        """
+        p00 = segment0.point0.evaluate(t_val)
+        p01 = segment0.point1.evaluate(t_val)
+
+        p10 = segment1.point0.evaluate(t_val)
+        p11 = segment1.point1.evaluate(t_val)
+
+        l0 = NormalizedLine.from_two_points(p00, p01)
+        l1 = NormalizedLine.from_two_points(p10, p11)
+
+        pts, dist, cos_alpha = l0.common_perpendicular_to_other_line(l1)
+
+        if numpy.isclose(dist, 0.0):  # lines are intersecting
+            quantif = CollisionAnalyser.quatif_intersection_location(
+                PointHomogeneous.from_3d_point(pts[0]),
+                p00,
+                p01)
+        else:  # lines are not intersecting, there is a distance
+            quantif_l0 = CollisionAnalyser.quatif_intersection_location(
+                PointHomogeneous.from_3d_point(pts[0]),
+                p00,
+                p01)
+            quantif_l1 = CollisionAnalyser.quatif_intersection_location(
+                PointHomogeneous.from_3d_point(pts[1]),
+                p10,
+                p11)
+            quantif_dist = CollisionAnalyser.map_to_exponential_decay(dist, k=10.0)
+
+            quantif = quantif_dist * (quantif_l0 + quantif_l1)
+
+        return quantif
+
+    @staticmethod
+    def quatif_intersection_location(interection_pt, segment_pt0, segment_pt1):
+        a = numpy.linalg.norm(
+            segment_pt0.normalized_in_3d() - interection_pt.normalized_in_3d())
+        b = numpy.linalg.norm(
+            segment_pt1.normalized_in_3d() - interection_pt.normalized_in_3d())
+
+        segment_lenght = numpy.linalg.norm(
+            segment_pt0.normalized_in_3d() - segment_pt1.normalized_in_3d())
+        if a + b > segment_lenght:
+            val = a + b - segment_lenght
+            quantif_val = CollisionAnalyser.map_to_exponential_decay(val, k=2.0)
+        else:
+            val = a if a < b else b
+            quantif_val = CollisionAnalyser.map_to_range_inside(val, segment_lenght, 2)
+
+        return quantif_val
+
+    @staticmethod
+    def map_to_exponential_decay(x, k=1.0):
+        """
+        Maps a value x using an exponential decay function to the range [0, 1].
+
+        Maps a value x from the range [0, inf) to the interval [0, 1] using an
+        exponential decay function.
+
+        :param float x: The input value in the range [0, inf).
+        :param float k: The decay rate (must be positive). Default is 1.0.
+
+        :return: The mapped value in the range [0, 1].
+        :rtype: float
+        """
+        if x < 0:
+            raise ValueError("x must be non-negative")
+        if k <= 0:
+            raise ValueError("k must be positive")
+
+        # Exponential decay formula
+        y = numpy.exp(-k * x)
+        return y
+
+    @staticmethod
+    def map_to_range_inside(x, x_max, weight=1.0):
+        """
+        Maps a value x from the range [0, x_max] to a value y in the range [1, 2].
+
+        Function preserves the ratio of the input value relative to the maximum value.
+
+        :param float x: The input value in the range [0, x_max].
+        :param float x_max: The maximum value of the input range.
+        :param float weight: The weight to scale the output value. Default is 1.0.
+
+        :return: The mapped value in the range [1, 2].
+        :rtype: float
+        """
+        if x < 0 or x > x_max:
+            raise ValueError("x must be in the range [0, x_max]")
+        if x_max <= 0:
+            raise ValueError("x_max must be greater than 0")
+
+        # linear mapping formula
+        y = 1 + (x / x_max) * weight
+        return y

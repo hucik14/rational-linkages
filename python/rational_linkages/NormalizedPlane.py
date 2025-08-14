@@ -2,8 +2,8 @@ from typing import Union
 
 import numpy as np
 
-from .PointHomogeneous import PointHomogeneous
 from .NormalizedLine import NormalizedLine
+from .PointHomogeneous import PointHomogeneous
 
 
 class NormalizedPlane:

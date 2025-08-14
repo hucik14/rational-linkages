@@ -4,10 +4,10 @@ import numpy as np
 import sympy as sp
 from sympy.integrals.quadrature import gauss_legendre
 
+from .DualQuaternion import DualQuaternion
 from .MiniBall import MiniBall
 from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
-from .DualQuaternion import DualQuaternion
 
 
 class RationalBezier(RationalCurve):
@@ -336,6 +336,52 @@ class RationalSoo(RationalCurve):
 
         return [sp.Poly(gl_curve[i], t, greedy=False) for i in range(dim)]
 
+    @classmethod
+    def from_two_points(cls,
+                        p0: PointHomogeneous,
+                        p1: PointHomogeneous,
+                        degree: int = 2) -> "RationalSoo":
+        """
+        Create a RationalSoo curve from two points.
+
+        The other control points will be added based on the given degree.
+
+        :param PointHomogeneous p0: first point
+        :param PointHomogeneous p1: second point
+        :param int degree: degree of the curve (default is 2)
+
+        :return: the resulting Gauss-Legendre curve
+        :rtype: RationalSoo
+        """
+        control_points = RationalSoo.control_points_between_two_points(p0, p1, degree)
+        return cls(control_points)
+
+    @staticmethod
+    def control_points_between_two_points(p0: PointHomogeneous,
+                                          p1: PointHomogeneous,
+                                          degree: int = 2) -> list[PointHomogeneous]:
+        """
+        Generate control points for a Gauss-Legendre curve between two points.
+
+        :param PointHomogeneous p0: first point
+        :param PointHomogeneous p1: second point
+        :param int degree: degree of the curve (default is 2)
+
+        :return: list of control points
+        :rtype: list[PointHomogeneous]
+        """
+        if degree < 2:
+            raise ValueError("Degree must be at least 2 for a Gauss-Legendre curve.")
+
+        control_points = [p0]
+        for i in range(degree - 1):
+            # create intermediate control points
+            control_points.append(p0.linear_interpolation(p1, (i + 1) / degree))
+
+        control_points.append(p1)
+
+        return control_points
+
     @staticmethod
     def lagrange_basis(tau, symbol, weights):
         """
@@ -359,3 +405,18 @@ class RationalSoo(RationalCurve):
             basis.append(basis_j / weights[j])
 
         return basis
+
+    def get_plot_data(self,
+                      interval: tuple = (-1, 1),
+                      steps: int = 50) -> tuple:
+        """
+        Get the data to plot the curve in 3D.
+        """
+        # perform superclass coordinates
+        x, y, z = super().get_plot_data(interval=interval)
+
+        points = [point.normalized_in_3d() for point in self.control_points]
+
+        x_cp, y_cp, z_cp = zip(*points)
+
+        return x, y, z, x_cp, y_cp, z_cp

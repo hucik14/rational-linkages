@@ -1,6 +1,6 @@
-import numpy as np
-
 from typing import Optional, Sequence
+
+import numpy as np
 from sympy import Rational
 
 from .TransfMatrix import TransfMatrix
@@ -332,7 +332,7 @@ class PointHomogeneous:
         :return: evaluated point with float elements
         :rtype: PointHomogeneous
         """
-        from sympy import Expr, Symbol, Number
+        from sympy import Expr, Number, Symbol
 
         t = Symbol("t")
 
@@ -385,6 +385,9 @@ class PointOrbit:
         self._radius = None
 
         self.t_interval = t_interval
+
+    def __repr__(self):
+        return f"PointOrbit(center={self.center}, radius_squared={self.radius_squared}, t_interval={self.t_interval})"
 
     @property
     def radius(self):

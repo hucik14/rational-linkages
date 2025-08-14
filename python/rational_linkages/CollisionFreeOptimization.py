@@ -1,8 +1,9 @@
-from .RationalMechanism import RationalMechanism
-from .NormalizedLine import NormalizedLine
+from itertools import product
 
 import numpy as np
-from itertools import product
+
+from .NormalizedLine import NormalizedLine
+from .RationalMechanism import RationalMechanism
 
 
 class CollisionFreeOptimization:
