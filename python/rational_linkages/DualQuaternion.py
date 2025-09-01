@@ -226,10 +226,13 @@ class DualQuaternion:
         :return: DualQuaternion with rational elements
         :rtype: DualQuaternion
         """
-        from sympy import Rational, nsimplify
+        from sympy import Rational
 
         if study_parameters is not None:
-            rational_numbers = [nsimplify(x, tolerance=1*(-10)) for x in study_parameters]
+            rational_numbers = [x if isinstance(x, Expr)
+                                else Rational(*x) if isinstance(x, tuple)
+                                else Rational(x)
+                                for x in study_parameters]
         else:
             rational_numbers = [Rational(1), Rational(0), Rational(0), Rational(0),
                                 Rational(0), Rational(0), Rational(0), Rational(0)]
