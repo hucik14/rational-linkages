@@ -104,3 +104,38 @@ def is_package_installed(package_name: str) -> bool:
         return True
     except ImportError:
         return False
+
+
+def tr_from_dh_parameters(t_theta, di, ai, t_alpha):
+    """
+    Create transformation matrix from DH parameters using Sympy in rational form.
+
+    The input shall be rational numbers, including the angles which are expected
+    to be parameters of tangent half-angle substitution, i.e., t_theta = tan(theta/2)
+    and t_alpha = tan(alpha/2).
+
+    :param sp.Rational t_theta: DH parameter theta in tangent half-angle form
+    :param sp.Rational di: DH parameter d, the offset along Z axis
+    :param sp.Rational ai: DH parameter a, the length along X axis
+    :param sp.Rational t_alpha: DH parameter alpha in tangent half-angle form
+
+    :return: 4x4 transformation matrix
+    :rtype: sp.Matrix
+    """
+    from sympy import Matrix, eye, Expr
+
+    if not all(isinstance(param, Expr) for param in [t_theta, di, ai, t_alpha]):
+        raise ValueError("All parameters must be of type sympy objects (Expr).")
+
+    s_th = 2*t_theta / (1 + t_theta**2)
+    c_th = (1 - t_theta**2) / (1 + t_theta**2)
+    s_al = 2*t_alpha / (1 + t_alpha**2)
+    c_al = (1 - t_alpha**2) / (1 + t_alpha**2)
+
+    mat = eye(4)
+    mat[1:4, 0] = Matrix([ai * c_th, ai * s_th, di])
+    mat[1, 1:4] = Matrix([[c_th, -s_th * c_al, s_th * s_al]])
+    mat[2, 1:4] = Matrix([[s_th, c_th * c_al, -c_th * s_al]])
+    mat[3, 1:4] = Matrix([[0, s_al, c_al]])
+    return mat
+
