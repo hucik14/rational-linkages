@@ -29,16 +29,14 @@ To maintain rational parameters, use **tangent half-angle substitution**.
 
 .. math::
 
-    \sin(\alpha) = \frac{2t}{1+t^2}, \quad \text{and} \quad t = \tan(\frac{\alpha}{2})
+    \sin(\alpha) = \frac{2t}{1+t^2}, \quad \cos(\alpha) = \frac{1-t^2}{1+t^2}, \quad t = \tan(\frac{\alpha}{2}).
 
 
 The way of obtaining screw axes from the Denavit-Hartenberg parameters is described
 in :footcite:t:`Huczala2022iccma`.
 
-
-**References**:
-
-.. footbibliography::
+Follow the code and comments below to compute the Plücker coordinates
+of the joint axes in rational form.
 
 
 **Code Example**
@@ -46,7 +44,7 @@ in :footcite:t:`Huczala2022iccma`.
 .. testcode:: [example-rational_pluecker_lines]
 
     import sympy as sp
-    from rational_linkages.utils import tr_from_dh_parameters, normalized_line_vector
+    from rational_linkages.utils import tr_from_dh_rationally, normalized_line_rationally
 
     # Define rational zero and one
     r_zero = sp.Rational(0)
@@ -72,10 +70,10 @@ in :footcite:t:`Huczala2022iccma`.
     # Create local transformation matrices from DH parameters
     local_tm = []
     for i in range(4):
-        local_tm.append(tr_from_dh_parameters(theta[i], d[i], a[i], alpha[i]))
+        local_tm.append(tr_from_dh_rationally(theta[i], d[i], a[i], alpha[i]))
 
     # Define a 90° rotation around the Z-axis as a transformation matrix
-    rotate_z_pi2 = tr_from_dh_parameters(r_one, r_zero, r_zero, r_zero)
+    rotate_z_pi2 = tr_from_dh_rationally(r_one, r_zero, r_zero, r_zero)
 
     # Linkage closure adjustment
     # By default, the DH parameters place links in series along the global X axis
@@ -102,7 +100,7 @@ in :footcite:t:`Huczala2022iccma`.
         tm_t_vector = tm[1:4, 0]
         tm_z_vector = [el for el in tm_z_vector]
         tm_t_vector = [el for el in tm_t_vector]
-        screw_axes_rat.append(normalized_line_vector(tm_t_vector, tm_z_vector))
+        screw_axes_rat.append(normalized_line_rationally(tm_t_vector, tm_z_vector))
 
     # Print the results
     print("Screw axes (Plücker coordinates):")
@@ -119,9 +117,11 @@ in :footcite:t:`Huczala2022iccma`.
 
 .. testcleanup:: [example-rational_pluecker_lines]
 
-    del sp, tr_from_dh_parameters, normalized_line_vector
+    del sp, tr_from_dh_rationally, normalized_line_rationally
     del r_zero, r_one, a0, t0, t1, a1, theta, d, a, alpha, local_tm, rotate_z_pi2
     del global_tm, screw_axes_rat, i, tm, tm_z_vector, tm_t_vector, el, i, screw
 
 
+**References**:
 
+.. footbibliography::

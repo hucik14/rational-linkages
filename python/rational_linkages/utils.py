@@ -106,7 +106,7 @@ def is_package_installed(package_name: str) -> bool:
         return False
 
 
-def tr_from_dh_parameters(t_theta, di, ai, t_alpha):
+def tr_from_dh_rationally(t_theta, di, ai, t_alpha):
     """
     Create transformation matrix from DH parameters using Sympy in rational form.
 
@@ -140,7 +140,7 @@ def tr_from_dh_parameters(t_theta, di, ai, t_alpha):
     return mat
 
 
-def normalized_line_vector(point, direction):
+def normalized_line_rationally(point, direction):
     """
     Create a normalized Plücker line from a point and a direction using Sympy.
 
