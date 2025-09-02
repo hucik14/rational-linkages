@@ -139,3 +139,25 @@ def tr_from_dh_parameters(t_theta, di, ai, t_alpha):
     mat[3, 1:4] = Matrix([[0, s_al, c_al]])
     return mat
 
+
+def normalized_line_vector(point, direction):
+    """
+    Create a normalized Plücker line from a point and a direction using Sympy.
+
+    The input shall be rational numbers, i.e. Sympy objects.
+
+    :param sp.Rational point:
+    :param sp.Rational direction:
+
+    :return: 6-vector representing the Plücker line
+    :rtype: sp.Matrix
+    """
+    from sympy import Matrix, Expr
+
+    if not all(isinstance(param, Expr) for param in point + direction):
+        raise ValueError("All parameters must be of type sympy objects (Expr).")
+
+    dir = Matrix(direction)
+    pt = Matrix(point)
+    mom = (-1 * dir).cross(pt)
+    return Matrix.vstack(dir, mom)
