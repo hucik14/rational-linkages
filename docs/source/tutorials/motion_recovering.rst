@@ -1,7 +1,7 @@
 .. _recovering_rational_motion:
 
 Recovering Rational Motions
-==========================
+===========================
 
 This tutorial describes how to recover a rational motion curve from Plücker
 coordinates (screw axes) of a closed 4R linkage.
