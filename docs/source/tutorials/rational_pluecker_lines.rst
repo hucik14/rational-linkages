@@ -1,11 +1,11 @@
-.. _bennett_4r_screw_axes:
+.. _rational_pluecker_lines:
 
 Obtaining Rational Axes
 =======================
 
 This tutorial explains how to compute the Plücker coordinates (joint screw axes)
 for a Bennett 4R linkage with rational parameters using **SymPy**.
-This is a necessary prerequisite for recovering a motion curve as a rational curve.
+This is a necessary prerequisite for :ref:`recovering_rational_motion` as a rational curve.
 
 The Bennett linkage is a special overconstrained 4R mechanism that satisfies
 specific geometric conditions. To ensure compatibility with symbolic computation
