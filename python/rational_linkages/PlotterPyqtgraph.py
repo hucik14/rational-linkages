@@ -1,9 +1,7 @@
 import sys
-
 import numpy as np
-import pyqtgraph.opengl as gl
-from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QApplication
+
+from warnings import warn
 
 from .DualQuaternion import DualQuaternion
 from .Linkage import LineSegment
@@ -16,6 +14,21 @@ from .RationalBezier import RationalBezier, RationalSoo
 from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
+
+# Try importing GUI components
+try:
+    import pyqtgraph.opengl as gl
+    from PyQt6 import QtCore, QtGui, QtWidgets
+    from PyQt6.QtWidgets import QApplication
+except (ImportError, OSError):
+    warn("Failed to import OpenGL or PyQt6. If you expect interactive GUI to work, "
+         "please check the package installation.")
+
+    gl = None
+    QtCore = None
+    QtGui = None
+    QtWidgets = None
+    QApplication = None
 
 
 class PlotterPyqtgraph:

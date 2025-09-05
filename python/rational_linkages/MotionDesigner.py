@@ -1,24 +1,35 @@
 import sys
-from typing import Union
-
 import numpy as np
-import pyqtgraph.opengl as gl
 
-# PyQt and Pyqtgraph imports
-from PyQt6 import QtCore, QtWidgets
+from typing import Union
+from warnings import warn
 
-# Import your custom classes (adjust the import paths as needed)
 from .DualQuaternion import DualQuaternion
 from .MotionInterpolation import MotionInterpolation
-from .PlotterPyqtgraph import (
-    FramePlotHelper,
-    InteractivePlotterWidget,
-    PlotterPyqtgraph,
-)
 from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
+
+# Try importing GUI components
+try:
+    import pyqtgraph.opengl as gl
+    from PyQt6 import QtCore, QtWidgets
+    from .PlotterPyqtgraph import (
+        FramePlotHelper,
+        InteractivePlotterWidget,
+        PlotterPyqtgraph,
+    )
+except (ImportError, OSError):
+    warn("Failed to import OpenGL or PyQt6. If you expect interactive GUI to work, "
+         "please check the package installation.")
+
+    gl = None
+    QtCore = None
+    QtWidgets = None
+    FramePlotHelper = None
+    InteractivePlotterWidget = None
+    PlotterPyqtgraph = None
 
 
 class MotionDesigner:
