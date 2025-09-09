@@ -97,7 +97,7 @@ def is_package_installed(package_name: str) -> bool:
     """
     Check if a package is installed.
     """
-    from importlib.metadata import distribution
+    from importlib.metadata import distribution  # lazy import
 
     try:
         distribution(package_name)
@@ -122,7 +122,7 @@ def tr_from_dh_rationally(t_theta, di, ai, t_alpha):
     :return: 4x4 transformation matrix
     :rtype: sp.Matrix
     """
-    from sympy import Matrix, eye, Expr
+    from sympy import Matrix, eye, Expr  # lazy import
 
     if not all(isinstance(param, Expr) for param in [t_theta, di, ai, t_alpha]):
         raise ValueError("All parameters must be of type sympy objects (Expr).")
@@ -152,7 +152,7 @@ def normalized_line_rationally(point, direction):
     :return: 6-vector representing the Plücker line
     :rtype: sp.Matrix
     """
-    from sympy import Matrix, Expr
+    from sympy import Matrix, Expr  # lazy import
 
     if not all(isinstance(param, Expr) for param in point + direction):
         raise ValueError("All parameters must be of type sympy objects (Expr).")

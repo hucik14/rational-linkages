@@ -2,7 +2,6 @@ from copy import deepcopy
 
 import numpy as np
 import sympy as sp
-from sympy.integrals.quadrature import gauss_legendre
 
 from .DualQuaternion import DualQuaternion
 from .MiniBall import MiniBall

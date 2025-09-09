@@ -2,11 +2,9 @@ from functools import wraps
 from itertools import cycle
 from os import makedirs
 from os.path import isdir, join
+from warnings import warn
 
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.widgets import Slider, TextBox
 
 from .DualQuaternion import DualQuaternion
 from .Linkage import LineSegment
@@ -18,6 +16,20 @@ from .RationalBezier import RationalBezier
 from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
+
+# Try importing GUI components
+try:
+    import matplotlib
+    import matplotlib.pyplot as plt
+    from matplotlib.widgets import Slider, TextBox
+
+except (ImportError, OSError):
+    warn("Failed to import Matplotlib. Check the package installation.")
+
+    matplotlib = None
+    plt = None
+    Slider = None
+    TextBox = None
 
 
 class PlotterMatplotlib:
