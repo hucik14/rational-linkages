@@ -299,8 +299,7 @@ class CollisionAnalyser:
         try:
             from scipy.optimize import minimize  # lazy import
         except ImportError:
-            raise RuntimeError("Install optional dependency 'scipy' to use "
-                               "the collision optimization.")
+            raise RuntimeError("Scipy import failed. Check its installation.")
 
         def flatten_cps(cps):
             return numpy.array([cp.normalized_in_3d() for cp in cps]).flatten()

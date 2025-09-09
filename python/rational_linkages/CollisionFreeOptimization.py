@@ -30,7 +30,10 @@ class CollisionFreeOptimization:
             parameters of the points, result of the optimization
         :rtype: tuple
         """
-        from scipy.optimize import minimize
+        try:
+            from scipy.optimize import minimize  # lazy import
+        except ImportError:
+            raise RuntimeError("Scipy import failed. Check its installation.")
 
         # get the axes represented as normalized lines
         if len(self.mechanism.factorizations) == 1:
