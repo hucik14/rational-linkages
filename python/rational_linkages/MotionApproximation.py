@@ -99,10 +99,12 @@ class MotionApproximation:
                               [PointHomogeneous.from_3d_point(pose.dq2point_via_matrix())
                                for pose in poses])
 
-        num_added_poses = len(poses) - 4
+        # num_added_poses = len(poses) - 4
 
         initial_guess = init_curve.coeffs[:,1:4].flatten()
-        initial_guess = np.concatenate((initial_guess, t_vals[-num_added_poses:]), axis=None)
+        # initial_guess = np.concatenate((initial_guess, t_vals[-num_added_poses:]), axis=None)
+        initial_guess = np.concatenate((initial_guess, t_vals), axis=None)
+
 
         def objective_function(params):
             """
@@ -111,13 +113,14 @@ class MotionApproximation:
             """
             curve = MotionApproximation._construct_curve(params[:24])
 
-            for i in range(num_added_poses):
-                val = i + 1
-                t_vals[-val] = params[24:][i]
+            # for i in range(num_added_poses):
+            #     val = i + 1
+            #     t_vals[-val] = params[24:][i]
+            t_vals_params = params[24:]
 
             sq_dist = 0.
             for i, pose in enumerate(poses):
-                curve_pose = DualQuaternion(curve.evaluate(t_vals[i]))
+                curve_pose = DualQuaternion(curve.evaluate(t_vals_params[i]))
                 sq_dist += metric.squared_distance(pose, curve_pose)
 
             return sq_dist
