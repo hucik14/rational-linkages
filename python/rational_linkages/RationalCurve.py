@@ -136,7 +136,7 @@ class RationalCurve:
 
     @metric.setter
     def metric(self, metric: "AffineMetric"):
-        from .AffineMetric import AffineMetric  # inner import
+        from .AffineMetric import AffineMetric  # lazy import
 
         if isinstance(metric, AffineMetric):
             self._metric = metric
@@ -573,7 +573,7 @@ class RationalCurve:
         if not self.is_motion:
             raise ValueError("Not a motion curve, cannot split into Bezier curves.")
 
-        from .RationalBezier import BezierSegment  # inner import
+        from .RationalBezier import BezierSegment  # lazy import
 
         curve = self.get_curve_in_pr12()
 

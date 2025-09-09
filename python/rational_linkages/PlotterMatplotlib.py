@@ -932,7 +932,7 @@ class PlotterMatplotlib:
         :param list list_of_angles: list of joint angles
         :param float sleep_time: time to wait between each frame
         """
-        from time import sleep  # inner import
+        from time import sleep  # lazy import
 
         t_angle = list_of_angles
 

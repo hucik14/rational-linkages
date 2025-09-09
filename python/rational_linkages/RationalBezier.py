@@ -93,7 +93,7 @@ class RationalBezier(RationalCurve):
         """
         Get the numerical coefficients of the Bezier curve
         """
-        from scipy.special import comb  # INNER IMPORT
+        from scipy.special import comb  # lazy import
 
         control_pts = np.array([point.array() for point in control_points])
         degree = len(control_points) - 1
@@ -210,7 +210,7 @@ class BezierSegment:
 
     @metric.setter
     def metric(self, metric: "AffineMetric"):
-        from .AffineMetric import AffineMetric  # inner import
+        from .AffineMetric import AffineMetric  # lazy import
 
         if isinstance(metric, AffineMetric):
             self._metric = metric

@@ -13,7 +13,7 @@ def dq_algebraic2vector(ugly_expression: list) -> list:
     :return: 8-vector representation of the algebraic equation
     :rtype: list
     """
-    from sympy import expand, symbols  # inner import
+    from sympy import expand, symbols  # lazy import
     i, j, k, epsilon = symbols('i j k epsilon')
 
     expr = expand(ugly_expression)
@@ -41,7 +41,7 @@ def extract_coeffs(expr, var, deg: int, expand: bool = True):
     :rtype: list
     """
     if expand:
-        from sympy import expand  # inner import
+        from sympy import expand  # lazy import
         expr = expand(expr)
     return [expr.coeff(var, i) for i in range(deg, -1, -1)]
 
