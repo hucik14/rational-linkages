@@ -23,20 +23,22 @@ classifiers = [
     "Programming Language :: Rust",
     "Operating System :: OS Independent",
 ]
-
 dependencies = [
     "biquaternion-py >= 1.2.0",
-    "scipy >= 1.10.0",
+    "numpy >= 1.10.0",
     "sympy >= 1.10.0",
     "PyQt6 >= 6.2.0",
     "pyqtgraph >= 0.12.4",
     "PyOpenGL >= 3.0.0",
+    # Linux-only matplotlib, for Docker builds on Linux
+    "matplotlib >= 3.9.0; platform_system == 'Linux'",
 ]
 
 [project.optional-dependencies]
 opt = [
     "ipython >= 8.0.0",
     "gmpy2 >= 2.2.0",
+    "scipy >= 1.10.0",
     "matplotlib >= 3.9.0",
 ]
 exu = [

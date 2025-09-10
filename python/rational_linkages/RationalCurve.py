@@ -3,7 +3,6 @@ from typing import Union
 
 import numpy as np
 import sympy as sp
-from scipy.integrate import quad
 
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointHomogeneous
@@ -136,7 +135,7 @@ class RationalCurve:
 
     @metric.setter
     def metric(self, metric: "AffineMetric"):
-        from .AffineMetric import AffineMetric  # inner import
+        from .AffineMetric import AffineMetric  # lazy import
 
         if isinstance(metric, AffineMetric):
             self._metric = metric
@@ -573,7 +572,7 @@ class RationalCurve:
         if not self.is_motion:
             raise ValueError("Not a motion curve, cannot split into Bezier curves.")
 
-        from .RationalBezier import BezierSegment  # inner import
+        from .RationalBezier import BezierSegment  # lazy import
 
         curve = self.get_curve_in_pr12()
 
@@ -657,6 +656,11 @@ class RationalCurve:
         :raises ValueError: if the interval values are identical
         :raises ValueError: if the number of segments is less than 1
         """
+        try:
+            from scipy.integrate import quad  # lazy import
+        except ImportError:
+            raise RuntimeError("Scipy import failed. Check the package installation.")
+
         if interval[0] > interval[1]:
             raise ValueError("The interval must be in the form [a, b] where a < b")
         elif interval[0] == interval[1]:
@@ -708,6 +712,11 @@ class RationalCurve:
         :return: t value that splits the curve into given segment length
         :rtype: float
         """
+        try:
+            from scipy.integrate import quad  # lazy import
+        except ImportError:
+            raise RuntimeError("Scipy import failed. Check the package installation.")
+
         # initial lower and upper bounds
         low = section_start
         high = curve_interval[1]  # start with the upper bound

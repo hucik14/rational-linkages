@@ -3,7 +3,8 @@ from warnings import warn
 
 import biquaternion_py
 import numpy as np
-import sympy as sp
+
+from sympy import Symbol, Rational
 
 from .DualQuaternion import DualQuaternion
 from .MotionFactorization import MotionFactorization
@@ -45,7 +46,7 @@ class FactorizationProvider:
 
         :warning: If the given curve has not only rational numbers as input.
         """
-        t = sp.Symbol("t")
+        t = Symbol("t")
 
         if isinstance(curve, RationalCurve):
             bi_quat = biquaternion_py.BiQuaternion(curve.extract_expressions())
@@ -58,7 +59,7 @@ class FactorizationProvider:
             poly_coeffs = bi_poly.all_coeffs()
             for i in range(len(poly_coeffs)):
                 for j in range(len(poly_coeffs[i].args)):
-                    if not isinstance(poly_coeffs[i].args[j], sp.Rational):
+                    if not isinstance(poly_coeffs[i].args[j], Rational):
                         warn('The given curve has not only rational numbers as input. The factorization will be performed with floating point numbers, but may be instable.')
                         break
 
@@ -92,7 +93,7 @@ class FactorizationProvider:
                          'as input. The factorization will be performed with floating '
                          'point numbers, but may be instable.')
 
-        t = sp.Symbol("t")
+        t = Symbol("t")
 
         bi_poly = t - biquaternion_py.BiQuaternion(factorization.dq_axes[0].array())
         for i in range(1, factorization.number_of_factors):
@@ -147,7 +148,7 @@ class FactorizationProvider:
         :return: The rotation axis of the factor.
         :rtype: DualQuaternion
         """
-        t = sp.Symbol("t")
+        t = Symbol("t")
         t_dq = DualQuaternion([t, 0, 0, 0, 0, 0, 0, 0])
 
         factor_dq = DualQuaternion(factor.poly.coeffs)

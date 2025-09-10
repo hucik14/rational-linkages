@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.optimize import minimize
 
 from .AffineMetric import AffineMetric
 from .PointHomogeneous import PointHomogeneous
@@ -55,6 +54,14 @@ class MiniBall:
         return PointHomogeneous(center), radius_squared
 
     def get_ball_minimize(self):
+        """
+        Find the smallest ball containing all given points using optimization
+        """
+        try:
+            from scipy.optimize import minimize  # lazy import
+        except ImportError:
+            raise RuntimeError("Scipy import failed. Check the package installation.")
+
         def objective_function(x):
             """
             Objective function to minimize the squared radius r^2 of the ball

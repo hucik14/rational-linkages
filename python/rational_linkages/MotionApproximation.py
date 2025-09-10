@@ -1,12 +1,16 @@
 from typing import Union
 
 import numpy as np
-from scipy.optimize import minimize
 
 from .AffineMetric import AffineMetric
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
+
+try:
+    from scipy.optimize import minimize  # lazy import, optional dependency
+except ImportError:
+    minimize = None
 
 ### NOT YET in the documentation ### TODO: add to docs
 

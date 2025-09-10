@@ -367,7 +367,7 @@ class MotionInterpolation:
         :return: Polynomials of rational motion curve.
         :rtype: list[sp.Poly]
         """
-        from scipy.optimize import minimize  # inner import
+        from scipy.optimize import minimize  # lazy import
 
         mid_pose = DualQuaternion.random_on_study_quadric()
         mid_pose_tr = TransfMatrix(mid_pose.dq2matrix())

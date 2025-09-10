@@ -52,7 +52,7 @@ test_coverage:
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
   script:
     - *common_script
-    - pip install -e .
+    - pip install -e .[opt]
     - pip install coverage pytest
     - coverage run
     - coverage report -m
@@ -70,7 +70,7 @@ python_versions:
   script:
     - *common_script
     - pip install -e .
-    - pip install pytest
+    - pip install pytest scipy
     - python -m pytest python/tests
   parallel:
     matrix:
