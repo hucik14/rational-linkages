@@ -30,16 +30,19 @@ dependencies = [
     "PyQt6 >= 6.2.0",
     "pyqtgraph >= 0.12.4",
     "PyOpenGL >= 3.0.0",
-    # Linux-only matplotlib, for Docker builds on Linux
+    # Linux-only Matplotlib for Docker builds on Linux
     "matplotlib >= 3.9.0; platform_system == 'Linux'",
+    # Windows ARM has issues with PyQt6
+    "matplotlib >= 3.9.0; platform_system == 'Windows' and platform_machine == 'ARM64'",
 ]
 
 [project.optional-dependencies]
 opt = [
     "ipython >= 8.0.0",
-    "gmpy2 >= 2.2.0",
     "scipy >= 1.10.0",
     "matplotlib >= 3.9.0",
+    # gmpy2 does not support ARM64 on Windows
+    "gmpy2 >= 2.2.0; not (platform_system == 'Windows' and platform_machine == 'ARM64')",
 ]
 exu = [
     "exudyn >= 1.9.0",
@@ -98,7 +101,7 @@ before-build = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
-# archs = ["arm64"]
+# archs = ["ARM64"]
 
 [tool.cibuildwheel.macos]
 archs = ["arm64", "x86_64"]

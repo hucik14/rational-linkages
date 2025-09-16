@@ -17,21 +17,22 @@ A) using pip:
 
     pip install rational-linkages
 
-or
+or with optional dependencies:
 
 .. code-block:: bash
 
     pip install rational-linkages[opt,exu]
 
-Mac users might need to add backslashes to escape the brackets, e.g.:
+Mac/linux users might need to add backslashes to escape the brackets, e.g.:
 
 .. code-block:: bash
 
     pip install rational-linkages\[opt,exu\]
 
-for installing also **opt**ional dependencies (ipython - inline plotting, gmpy2 - faster
-symbolic computations, matplotlib - 3D plotting) and **exu**dyn dependencies (exudyn - multibody
-simulations, numpy-stl + ngsolve - work with meshes in exudyn).
+for installing also **opt**ional dependencies (scipy - optimization problems solving, ipython - inline plotting,
+matplotlib - alternative engine for 3D plotting, gmpy2 - optimized symbolic computations)
+and **exu**dyn dependencies (exudyn - multibody simulations,
+numpy-stl + ngsolve - work with meshes in exudyn).
 
 On **Linux** systems, to run GUI interactive plotting, some additional
 libraries are required for plotting with PyQt6. Using
