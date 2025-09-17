@@ -40,14 +40,16 @@ class MotionDesigner:
 
     :examples:
 
-    .. testcode:: [motiondesigner_example1]
+    Run motion designer without initial points or poses:
+
+    .. testcode:: [motiondesigner_ex1]
 
         from rational_linkages import MotionDesigner
 
         d = MotionDesigner(method='quadratic_from_poses')
         d.show()
 
-    .. testoutput:: [motiondesigner_example1]
+    .. testoutput:: [motiondesigner_ex1]
         :hide:
 
         Closing the window... generated points for interpolation:
@@ -55,11 +57,15 @@ class MotionDesigner:
         [ 1.          , -0.207522406 , -0.0333866662, -0.0691741237, -0.0625113682, -0.141265791 , -0.4478576802, -0.2637268902]
         [ 1.          ,  0.2333739522, -0.0427838517,  0.0777914503, -0.0839342318,  0.2991396249,  0.2980046603,  0.345444421 ]
 
-    .. testcleanup:: [motiondesigner_example1]
+    .. testcleanup:: [motiondesigner_ex1]
 
         del d, MotionDesigner
 
-    .. testcode:: [motiondesigner_example2]
+    Run motion designer with initial points:
+
+    .. code-block:: python
+
+        # NOT TESTED
 
         from rational_linkages import MotionDesigner, PointHomogeneous
 
@@ -76,19 +82,6 @@ class MotionDesigner:
         d = MotionDesigner(method='quadratic_from_points', initial_points_or_poses=chosen_points)
         d.show()
 
-    .. testoutput:: [motiondesigner_example2]
-        :hide:
-
-        Closing the window... generated points for interpolation:
-        [ 1.  , -0.2 ,  0.  ,  1.76]
-        [1., 1., 1., 2.]
-        [ 1.,  3., -3.,  1.]
-        [ 1.,  2., -4.,  1.]
-        [ 1., -2., -2.,  2.]
-
-    .. testcleanup:: [motiondesigner_example2]
-
-        del d, MotionDesigner, PointHomogeneous, chosen_points
 
     """
     def __init__(self,

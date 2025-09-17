@@ -128,8 +128,7 @@ transformations for all :math:`t_i`.
     del h1, h2, h3, h4
     del t1, t2, t3, t4, u, t
     del t_dq, t1_dq, t2_dq, t3_dq, t4_dq
-    del eqs_org, eqs, eqs_list
-    del gb1, egb, configcurve
+    del eqs, eqs_list, eqs_closure, gb, eqs_gb, check_eqs
     del t2_res, c, m, p
 
 
