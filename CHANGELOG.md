@@ -1,6 +1,11 @@
 # Changelog
 
-## 2.2.2 (2025-09-17)
+## 2.2.3 (2025-09-17)
+
+### added (1 change)
+
+- [MyBinder.org environment setup](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/82ee6690)
+
 
 ### fixed (1 change)
 
