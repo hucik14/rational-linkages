@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.2.0 (2025-09-17)
+
+### added (5 changes)
+
+- [Windows ARM support, dependencies clean-up and description changed](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/a826d9f9)
+- [tutorial with motion recovery](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/aff296b6)
+- [new tutorial on obtaining rational axes](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/6f8b6e60)
+- [new function for creating rational plucker line vector](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1e9b039a)
+- [new function for creating rational transformation matrices](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/50937f45)
+
+
+### changed (2 changes)
+
+- [scipy no longer required dependency; matplotlib gets installed on linux](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/81dc09f4)
+- [GUI dependencies should no longer cause error on linux while importing](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/69c1c99d)
+
+
+### fixed (1 change)
+
+- [debug of rational numbers initialization](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/494da866)
+
+
 ## 2.1.0 (2025-08-13)
 
 ### added (6 changes)

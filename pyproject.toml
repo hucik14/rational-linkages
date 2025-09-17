@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "2.1.0"
+version = "2.2.0"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -42,7 +42,7 @@ opt = [
     "scipy >= 1.10.0",
     "matplotlib >= 3.9.0",
     # gmpy2 does not support ARM64 on Windows
-    "gmpy2 >= 2.2.0; not (platform_system == 'Windows' and platform_machine == 'ARM64')",
+    "gmpy2 >= 2.2.0; platform_system != 'Windows' and platform_machine != 'ARM64'",
 ]
 exu = [
     "exudyn >= 1.9.0",
