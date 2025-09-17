@@ -709,65 +709,68 @@ else:
     CustomGLViewWidget = None
 
 
-class FramePlotHelper:
-    def __init__(self,
-                 transform: TransfMatrix = TransfMatrix(),
-                 width: float = 2.,
-                 length: float = 1.,
-                 antialias: bool = True):
-        """
-        Create a coordinate frame using three GLLinePlotItems.
+if gl is not None:
+    class FramePlotHelper:
+        def __init__(self,
+                     transform: TransfMatrix = TransfMatrix(),
+                     width: float = 2.,
+                     length: float = 1.,
+                     antialias: bool = True):
+            """
+            Create a coordinate frame using three GLLinePlotItems.
 
-        :param TransfMatrix transform: The initial transformation matrix.
-        :param float width: The width of the lines.
-        :param float length: The length of the axes.
-        :param bool antialias: Whether to use antialiasing
-        """
-        # Create GLLinePlotItems for the three axes.
-        # The initial positions are placeholders; they will be set properly in setData().
-        self.x_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
-                                        color=(1, 0, 0, 0.5),
-                                        glOptions='translucent',
-                                        width=width,
-                                        antialias=antialias)
-        self.y_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
-                                        color=(0, 1, 0, 0.5),
-                                        glOptions='translucent',
-                                        width=width,
-                                        antialias=antialias)
-        self.z_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
-                                        color=(0, 0, 1, 0.5),
-                                        glOptions='translucent',
-                                        width=width,
-                                        antialias=antialias)
+            :param TransfMatrix transform: The initial transformation matrix.
+            :param float width: The width of the lines.
+            :param float length: The length of the axes.
+            :param bool antialias: Whether to use antialiasing
+            """
+            # Create GLLinePlotItems for the three axes.
+            # The initial positions are placeholders; they will be set properly in setData().
+            self.x_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                            color=(1, 0, 0, 0.5),
+                                            glOptions='translucent',
+                                            width=width,
+                                            antialias=antialias)
+            self.y_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                            color=(0, 1, 0, 0.5),
+                                            glOptions='translucent',
+                                            width=width,
+                                            antialias=antialias)
+            self.z_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                            color=(0, 0, 1, 0.5),
+                                            glOptions='translucent',
+                                            width=width,
+                                            antialias=antialias)
 
-        # Set the initial transformation
-        self.tr = transform
-        self.length = length
-        self.setData(transform)
+            # Set the initial transformation
+            self.tr = transform
+            self.length = length
+            self.setData(transform)
 
-    def setData(self, transform: TransfMatrix):
-        """
-        Update the coordinate frame using a new 4x4 transformation matrix.
+        def setData(self, transform: TransfMatrix):
+            """
+            Update the coordinate frame using a new 4x4 transformation matrix.
 
-        :param TransfMatrix transform: The new transformation matrix.
-        """
-        self.tr = transform
+            :param TransfMatrix transform: The new transformation matrix.
+            """
+            self.tr = transform
 
-        # Update the positions for each axis.
-        self.x_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.n]))
-        self.y_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.o]))
-        self.z_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.a]))
+            # Update the positions for each axis.
+            self.x_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.n]))
+            self.y_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.o]))
+            self.z_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.a]))
 
-    def addToView(self, view: gl.GLViewWidget):
-        """
-        Add all three axes to a GLViewWidget.
+        def addToView(self, view: gl.GLViewWidget):
+            """
+            Add all three axes to a GLViewWidget.
 
-        :param gl.GLViewWidget view: The view to add the axes to.
-        """
-        view.addItem(self.x_axis)
-        view.addItem(self.y_axis)
-        view.addItem(self.z_axis)
+            :param gl.GLViewWidget view: The view to add the axes to.
+            """
+            view.addItem(self.x_axis)
+            view.addItem(self.y_axis)
+            view.addItem(self.z_axis)
+else:
+    FramePlotHelper = None
 
 if QtWidgets is not None:
     class InteractivePlotterWidget(QtWidgets.QWidget):
