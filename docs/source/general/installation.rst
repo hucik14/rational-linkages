@@ -29,9 +29,9 @@ Mac/linux users might need to add backslashes to escape the brackets, e.g.:
 
     pip install rational-linkages\[opt,exu\]
 
-for installing also **opt**ional dependencies (scipy - optimization problems solving, ipython - inline plotting,
+for installing also **opt** (optional) dependencies (scipy - optimization problems solving, ipython - inline plotting,
 matplotlib - alternative engine for 3D plotting, gmpy2 - optimized symbolic computations)
-and **exu**dyn dependencies (exudyn - multibody simulations,
+and **exu** (Exudyn) dependencies (exudyn - multibody simulations,
 numpy-stl + ngsolve - work with meshes in exudyn).
 
 On **Linux** systems, to run GUI interactive plotting, some additional
