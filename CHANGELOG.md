@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.1 (2025-09-17)
+
+### fixed (1 change)
+
+- [jupyter notebooks import error due to Qt](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/e29425c6)
+
+
 ## 2.2.0 (2025-09-17)
 
 ### added (5 changes)
