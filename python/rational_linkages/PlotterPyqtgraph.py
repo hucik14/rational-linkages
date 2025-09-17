@@ -611,99 +611,102 @@ class PlotterPyqtgraph:
         event.accept()
 
 
-class CustomGLViewWidget(gl.GLViewWidget):
-    def __init__(self, white_background=False, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.labels = []
-        self.white_background = white_background
-        # Create an overlay widget for displaying text
-        self.text_overlay = QtWidgets.QWidget(self)
-        self.text_overlay.setAttribute(
-            QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        self.text_overlay.setStyleSheet("background:transparent;")
-        self.text_overlay.resize(self.size())
-        self.text_overlay.show()
-
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        if hasattr(self, 'text_overlay'):
+if gl is not None:
+    class CustomGLViewWidget(gl.GLViewWidget):
+        def __init__(self, white_background=False, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.labels = []
+            self.white_background = white_background
+            # Create an overlay widget for displaying text
+            self.text_overlay = QtWidgets.QWidget(self)
+            self.text_overlay.setAttribute(
+                QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+            self.text_overlay.setStyleSheet("background:transparent;")
             self.text_overlay.resize(self.size())
+            self.text_overlay.show()
 
-    def add_label(self, point, text):
-        """Adds a label for a 3D point."""
-        self.labels.append({'point': point, 'text': text})
-        self.update()
+        def resizeEvent(self, event):
+            super().resizeEvent(event)
+            if hasattr(self, 'text_overlay'):
+                self.text_overlay.resize(self.size())
 
-    def paintEvent(self, event):
-        # Only handle standard OpenGL rendering here - no mixing with QPainter
-        super().paintEvent(event)
+        def add_label(self, point, text):
+            """Adds a label for a 3D point."""
+            self.labels.append({'point': point, 'text': text})
+            self.update()
 
-        # Schedule label painting as a separate operation
-        QtCore.QTimer.singleShot(0, self.update_text_overlay)
+        def paintEvent(self, event):
+            # Only handle standard OpenGL rendering here - no mixing with QPainter
+            super().paintEvent(event)
 
-    def update_text_overlay(self):
-        """Update the text overlay with current labels"""
-        # Create a new painter for the overlay widget
-        self.text_overlay.update()
+            # Schedule label painting as a separate operation
+            QtCore.QTimer.singleShot(0, self.update_text_overlay)
 
-    def _obtain_label_vec(self, pt):
-        """Obtain the label vector."""
-        # Convert the 3D point to homogeneous coordinates
-        if isinstance(pt, np.ndarray):
-            point_vec = pt
-        elif isinstance(pt, PointHomogeneous):
-            point_vec = [pt.coordinates_normalized[1],
-                         pt.coordinates_normalized[2],
-                         pt.coordinates_normalized[3]]
-        elif isinstance(pt, TransfMatrix):
-            point_vec = [pt.t[0], pt.t[1], pt.t[2]]
-        elif isinstance(pt, FramePlotHelper):
-            point_vec = [pt.tr.t[0], pt.tr.t[1], pt.tr.t[2]]
-        else:  # is pyqtgraph marker (scatter)
-            point_vec = [pt.pos[0][0], pt.pos[0][1], pt.pos[0][2]]
+        def update_text_overlay(self):
+            """Update the text overlay with current labels"""
+            # Create a new painter for the overlay widget
+            self.text_overlay.update()
 
-        return QtGui.QVector4D(point_vec[0], point_vec[1], point_vec[2], 1.0)
+        def _obtain_label_vec(self, pt):
+            """Obtain the label vector."""
+            # Convert the 3D point to homogeneous coordinates
+            if isinstance(pt, np.ndarray):
+                point_vec = pt
+            elif isinstance(pt, PointHomogeneous):
+                point_vec = [pt.coordinates_normalized[1],
+                             pt.coordinates_normalized[2],
+                             pt.coordinates_normalized[3]]
+            elif isinstance(pt, TransfMatrix):
+                point_vec = [pt.t[0], pt.t[1], pt.t[2]]
+            elif isinstance(pt, FramePlotHelper):
+                point_vec = [pt.tr.t[0], pt.tr.t[1], pt.tr.t[2]]
+            else:  # is pyqtgraph marker (scatter)
+                point_vec = [pt.pos[0][0], pt.pos[0][1], pt.pos[0][2]]
 
-    # This method renders text on the overlay
-    def paintOverlay(self, event):
-        painter = QtGui.QPainter(self.text_overlay)
-        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
-        if self.white_background:
-            painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.black))
-        else:
-            painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.white))
+            return QtGui.QVector4D(point_vec[0], point_vec[1], point_vec[2], 1.0)
 
-        # Get the Model-View-Projection matrix
-        projection_matrix = self.projectionMatrix()
-        view_matrix = self.viewMatrix()
-        mvp = projection_matrix * view_matrix
+        # This method renders text on the overlay
+        def paintOverlay(self, event):
+            painter = QtGui.QPainter(self.text_overlay)
+            painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+            if self.white_background:
+                painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.black))
+            else:
+                painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.white))
 
-        # Draw all labels
-        for entry in self.labels:
-            point = entry['point']
-            text = entry['text']
+            # Get the Model-View-Projection matrix
+            projection_matrix = self.projectionMatrix()
+            view_matrix = self.viewMatrix()
+            mvp = projection_matrix * view_matrix
 
-            projected = mvp.map(self._obtain_label_vec(point))
-            if projected.w() != 0:
-                ndc_x = projected.x() / projected.w()
-                ndc_y = projected.y() / projected.w()
-                # Check if the point is in front of the camera
-                if projected.z() / projected.w() < 1.0:
-                    x = int((ndc_x * 0.5 + 0.5) * self.width())
-                    y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
-                    painter.drawText(x, y, text)
+            # Draw all labels
+            for entry in self.labels:
+                point = entry['point']
+                text = entry['text']
 
-        painter.end()
+                projected = mvp.map(self._obtain_label_vec(point))
+                if projected.w() != 0:
+                    ndc_x = projected.x() / projected.w()
+                    ndc_y = projected.y() / projected.w()
+                    # Check if the point is in front of the camera
+                    if projected.z() / projected.w() < 1.0:
+                        x = int((ndc_x * 0.5 + 0.5) * self.width())
+                        y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
+                        painter.drawText(x, y, text)
 
-    def showEvent(self, event):
-        super().showEvent(event)
-        self.text_overlay.installEventFilter(self)
+            painter.end()
 
-    def eventFilter(self, obj, event):
-        if obj is self.text_overlay and event.type() == QtCore.QEvent.Type.Paint:
-            self.paintOverlay(event)
-            return True
-        return super().eventFilter(obj, event)
+        def showEvent(self, event):
+            super().showEvent(event)
+            self.text_overlay.installEventFilter(self)
+
+        def eventFilter(self, obj, event):
+            if obj is self.text_overlay and event.type() == QtCore.QEvent.Type.Paint:
+                self.paintOverlay(event)
+                return True
+            return super().eventFilter(obj, event)
+else:
+    CustomGLViewWidget = None
 
 
 class FramePlotHelper:
@@ -766,388 +769,389 @@ class FramePlotHelper:
         view.addItem(self.y_axis)
         view.addItem(self.z_axis)
 
+if QtWidgets is not None:
+    class InteractivePlotterWidget(QtWidgets.QWidget):
+        """
+        A QWidget that contains a PlotterPyqtgraph 3D view and interactive controls.
 
-class InteractivePlotterWidget(QtWidgets.QWidget):
-    """
-    A QWidget that contains a PlotterPyqtgraph 3D view and interactive controls.
+        Containts (sliders and text boxes) for plotting and manipulating a mechanism.
+        """
+        def __init__(self,
+                     mechanism: RationalMechanism,
+                     base=None,
+                     show_tool: bool = True,
+                     steps: int = 1000,
+                     joint_sliders_lim: float = 1.0,
+                     arrows_length: float = 1.0,
+                     white_background: bool = False,
+                     parent=None,
+                     parent_app=None):
+            super().__init__(parent)
+            self.setMinimumSize(800, 600)
 
-    Containts (sliders and text boxes) for plotting and manipulating a mechanism.
-    """
-    def __init__(self,
-                 mechanism: RationalMechanism,
-                 base=None,
-                 show_tool: bool = True,
-                 steps: int = 1000,
-                 joint_sliders_lim: float = 1.0,
-                 arrows_length: float = 1.0,
-                 white_background: bool = False,
-                 parent=None,
-                 parent_app=None):
-        super().__init__(parent)
-        self.setMinimumSize(800, 600)
+            self.mechanism = mechanism
+            self.show_tool = show_tool
+            self.steps = steps
+            self.joint_sliders_lim = joint_sliders_lim
+            self.arrows_length = arrows_length
 
-        self.mechanism = mechanism
-        self.show_tool = show_tool
-        self.steps = steps
-        self.joint_sliders_lim = joint_sliders_lim
-        self.arrows_length = arrows_length
-
-        if base is not None:
-            if isinstance(base, TransfMatrix):
-                if not base.is_rotation():
-                    raise ValueError("Given matrix is not proper rotation.")
-                self.base = base
-                self.base_arr = self.base.array()
-            elif isinstance(base, DualQuaternion):
-                self.base = TransfMatrix(base.dq2matrix())
-                self.base_arr = self.base.array()
+            if base is not None:
+                if isinstance(base, TransfMatrix):
+                    if not base.is_rotation():
+                        raise ValueError("Given matrix is not proper rotation.")
+                    self.base = base
+                    self.base_arr = self.base.array()
+                elif isinstance(base, DualQuaternion):
+                    self.base = TransfMatrix(base.dq2matrix())
+                    self.base_arr = self.base.array()
+                else:
+                    raise TypeError("Base must be a TransfMatrix or DualQuaternion instance.")
             else:
-                raise TypeError("Base must be a TransfMatrix or DualQuaternion instance.")
-        else:
-            self.base = None
-            self.base_arr = None
+                self.base = None
+                self.base_arr = None
 
-        self.white_background = white_background
-        if self.white_background:
-            self.render_mode = 'translucent'
-        else:
-            self.render_mode = 'additive'
-
-        # Create the PlotterPyqtgraph instance.
-        self.plotter = PlotterPyqtgraph(base=None,
-                                        steps=self.steps,
-                                        arrows_length=self.arrows_length,
-                                        white_background=self.white_background,
-                                        parent_app=parent_app)
-        # Optionally adjust the camera.
-        self.plotter.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
-
-        # Main layout: split between the 3D view and a control panel.
-        main_layout = QtWidgets.QHBoxLayout(self)
-
-        # Add the 3D view (PlotterPyqtgraph’s widget) to the layout.
-        main_layout.addWidget(self.plotter.widget, stretch=5)
-
-        # Create the control panel (on the right).
-        control_panel = QtWidgets.QWidget()
-        control_layout = QtWidgets.QVBoxLayout(control_panel)
-
-        # --- Driving joint angle slider ---
-        control_layout.addWidget(QtWidgets.QLabel("Joint angle [rad]:"))
-        self.move_slider = self.create_float_slider(0.0, 2 * np.pi, 0.0,
-                                                    orientation=QtCore.Qt.Orientation.Horizontal)
-        control_layout.addWidget(self.move_slider)
-
-        # --- Text boxes ---
-        self.text_box_angle = QtWidgets.QLineEdit()
-        self.text_box_angle.setPlaceholderText("Set angle [rad]:")
-        control_layout.addWidget(self.text_box_angle)
-
-        self.text_box_param = QtWidgets.QLineEdit()
-        self.text_box_param.setPlaceholderText("Set parameter t [-]:")
-        control_layout.addWidget(self.text_box_param)
-
-        self.save_mech_pkl = QtWidgets.QLineEdit()
-        self.save_mech_pkl.setPlaceholderText("Save mechanism PKL, filename:")
-        control_layout.addWidget(self.save_mech_pkl)
-
-        self.save_figure_box = QtWidgets.QLineEdit()
-        self.save_figure_box.setPlaceholderText("Save figure PNG, filename:")
-        control_layout.addWidget(self.save_figure_box)
-
-        # --- Joint connection sliders ---
-        joint_sliders_layout = QtWidgets.QHBoxLayout()
-        self.joint_sliders = []
-
-        # Initialize sliders for each joint
-        for i in range(self.mechanism.num_joints):
-            slider0, slider1 = self._init_joint_sliders(i, self.joint_sliders_lim)
-            self.joint_sliders.append(slider0)
-            self.joint_sliders.append(slider1)
-
-            # Arrange sliders vertically for each joint
-            joint_layout = QtWidgets.QVBoxLayout()
-
-            joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp0"))
-            joint_layout.addWidget(slider0)
-            joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp1"))
-            joint_layout.addWidget(slider1)
-
-            joint_sliders_layout.addLayout(joint_layout)
-
-        control_layout.addLayout(joint_sliders_layout)
-
-        # Set default values for the first factorization
-        for i in range(self.mechanism.factorizations[0].number_of_factors):
-            default_val0 = self.mechanism.factorizations[0].linkage[i].points_params[0]
-            default_val1 = self.mechanism.factorizations[0].linkage[i].points_params[1]
-            self.joint_sliders[2 * i].setValue(int(default_val0 * 100))
-            self.joint_sliders[2 * i + 1].setValue(int(default_val1 * 100))
-
-        # Set default values for the second factorization
-        offset = 2 * self.mechanism.factorizations[0].number_of_factors
-        for i in range(self.mechanism.factorizations[1].number_of_factors):
-            default_val0 = self.mechanism.factorizations[1].linkage[i].points_params[0]
-            default_val1 = self.mechanism.factorizations[1].linkage[i].points_params[1]
-            self.joint_sliders[offset + 2 * i].setValue(int(default_val0 * 100))
-            self.joint_sliders[offset + 2 * i + 1].setValue(int(default_val1 * 100))
-
-        main_layout.addWidget(control_panel, stretch=1)
-
-        # --- Initialize plot items for the mechanism links ---
-        self.lines = []
-        num_lines = self.mechanism.num_joints * 2
-        for i in range(num_lines):
-            # if i is even, make the link color green, and joints red
-            if i % 2 == 0:
-                line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
-                                              color=(0, 1, 0, 1),
-                                              glOptions=self.render_mode,
-                                              width=5,
-                                              antialias=True)
+            self.white_background = white_background
+            if self.white_background:
+                self.render_mode = 'translucent'
             else:
-                line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
-                                              color=(1, 0, 0, 1),
-                                              glOptions=self.render_mode,
-                                              width=5,
-                                              antialias=True)
-            self.lines.append(line_item)
-            self.plotter.widget.addItem(line_item)
+                self.render_mode = 'additive'
 
-        # --- If desired, initialize tool plot and tool frame ---
-        if self.show_tool:
-            self.tool_link = gl.GLLinePlotItem(pos=np.zeros((3, 3)),
-                                               color=(0, 1, 0, 0.5),
-                                               glOptions=self.render_mode,
-                                               width=5,
-                                               antialias=True)
-            self.plotter.widget.addItem(self.tool_link)
-            self.tool_frame = FramePlotHelper(
-                transform=TransfMatrix(self.mechanism.tool_frame.dq2matrix()),
-                length=self.arrows_length)
-            self.tool_frame.addToView(self.plotter.widget)
+            # Create the PlotterPyqtgraph instance.
+            self.plotter = PlotterPyqtgraph(base=None,
+                                            steps=self.steps,
+                                            arrows_length=self.arrows_length,
+                                            white_background=self.white_background,
+                                            parent_app=parent_app)
+            # Optionally adjust the camera.
+            self.plotter.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
 
-        # --- Plot the tool path ---
-        self._plot_tool_path()
+            # Main layout: split between the 3D view and a control panel.
+            main_layout = QtWidgets.QHBoxLayout(self)
 
-        # --- Connect signals to slots ---
-        self.move_slider.valueChanged.connect(self.on_move_slider_changed)
-        self.text_box_angle.returnPressed.connect(self.on_angle_text_entered)
-        self.text_box_param.returnPressed.connect(self.on_param_text_entered)
-        self.save_mech_pkl.returnPressed.connect(self.on_save_save_mech_pkl)
-        self.save_figure_box.returnPressed.connect(self.on_save_figure_box)
-        for slider in self.joint_sliders:
-            slider.valueChanged.connect(self.on_joint_slider_changed)
+            # Add the 3D view (PlotterPyqtgraph’s widget) to the layout.
+            main_layout.addWidget(self.plotter.widget, stretch=5)
 
-        # Set initial configuration (home position)
-        self.move_slider.setValue(self.move_slider.minimum())
-        self.plot_slider_update(self.move_slider.value() / 100.0)
+            # Create the control panel (on the right).
+            control_panel = QtWidgets.QWidget()
+            control_layout = QtWidgets.QVBoxLayout(control_panel)
 
-        self.setWindowTitle('Rational Linkages')
+            # --- Driving joint angle slider ---
+            control_layout.addWidget(QtWidgets.QLabel("Joint angle [rad]:"))
+            self.move_slider = self.create_float_slider(0.0, 2 * np.pi, 0.0,
+                                                        orientation=QtCore.Qt.Orientation.Horizontal)
+            control_layout.addWidget(self.move_slider)
 
-    # --- Helper to create a “float slider” (using integer scaling) ---
-    def create_float_slider(self, min_val, max_val, init_val,
-                            orientation=QtCore.Qt.Orientation.Horizontal):
-        slider = QtWidgets.QSlider(orientation)
-        slider.setMinimum(int(min_val * 100))
-        slider.setMaximum(int(max_val * 100))
-        slider.setValue(int(init_val * 100))
-        slider.setTickPosition(QtWidgets.QSlider.TickPosition.TicksBelow)
-        slider.setTickInterval(10)
-        return slider
+            # --- Text boxes ---
+            self.text_box_angle = QtWidgets.QLineEdit()
+            self.text_box_angle.setPlaceholderText("Set angle [rad]:")
+            control_layout.addWidget(self.text_box_angle)
 
-    def _init_joint_sliders(self, idx, slider_limit):
-        """
-        Create a pair of vertical sliders for joint connection parameters.
-        (The slider values are scaled by 100.)
-        """
-        slider0 = self.create_float_slider(-slider_limit,
-                                           slider_limit,
-                                           0.0,
-                                           orientation=QtCore.Qt.Orientation.Vertical)
-        slider1 = self.create_float_slider(-slider_limit,
-                                           slider_limit,
-                                           0.0,
-                                           orientation=QtCore.Qt.Orientation.Vertical)
-        return slider0, slider1
+            self.text_box_param = QtWidgets.QLineEdit()
+            self.text_box_param.setPlaceholderText("Set parameter t [-]:")
+            control_layout.addWidget(self.text_box_param)
 
-    def _plot_tool_path(self):
-        """
-        Plot the tool path (as a continuous line) using a set of computed points.
-        """
-        t_lin = np.linspace(0, 2 * np.pi, self.steps)
-        t_vals = [self.mechanism.factorizations[0].joint_angle_to_t_param(t)
-                  for t in t_lin]
-        ee_points = [self.mechanism.factorizations[0].direct_kinematics_of_tool(
-                        t, self.mechanism.tool_frame.dq2point_via_matrix())
-                     for t in t_vals]
+            self.save_mech_pkl = QtWidgets.QLineEdit()
+            self.save_mech_pkl.setPlaceholderText("Save mechanism PKL, filename:")
+            control_layout.addWidget(self.save_mech_pkl)
 
-        if self.base_arr is not None:
-            # transform the end-effector points by the base transformation
-            ee_points = [self.base_arr @ np.insert(p, 0, 1) for p in ee_points]
-            # normalize
-            ee_points = [p[1:4]/p[0] for p in ee_points]
+            self.save_figure_box = QtWidgets.QLineEdit()
+            self.save_figure_box.setPlaceholderText("Save figure PNG, filename:")
+            control_layout.addWidget(self.save_figure_box)
 
-        pts = np.array(ee_points)
-        tool_path = gl.GLLinePlotItem(pos=pts,
-                                      color=(0.5, 0.5, 0.5, 1),
-                                      glOptions=self.render_mode,
-                                      width=2,
-                                      antialias=True)
-        self.plotter.widget.addItem(tool_path)
+            # --- Joint connection sliders ---
+            joint_sliders_layout = QtWidgets.QHBoxLayout()
+            self.joint_sliders = []
 
-    # --- Slots for interactive control events ---
-    def on_move_slider_changed(self, value):
-        """
-        Called when the driving joint angle slider is moved.
-        """
-        angle = value / 100.0  # Convert back to a float value.
-        self.plot_slider_update(angle)
+            # Initialize sliders for each joint
+            for i in range(self.mechanism.num_joints):
+                slider0, slider1 = self._init_joint_sliders(i, self.joint_sliders_lim)
+                self.joint_sliders.append(slider0)
+                self.joint_sliders.append(slider1)
 
-    def on_angle_text_entered(self):
-        """
-        Called when the angle text box is submitted.
-        """
-        try:
-            val = float(self.text_box_angle.text())
-            # Normalize angle to [0, 2*pi]
-            if val >= 0:
-                val = val % (2 * np.pi)
+                # Arrange sliders vertically for each joint
+                joint_layout = QtWidgets.QVBoxLayout()
+
+                joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp0"))
+                joint_layout.addWidget(slider0)
+                joint_layout.addWidget(QtWidgets.QLabel(f"j{i}cp1"))
+                joint_layout.addWidget(slider1)
+
+                joint_sliders_layout.addLayout(joint_layout)
+
+            control_layout.addLayout(joint_sliders_layout)
+
+            # Set default values for the first factorization
+            for i in range(self.mechanism.factorizations[0].number_of_factors):
+                default_val0 = self.mechanism.factorizations[0].linkage[i].points_params[0]
+                default_val1 = self.mechanism.factorizations[0].linkage[i].points_params[1]
+                self.joint_sliders[2 * i].setValue(int(default_val0 * 100))
+                self.joint_sliders[2 * i + 1].setValue(int(default_val1 * 100))
+
+            # Set default values for the second factorization
+            offset = 2 * self.mechanism.factorizations[0].number_of_factors
+            for i in range(self.mechanism.factorizations[1].number_of_factors):
+                default_val0 = self.mechanism.factorizations[1].linkage[i].points_params[0]
+                default_val1 = self.mechanism.factorizations[1].linkage[i].points_params[1]
+                self.joint_sliders[offset + 2 * i].setValue(int(default_val0 * 100))
+                self.joint_sliders[offset + 2 * i + 1].setValue(int(default_val1 * 100))
+
+            main_layout.addWidget(control_panel, stretch=1)
+
+            # --- Initialize plot items for the mechanism links ---
+            self.lines = []
+            num_lines = self.mechanism.num_joints * 2
+            for i in range(num_lines):
+                # if i is even, make the link color green, and joints red
+                if i % 2 == 0:
+                    line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                                  color=(0, 1, 0, 1),
+                                                  glOptions=self.render_mode,
+                                                  width=5,
+                                                  antialias=True)
+                else:
+                    line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                                  color=(1, 0, 0, 1),
+                                                  glOptions=self.render_mode,
+                                                  width=5,
+                                                  antialias=True)
+                self.lines.append(line_item)
+                self.plotter.widget.addItem(line_item)
+
+            # --- If desired, initialize tool plot and tool frame ---
+            if self.show_tool:
+                self.tool_link = gl.GLLinePlotItem(pos=np.zeros((3, 3)),
+                                                   color=(0, 1, 0, 0.5),
+                                                   glOptions=self.render_mode,
+                                                   width=5,
+                                                   antialias=True)
+                self.plotter.widget.addItem(self.tool_link)
+                self.tool_frame = FramePlotHelper(
+                    transform=TransfMatrix(self.mechanism.tool_frame.dq2matrix()),
+                    length=self.arrows_length)
+                self.tool_frame.addToView(self.plotter.widget)
+
+            # --- Plot the tool path ---
+            self._plot_tool_path()
+
+            # --- Connect signals to slots ---
+            self.move_slider.valueChanged.connect(self.on_move_slider_changed)
+            self.text_box_angle.returnPressed.connect(self.on_angle_text_entered)
+            self.text_box_param.returnPressed.connect(self.on_param_text_entered)
+            self.save_mech_pkl.returnPressed.connect(self.on_save_save_mech_pkl)
+            self.save_figure_box.returnPressed.connect(self.on_save_figure_box)
+            for slider in self.joint_sliders:
+                slider.valueChanged.connect(self.on_joint_slider_changed)
+
+            # Set initial configuration (home position)
+            self.move_slider.setValue(self.move_slider.minimum())
+            self.plot_slider_update(self.move_slider.value() / 100.0)
+
+            self.setWindowTitle('Rational Linkages')
+
+        # --- Helper to create a “float slider” (using integer scaling) ---
+        def create_float_slider(self, min_val, max_val, init_val,
+                                orientation=QtCore.Qt.Orientation.Horizontal):
+            slider = QtWidgets.QSlider(orientation)
+            slider.setMinimum(int(min_val * 100))
+            slider.setMaximum(int(max_val * 100))
+            slider.setValue(int(init_val * 100))
+            slider.setTickPosition(QtWidgets.QSlider.TickPosition.TicksBelow)
+            slider.setTickInterval(10)
+            return slider
+
+        def _init_joint_sliders(self, idx, slider_limit):
+            """
+            Create a pair of vertical sliders for joint connection parameters.
+            (The slider values are scaled by 100.)
+            """
+            slider0 = self.create_float_slider(-slider_limit,
+                                               slider_limit,
+                                               0.0,
+                                               orientation=QtCore.Qt.Orientation.Vertical)
+            slider1 = self.create_float_slider(-slider_limit,
+                                               slider_limit,
+                                               0.0,
+                                               orientation=QtCore.Qt.Orientation.Vertical)
+            return slider0, slider1
+
+        def _plot_tool_path(self):
+            """
+            Plot the tool path (as a continuous line) using a set of computed points.
+            """
+            t_lin = np.linspace(0, 2 * np.pi, self.steps)
+            t_vals = [self.mechanism.factorizations[0].joint_angle_to_t_param(t)
+                      for t in t_lin]
+            ee_points = [self.mechanism.factorizations[0].direct_kinematics_of_tool(
+                            t, self.mechanism.tool_frame.dq2point_via_matrix())
+                         for t in t_vals]
+
+            if self.base_arr is not None:
+                # transform the end-effector points by the base transformation
+                ee_points = [self.base_arr @ np.insert(p, 0, 1) for p in ee_points]
+                # normalize
+                ee_points = [p[1:4]/p[0] for p in ee_points]
+
+            pts = np.array(ee_points)
+            tool_path = gl.GLLinePlotItem(pos=pts,
+                                          color=(0.5, 0.5, 0.5, 1),
+                                          glOptions=self.render_mode,
+                                          width=2,
+                                          antialias=True)
+            self.plotter.widget.addItem(tool_path)
+
+        # --- Slots for interactive control events ---
+        def on_move_slider_changed(self, value):
+            """
+            Called when the driving joint angle slider is moved.
+            """
+            angle = value / 100.0  # Convert back to a float value.
+            self.plot_slider_update(angle)
+
+        def on_angle_text_entered(self):
+            """
+            Called when the angle text box is submitted.
+            """
+            try:
+                val = float(self.text_box_angle.text())
+                # Normalize angle to [0, 2*pi]
+                if val >= 0:
+                    val = val % (2 * np.pi)
+                else:
+                    val = (val % (2 * np.pi)) - np.pi
+                self.move_slider.setValue(int(val * 100))
+            except ValueError:
+                pass
+
+        def on_param_text_entered(self):
+            """
+            Called when the t-parameter text box is submitted.
+            """
+            try:
+                val = float(self.text_box_param.text())
+                self.plot_slider_update(val, t_param=val)
+                joint_angle = self.mechanism.factorizations[0].t_param_to_joint_angle(val)
+                self.move_slider.setValue(int(joint_angle * 100))
+            except ValueError:
+                pass
+
+        def on_save_save_mech_pkl(self):
+            """
+            Called when the save text box is submitted.
+            """
+            filename = self.save_mech_pkl.text()
+            self.mechanism.save(filename=filename)
+
+            QtWidgets.QMessageBox.information(self,
+                                              "Success",
+                                              f"Mechanism saved as {filename}.pkl")
+
+        def on_save_figure_box(self):
+            """
+            Called when the filesave text box is submitted.
+
+            Saves the current figure in the specified format.
+            """
+            filename = self.save_figure_box.text()
+
+            # better quality but does not save the text overlay
+            #self.plotter.widget.readQImage().save(filename + "_old.png")
+            #self.plotter.widget.readQImage().save(filename + "_old.png", quality=100)
+
+            image = QtGui.QImage(self.plotter.widget.size(),
+                                 QtGui.QImage.Format.Format_ARGB32_Premultiplied)
+            image.fill(QtCore.Qt.GlobalColor.transparent)
+
+            # Create a painter and render the widget into the image
+            painter = QtGui.QPainter(image)
+            self.plotter.widget.render(painter)
+            painter.end()
+
+            # Save the image
+            image.save(filename + ".png", "PNG", 80)
+
+            QtWidgets.QMessageBox.information(self,
+                                              "Success",
+                                              f"Figure saved as {filename}.png")
+
+        def on_joint_slider_changed(self, value):
+            """
+            Called when any joint slider is changed.
+            Updates the joint connection parameters and refreshes the plot.
+            """
+            num_of_factors = self.mechanism.factorizations[0].number_of_factors
+            # Update first factorization's linkage parameters.
+            for i in range(num_of_factors):
+                self.mechanism.factorizations[0].linkage[i].set_point_by_param(
+                    0, self.joint_sliders[2 * i].value() / 100.0)
+                self.mechanism.factorizations[0].linkage[i].set_point_by_param(
+                    1, self.joint_sliders[2 * i + 1].value() / 100.0)
+            # Update second factorization's linkage parameters.
+            for i in range(num_of_factors):
+                self.mechanism.factorizations[1].linkage[i].set_point_by_param(
+                    0, self.joint_sliders[2 * num_of_factors + 2 * i].value() / 100.0)
+                self.mechanism.factorizations[1].linkage[i].set_point_by_param(
+                    1, self.joint_sliders[2 * num_of_factors + 1 + 2 * i].value() / 100.0)
+            self.plot_slider_update(self.move_slider.value() / 100.0)
+
+        def plot_slider_update(self, angle, t_param=None):
+            """
+            Update the mechanism plot based on the current joint angle or t parameter.
+            """
+            if t_param is not None:
+                t = t_param
             else:
-                val = (val % (2 * np.pi)) - np.pi
-            self.move_slider.setValue(int(val * 100))
-        except ValueError:
-            pass
+                t = self.mechanism.factorizations[0].joint_angle_to_t_param(angle)
 
-    def on_param_text_entered(self):
-        """
-        Called when the t-parameter text box is submitted.
-        """
-        try:
-            val = float(self.text_box_param.text())
-            self.plot_slider_update(val, t_param=val)
-            joint_angle = self.mechanism.factorizations[0].t_param_to_joint_angle(val)
-            self.move_slider.setValue(int(joint_angle * 100))
-        except ValueError:
-            pass
-
-    def on_save_save_mech_pkl(self):
-        """
-        Called when the save text box is submitted.
-        """
-        filename = self.save_mech_pkl.text()
-        self.mechanism.save(filename=filename)
-
-        QtWidgets.QMessageBox.information(self,
-                                          "Success",
-                                          f"Mechanism saved as {filename}.pkl")
-
-    def on_save_figure_box(self):
-        """
-        Called when the filesave text box is submitted.
-
-        Saves the current figure in the specified format.
-        """
-        filename = self.save_figure_box.text()
-
-        # better quality but does not save the text overlay
-        #self.plotter.widget.readQImage().save(filename + "_old.png")
-        #self.plotter.widget.readQImage().save(filename + "_old.png", quality=100)
-
-        image = QtGui.QImage(self.plotter.widget.size(),
-                             QtGui.QImage.Format.Format_ARGB32_Premultiplied)
-        image.fill(QtCore.Qt.GlobalColor.transparent)
-
-        # Create a painter and render the widget into the image
-        painter = QtGui.QPainter(image)
-        self.plotter.widget.render(painter)
-        painter.end()
-
-        # Save the image
-        image.save(filename + ".png", "PNG", 80)
-
-        QtWidgets.QMessageBox.information(self,
-                                          "Success",
-                                          f"Figure saved as {filename}.png")
-
-    def on_joint_slider_changed(self, value):
-        """
-        Called when any joint slider is changed.
-        Updates the joint connection parameters and refreshes the plot.
-        """
-        num_of_factors = self.mechanism.factorizations[0].number_of_factors
-        # Update first factorization's linkage parameters.
-        for i in range(num_of_factors):
-            self.mechanism.factorizations[0].linkage[i].set_point_by_param(
-                0, self.joint_sliders[2 * i].value() / 100.0)
-            self.mechanism.factorizations[0].linkage[i].set_point_by_param(
-                1, self.joint_sliders[2 * i + 1].value() / 100.0)
-        # Update second factorization's linkage parameters.
-        for i in range(num_of_factors):
-            self.mechanism.factorizations[1].linkage[i].set_point_by_param(
-                0, self.joint_sliders[2 * num_of_factors + 2 * i].value() / 100.0)
-            self.mechanism.factorizations[1].linkage[i].set_point_by_param(
-                1, self.joint_sliders[2 * num_of_factors + 1 + 2 * i].value() / 100.0)
-        self.plot_slider_update(self.move_slider.value() / 100.0)
-
-    def plot_slider_update(self, angle, t_param=None):
-        """
-        Update the mechanism plot based on the current joint angle or t parameter.
-        """
-        if t_param is not None:
-            t = t_param
-        else:
-            t = self.mechanism.factorizations[0].joint_angle_to_t_param(angle)
-
-        # Compute link positions.
-        links = (self.mechanism.factorizations[0].direct_kinematics(t) +
-                 self.mechanism.factorizations[1].direct_kinematics(t)[::-1])
-        links.insert(0, links[-1])
-
-        if self.base is not None:
-            # Transform the links by the base transformation.
-            links = [self.base_arr @ np.insert(p, 0, 1) for p in links]
-            # Normalize the homogeneous coordinates.
-            links = [p[1:4] / p[0] for p in links]
-
-        # Update each line segment.
-        for i, line in enumerate(self.lines):
-            pt1 = links[i]
-            pt2 = links[i+1]
-            pts = np.array([pt1, pt2])
-            line.setData(pos=pts)
-
-        if self.show_tool:
-            pts0 = self.mechanism.factorizations[0].direct_kinematics(t)[-1]
-            pts1 = self.mechanism.factorizations[0].direct_kinematics_of_tool(
-                t, self.mechanism.tool_frame.dq2point_via_matrix())
-            pts2 = self.mechanism.factorizations[1].direct_kinematics(t)[-1]
-
-            tool_triangle = [pts0, pts1, pts2]
+            # Compute link positions.
+            links = (self.mechanism.factorizations[0].direct_kinematics(t) +
+                     self.mechanism.factorizations[1].direct_kinematics(t)[::-1])
+            links.insert(0, links[-1])
 
             if self.base is not None:
-                # Transform the tool triangle by the base transformation.
-                tool_triangle = [self.base_arr @ np.insert(p, 0, 1)
-                                 for p in tool_triangle]
+                # Transform the links by the base transformation.
+                links = [self.base_arr @ np.insert(p, 0, 1) for p in links]
                 # Normalize the homogeneous coordinates.
-                tool_triangle = [p[1:4] / p[0] for p in tool_triangle]
+                links = [p[1:4] / p[0] for p in links]
 
-            self.tool_link.setData(pos=np.array(tool_triangle))
+            # Update each line segment.
+            for i, line in enumerate(self.lines):
+                pt1 = links[i]
+                pt2 = links[i+1]
+                pts = np.array([pt1, pt2])
+                line.setData(pos=pts)
 
-            # Update tool frame (pose) arrows.
-            pose_dq = DualQuaternion(self.mechanism.evaluate(t))
-            # Compute the pose matrix by composing the mechanism’s pose and tool frame.
-            pose_matrix = TransfMatrix(pose_dq.dq2matrix()) * TransfMatrix(
-                self.mechanism.tool_frame.dq2matrix())
+            if self.show_tool:
+                pts0 = self.mechanism.factorizations[0].direct_kinematics(t)[-1]
+                pts1 = self.mechanism.factorizations[0].direct_kinematics_of_tool(
+                    t, self.mechanism.tool_frame.dq2point_via_matrix())
+                pts2 = self.mechanism.factorizations[1].direct_kinematics(t)[-1]
 
-            if self.base is not None:
-                # Transform the pose matrix by the base transformation.
-                pose_matrix = self.base * pose_matrix
+                tool_triangle = [pts0, pts1, pts2]
 
-            self.tool_frame.setData(pose_matrix)
+                if self.base is not None:
+                    # Transform the tool triangle by the base transformation.
+                    tool_triangle = [self.base_arr @ np.insert(p, 0, 1)
+                                     for p in tool_triangle]
+                    # Normalize the homogeneous coordinates.
+                    tool_triangle = [p[1:4] / p[0] for p in tool_triangle]
 
-        self.plotter.widget.update()
+                self.tool_link.setData(pos=np.array(tool_triangle))
 
+                # Update tool frame (pose) arrows.
+                pose_dq = DualQuaternion(self.mechanism.evaluate(t))
+                # Compute the pose matrix by composing the mechanism’s pose and tool frame.
+                pose_matrix = TransfMatrix(pose_dq.dq2matrix()) * TransfMatrix(
+                    self.mechanism.tool_frame.dq2matrix())
+
+                if self.base is not None:
+                    # Transform the pose matrix by the base transformation.
+                    pose_matrix = self.base * pose_matrix
+
+                self.tool_frame.setData(pose_matrix)
+
+            self.plotter.widget.update()
+else:
+    InteractivePlotterWidget = None
 
 class InteractivePlotter:
     """
