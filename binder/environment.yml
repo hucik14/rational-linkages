@@ -1,0 +1,9 @@
+name: rational-linkages
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - rational_linkages[opt]
+      - jupyter

@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "2.2.0"
+version = "2.2.3"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -30,8 +30,6 @@ dependencies = [
     "PyQt6 >= 6.2.0",
     "pyqtgraph >= 0.12.4",
     "PyOpenGL >= 3.0.0",
-    # Linux-only Matplotlib for Docker builds on Linux
-    "matplotlib >= 3.9.0; platform_system == 'Linux'",
     # Windows ARM has issues with PyQt6
     "matplotlib >= 3.9.0; platform_system == 'Windows' and platform_machine == 'ARM64'",
 ]
@@ -41,7 +39,7 @@ opt = [
     "ipython >= 8.0.0",
     "scipy >= 1.10.0",
     "matplotlib >= 3.9.0",
-    # gmpy2 does not support ARM64 on Windows
+    # gmpy2 does not support Windows ARM
     "gmpy2 >= 2.2.0; platform_system != 'Windows' and platform_machine != 'ARM64'",
 ]
 exu = [
