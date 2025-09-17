@@ -1,4 +1,4 @@
-import sympy
+from sympy import Matrix
 
 from .Linkage import LineSegment
 from .RationalMechanism import RationalMechanism
@@ -49,8 +49,7 @@ class SingularityAnalysis:
         # normalization
 
 
-
-        jacobian = sympy.Matrix.zeros(6, len(algebraic_plucker_coords))
+        jacobian = Matrix.zeros(6, len(algebraic_plucker_coords))
         for i, plucker_line in enumerate(algebraic_plucker_coords):
             jacobian[:, i] = plucker_line.screw
 

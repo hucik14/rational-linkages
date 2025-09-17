@@ -1,8 +1,8 @@
 import numpy
-import sympy
-from scipy.optimize import minimize
 
-from . import LineSegment
+from sympy import symbols, Poly
+
+from .Linkage import LineSegment
 from .DualQuaternion import DualQuaternion
 from .NormalizedLine import NormalizedLine
 from .PointHomogeneous import PointHomogeneous, PointOrbit
@@ -47,11 +47,11 @@ class CollisionAnalyser:
 
         relative_motions = branch0 + branch1[::-1]
 
-        t = sympy.symbols('t')
+        t = symbols('t')
 
         motions = []
         for motion in relative_motions:
-            motions.append(RationalCurve([sympy.Poly(c, t, greedy=False)
+            motions.append(RationalCurve([Poly(c, t, greedy=False)
                                           for c in motion],
                                          metric=self.metric))
         return motions
@@ -296,6 +296,11 @@ class CollisionAnalyser:
         """
         Optimize the link control points to avoid collisions with the bounding orbits.
         """
+        try:
+            from scipy.optimize import minimize  # lazy import
+        except ImportError:
+            raise RuntimeError("Scipy import failed. Check its installation.")
+
         def flatten_cps(cps):
             return numpy.array([cp.normalized_in_3d() for cp in cps]).flatten()
 
@@ -348,11 +353,11 @@ class CollisionAnalyser:
         :param min_splits: Minimum number of splits for the bezier curves.
         """
 
-        t = sympy.symbols('t')
+        t = symbols('t')
         motions = []
         for i, idx in enumerate(reduced_indices):
             rel_motion = self.mechanism.relative_motion(segment_id_number, idx)
-            motions.append(RationalCurve([sympy.Poly(c, t, greedy=False)
+            motions.append(RationalCurve([Poly(c, t, greedy=False)
                                           for c in rel_motion],
                                          metric=self.metric))
 

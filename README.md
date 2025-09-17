@@ -63,17 +63,28 @@ Using pip:
 
 <code>pip install rational-linkages</code>
 
-or
+or with optional dependencies:
 
-<code>pip install rational-linkages[opt]</code>
+<code>pip install rational-linkages[opt,exu]</code>
 
-Mac users might need to use backslashes to escape the brackets, e.g.:
+Mac/linux users might need to use backslashes to escape the brackets, e.g.:
 
-<code>pip install rational-linkages\\[opt\\]</code>
+<code>pip install rational-linkages\\[opt,exu\\]</code>
 
-for installing also optional dependencies (ipython - inline plotting, gmpy2 - faster
-symbolic computations, exudyn - multibody simulations, numpy-stl -
-work with meshes in exudyn).
+for installing also **opt**ional dependencies (scipy - optimization problems solving, ipython - inline plotting,  
+matplotlib - alternative engine for 3D plotting, gmpy2 - optimized symbolic computations) 
+and **exu**dyn dependencies (exudyn - multibody simulations, 
+numpy-stl + ngsolve - work with meshes in exudyn).
+
+On **Linux systems**, to run GUI interactive plotting, 
+some additional libraries are required for plotting with PyQt6. For example, 
+on Ubuntu, it can be installed as follows:
+
+   <code>sudo apt install libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3</code>
+
+or on Ubuntu 24.04 and higher:
+
+   <code>sudo apt install libgl1 libxkbcommon-x11-0 libegl1 libdbus-1-3</code>
 
 ### Install from source
 
@@ -93,21 +104,21 @@ work with meshes in exudyn).
     
    <code>pip install -e .[opt,dev,doc]</code> including the development and documentation dependencies. 
 
-   Mac or Linux users might need to use backslashes to escape the brackets, e.g.: 
+   Mac/linux users might need to use backslashes to escape the brackets, e.g.: 
 
    <code>pip install -e .\\[opt\\]</code>
 
-Additionally, on Linux systems, some additional libraries are required for plotting with PyQt6. For example, 
-on Ubuntu, it can be installed as follows:
 
-   <code>sudo apt install libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3</code>
-
-or on Ubuntu 24.04 and higher:
-
-   <code>sudo apt install libgl1 libxkbcommon-x11-0 libegl1 libdbus-1-3</code>
 
 To run the Rust functions, you need to install the [Rust toolchain](https://www.rust-lang.org) and 
-build the Rust code yourself, for example:
+build the Rust code yourself. On top of that, on Windows, you need to install a 
+C++ build toolchain. In `Visual Studio Installer`, select: 
+
+* MSVC v143 - VS 2022 C++ x64/x86 build tools (latest)
+* Windows 11 SDK
+* C++ CMake tools for Windows
+
+Then, navigate to the `rational_linkages/rust` folder and run:
 
 <code>cargo build --release</code>
 

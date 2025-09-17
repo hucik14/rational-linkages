@@ -110,7 +110,7 @@ class RationalMechanism(RationalCurve):
         This metric is used for collision detection.
         """
         if self._metric is None:
-            from .AffineMetric import AffineMetric  # inner import
+            from .AffineMetric import AffineMetric  # lazy import
             mechanism_points = self.points_at_parameter(0,
                                                         inverted_part=True,
                                                         only_links=False)
@@ -400,7 +400,7 @@ class RationalMechanism(RationalCurve):
         :return: list of TransfMatrix objects
         :rtype: list[TransfMatrix]
         """
-        from .TransfMatrix import TransfMatrix  # inner import
+        from .TransfMatrix import TransfMatrix  # lazy import
 
         screws = deepcopy(self.get_screw_axes())
 
@@ -942,7 +942,7 @@ class RationalMechanism(RationalCurve):
         """
         Perform singularity check of the mechanism.
         """
-        from .SingularityAnalysis import SingularityAnalysis  # inner import
+        from .SingularityAnalysis import SingularityAnalysis  # lazy import
 
         sa = SingularityAnalysis()
         return sa.check_singularity(self)
@@ -957,7 +957,7 @@ class RationalMechanism(RationalCurve):
             result of the optimization
         :rtype: list, list, float
         """
-        from .CollisionFreeOptimization import CollisionFreeOptimization  # inner import
+        from .CollisionFreeOptimization import CollisionFreeOptimization  # lazy import
 
         # get smallest polyline
         pts, points_params, res = CollisionFreeOptimization(self).smallest_polyline()

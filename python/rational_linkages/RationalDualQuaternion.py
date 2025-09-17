@@ -1,5 +1,6 @@
 import numpy as np
-import sympy as sp
+
+from sympy import Rational
 
 from .DualQuaternion import DualQuaternion
 
@@ -12,7 +13,7 @@ class RationalDualQuaternion(DualQuaternion):
     """
     RationalDualQuaternion class representing a 8-dimensional dual quaternion.
     """
-    def __init__(self, study_parameters: list[sp.Rational]):
+    def __init__(self, study_parameters: list[Rational]):
         """
         RationalDualQuaternion class
 
@@ -34,7 +35,7 @@ class RationalDualQuaternion(DualQuaternion):
         """
         return f"{self.rational_numbers}"
 
-    def __getitem__(self, idx) -> sp.Rational:
+    def __getitem__(self, idx) -> Rational:
         """
         Get an element of DualQuaternion
 
@@ -50,6 +51,6 @@ class RationalDualQuaternion(DualQuaternion):
         Get the array of the rational numbers
 
         :return: Rational numbers
-        :rtype: sp.Matrix
+        :rtype: sympy.Matrix
         """
         return np.array(self.rational_numbers)

@@ -1,7 +1,8 @@
 from typing import Union
 
 import numpy as np
-import sympy as sp
+
+from sympy import Symbol, Poly
 
 from .DualQuaternion import DualQuaternion
 from .Linkage import Linkage
@@ -81,7 +82,7 @@ class MotionFactorization(RationalCurve):
 
     @staticmethod
     def get_polynomials_from_factorization(factors: list[DualQuaternion]) -> (
-            list)[sp.Poly]:
+            list)[Poly]:
         """
         Construct rational curve from Dual Quaternions equation factors
 
@@ -91,14 +92,14 @@ class MotionFactorization(RationalCurve):
         :return: motion curve using Sympy polynomials
         :rtype: RationalCurve
         """
-        t = sp.Symbol("t")
+        t = Symbol("t")
 
         polynomial_t = DualQuaternion([t, 0, 0, 0, 0, 0, 0, 0])
         polynomials_dq = DualQuaternion()
         for i in range(len(factors)):
             polynomials_dq = polynomials_dq * (polynomial_t - factors[i])
 
-        return [sp.Poly(polynom, t)
+        return [Poly(polynom, t)
                 for i, polynom in enumerate(polynomials_dq.array())]
 
     def get_symbolic_factors(self) -> list[DualQuaternion]:
@@ -108,7 +109,7 @@ class MotionFactorization(RationalCurve):
         :return: list of DualQuaternions representing the curve
         :rtype: list[DualQuaternion]
         """
-        t = sp.Symbol("t")
+        t = Symbol("t")
         polynomial_t = DualQuaternion([t, 0, 0, 0, 0, 0, 0, 0])
         return [polynomial_t - self.dq_axes[i] for i in range(len(self.dq_axes))]
 
