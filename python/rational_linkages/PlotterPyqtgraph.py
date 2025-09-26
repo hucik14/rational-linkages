@@ -327,12 +327,14 @@ class PlotterPyqtgraph:
         """
         Plot a point as a marker.
         """
+        size = kwargs.pop('size', 4)
+
         pos = np.array(point.get_plot_data())
         color = self._get_color(kwargs.get('color', 'red'), (1, 0, 0, 1))
         scatter = gl.GLScatterPlotItem(pos=np.array([pos]),
                                        color=color,
                                        glOptions=self.render_mode,
-                                       size=10)
+                                       size=size)
         self.widget.addItem(scatter)
 
         if 'label' in kwargs:
