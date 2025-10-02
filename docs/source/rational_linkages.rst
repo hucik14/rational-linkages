@@ -200,3 +200,19 @@ Transf Matrix
    :members:
    :undoc-members:
    :show-inheritance:
+
+Utilities (Python)
+------------------
+
+.. automodule:: rational_linkages.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Utilities (Rust)
+----------------
+
+.. automodule:: rational_linkages.utils_rust
+   :members:
+   :undoc-members:
+   :show-inheritance:
