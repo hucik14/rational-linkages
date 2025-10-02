@@ -55,6 +55,8 @@ release = get_version()
 
 # -- General configuration ---------------------------------------------------
 
+autodoc_mock_imports = ["rational_linkages.utils_rust"]
+
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
