@@ -115,3 +115,12 @@ class TestNormalizedPlane(TestCase):
         plane = NormalizedPlane([0, 0, 2], [0, 1, 1])
         expected_dq_array = np.array([0, 0, 0, 1, -1, 0, 0, 0])
         self.assertTrue(np.allclose(plane.as_dq_array(), expected_dq_array))
+
+
+    def test_intersection_with_line(self):
+        plane = NormalizedPlane([0, 0, 1], [0, 0, 0])
+        line = NormalizedLine.from_direction_and_point([0, 0, 1], [1, -2, -1])
+        expected_point = np.array([1, -2, 0])
+        intersection_point = plane.intersection_with_line(line)
+        normalized_point = intersection_point[1:] / intersection_point[0]
+        self.assertTrue(np.allclose(normalized_point, expected_point))

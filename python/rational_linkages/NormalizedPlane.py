@@ -130,7 +130,7 @@ class NormalizedPlane:
 
     def intersection_with_plane(self, other):
         """
-        Get the intersection point of two planes.
+        Get the intersection line of two planes.
 
         :param NormalizedPlane other: The other plane.
 
@@ -153,6 +153,31 @@ class NormalizedPlane:
         line_moment = np.cross(-1 * line_dir, line_point)
 
         return np.concatenate([line_dir, line_moment], axis=None)
+
+    def intersection_with_line(self, line: NormalizedLine) -> np.ndarray:
+        """
+        Get the intersection point of the plane with a line.
+
+        See more in Pottmann et al., "Computational Line Geometry", 2001, Section 3.4.2.
+        page 138, eq. 2.17.
+
+        :param NormalizedLine line: The line.
+
+        :return: The homogeneous coordinates of the intersection point.
+        :rtype: np.ndarray
+
+        :raises ValueError: If the line is parallel to the plane.
+        """
+        l = line.direction
+        l_ = line.moment
+
+        u0 = self.oriented_distance
+        u = self.normal
+
+        p0 = np.dot(u, l)
+        p = -u0 * l + np.cross(u, l_)
+
+        return np.concatenate([p0, p], axis=None)
 
     def data_to_plot(self, xlim: tuple = (-1, 1), ylim: tuple = (-1, 1)):
         """
