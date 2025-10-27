@@ -27,7 +27,7 @@ dependencies = [
     "biquaternion-py >= 1.2.0",
     "numpy >= 1.10.0",
     "sympy >= 1.10.0",
-    "PyQt6 >= 6.9.1",
+    "PyQt6 == 6.9.1",
     "pyqtgraph >= 0.12.4",
     "PyOpenGL >= 3.0.0",
     # Windows ARM has issues with PyQt6
