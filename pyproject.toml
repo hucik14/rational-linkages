@@ -82,7 +82,7 @@ binding = "PyO3"
 
 [tool.cibuildwheel]
 build = "*"
-skip = "pp*"
+skip = "pp* cp3*t-*"  # skip pypy and t-debug builds
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"
 environment = { CARGO_TERM_COLOR = "always" }
