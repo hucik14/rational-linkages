@@ -69,6 +69,7 @@ python_versions:
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
   script:
     - *common_script
+    - if [ "$IMAGE" = "python:3.10-bullseye" ]; then pip install 'PyQt6<6.10'; fi
     - pip install -e .
     - pip install pytest scipy
     - python -m pytest python/tests
