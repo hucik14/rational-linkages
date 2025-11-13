@@ -48,7 +48,7 @@ test_python311:
 test_coverage:
   stage: test
   image:
-    name: python:3.11-bullseye
+    name: python:3.11-bookworm
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
   script:
     - *common_script
@@ -74,7 +74,7 @@ python_versions:
     - python -m pytest python/tests
   parallel:
     matrix:
-      - IMAGE: [python:3.13-bullseye, python:3.12-bullseye, python:3.10-bullseye]
+      - IMAGE: [python:3.13-bookworm, python:3.12-bookworm, python:3.10-bullseye]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "develop"'
