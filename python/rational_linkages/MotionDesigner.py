@@ -105,11 +105,84 @@ class MotionDesigner:
                           'quadratic_from_poses',]:
             raise ValueError("Invalid method for motion designer.")
 
-        self.app = QtWidgets.QApplication(sys.argv)
+        if QtWidgets is None:
+            raise RuntimeError(
+                "Qt6 / pyqtgraph are not available. GUI MotionDesigner cannot be used."
+            )
+
+        # Reuse an existing QApplication if there is one (e.g. when using run())
+        existing_app = QtWidgets.QApplication.instance()
+        self.app = existing_app or QtWidgets.QApplication(sys.argv)
+
         self.window = MotionDesignerWidget(method=method,
                                            initial_pts=initial_points_or_poses,
                                            arrows_length=arrows_length,
                                            white_background=white_background)
+
+    @classmethod
+    def start(cls):
+        """
+        Start Motion Designer with GUI method options.
+
+        """
+        if QtWidgets is None:
+            raise RuntimeError(
+                "Qt6 / pyqtgraph are not available. GUI MotionDesigner cannot be used."
+            )
+
+        # Make sure there is a QApplication
+        app = QtWidgets.QApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
+
+        # ----- Build the selection dialog -----
+        dialog = QtWidgets.QDialog()
+        dialog.setWindowTitle("MotionDesigner – choose input method")
+
+        layout = QtWidgets.QVBoxLayout(dialog)
+
+        label = QtWidgets.QLabel("Choose the input methodology:")
+        layout.addWidget(label)
+
+        combo = QtWidgets.QComboBox(dialog)
+
+        # (internal_key, human_readable_description)
+        methods = [
+            ("quadratic_from_poses",  "3 poses → quadratic motion (4-bar linkage)"),
+            ("cubic_from_poses",      "4 poses → cubic motion (6-bar linkage)"),
+            ("quadratic_from_points", "5 points → quadratic motion (4-bar linkage)"),
+            ("cubic_from_points",     "7 points → cubic motion (6-bar linkage)"),
+        ]
+
+        for key, desc in methods:
+            combo.addItem(desc, userData=key)
+
+        layout.addWidget(combo)
+
+        button_box = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok |
+            QtWidgets.QDialogButtonBox.StandardButton.Cancel
+        )
+        layout.addWidget(button_box)
+
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+
+        # modal dialog: runs its own event loop until closed
+        result = dialog.exec()
+        if result != QtWidgets.QDialog.DialogCode.Accepted:
+            # user cancelled; do nothing
+            return None
+
+        chosen_method = combo.currentData()
+        if chosen_method is None:
+            # very defensive; should not happen
+            return None
+
+        # ----- Create and run the actual MotionDesigner -----
+        designer = cls(method=chosen_method)
+        designer.show()
+        return designer
 
     def plot(self, *args, **kwargs):
         """
