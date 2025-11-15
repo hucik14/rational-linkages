@@ -1,11 +1,12 @@
 # Changelog
 
-## 2.4.0 (2025-11-13)
+## 2.4.0 (2025-11-15)
 
-### added (2 changes)
+### added (3 changes)
 
+- [possiblity to run Motion Designer with GUI options](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/a52e9908)
 - [method for plane-line intersection point](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d0b6408e)
-- [size of plotted points can be altered](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/2f7ff53b)
+- [size of poloted points can be altered](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/2f7ff53b)
 
 
 ### fixed (3 changes)
