@@ -328,25 +328,25 @@ class MotionInterpolation:
             new_poses.append(additional_pose)
 
             try:
-                polynomial_set = MotionInterpolation.interpolate_quadratic(
+                polynomial_set = MotionInterpolation.interpolate_quadratic_numerically(
                     new_poses)
             except Exception:
                 polynomial_set = None
 
             # If interpolation was successful, check if it's the best so far
             if polynomial_set is not None:
-                new_curve_length = RationalCurve(polynomial_set).get_path_length(
-                    num_of_points=500)
+                new_curve_length = RationalCurve.from_coeffs(polynomial_set).get_path_length(
+                    num_of_points=1500)
                 if new_curve_length < shortest_curve_length:
                     shortest_set = polynomial_set
                     best_pose = additional_pose
                     shortest_curve_length = new_curve_length
 
         if shortest_set is not None:
-            print('Chosen pose:')
-            print(best_pose)
+            # print('Chosen pose:')
+            # print(best_pose)
 
-            return shortest_set
+            return shortest_set, best_pose
 
         else:  # if no solution was found
             raise ValueError('Interpolation failed for the given poses.')
