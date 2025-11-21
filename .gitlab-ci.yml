@@ -86,14 +86,17 @@ python_versions:
 build_linux_wheels:
   stage: test
   image:
-    # Use the Docker image that already contains dockerd
-    name: docker:27.4.1-dind   # or another pre-29 tag that exists, e.g. docker:27-dind
-    entrypoint: ["/bin/sh", "-c"]  # override default entrypoint so we control the script
+    name: docker:27.4.1-dind
+    entrypoint: ["/bin/sh", "-c"]
+
   variables:
-    # no remote daemon, only local Unix socket
+    # local dockerd in this container
     DOCKER_TLS_CERTDIR: ""
+    # allow pip to modify the system Python inside this *ephemeral* CI container
+    PIP_BREAK_SYSTEM_PACKAGES: "1"
+
   script:
-    # 1) Start the Docker daemon inside this container
+    # 1) Start Docker daemon inside this container
     - dockerd-entrypoint.sh >/tmp/dockerd.log 2>&1 &
     - |
       echo "Waiting for dockerd to be ready..."
@@ -105,15 +108,18 @@ build_linux_wheels:
         sleep 1
       done
       docker info >/dev/null 2>&1 || { echo "dockerd failed to start"; exit 1; }
-    # 2) Install Python & tools (Alpine-based image, so use apk)
+
+    # 2) Install Python + tooling (Alpine)
     - apk add --no-cache python3 py3-pip py3-setuptools py3-wheel bash curl git
-    # 3) Install cibuildwheel and run it (uses your pyproject.toml config)
+
+    # 3) Install cibuildwheel (PEP 668 is bypassed by PIP_BREAK_SYSTEM_PACKAGES=1)
     - python3 -m pip install --upgrade pip
     - python3 -m pip install cibuildwheel
+
+    # 4) Build your manylinux + musllinux x86_64 wheels
     - python3 -m cibuildwheel --output-dir wheelhouse
   artifacts:
     paths:
       - wheelhouse/*.whl
   rules:
-    - if: '$CI_COMMIT_TAG'
     - if: '$CI_COMMIT_BRANCH == "develop"'
