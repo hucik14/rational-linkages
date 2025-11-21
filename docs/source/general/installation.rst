@@ -30,7 +30,7 @@ Mac/linux users might need to add backslashes to escape the brackets, e.g.:
     pip install rational-linkages\[opt,exu\]
 
 for installing also **opt** (optional) dependencies (scipy - optimization problems solving, ipython - inline plotting,
-matplotlib - alternative engine for 3D plotting, gmpy2 - optimized symbolic computations)
+matplotlib - alternative engine for 3D plotting)
 and **exu** (Exudyn) dependencies (exudyn - multibody simulations,
 numpy-stl + ngsolve - work with meshes in exudyn).
 
@@ -64,12 +64,14 @@ Mac users might need to add backslashes to escape the brackets, e.g.:
 
     pip install -e .\[opt\]
 
-C) from source as editable package with development and documentation dependencies:
 
-.. code-block:: bash
+On 64-bit platform, **gmpy2** package for optimized symbolic computations can be useful.
 
-    git clone https://git.uibk.ac.at/geometrie-vermessung/rational-linkages.git
 
-    cd rational-linkages
+C) to install the package from source as editable package for development and experimental
+usage, please follow the instructions in the **Install from source** section on
+the main README.md page of the repository:
+https://git.uibk.ac.at/geometrie-vermessung/rational-linkages#install-from-source
 
-    pip install -e .[opt,dev,doc]
+
+

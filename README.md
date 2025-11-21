@@ -77,7 +77,7 @@ and **exu**dyn dependencies (exudyn - multibody simulations,
 numpy-stl + ngsolve - work with meshes in exudyn).
 
 On **Linux systems**, to run GUI interactive plotting, 
-some additional libraries are required for plotting with PyQt6. For example, 
+some additional libraries might be required for plotting with PyQt6. For example, 
 on Ubuntu, it can be installed as follows:
 
    <code>sudo apt install libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3</code>
@@ -85,6 +85,9 @@ on Ubuntu, it can be installed as follows:
 or on Ubuntu 24.04 and higher:
 
    <code>sudo apt install libgl1 libxkbcommon-x11-0 libegl1 libdbus-1-3</code>
+
+On 64-bit platform, <code>gmpy2</code> package for optimized symbolic computations can be useful.
+
 
 ### Install from source
 
@@ -109,16 +112,19 @@ or on Ubuntu 24.04 and higher:
    <code>pip install -e .\\[opt\\]</code>
 
 
-
-To run the Rust functions, you need to install the [Rust toolchain](https://www.rust-lang.org) and 
-build the Rust code yourself. On top of that, on Windows, you need to install a 
+To locally develop, you need to install the [Rust toolchain](https://www.rust-lang.org) and 
+build the Rust code yourself. On top of that, on **Windows**, you need to install a 
 C++ build toolchain. In `Visual Studio Installer`, select: 
 
 * MSVC v143 - VS 2022 C++ x64/x86 build tools (latest)
 * Windows 11 SDK
 * C++ CMake tools for Windows
 
-Then, navigate to the `rational_linkages/rust` folder and run:
+Alternatively, on **Linux**, you need to install:
+
+* build-essential
+
+Then, if adding Rust-based functions, navigate to the `rational_linkages/rust` folder and run:
 
 <code>cargo build --release</code>
 
