@@ -84,35 +84,36 @@ python_versions:
 
 
 build_linux_wheels:
-  stage: build
-  image: python:3.12   # host for cibuildwheel itself
-  # Make a docker daemon available for cibuildwheel to use
-  # (this is basically the snippet from the official cibuildwheel GitLab docs)
-  services:
-    - name: docker:dind
-      entrypoint: ["env", "-u", "DOCKER_HOST"]
-      command: ["dockerd-entrypoint.sh"]
+  stage: test
+  image:
+    # Use the Docker image that already contains dockerd
+    name: docker:27.4.1-dind   # or another pre-29 tag that exists, e.g. docker:27-dind
+    entrypoint: ["/bin/sh", "-c"]  # override default entrypoint so we control the script
   variables:
-    DOCKER_HOST: tcp://docker:2375/
-    DOCKER_DRIVER: overlay2
-    # See https://github.com/docker-library/docker/pull/166
+    # no remote daemon, only local Unix socket
     DOCKER_TLS_CERTDIR: ""
-
-    # Optional: be explicit, but your pyproject already limits to x86_64
-    CIBW_PLATFORM: "linux"
   script:
-    # install docker CLI inside the python:3.12 image
-    - curl -sSL https://get.docker.com/ | sh
-
-    # install cibuildwheel (uses your pyproject.toml config)
-    - python -m pip install --upgrade pip
-    - python -m pip install cibuildwheel
-
-    # build wheels into ./wheelhouse
-    - python -m cibuildwheel --output-dir wheelhouse
+    # 1) Start the Docker daemon inside this container
+    - dockerd-entrypoint.sh >/tmp/dockerd.log 2>&1 &
+    - |
+      echo "Waiting for dockerd to be ready..."
+      for i in $(seq 1 60); do
+        if docker info >/dev/null 2>&1; then
+          echo "dockerd is up."
+          break
+        fi
+        sleep 1
+      done
+      docker info >/dev/null 2>&1 || { echo "dockerd failed to start"; exit 1; }
+    # 2) Install Python & tools (Alpine-based image, so use apk)
+    - apk add --no-cache python3 py3-pip py3-setuptools py3-wheel bash curl git
+    # 3) Install cibuildwheel and run it (uses your pyproject.toml config)
+    - python3 -m pip install --upgrade pip
+    - python3 -m pip install cibuildwheel
+    - python3 -m cibuildwheel --output-dir wheelhouse
   artifacts:
     paths:
       - wheelhouse/*.whl
   rules:
-    # tweak to your release flow; example: build on tags and main
+    - if: '$CI_COMMIT_TAG'
     - if: '$CI_COMMIT_BRANCH == "develop"'
