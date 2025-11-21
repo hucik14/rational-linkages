@@ -2,12 +2,12 @@ import git
 from datetime import datetime
 
 # Constants (replace with your actual values)
-REPO_PATH = 'C:/Gitlab/rational-linkages'  # Path to your local Git repository
+REPO_PATH = '/Users/daniel/gitlab/rational-linkages'  # Path to your local Git repository
 SOURCE_BRANCH = 'develop'  # Replace with your source branch
 TARGET_BRANCH = 'main'  # Replace with your target branch
 CHANGELOG_FILE = 'CHANGELOG.md'  # Name of the changelog file
 
-NEW_VERSION = '2.0.0'
+NEW_VERSION = '2.4.0'
 
 
 def get_changelog_commits(commits):

@@ -246,6 +246,7 @@ class TransfMatrix:
         elif unit != 'rad':
             raise ValueError("Unit must be 'rad' or 'deg'")
 
+        angle = float(angle)
         c = np.cos(angle)
         s = np.sin(angle)
 

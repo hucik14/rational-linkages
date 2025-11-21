@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.4.0 (2025-11-21)
+
+### added (5 changes)
+
+- [linux build runner changed to Github Actions; docs update](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/46f4c2a5)
+- [possiblity to run Motion Designer with GUI options](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/a52e9908)
+- [method for plane-line intersection point](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d0b6408e)
+- [size of poloted points can be altered](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/2f7ff53b)
+
+
+### removed (1 change)
+
+- [gmpy2 removed from dependencies as it causes issues on ARM devices](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5be62c40)
+
+
+### changed (1 change)
+
+- [update to installation instructions](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/a8bb04ca)
+
+
+### fixed (3 changes)
+
+- [mocking utils in docs](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/e9958d53)
+- [utils were missing in docs](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/6920e442)
+- [parsing angle error](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/17d6d355)
+
+
 ## 2.2.3 (2025-09-17)
 
 ### added (1 change)

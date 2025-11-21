@@ -359,7 +359,7 @@ class CollisionAnalyser:
             rel_motion = self.mechanism.relative_motion(segment_id_number, idx)
             motions.append(RationalCurve([Poly(c, t, greedy=False)
                                           for c in rel_motion],
-                                         metric=self.metric))
+                                          metric=self.metric))
 
         bezier_splits = [motion.split_in_beziers(min_splits) for motion in motions]
 

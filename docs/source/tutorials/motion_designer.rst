@@ -14,6 +14,14 @@ supported for designing rational motions. They correspond to the :ref:`interpola
 
 In the code, use it as follows:
 
+.. code-block:: python
+
+    from rational_linkages import MotionDesigner
+
+    MotionDesigner.start()
+
+Eventually, if you don't want to always choose methodology using GUI, just use:
+
 
 .. testcode:: [motion_designer_example]
 

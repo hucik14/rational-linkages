@@ -3,13 +3,12 @@ requires = [
     "setuptools>=61",
     "setuptools-rust>=1.6",
     "wheel",
-    "cibuildwheel>=2.16",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "2.2.3"
+version = "2.4.0"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -39,8 +38,6 @@ opt = [
     "ipython >= 8.0.0",
     "scipy >= 1.10.0",
     "matplotlib >= 3.9.0",
-    # gmpy2 does not support Windows ARM
-    "gmpy2 >= 2.2.0; platform_system != 'Windows' and platform_machine != 'ARM64'",
 ]
 exu = [
     "exudyn >= 1.9.0",
@@ -83,7 +80,7 @@ binding = "PyO3"
 
 [tool.cibuildwheel]
 build = "*"
-skip = "pp*"
+skip = "pp* cp3*t-*"  # skip pypy and t-debug builds
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"
 environment = { CARGO_TERM_COLOR = "always" }
@@ -92,14 +89,16 @@ environment = { CARGO_TERM_COLOR = "always" }
 #test-skip = ["*-macosx_arm64", "*-macosx_x86_64"]
 
 [tool.cibuildwheel.linux]
-archs = ["x86_64", "aarch64"]
+archs = ["x86_64"]
+#archs = ["aarch64"]
 environment = { PATH = "$HOME/.cargo/bin:$PATH" }
 before-build = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-# run at host before cibuildwheel: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+# run at x86_64 host before cibuildwheel: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+# run at aarch64 host before cibuildwheel: docker run --rm --privileged tonistiigi/binfmt --install amd64
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
-# archs = ["ARM64"]
+#archs = ["ARM64"]
 
 [tool.cibuildwheel.macos]
 archs = ["arm64", "x86_64"]

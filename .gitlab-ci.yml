@@ -14,10 +14,14 @@
   - cargo build --release
   - cd ..
 
+default:
+  artifacts:
+    expire_in: 60 days
+
 stages:
-- test
-- test_security
-- test_python_versions
+  - test
+  - test_security
+  - test_python_versions
 
 sast:
   stage: test_security
@@ -30,6 +34,8 @@ include:
 container_scanning:
   variables:
     CS_IMAGE: python:3.11-bullseye
+  artifacts:
+    expire_in: 10 days
 
 test_python311:
   stage: test
