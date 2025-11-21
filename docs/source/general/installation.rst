@@ -11,7 +11,7 @@ There are more ways to install the Python package. For regular use we recommend
 installation from PyPI using **pip**, which will provide the latest released version.
 For development, you can install from source by cloning the repository.
 
-A) using pip:
+Using pip:
 
 .. code-block:: bash
 
@@ -48,27 +48,10 @@ or on Ubuntu 24.04 and higher:
 
     sudo apt install libgl1 libxkbcommon-x11-0 libegl1 libdbus-1-3
 
-B) from source as editable package:
-
-.. code-block:: bash
-
-    git clone https://git.uibk.ac.at/geometrie-vermessung/rational-linkages.git
-
-    cd rational-linkages
-
-    pip install -e .[opt]
-
-Mac users might need to add backslashes to escape the brackets, e.g.:
-
-.. code-block:: bash
-
-    pip install -e .\[opt\]
-
 
 On 64-bit platform, **gmpy2** package for optimized symbolic computations can be useful.
 
-
-C) to install the package from source as editable package for development and experimental
+To install the package **from source as editable** package for development and experimental
 usage, please follow the instructions in the **Install from source** section on
 the main README.md page of the repository:
 https://git.uibk.ac.at/geometrie-vermessung/rational-linkages#install-from-source

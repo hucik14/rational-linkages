@@ -1,0 +1,36 @@
+name: Build Linux wheels
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  build_linux_wheels:
+    name: Build manylinux + musllinux wheels (x86_64)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      # This uses the official cibuildwheel GitHub Action.
+      # It will:
+      #   * run on Linux (ubuntu-latest)
+      #   * spin up manylinux + musllinux containers internally
+      #   * read your pyproject.toml [tool.cibuildwheel*] config
+      #   * build wheels into ./wheelhouse
+      - name: Build wheels with cibuildwheel
+        uses: pypa/cibuildwheel@v3.3.0
+        # Defaults are already what you want:
+        # with:
+        #   package-dir: .
+        #   output-dir: wheelhouse
+        #   config-file: "{package}/pyproject.toml"
+
+      - name: Upload built wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-wheels
+          path: wheelhouse/*.whl
+          retention-days: 5
