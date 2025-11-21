@@ -15,9 +15,10 @@
   - cd ..
 
 stages:
-- test
-- test_security
-- test_python_versions
+  - test
+  - test_security
+  - test_python_versions
+  - build
 
 sast:
   stage: test_security
@@ -80,3 +81,38 @@ python_versions:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "develop"'
     - if: '$CI_COMMIT_BRANCH == "main"'
+
+
+build_linux_wheels:
+  stage: build
+  image: python:3.12   # host for cibuildwheel itself
+  # Make a docker daemon available for cibuildwheel to use
+  # (this is basically the snippet from the official cibuildwheel GitLab docs)
+  services:
+    - name: docker:dind
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      command: ["dockerd-entrypoint.sh"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    # See https://github.com/docker-library/docker/pull/166
+    DOCKER_TLS_CERTDIR: ""
+
+    # Optional: be explicit, but your pyproject already limits to x86_64
+    CIBW_PLATFORM: "linux"
+  script:
+    # install docker CLI inside the python:3.12 image
+    - curl -sSL https://get.docker.com/ | sh
+
+    # install cibuildwheel (uses your pyproject.toml config)
+    - python -m pip install --upgrade pip
+    - python -m pip install cibuildwheel
+
+    # build wheels into ./wheelhouse
+    - python -m cibuildwheel --output-dir wheelhouse
+  artifacts:
+    paths:
+      - wheelhouse/*.whl
+  rules:
+    # tweak to your release flow; example: build on tags and main
+    - if: '$CI_COMMIT_BRANCH == "develop"'
