@@ -118,14 +118,14 @@ Indices and Tables:
 Authors
 -------
 
-The package is developed by the Unit of Geometry and Surveying, University of Innsbruck,
+The package was originally developed by the Unit of Geometry and Surveying, University of Innsbruck (UIBK),
 Austria. Namely, the following people contributed to the development:
 
-- Daniel Huczala (author, maintainer)
-- Hans-Peter Schröcker (supervisor, contributor)
-- Martin Pfurner (contributor)
-- Andreas Mair (contributor)
-- Daren A. Thimm (contributor)
+- Daniel Huczala (author, maintainer), currently at Robotics Laboratory, Seoul National University, Korea
+- Hans-Peter Schröcker (supervisor, contributor), UIBK
+- Martin Pfurner (contributor), UIBK
+- Andreas Mair (contributor), UIBK
+- Daren A. Thimm (contributor), UIBK
 
 Citing the Package
 ------------------
