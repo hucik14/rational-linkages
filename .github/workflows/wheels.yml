@@ -1,4 +1,4 @@
-name: Build Linux 64-bit wheels
+name: Build Linux x86_64 and ARM wheels
 
 on:
   push:
@@ -7,30 +7,36 @@ on:
 
 jobs:
   build_linux_wheels:
-    name: Build manylinux + musllinux wheels (x86_64)
+    name: Build manylinux + musllinux wheels (${{ matrix.arch }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64, aarch64]
 
     steps:
       - name: Check out source
         uses: actions/checkout@v4
 
-      # This uses the official cibuildwheel GitHub Action.
-      # It will:
-      #   * run on Linux (ubuntu-latest)
-      #   * spin up manylinux + musllinux containers internally
-      #   * read your pyproject.toml [tool.cibuildwheel*] config
-      #   * build wheels into ./wheelhouse
+      # QEMU is needed to run aarch64 Docker images on the x86_64 GitHub runner
+      - name: Set up QEMU for aarch64
+        if: matrix.arch == 'aarch64'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/arm64
+
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v3.3.0
-        # Defaults are already what you want:
-        # with:
-        #   package-dir: .
-        #   output-dir: wheelhouse
-        #   config-file: "{package}/pyproject.toml"
+        env:
+          # CI controls which Linux arch to build in this job
+          CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+          # (optional) If you ever want to override pyproject skip from CI:
+          # CIBW_SKIP: "pp* cp3*t-*"
 
       - name: Upload built wheels
         uses: actions/upload-artifact@v4
         with:
-          name: linux-wheels
+          name: linux-wheels-${{ matrix.arch }}
           path: wheelhouse/*.whl
           retention-days: 5
