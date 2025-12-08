@@ -1,13 +1,14 @@
 import git
 from datetime import datetime
+from pathlib import Path
 
-# Constants (replace with your actual values)
-REPO_PATH = '/Users/daniel/gitlab/rational-linkages'  # Path to your local Git repository
-SOURCE_BRANCH = 'develop'  # Replace with your source branch
-TARGET_BRANCH = 'main'  # Replace with your target branch
-CHANGELOG_FILE = 'CHANGELOG.md'  # Name of the changelog file
 
-NEW_VERSION = '2.4.0'
+CHANGELOG_FILE = 'CHANGELOG.md'
+SOURCE_BRANCH = 'develop'
+TARGET_BRANCH = 'v2.4.0'  # target to compare to
+NEW_VERSION = '2.5.0'
+
+repo_path = Path.home() / 'gitlab' / 'rational-linkages'
 
 
 def get_changelog_commits(commits):
@@ -21,7 +22,7 @@ def get_changelog_commits(commits):
     }
     for commit in commits:
         message = commit.message
-        if 'Changelog' in message:
+        if 'changelog' in message.lower():
             lines = message.split('\n')
             title = lines[0]
             description = '\n'.join(lines[1:]).strip()
@@ -31,17 +32,17 @@ def get_changelog_commits(commits):
 
             # Determine the category based on commit message
             category = None
-            if "Changelog: added" in commit.message:
+            if "changelog: added" in commit.message.lower():
                 category = "added"
-            elif "Changelog: removed" in commit.message:
+            elif "changelog: removed" in commit.message.lower():
                 category = "removed"
-            elif "Changelog: changed" in commit.message:
+            elif "changelog: changed" in commit.message.lower():
                 category = "changed"
-            elif "Changelog: fixed" in commit.message:
+            elif "changelog: fixed" in commit.message.lower():
                 category = "fixed"
-            elif "Changelog: deprecated" in commit.message:
+            elif "changelog: deprecated" in commit.message.lower():
                 category = "deprecated"
-            elif "Changelog: security" in commit.message:
+            elif "changelog: security" in commit.message.lower():
                 category = "security"
             else:
                 print(f"Uncategorized commit: {title}")
@@ -81,7 +82,7 @@ def write_changelog(file_path, release_notes):
 
 
 def main():
-    repo = git.Repo(REPO_PATH)
+    repo = git.Repo(repo_path)
 
     # Ensure local repository is up-to-date
     repo.remotes.origin.fetch()
