@@ -19,7 +19,7 @@ collision-free mechanisms synthesised for a given task (set of poses).
 
 <img src="/docs/source/figures/r4.JPEG" width="24%"> <img src="/docs/source/figures/r6li.JPEG" width="24%"> <img src="/docs/source/figures/r6hp.JPEG" width="24%"> <img src="/docs/source/figures/r6joh.JPEG" width="24%">
 
-The package is developed as a part of the research project at the 
+The package was originally developed as a part of the research project at the 
 Unit of Geometry and Surveying, University of Innsbruck, Austria. 
 
 ## Documentation, tutorials, issues
