@@ -267,6 +267,29 @@ class DualQuaternion:
         dq = cls.random(interval)
         return dq.back_projection()
 
+    @classmethod
+    def random_integers(cls,
+                        low: int = -1,
+                        high: int = 2,
+                        study_condition: bool = True) -> "DualQuaternion":
+        """
+        Construct a random DualQuaternion with integer elements, opt. on Study Quadric
+
+        :param int low: lower bound of random integers
+        :param int high: upper bound of random integers
+        :param bool study_condition: if True, the generated DualQuaternion is
+            on the Study quadric. Defaults to True.
+
+        :return: DualQuaternion with random integer elements
+        :rtype: DualQuaternion
+        """
+        study_parameters = np.random.randint(low, high, 8)
+        if study_condition:
+            dq = cls(study_parameters)
+            dq = dq.back_projection()
+            study_parameters = dq.array()
+        return cls(study_parameters)
+
     def __repr__(self):
         """
         Printing method override
@@ -525,12 +548,12 @@ class DualQuaternion:
         :return: True if the DualQuaternion is on the study quadric, False otherwise
         :rtype: bool
         """
-        treshold = 1e-10 if approximate_sol else 1e-20
+        threshold = 1e-10 if approximate_sol else 1e-20
 
         study_condition = (self.p[0] * self.d[0] + self.p[1] * self.d[1]
                            + self.p[2] * self.d[2] + self.p[3] * self.d[3])
         study_condition = np.asarray(study_condition, dtype="float64")
-        return np.isclose(study_condition, 0.0, atol=treshold)
+        return np.isclose(study_condition, 0.0, atol=threshold)
 
     def dq2matrix(self, normalize: bool = True) -> np.ndarray:
         """

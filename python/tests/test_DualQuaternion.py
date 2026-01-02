@@ -415,3 +415,20 @@ class TestDualQuaternion(unittest.TestCase):
         # Test invalid index
         with self.assertRaises(IndexError):
             dq[8] = 100
+
+    def test_random_integers(self):
+        np.random.seed(0)
+        dq = DualQuaternion.random_integers(low=-2, high=3, study_condition=False)
+        arr = dq.array()
+        # eight elements, integer-valued and within [low, high)
+        assert arr.shape == (8,)
+        assert np.all(arr >= -2)
+        assert np.all(arr < 3)
+        assert np.allclose(arr, np.round(arr))
+
+        # with study condition
+        np.random.seed(1)
+        dq = DualQuaternion.random_integers(low=-5, high=6, study_condition=True)
+        # returns a DualQuaternion instance on the Study quadric (allow approximate check)
+        assert isinstance(dq, DualQuaternion)
+        assert dq.is_on_study_quadric(approximate_sol=True)
