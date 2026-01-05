@@ -535,6 +535,19 @@ class DualQuaternion:
         d = -1 * p * self.d * p
         return DualQuaternion.from_two_quaternions(p, d)
 
+    def extended_dot(self, other) -> tuple:
+        """
+        Extended scalar (dot) product of two DualQuaternions
+
+        :param DualQuaternion other: other DualQuaternion
+
+        :return: extended scalar (dot) product
+        :rtype: float
+        """
+        ext_dot = (np.dot(self.p.array(), other.d.array())
+                   + np.dot(self.d.array(), other.p.array()))
+        return ext_dot
+
     def is_on_study_quadric(self, approximate_sol: bool = False) -> bool:
         """
         Check if the DualQuaternion is on the study quadric

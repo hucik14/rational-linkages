@@ -432,3 +432,16 @@ class TestDualQuaternion(unittest.TestCase):
         # returns a DualQuaternion instance on the Study quadric (allow approximate check)
         assert isinstance(dq, DualQuaternion)
         assert dq.is_on_study_quadric(approximate_sol=True)
+
+    def test_extended_dot(self):
+        dq1 = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+        dq2 = DualQuaternion([8, 7, 6, 5, 4, -3, 2, 1])
+        result = dq1.extended_dot(dq2)
+        expected_result = 1*4 - 2*3 + 3*2 + 4*1 + 5*8 + 6*7 + 7*6 + 8*5
+        self.assertEqual(result, expected_result)
+
+        dq1 = DualQuaternion([1, 0, 0, 0, 0, 0, 0, 0])
+        dq2 = DualQuaternion([0, 1, 0, 0, 0, 0, 0, 0])
+        result = dq1.extended_dot(dq2)
+        expected_result = 0
+        self.assertEqual(result, expected_result)
