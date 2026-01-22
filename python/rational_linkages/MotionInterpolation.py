@@ -771,15 +771,19 @@ class MotionInterpolation:
         w4 = (-1 * d21.inv() * d41 - 3 * d23.inv() * d43).inv() * (
                     3 * d21.inv() * d10 + d23.inv() * d30) * w0
 
-        w_mid = -1 * (w0 + 2 * w2 + w4) / 2
-        a_mid = -1 * (a0 * w0 + 2 * a2 * w2 + a4 * w4) * w_mid.inv() / 2
+        u0 = w0 / 2
+        p0 = a0
+        u1 = (w0 + 2*w2 + w4) / (-4)
+        p1 = (a0 * w0 + 2 * a2 * w2 + a4 * w4) * u1.inv() / (-4)
+        u2 = w4 / 2
+        p2 = a4
 
         # get the control points of Bezier curve from constructed dual quaternions
-        cp0 = PointHomogeneous(np.concatenate((w0.array(), (a0 * w0).array())),
+        cp0 = PointHomogeneous(np.concatenate((u0.array(), (p0 * u0).array())),
                                rational=perform_rational)
-        cp1 = PointHomogeneous(np.concatenate((w_mid.array(), (a_mid * w_mid).array())),
+        cp1 = PointHomogeneous(np.concatenate((u1.array(), (p1 * u1).array())),
                                rational=perform_rational)
-        cp2 = PointHomogeneous(np.concatenate((w4.array(), (a4 * w4).array())),
+        cp2 = PointHomogeneous(np.concatenate((u2.array(), (p2 * u2).array())),
                                rational=perform_rational)
 
         if return_numeric:
@@ -870,25 +874,25 @@ class MotionInterpolation:
         w6 = r36.inv() * r38
         w2 = c12.inv() * (c18 - c14 * w4 - c16 * w6)
 
-        w_c0 = -2 * w0 / 9
-        a_c0 = a0
-        w_c1 = 5 * w0 / 27 + 2 * w2 / 9 + w4 / 9 + 2 * w6 / 27
-        a_c1 = ((5 * a0 * w0 /27 + 2 * a2 * w2 / 9 + a4 * w4 / 9 + 2 * a6 * w6 / 27)
-                * w_c1.inv())
-        w_c2 = -2 * w0 / 27 - 1 * w2 / 9 - 2 * w4 / 9 - 5 * w6 / 27
-        a_c2 = ((-2 * a0 * w0 / 27 -1 * a2 * w2 / 9 -2 * a4 * w4 / 9 -5 * a6 * w6 / 27)
-                * w_c2.inv())
-        w_c3 = 2 * w6 / 9
-        a_c3 = a6
+        u0 = -2 * w0 / 9
+        p0 = a0
+        u1 = 5 * w0 / 27 + 2 * w2 / 9 + w4 / 9 + 2 * w6 / 27
+        p1 = ((5 * a0 * w0 /27 + 2 * a2 * w2 / 9 + a4 * w4 / 9 + 2 * a6 * w6 / 27)
+                * u1.inv())
+        u2 = -2 * w0 / 27 - 1 * w2 / 9 - 2 * w4 / 9 - 5 * w6 / 27
+        p2 = ((-2 * a0 * w0 / 27 -1 * a2 * w2 / 9 -2 * a4 * w4 / 9 -5 * a6 * w6 / 27)
+                * u2.inv())
+        u3 = 2 * w6 / 9
+        p3 = a6
 
         # get the control points of Bezier curve from constructed dual quaternions
-        cp0 = PointHomogeneous(np.concatenate((w_c0.array(), (a_c0 * w_c0).array())),
+        cp0 = PointHomogeneous(np.concatenate((u0.array(), (p0 * u0).array())),
                                rational=perform_rational)
-        cp1 = PointHomogeneous(np.concatenate((w_c1.array(), (a_c1 * w_c1).array())),
+        cp1 = PointHomogeneous(np.concatenate((u1.array(), (p1 * u1).array())),
                                rational=perform_rational)
-        cp2 = PointHomogeneous(np.concatenate((w_c2.array(), (a_c2 * w_c2).array())),
+        cp2 = PointHomogeneous(np.concatenate((u2.array(), (p2 * u2).array())),
                                rational=perform_rational)
-        cp3 = PointHomogeneous(np.concatenate((w_c3.array(), (a_c3 * w_c3).array())),
+        cp3 = PointHomogeneous(np.concatenate((u3.array(), (p3 * u3).array())),
                                rational=perform_rational)
 
         if return_numeric:
