@@ -120,7 +120,10 @@ class MotionDesigner:
                                            white_background=white_background)
 
     @classmethod
-    def start(cls):
+    def start(cls,
+              initial_points_or_poses: list[Union[PointHomogeneous, DualQuaternion]] = None,
+              arrows_length: float = 1.0,
+              white_background: bool = False):
         """
         Start Motion Designer with GUI method options.
 
@@ -180,7 +183,10 @@ class MotionDesigner:
             return None
 
         # ----- Create and run the actual MotionDesigner -----
-        designer = cls(method=chosen_method)
+        designer = cls(method=chosen_method,
+                       initial_points_or_poses=initial_points_or_poses,
+                       arrows_length=arrows_length,
+                       white_background=white_background)
         designer.show()
         return designer
 
@@ -546,7 +552,8 @@ if QtWidgets is not None:
             self.mechanism_plotter.append(
                 InteractivePlotterWidget(mechanism=RationalMechanism(c.factorize()),
                                          arrows_length=self.arrows_length,
-                                         parent_app=self.plotter.app))
+                                         parent_app=self.plotter.app,
+                                         white_background=self.white_background))
             self.mechanism_plotter[-1].show()
 
 

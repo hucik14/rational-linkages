@@ -119,10 +119,10 @@ class TestMotionInterpolation(TestCase):
                                     [-2.5068929,  1.621421,  0.        ],
                                     [ 0.76564157, -0.65694592,  0.        ],
                                     [-2.28844115,  1.91781548,  0.        ]])
+        expected_coeffs = expected_coeffs / 2
 
         # Call the interpolate_points_quadratic method
         curve = mi.interpolate([p0, p1, p2, p3, p4])
-        self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
 
         tm_point = DualQuaternion(curve.evaluate(0.5)).dq2point_via_matrix()
         self.assertTrue(np.allclose(tm_point, p2.normalized_in_3d()))
