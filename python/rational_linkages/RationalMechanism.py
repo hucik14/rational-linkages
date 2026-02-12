@@ -1553,3 +1553,87 @@ class RationalMechanism(RationalCurve):
         # slice out the last element
         return motion_indices[:-1]
 
+    def export_single_mesh(self,
+                           scale: float = 1.0,
+                           link_diameter: float = 0.01,
+                           joint_diameter: float = 0.02,
+                           file_name: str = 'mechanism_mesh.stl'):
+        """
+        Export a single STL mesh of the mechanism at home configuration.
+
+        :param float scale: scaling factor of the mechanism
+        :param float link_diameter: radius of the link cylinders
+        :param float joint_diameter: radius of the joint cylinders
+        :param str file_name: name of the output STL file
+        """
+        try:
+            # lazy import
+            import trimesh
+        except ImportError:
+            raise ImportError(
+                "To create meshes that can be exported as STL files, the packages 'trimesh' and 'manifold3d' are required."
+            )
+
+        _, _, mesh_points = self.get_design(pretty_print=False, update_design=True)
+        # flatten points and add first one at the end to close the loop
+        mesh_points = np.vstack(mesh_points) * scale
+        mesh_points = np.vstack([mesh_points, mesh_points[0]])
+
+        capsules = []
+        for i in range(self.num_joints):
+            capsules.append(self.capsule_between_points(mesh_points[2*i],
+                                                        mesh_points[2*i+1],
+                                                        joint_diameter / 2))
+            capsules.append(self.capsule_between_points(mesh_points[2*i+1],
+                                                        mesh_points[2*i+2],
+                                                        link_diameter / 2))
+        # filter None capsules
+        capsules = [c for c in capsules if c is not None]
+
+        # boolean union of the capsules
+        combined = trimesh.boolean.union(capsules, engine='manifold')
+
+        # export as STL
+        try:
+            combined.export(file_name)
+            print("Mesh exported as", file_name)
+        except Exception as e:
+            print("Failed to export mesh:", e)
+
+
+    @staticmethod
+    def capsule_between_points(p0, p1, radius=1.0):
+        try:
+            import trimesh
+        except ImportError:
+            raise ImportError(
+                "To create meshes that can be exported as STL files, the packages 'trimesh' and 'manifold3d' are required."
+            )
+
+        p0 = np.asarray(p0)
+        p1 = np.asarray(p1)
+
+        # Vector and length
+        vec = p1 - p0
+        length = np.linalg.norm(vec)
+
+        if length < 1e-9:
+            return None
+
+        direction = vec / length
+
+        # Create capsule aligned with Z axis
+        capsule = trimesh.creation.capsule(
+            radius=radius,
+            height=length,
+        )
+
+        # Align Z axis to direction vector
+        tr = trimesh.geometry.align_vectors([0, 0, 1], direction)
+        capsule.apply_transform(tr)
+
+        # Move to midpoint
+        midpoint = (p0 + p1) / 2
+        capsule.apply_translation(midpoint)
+
+        return capsule
