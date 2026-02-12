@@ -310,18 +310,30 @@ class RationalMechanism(RationalCurve):
         if onshape_print:
             for i in range(self.num_joints):
                 print(f"link{i}: "
-                      f"[{dh[i, 1]:.15f}, {dh[i, 2]:.15f}, {dh[i, 3]:.15f}], "
-                      f"{design_params[i, 0]:.15f}, {design_params[i, 1]:.15f}")
+                      f"[{dh[i, 1]:.12f}, {dh[i, 2]:.12f}, {dh[i, 3]:.12f}], "
+                      f"{design_params[i, 0]:.12f}, {design_params[i, 1]:.12f}")
             pretty_print = False
 
         if pretty_print:
+            print("Denavit-Hartenberg parameters and connection points parameters:")
             for i in range(self.num_joints):
                 print("---")
-                print(f"Link {i}: d = {dh[i, 1]:.15f}, "
-                      f"a = {dh[i, 2]:.15f}, "
-                      f"alpha = {dh[i, 3]:.15f}")
-                print(f"cp_0 = {design_params[i, 0]:.15f}, "
-                      f"cp_1 = {design_params[i, 1]:.15f}")
+                print(f"Link {i}: d = {dh[i, 1]:.12f}, "
+                      f"a = {dh[i, 2]:.12f}, "
+                      f"alpha = {dh[i, 3]:.12f}")
+                print(f"cp_0 = {design_params[i, 0]:.12f}, "
+                      f"cp_1 = {design_params[i, 1]:.12f}")
+            print("======")
+            print("Points which define the joint axes of mechanism in the world frame, "
+                  "at home configuration. Note that joint0 and jointN are part of "
+                  "the base_link joints:")
+            for i in range(self.num_joints):
+                pt0 = design_points[i][0] * scale
+                pt1 = design_points[i][1] * scale
+                print(f"Joint {i}:\n"
+                      f"    pt0 = [{pt0[0]:.12f}, {pt0[1]:.12f}, {pt0[2]:.12f}],\n"
+                      f"    pt1 = [{pt1[0]:.12f}, {pt1[1]:.12f}, {pt1[2]:.12f}]")
+
 
         return dh, design_params, design_points
 
