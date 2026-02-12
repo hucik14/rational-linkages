@@ -1603,7 +1603,18 @@ class RationalMechanism(RationalCurve):
 
     @staticmethod
     def capsule_between_points(p0, p1, radius=1.0):
+        """
+        Create a capsule mesh between two points.
+
+        :param p0: first point
+        :param p1: second point
+        :param radius: radius of the capsule
+
+        :return: capsule mesh
+        :rtype: trimesh.Trimesh
+        """
         try:
+            # lazy import
             import trimesh
         except ImportError:
             raise ImportError(
