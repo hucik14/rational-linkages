@@ -1557,6 +1557,7 @@ class RationalMechanism(RationalCurve):
                            scale: float = 1.0,
                            link_diameter: float = 0.01,
                            joint_diameter: float = 0.02,
+                           smallest_polyline: bool = False,
                            file_name: str = 'mechanism_mesh.stl'):
         """
         Export a single STL mesh of the mechanism at home configuration.
@@ -1564,6 +1565,8 @@ class RationalMechanism(RationalCurve):
         :param float scale: scaling factor of the mechanism
         :param float link_diameter: radius of the link cylinders
         :param float joint_diameter: radius of the joint cylinders
+        :param bool smallest_polyline: if True, use the linkage design following the
+            smallest polyline between the connection points
         :param str file_name: name of the output STL file
         """
         try:
@@ -1574,24 +1577,27 @@ class RationalMechanism(RationalCurve):
                 "To create meshes that can be exported as STL files, the packages 'trimesh' and 'manifold3d' are required."
             )
 
+        if smallest_polyline:
+            self.smallest_polyline(update_design=True)
+
         _, _, mesh_points = self.get_design(pretty_print=False, update_design=True)
         # flatten points and add first one at the end to close the loop
         mesh_points = np.vstack(mesh_points) * scale
         mesh_points = np.vstack([mesh_points, mesh_points[0]])
 
-        capsules = []
+        cylinders = []
         for i in range(self.num_joints):
-            capsules.append(self.capsule_between_points(mesh_points[2*i],
+            cylinders.append(self._cylinder_between_points(mesh_points[2*i],
                                                         mesh_points[2*i+1],
                                                         joint_diameter / 2))
-            capsules.append(self.capsule_between_points(mesh_points[2*i+1],
+            cylinders.append(self._cylinder_between_points(mesh_points[2*i+1],
                                                         mesh_points[2*i+2],
                                                         link_diameter / 2))
-        # filter None capsules
-        capsules = [c for c in capsules if c is not None]
+        # filter None cylinders
+        cylinders = [c for c in cylinders if c is not None]
 
-        # boolean union of the capsules
-        combined = trimesh.boolean.union(capsules, engine='manifold')
+        # boolean union of the cylinders
+        combined = trimesh.boolean.union(cylinders, engine='manifold')
 
         # export as STL
         try:
@@ -1602,15 +1608,15 @@ class RationalMechanism(RationalCurve):
 
 
     @staticmethod
-    def capsule_between_points(p0, p1, radius=1.0):
+    def _cylinder_between_points(p0, p1, radius=1.0):
         """
-        Create a capsule mesh between two points.
+        Create a cylinder mesh between two points.
 
         :param p0: first point
         :param p1: second point
-        :param radius: radius of the capsule
+        :param radius: radius of the cylinder
 
-        :return: capsule mesh
+        :return: cylinder mesh
         :rtype: trimesh.Trimesh
         """
         try:
@@ -1633,18 +1639,18 @@ class RationalMechanism(RationalCurve):
 
         direction = vec / length
 
-        # Create capsule aligned with Z axis
-        capsule = trimesh.creation.capsule(
+        # Create cylinder aligned with Z axis
+        cylinder = trimesh.creation.cylinder(
             radius=radius,
             height=length,
         )
 
         # Align Z axis to direction vector
         tr = trimesh.geometry.align_vectors([0, 0, 1], direction)
-        capsule.apply_transform(tr)
+        cylinder.apply_transform(tr)
 
         # Move to midpoint
         midpoint = (p0 + p1) / 2
-        capsule.apply_translation(midpoint)
+        cylinder.apply_translation(midpoint)
 
-        return capsule
+        return cylinder
