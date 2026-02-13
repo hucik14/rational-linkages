@@ -30,7 +30,8 @@ Mac/linux users might need to add backslashes to escape the brackets, e.g.:
     pip install rational-linkages\[opt,exu\]
 
 for installing also **opt** (optional) dependencies (scipy - optimization problems solving, ipython - inline plotting,
-matplotlib - alternative engine for 3D plotting)
+matplotlib - alternative engine for 3D plotting, trimesh + manifold3d - STL
+meshes generation)
 and **exu** (Exudyn) dependencies (exudyn - multibody simulations,
 numpy-stl + ngsolve - work with meshes in exudyn).
 

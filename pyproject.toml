@@ -38,6 +38,8 @@ opt = [
     "ipython >= 8.0.0",
     "scipy >= 1.10.0",
     "matplotlib >= 3.9.0",
+    "trimesh",
+    "manifold3d",
 ]
 exu = [
     "exudyn >= 1.9.0",
