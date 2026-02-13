@@ -1558,6 +1558,7 @@ class RationalMechanism(RationalCurve):
                            link_diameter: float = 0.01,
                            joint_diameter: float = 0.02,
                            smallest_polyline: bool = False,
+                           add_tool_frame: bool = False,
                            file_name: str = 'mechanism_mesh.stl'):
         """
         Export a single STL mesh of the mechanism at home configuration.
@@ -1567,7 +1568,10 @@ class RationalMechanism(RationalCurve):
         :param float joint_diameter: radius of the joint cylinders
         :param bool smallest_polyline: if True, use the linkage design following the
             smallest polyline between the connection points
+        :param bool add_tool_frame: if True, add a tool link with frame representing
+            the tool frame
         :param str file_name: name of the output STL file
+
         """
         try:
             # lazy import
@@ -1595,6 +1599,33 @@ class RationalMechanism(RationalCurve):
                                                         link_diameter / 2))
         # filter None cylinders
         cylinders = [c for c in cylinders if c is not None]
+
+        if add_tool_frame:
+            # add tool link and frame mesh
+            tool_origin = np.array([0, 0, 0])
+            tool_axes = np.array([[1, 0, 0],
+                                  [0, 1, 0],
+                                  [0, 0, 1]])
+
+            # middle points
+            idx = len(mesh_points) / 2
+
+            pt0 = mesh_points[int(idx)]
+            pt1 = mesh_points[int(idx)-1]
+
+            length_tool_link = np.linalg.norm(pt1 - tool_origin)
+
+            cylinders.append(self._cylinder_between_points(tool_origin,
+                                                           pt0,
+                                                           link_diameter / 2))
+            cylinders.append(self._cylinder_between_points(tool_origin,
+                                                           pt1,
+                                                           link_diameter / 2))
+            for axis in tool_axes:
+                cylinders.append(self._cylinder_between_points(
+                    tool_origin,
+                    axis * length_tool_link * 0.2,
+                    link_diameter / 4))
 
         # boolean union of the cylinders
         combined = trimesh.boolean.union(cylinders, engine='manifold')
