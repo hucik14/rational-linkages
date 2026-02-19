@@ -51,7 +51,6 @@ doc = [
     "sphinxcontrib-bibtex",
     "toml",
     "pandoc",
-    "sphinx-hoverxref",
     "gitpython",
 ]
 dev = [
