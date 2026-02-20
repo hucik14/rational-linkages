@@ -1558,7 +1558,7 @@ class RationalMechanism(RationalCurve):
                            link_diameter: float = 0.01,
                            joint_diameter: float = 0.02,
                            smallest_polyline: bool = False,
-                           add_tool_frame: bool = False,
+                           add_tool_frame: bool = True,
                            file_name: str = 'mechanism_mesh.stl'):
         """
         Export a single STL mesh of the mechanism at home configuration.
@@ -1693,7 +1693,7 @@ class RationalMechanism(RationalCurve):
             link_diameter: float = 10,
             joint_diameter: float = 20,
             smallest_polyline: bool = False,
-            add_tool_frame: bool = False,
+            add_tool_frame: bool = True,
             file_name: str = "mechanism.step",
     ):
         """

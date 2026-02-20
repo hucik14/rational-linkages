@@ -64,10 +64,14 @@ joints are always static, they can be used to determine the position of the mech
 once you start assembling the CAD model.
 
 It can be useful to observe the visualization of the mechanism. For this purpose, the mechanism
-can be meshed and exported as STL file. The method :meth:`.RationalMechanism.export_single_mesh()`
-was used for this purpose. It accepts arguments for size of the joints and links cylinders, and also can
-add the tool link and frame meshes. The Python libraries :mod:`trimesh` and :mod:`manifold3d` are
-required.
+can be meshed and exported as STL or STEP file. The methods :meth:`.RationalMechanism.export_single_mesh()`
+and :meth:`.RationalMechanism.export_single_solid()` can be
+used for this purpose. They accept arguments for size of the joints and links cylinders, and also can
+add the tool link and frame meshes. Be careful with units (in :meth:`.RationalMechanism.export_single_solid()`
+it has to be specified if the result and inputs are in millimeters or meters.
+The Python libraries
+:mod:`build123d` are required for STEP files generation, while
+:mod:`trimesh` and :mod:`manifold3d` are required for STL generation.
 
 .. figure:: figures/pts_on_axes.png
     :width: 500 px
