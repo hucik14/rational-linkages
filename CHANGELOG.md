@@ -1,5 +1,39 @@
 # Changelog
 
+## 2.5.0 (2026-02-20)
+
+### added (11 changes)
+
+- [line model can be exported as STEP solid using build123d](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/605cc415)
+- [trimesh and manifold3d are new optional dependencies](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/83513f1b)
+- [docs updated with STL description](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/06d1e33b)
+- [tool link and frame can be meshed](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/41521fe7)
+- [single STL mesh can be exported to represent whole linkage at home configuration](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/575a6aad)
+- [RationalMechanism.get_design prints also joint points in world frame](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1babb83a)
+- [motion designer example script](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/649b082a)
+- [extended dot product for DQ](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/dccd8fe2)
+- [generate random DQ on SQ with integer element values](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/ade428f9)
+- [changelog description accepts lowercase](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/0d0ac452)
+- [builds also ARM wheels on Github](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1caeea03)
+
+
+### removed (1 change)
+
+- [hoverxref sphinx addon removed as it was deprecated, causing builds to fail](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/79b6d462)
+
+
+### changed (1 change)
+
+- [motion interpolation methods follow the ARK paper notation](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/9c72c0e0)
+
+
+### fixed (2 changes)
+
+- [rendering errors in new PyqtGraph version, quickfix to stay at version 0.13](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d72c1a68)
+- [Mechanism from MotionDesigner didn't respect white background](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/75945114)
+
+
+
 ## 2.4.0 (2025-11-21)
 
 ### added (5 changes)

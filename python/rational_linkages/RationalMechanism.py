@@ -310,18 +310,30 @@ class RationalMechanism(RationalCurve):
         if onshape_print:
             for i in range(self.num_joints):
                 print(f"link{i}: "
-                      f"[{dh[i, 1]:.15f}, {dh[i, 2]:.15f}, {dh[i, 3]:.15f}], "
-                      f"{design_params[i, 0]:.15f}, {design_params[i, 1]:.15f}")
+                      f"[{dh[i, 1]:.12f}, {dh[i, 2]:.12f}, {dh[i, 3]:.12f}], "
+                      f"{design_params[i, 0]:.12f}, {design_params[i, 1]:.12f}")
             pretty_print = False
 
         if pretty_print:
+            print("Denavit-Hartenberg parameters and connection points parameters:")
             for i in range(self.num_joints):
                 print("---")
-                print(f"Link {i}: d = {dh[i, 1]:.15f}, "
-                      f"a = {dh[i, 2]:.15f}, "
-                      f"alpha = {dh[i, 3]:.15f}")
-                print(f"cp_0 = {design_params[i, 0]:.15f}, "
-                      f"cp_1 = {design_params[i, 1]:.15f}")
+                print(f"Link {i}: d = {dh[i, 1]:.12f}, "
+                      f"a = {dh[i, 2]:.12f}, "
+                      f"alpha = {dh[i, 3]:.12f}")
+                print(f"cp_0 = {design_params[i, 0]:.12f}, "
+                      f"cp_1 = {design_params[i, 1]:.12f}")
+            print("======")
+            print("Points which define the joint axes of mechanism in the world frame, "
+                  "at home configuration. Note that joint0 and jointN are part of "
+                  "the base_link joints:")
+            for i in range(self.num_joints):
+                pt0 = design_points[i][0] * scale
+                pt1 = design_points[i][1] * scale
+                print(f"Joint {i}:\n"
+                      f"    pt0 = [{pt0[0]:.12f}, {pt0[1]:.12f}, {pt0[2]:.12f}],\n"
+                      f"    pt1 = [{pt1[0]:.12f}, {pt1[1]:.12f}, {pt1[2]:.12f}]")
+
 
         return dh, design_params, design_points
 
@@ -1541,3 +1553,280 @@ class RationalMechanism(RationalCurve):
         # slice out the last element
         return motion_indices[:-1]
 
+    def export_single_mesh(self,
+                           scale: float = 1.0,
+                           link_diameter: float = 0.01,
+                           joint_diameter: float = 0.02,
+                           smallest_polyline: bool = False,
+                           add_tool_frame: bool = True,
+                           file_name: str = 'mechanism_mesh.stl'):
+        """
+        Export a single STL mesh of the mechanism at home configuration.
+
+        :param float scale: scaling factor of the mechanism
+        :param float link_diameter: radius of the link cylinders
+        :param float joint_diameter: radius of the joint cylinders
+        :param bool smallest_polyline: if True, use the linkage design following the
+            smallest polyline between the connection points
+        :param bool add_tool_frame: if True, add a tool link with frame representing
+            the tool frame
+        :param str file_name: name of the output STL file
+
+        """
+        try:
+            # lazy import
+            import trimesh
+        except ImportError:
+            raise ImportError(
+                "To create meshes that can be exported as STL files, the packages 'trimesh' and 'manifold3d' are required."
+            )
+
+        if smallest_polyline:
+            self.smallest_polyline(update_design=True)
+
+        _, _, mesh_points = self.get_design(pretty_print=False, update_design=True)
+        # flatten points and add first one at the end to close the loop
+        mesh_points = np.vstack(mesh_points) * scale
+        mesh_points = np.vstack([mesh_points, mesh_points[0]])
+
+        cylinders = []
+        for i in range(self.num_joints):
+            cylinders.append(self._cylinder_between_points(mesh_points[2*i],
+                                                        mesh_points[2*i+1],
+                                                        joint_diameter / 2))
+            cylinders.append(self._cylinder_between_points(mesh_points[2*i+1],
+                                                        mesh_points[2*i+2],
+                                                        link_diameter / 2))
+        # filter None cylinders
+        cylinders = [c for c in cylinders if c is not None]
+
+        if add_tool_frame:
+            # add tool link and frame mesh
+            tool_origin = np.array([0, 0, 0])
+            tool_axes = np.array([[1, 0, 0],
+                                  [0, 1, 0],
+                                  [0, 0, 1]])
+
+            # middle points
+            idx = len(mesh_points) / 2
+
+            pt0 = mesh_points[int(idx)]
+            pt1 = mesh_points[int(idx)-1]
+
+            length_tool_link = np.linalg.norm(pt1 - tool_origin)
+
+            cylinders.append(self._cylinder_between_points(tool_origin,
+                                                           pt0,
+                                                           link_diameter / 2))
+            cylinders.append(self._cylinder_between_points(tool_origin,
+                                                           pt1,
+                                                           link_diameter / 2))
+            for axis in tool_axes:
+                cylinders.append(self._cylinder_between_points(
+                    tool_origin,
+                    axis * length_tool_link * 0.2,
+                    link_diameter / 4))
+
+        # boolean union of the cylinders
+        combined = trimesh.boolean.union(cylinders, engine='manifold')
+
+        # export as STL
+        try:
+            combined.export(file_name)
+            print("Mesh exported as", file_name)
+        except Exception as e:
+            print("Failed to export mesh:", e)
+
+
+    @staticmethod
+    def _cylinder_between_points(p0, p1, radius=1.0):
+        """
+        Create a cylinder mesh between two points.
+
+        :param p0: first point
+        :param p1: second point
+        :param radius: radius of the cylinder
+
+        :return: cylinder mesh
+        :rtype: trimesh.Trimesh
+        """
+        try:
+            # lazy import
+            import trimesh
+        except ImportError:
+            raise ImportError(
+                "To create meshes that can be exported as STL files, the packages 'trimesh' and 'manifold3d' are required."
+            )
+
+        p0 = np.asarray(p0)
+        p1 = np.asarray(p1)
+
+        # Vector and length
+        vec = p1 - p0
+        length = np.linalg.norm(vec)
+
+        if length < 1e-9:
+            return None
+
+        direction = vec / length
+
+        # Create cylinder aligned with Z axis
+        cylinder = trimesh.creation.cylinder(
+            radius=radius,
+            height=length,
+        )
+
+        # Align Z axis to direction vector
+        tr = trimesh.geometry.align_vectors([0, 0, 1], direction)
+        cylinder.apply_transform(tr)
+
+        # Move to midpoint
+        midpoint = (p0 + p1) / 2
+        cylinder.apply_translation(midpoint)
+
+        return cylinder
+
+    def export_single_solid(
+            self,
+            units: str = 'mm',
+            scale: float = 1.0,
+            link_diameter: float = 10,
+            joint_diameter: float = 20,
+            smallest_polyline: bool = False,
+            add_tool_frame: bool = True,
+            file_name: str = "mechanism.step",
+    ):
+        """
+        Export a single CAD solid (STEP) of the mechanism at home configuration.
+
+        :param str units: unit of the scale, can be 'm' or 'mm'
+        :param float scale: scaling factor
+        :param float link_diameter: diameter of link cylinders, default is 10 units
+        :param float joint_diameter: diameter of joint cylinders, default is 20 units
+        :param float smallest_polyline: use smallest polyline linkage
+        :param float add_tool_frame: add tool frame geometry
+        :param float file_name: output file name (.step recommended)
+        """
+
+        try:
+            from build123d import (
+                Cylinder,
+                Solid,
+                export_step,
+                Rotation,
+                Location,
+                Axis,
+                Vector
+            )
+            import numpy as np
+        except ImportError as e:
+            raise ImportError(
+                "Build123d is required for CAD export. Install via: pip install build123d"
+            ) from e
+
+        if units == "m":
+            scale = scale
+        elif units == "mm":
+            scale = scale * 1000
+        else:
+            raise ValueError("Unsupported unit.")
+
+        if smallest_polyline:
+            self.smallest_polyline(update_design=True)
+
+        _, _, mesh_points = self.get_design(pretty_print=False, update_design=True)
+        mesh_points = np.vstack(mesh_points) * scale
+        mesh_points = np.vstack([mesh_points, mesh_points[0]])
+
+        solids = []
+
+        # --- helper ---
+        def cylinder_between_points(p0, p1, radius):
+            p0 = np.asarray(p0)
+            p1 = np.asarray(p1)
+
+            vec = p1 - p0
+            length = np.linalg.norm(vec)
+
+            if length < 1e-9:
+                return None
+
+            direction = vec / length
+
+            # Cylinder centered at origin, aligned with Z
+            cyl = Cylinder(radius=radius, height=length)
+
+            z_axis = np.array([0, 0, 1])
+            axis = np.cross(z_axis, direction)
+            axis_norm = np.linalg.norm(axis)
+
+            if axis_norm > 1e-9:
+                axis /= axis_norm
+                angle = np.degrees(
+                    np.arccos(np.clip(np.dot(z_axis, direction), -1.0, 1.0))
+                )
+
+                cyl = cyl.rotate(
+                    Axis((0, 0, 0), Vector(*axis)),
+                    angle,
+                )
+
+            midpoint = (p0 + p1) / 2
+            cyl = cyl.locate(Location(midpoint))
+
+            return cyl
+
+        # --- build mechanism ---
+        for i in range(self.num_joints):
+            solids.append(
+                cylinder_between_points(
+                    mesh_points[2 * i],
+                    mesh_points[2 * i + 1],
+                    joint_diameter / 2,
+                )
+            )
+            solids.append(
+                cylinder_between_points(
+                    mesh_points[2 * i + 1],
+                    mesh_points[2 * i + 2],
+                    link_diameter / 2,
+                )
+            )
+
+        solids = [s for s in solids if s is not None]
+
+        # --- tool frame ---
+        if add_tool_frame:
+            tool_origin = np.array([0, 0, 0])
+            tool_axes = np.eye(3)
+
+            idx = len(mesh_points) // 2
+            pt0 = mesh_points[idx]
+            pt1 = mesh_points[idx - 1]
+
+            length_tool_link = np.linalg.norm(pt1 - tool_origin)
+
+            solids.append(
+                cylinder_between_points(tool_origin, pt0, link_diameter / 2)
+            )
+            solids.append(
+                cylinder_between_points(tool_origin, pt1, link_diameter / 2)
+            )
+
+            for axis in tool_axes:
+                solids.append(
+                    cylinder_between_points(
+                        tool_origin,
+                        axis * length_tool_link * 0.2,
+                        link_diameter / 4,
+                    )
+                )
+
+        # --- boolean fuse ---
+        combined = solids[0]
+        for s in solids[1:]:
+            combined = combined.fuse(s)
+
+        # --- export ---
+        export_step(combined, file_name)
+        print("STEP file exported as", file_name)

@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "2.4.0"
+version = "2.5.0"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
@@ -27,7 +27,7 @@ dependencies = [
     "numpy >= 1.10.0",
     "sympy >= 1.10.0",
     "PyQt6 >= 6.2.0",
-    "pyqtgraph >= 0.12.4",
+    "pyqtgraph < 0.14",
     "PyOpenGL >= 3.0.0",
     # Windows ARM has issues with PyQt6
     "matplotlib >= 3.9.0; platform_system == 'Windows' and platform_machine == 'ARM64'",
@@ -39,10 +39,12 @@ opt = [
     "scipy >= 1.10.0",
     "matplotlib >= 3.9.0",
 ]
-exu = [
+cad = [
     "exudyn >= 1.9.0",
-    "numpy-stl >= 3.0.0",
     "ngsolve >= 6.2.0",
+    "build123d",
+    "trimesh",
+    "manifold3d",
 ]
 doc = [
     "sphinx",

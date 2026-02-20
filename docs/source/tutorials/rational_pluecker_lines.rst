@@ -119,7 +119,7 @@ of the joint axes in rational form.
 
     del sp, tr_from_dh_rationally, normalized_line_rationally
     del r_zero, r_one, a0, t0, t1, a1, theta, d, a, alpha, local_tm, rotate_z_pi2
-    del global_tm, screw_axes_rat, i, tm, tm_z_vector, tm_t_vector, el, i, screw
+    del global_tm, screw_axes_rat, i, tm, tm_z_vector, tm_t_vector
 
 
 **References**:
