@@ -38,13 +38,13 @@ opt = [
     "ipython >= 8.0.0",
     "scipy >= 1.10.0",
     "matplotlib >= 3.9.0",
+]
+cad = [
+    "exudyn >= 1.9.0",
+    "ngsolve >= 6.2.0",
+    "build123d",
     "trimesh",
     "manifold3d",
-]
-exu = [
-    "exudyn >= 1.9.0",
-    "numpy-stl >= 3.0.0",
-    "ngsolve >= 6.2.0",
 ]
 doc = [
     "sphinx",
@@ -53,7 +53,6 @@ doc = [
     "sphinxcontrib-bibtex",
     "toml",
     "pandoc",
-    "sphinx-hoverxref",
     "gitpython",
 ]
 dev = [

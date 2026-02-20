@@ -32,8 +32,8 @@ Mac/linux users might need to add backslashes to escape the brackets, e.g.:
 for installing also **opt** (optional) dependencies (scipy - optimization problems solving, ipython - inline plotting,
 matplotlib - alternative engine for 3D plotting, trimesh + manifold3d - STL
 meshes generation)
-and **exu** (Exudyn) dependencies (exudyn - multibody simulations,
-numpy-stl + ngsolve - work with meshes in exudyn).
+and **cad** dependencies (exudyn - multibody simulations, ngsolve - work with meshes in exudyn,
+build123d - generating STEP files of linkages, trimesh + manifold 3d - generating STL files).
 
 On **Linux** systems, to run GUI interactive plotting, some additional
 libraries are required for plotting with PyQt6. Using
