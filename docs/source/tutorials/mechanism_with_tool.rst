@@ -50,6 +50,9 @@ to assembly your mechanism correctly. See the example below:
     m.export_single_mesh(add_tool_frame=True,
                          file_name='mesh_bennett_ark24.stl')
 
+.. testoutput:: [assembling-mechanism-with-tool]
+
+    Mesh exported as mesh_bennett_ark24.stl
 
 
 .. testcleanup:: [assembling-mechanism-with-tool]
