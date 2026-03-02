@@ -1553,6 +1553,20 @@ class RationalMechanism(RationalCurve):
         # slice out the last element
         return motion_indices[:-1]
 
+    def get_design_points(self, scale: float = 1.0) -> np.ndarray:
+        """
+        Return the design points of the mechanism, scaled and closed as a loop.
+
+        :param float scale: scaling factor for the points
+
+        :return: points array
+        :rtype: np.ndarray
+        """
+        _, _, pts = self.get_design(pretty_print=False, update_design=True)
+        pts = np.vstack(pts) * scale
+        pts = np.vstack([pts, pts[0]])
+        return pts
+
     def export_single_mesh(self,
                            scale: float = 1.0,
                            link_diameter: float = 0.01,
