@@ -23,10 +23,14 @@ class LinkageCAD:
             link_diameter: float = 0.01,
             joint_diameter: float = 0.02,
             add_tool_frame: bool = True,
-            file_name: str = "mechanism_mesh.stl",
-    ) -> None:
+            file_name: str = "mechanism_mesh.stl") -> None:
         """
         Export a single STL mesh of the mechanism at home configuration.
+
+        :param float link_diameter: Diameter of the cylindrical links (in meters).
+        :param float joint_diameter: Diameter of the cylindrical joints (in meters).
+        :param bool add_tool_frame: Whether to include a simple tool frame geometry.
+        :param str file_name: Output STL file name.
         """
         try:
             import trimesh  # lazy import
@@ -62,10 +66,15 @@ class LinkageCAD:
             link_diameter: float = 10,
             joint_diameter: float = 20,
             add_tool_frame: bool = True,
-            file_name: str = "mechanism.step",
-    ) -> None:
+            file_name: str = "mechanism.step",) -> None:
         """
         Export a single CAD solid (STEP) of the mechanism at home configuration.
+
+        :param units: Units for the design (e.g., "mm" or "m").
+        :param link_diameter: Diameter of the cylindrical links (default 10; i.e. mm).
+        :param joint_diameter: Diameter of the cylindrical joints (default 20; i.e. mm).
+        :param add_tool_frame: Whether to include a simple tool frame geometry.
+        :param file_name: Output STEP file name.
         """
         try:
             import build123d  # lazy import
@@ -97,6 +106,32 @@ class LinkageCAD:
 
         build123d.export_step(combined, file_name)
         print(f"CAD solid exported to {file_name!r}")
+
+    def export_solids(self,
+                      units: str = "mm",
+                      link_diameter: float = 10,
+                      joint_diameter: float = 20,
+                      add_tool_frame: bool = True,
+                      file_name: str = "mechanism_parts.step",) -> None:
+        """
+        Export mehanism assembly with individual CAD solids (STEP).
+
+        :param str units: Units for the design (e.g., "mm" or "m").
+        :param float link_diameter: Diameter of the cylindrical links (default 10; i.e. mm).
+        :param float joint_diameter: Diameter of the cylindrical joints (default 20; i.e. mm).
+        :param bool add_tool_frame: Whether to include a simple tool frame geometry.
+        :param str file_name: Output STEP file name.
+        """
+        try:
+            import build123d  # lazy import
+        except ImportError as exc:
+            raise ImportError(
+                "Build123d is required for CAD export. Use: pip install build123d"
+            ) from exc
+
+        points = self._scaled_points(units=units)
+        # TODO later
+
 
     def _scaled_points(self, units: str = "m") -> np.ndarray:
         """
