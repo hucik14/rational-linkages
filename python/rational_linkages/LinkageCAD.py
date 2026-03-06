@@ -108,8 +108,7 @@ class LinkageCAD:
         :rtype: trimesh.Trimesh
         """
         try:
-            # lazy import
-            import trimesh
+            import trimesh  # lazy import
         except ImportError:
             raise ImportError(
                 "To create meshes that can be exported as STL files, the packages 'trimesh' and 'manifold3d' are required."
@@ -146,7 +145,6 @@ class LinkageCAD:
     def export_single_solid(
             self,
             units: str = 'mm',
-            scale: float = 1.0,
             link_diameter: float = 10,
             joint_diameter: float = 20,
             smallest_polyline: bool = False,
@@ -166,25 +164,16 @@ class LinkageCAD:
         """
 
         try:
-            from build123d import (
-                Cylinder,
-                Solid,
-                export_step,
-                Rotation,
-                Location,
-                Axis,
-                Vector
-            )
-            import numpy as np
-        except ImportError as e:
+            import build123d  # lazy import
+        except ImportError:
             raise ImportError(
-                "Build123d is required for CAD export. Install via: pip install build123d"
-            ) from e
+                "Build123d is required for CAD export. Use: pip install build123d"
+            )
 
         if units == "m":
-            scale = scale
+            scale = 1.0
         elif units == "mm":
-            scale = scale * 1000
+            scale = 1000.0
         else:
             raise ValueError("Unsupported unit.")
 
@@ -211,7 +200,7 @@ class LinkageCAD:
             direction = vec / length
 
             # Cylinder centered at origin, aligned with Z
-            cyl = Cylinder(radius=radius, height=length)
+            cyl = build123d.Cylinder(radius=radius, height=length)
 
             z_axis = np.array([0, 0, 1])
             axis = np.cross(z_axis, direction)
@@ -224,12 +213,12 @@ class LinkageCAD:
                 )
 
                 cyl = cyl.rotate(
-                    Axis((0, 0, 0), Vector(*axis)),
+                    build123d.Axis((0, 0, 0), build123d.Vector(*axis)),
                     angle,
                 )
 
             midpoint = (p0 + p1) / 2
-            cyl = cyl.locate(Location(midpoint))
+            cyl = cyl.locate(build123d.Location(midpoint))
 
             return cyl
 
@@ -285,5 +274,5 @@ class LinkageCAD:
             combined = combined.fuse(s)
 
         # --- export ---
-        export_step(combined, file_name)
+        build123d.export_step(combined, file_name)
         print("STEP file exported as", file_name)
