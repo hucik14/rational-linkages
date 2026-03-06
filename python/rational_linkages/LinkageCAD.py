@@ -1,278 +1,220 @@
+from __future__ import annotations
+
+from typing import Iterator
+
 import numpy as np
 
 
 class LinkageCAD:
     """
-    This class is responsible for generating CAD models of the linkage designs.
+    Generate CAD models of linkage designs.
     """
-    def __init__(self,
-                 design_points,
-                 tool = None,):
-        """
 
-        :param design_points:
-        :param tool:
-        """
-        self.design_points = design_points
+    def __init__(self, design_points, tool=None):
+        self.design_points = np.asarray(design_points, dtype=float)
         self.tool = tool
 
-        self.num_joints = int(len(design_points - 1) / 2)
+    @property
+    def num_joints(self) -> int:
+        return (len(self.design_points) - 1) // 2
 
-    def export_single_mesh(self,
-                           link_diameter: float = 0.01,
-                           joint_diameter: float = 0.02,
-                           add_tool_frame: bool = True,
-                           file_name: str = 'mechanism_mesh.stl'):
+    def export_single_mesh(
+            self,
+            link_diameter: float = 0.01,
+            joint_diameter: float = 0.02,
+            add_tool_frame: bool = True,
+            file_name: str = "mechanism_mesh.stl",
+    ) -> None:
         """
         Export a single STL mesh of the mechanism at home configuration.
-
-        :param float scale: scaling factor of the mechanism
-        :param float link_diameter: radius of the link cylinders
-        :param float joint_diameter: radius of the joint cylinders
-        :param bool smallest_polyline: if True, use the linkage design following the
-            smallest polyline between the connection points
-        :param bool add_tool_frame: if True, add a tool link with frame representing
-            the tool frame
-        :param str file_name: name of the output STL file
-
-        """
-        try:
-            # lazy import
-            import trimesh
-        except ImportError:
-            raise ImportError(
-                "To create meshes that can be exported as STL files, the packages 'trimesh' and 'manifold3d' are required."
-            )
-
-        mesh_points = self.design_points
-
-        cylinders = []
-        for i in range(self.num_joints):
-            cylinders.append(self._cylinder_between_points(mesh_points[2*i],
-                                                           mesh_points[2*i+1],
-                                                           joint_diameter / 2))
-            cylinders.append(self._cylinder_between_points(mesh_points[2*i+1],
-                                                           mesh_points[2*i+2],
-                                                           link_diameter / 2))
-        # filter None cylinders
-        cylinders = [c for c in cylinders if c is not None]
-
-        if add_tool_frame:
-            # add tool link and frame mesh
-            tool_origin = np.array([0, 0, 0])
-            tool_axes = np.array([[1, 0, 0],
-                                  [0, 1, 0],
-                                  [0, 0, 1]])
-
-            # middle points
-            idx = len(mesh_points) / 2
-
-            pt0 = mesh_points[int(idx)]
-            pt1 = mesh_points[int(idx)-1]
-
-            length_tool_link = np.linalg.norm(pt1 - tool_origin)
-
-            cylinders.append(self._cylinder_between_points(tool_origin,
-                                                           pt0,
-                                                           link_diameter / 2))
-            cylinders.append(self._cylinder_between_points(tool_origin,
-                                                           pt1,
-                                                           link_diameter / 2))
-            for axis in tool_axes:
-                cylinders.append(self._cylinder_between_points(
-                    tool_origin,
-                    axis * length_tool_link * 0.2,
-                    link_diameter / 4))
-
-        # boolean union of the cylinders
-        combined = trimesh.boolean.union(cylinders, engine='manifold')
-
-        # export as STL
-        try:
-            combined.export(file_name)
-            print("Mesh exported as", file_name)
-        except Exception as e:
-            print("Failed to export mesh:", e)
-
-
-    @staticmethod
-    def _cylinder_between_points(p0, p1, radius=1.0):
-        """
-        Create a cylinder mesh between two points.
-
-        :param p0: first point
-        :param p1: second point
-        :param radius: radius of the cylinder
-
-        :return: cylinder mesh
-        :rtype: trimesh.Trimesh
         """
         try:
             import trimesh  # lazy import
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
-                "To create meshes that can be exported as STL files, the packages 'trimesh' and 'manifold3d' are required."
-            )
+                "To export STL meshes, install 'trimesh' and 'manifold3d'."
+            ) from exc
 
-        p0 = np.asarray(p0)
-        p1 = np.asarray(p1)
-
-        # Vector and length
-        vec = p1 - p0
-        length = np.linalg.norm(vec)
-
-        if length < 1e-9:
-            return None
-
-        direction = vec / length
-
-        # Create cylinder aligned with Z axis
-        cylinder = trimesh.creation.cylinder(
-            radius=radius,
-            height=length,
+        points = self._scaled_points(units="m")
+        segments = self._iter_all_segments(
+            points=points,
+            link_radius=link_diameter / 2,
+            joint_radius=joint_diameter / 2,
+            add_tool_frame=add_tool_frame,
         )
 
-        # Align Z axis to direction vector
-        tr = trimesh.geometry.align_vectors([0, 0, 1], direction)
-        cylinder.apply_transform(tr)
+        cylinders = [
+            self._trimesh_cylinder(p0, p1, radius)
+            for p0, p1, radius in segments
+        ]
+        cylinders = [c for c in cylinders if c is not None]
 
-        # Move to midpoint
-        midpoint = (p0 + p1) / 2
-        cylinder.apply_translation(midpoint)
+        if not cylinders:
+            raise ValueError("No valid cylinders were generated.")
 
-        return cylinder
+        combined = trimesh.boolean.union(cylinders, engine="manifold")
+        combined.export(file_name)
+        print(f"Mesh exported to {file_name!r}")
 
     def export_single_solid(
             self,
-            units: str = 'mm',
+            units: str = "mm",
             link_diameter: float = 10,
             joint_diameter: float = 20,
-            smallest_polyline: bool = False,
             add_tool_frame: bool = True,
             file_name: str = "mechanism.step",
-    ):
+    ) -> None:
         """
         Export a single CAD solid (STEP) of the mechanism at home configuration.
-
-        :param str units: unit of the scale, can be 'm' or 'mm'
-        :param float scale: scaling factor
-        :param float link_diameter: diameter of link cylinders, default is 10 units
-        :param float joint_diameter: diameter of joint cylinders, default is 20 units
-        :param float smallest_polyline: use smallest polyline linkage
-        :param float add_tool_frame: add tool frame geometry
-        :param float file_name: output file name (.step recommended)
         """
-
         try:
             import build123d  # lazy import
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
                 "Build123d is required for CAD export. Use: pip install build123d"
-            )
+            ) from exc
 
+        points = self._scaled_points(units=units)
+        segments = self._iter_all_segments(
+            points=points,
+            link_radius=link_diameter / 2,
+            joint_radius=joint_diameter / 2,
+            add_tool_frame=add_tool_frame,
+        )
+
+        solids = [
+            self._build123d_cylinder(p0, p1, radius, build123d)
+            for p0, p1, radius in segments
+        ]
+        solids = [s for s in solids if s is not None]
+
+        if not solids:
+            raise ValueError("No valid solids were generated.")
+
+        combined = solids[0]
+        for solid in solids[1:]:
+            combined = combined.fuse(solid)
+
+        build123d.export_step(combined, file_name)
+        print(f"CAD solid exported to {file_name!r}")
+
+    def _scaled_points(self, units: str = "m") -> np.ndarray:
+        """
+        Return design points scaled to the requested units.
+        """
         if units == "m":
             scale = 1.0
         elif units == "mm":
             scale = 1000.0
         else:
-            raise ValueError("Unsupported unit.")
+            raise ValueError(f"Unsupported unit: {units!r}")
 
-        if smallest_polyline:
-            self.smallest_polyline(update_design=True)
+        return np.asarray(self.design_points, dtype=float) * scale
 
-        _, _, mesh_points = self.get_design(pretty_print=False, update_design=True)
-        mesh_points = np.vstack(mesh_points) * scale
-        mesh_points = np.vstack([mesh_points, mesh_points[0]])
+    def _iter_all_segments(
+            self,
+            points: np.ndarray,
+            link_radius: float,
+            joint_radius: float,
+            add_tool_frame: bool,
+    ) -> Iterator[tuple[np.ndarray, np.ndarray, float]]:
+        yield from self._iter_mechanism_segments(points, link_radius, joint_radius)
 
-        solids = []
-
-        # --- helper ---
-        def cylinder_between_points(p0, p1, radius):
-            p0 = np.asarray(p0)
-            p1 = np.asarray(p1)
-
-            vec = p1 - p0
-            length = np.linalg.norm(vec)
-
-            if length < 1e-9:
-                return None
-
-            direction = vec / length
-
-            # Cylinder centered at origin, aligned with Z
-            cyl = build123d.Cylinder(radius=radius, height=length)
-
-            z_axis = np.array([0, 0, 1])
-            axis = np.cross(z_axis, direction)
-            axis_norm = np.linalg.norm(axis)
-
-            if axis_norm > 1e-9:
-                axis /= axis_norm
-                angle = np.degrees(
-                    np.arccos(np.clip(np.dot(z_axis, direction), -1.0, 1.0))
-                )
-
-                cyl = cyl.rotate(
-                    build123d.Axis((0, 0, 0), build123d.Vector(*axis)),
-                    angle,
-                )
-
-            midpoint = (p0 + p1) / 2
-            cyl = cyl.locate(build123d.Location(midpoint))
-
-            return cyl
-
-        # --- build mechanism ---
-        for i in range(self.num_joints):
-            solids.append(
-                cylinder_between_points(
-                    mesh_points[2 * i],
-                    mesh_points[2 * i + 1],
-                    joint_diameter / 2,
-                )
-            )
-            solids.append(
-                cylinder_between_points(
-                    mesh_points[2 * i + 1],
-                    mesh_points[2 * i + 2],
-                    link_diameter / 2,
-                )
-            )
-
-        solids = [s for s in solids if s is not None]
-
-        # --- tool frame ---
         if add_tool_frame:
-            tool_origin = np.array([0, 0, 0])
-            tool_axes = np.eye(3)
+            yield from self._iter_tool_segments(points, link_radius)
 
-            idx = len(mesh_points) // 2
-            pt0 = mesh_points[idx]
-            pt1 = mesh_points[idx - 1]
+    def _iter_mechanism_segments(
+            self,
+            points: np.ndarray,
+            link_radius: float,
+            joint_radius: float,
+    ) -> Iterator[tuple[np.ndarray, np.ndarray, float]]:
+        """
+        Yield (p0, p1, radius) for all mechanism cylinders.
+        """
+        for i in range(self.num_joints):
+            yield points[2 * i], points[2 * i + 1], joint_radius
+            yield points[2 * i + 1], points[2 * i + 2], link_radius
 
-            length_tool_link = np.linalg.norm(pt1 - tool_origin)
+    def _iter_tool_segments(
+            self,
+            points: np.ndarray,
+            link_radius: float,
+    ) -> Iterator[tuple[np.ndarray, np.ndarray, float]]:
+        """
+        Yield (p0, p1, radius) for the optional tool frame geometry.
+        """
+        tool_origin = np.zeros(3)
+        tool_axes = np.eye(3)
 
-            solids.append(
-                cylinder_between_points(tool_origin, pt0, link_diameter / 2)
+        idx = len(points) // 2
+        pt0 = points[idx]
+        pt1 = points[idx - 1]
+
+        length_tool_link = np.linalg.norm(pt1 - tool_origin)
+
+        yield tool_origin, pt0, link_radius
+        yield tool_origin, pt1, link_radius
+
+        for axis in tool_axes:
+            yield tool_origin, axis * length_tool_link * 0.2, link_radius / 2
+
+    @staticmethod
+    def _segment_direction_and_length(p0: np.ndarray,
+                                      p1: np.ndarray,
+                                      tol: float = 1e-9,
+                                      ) -> tuple:
+        p0 = np.asarray(p0, dtype=float)
+        p1 = np.asarray(p1, dtype=float)
+
+        vec = p1 - p0
+        length = np.linalg.norm(vec)
+
+        if length < tol:
+            return None, 0.0
+
+        return vec / length, length
+
+    @staticmethod
+    def _trimesh_cylinder(p0, p1, radius):
+        try:
+            import trimesh  # lazy import
+        except ImportError as exc:
+            raise ImportError(
+                "To export STL meshes, install 'trimesh' and 'manifold3d'."
+            ) from exc
+
+        direction, length = LinkageCAD._segment_direction_and_length(p0, p1)
+        if direction is None:
+            return None
+
+        cylinder = trimesh.creation.cylinder(radius=radius, height=length)
+        transform = trimesh.geometry.align_vectors([0, 0, 1], direction)
+        cylinder.apply_transform(transform)
+        cylinder.apply_translation((np.asarray(p0) + np.asarray(p1)) / 2)
+        return cylinder
+
+    @staticmethod
+    def _build123d_cylinder(p0, p1, radius, build123d):
+        direction, length = LinkageCAD._segment_direction_and_length(p0, p1)
+        if direction is None:
+            return None
+
+        cyl = build123d.Cylinder(radius=radius, height=length)
+
+        z_axis = np.array([0.0, 0.0, 1.0])
+        axis = np.cross(z_axis, direction)
+        axis_norm = np.linalg.norm(axis)
+
+        if axis_norm > 1e-9:
+            axis /= axis_norm
+            angle = np.degrees(
+                np.arccos(np.clip(np.dot(z_axis, direction), -1.0, 1.0))
             )
-            solids.append(
-                cylinder_between_points(tool_origin, pt1, link_diameter / 2)
+            cyl = cyl.rotate(
+                build123d.Axis((0, 0, 0), build123d.Vector(*axis)),
+                angle,
             )
 
-            for axis in tool_axes:
-                solids.append(
-                    cylinder_between_points(
-                        tool_origin,
-                        axis * length_tool_link * 0.2,
-                        link_diameter / 4,
-                    )
-                )
-
-        # --- boolean fuse ---
-        combined = solids[0]
-        for s in solids[1:]:
-            combined = combined.fuse(s)
-
-        # --- export ---
-        build123d.export_step(combined, file_name)
-        print("STEP file exported as", file_name)
+        midpoint = (np.asarray(p0) + np.asarray(p1)) / 2
+        return cyl.locate(build123d.Location(tuple(midpoint)))
