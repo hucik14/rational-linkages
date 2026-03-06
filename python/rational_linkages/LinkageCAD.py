@@ -154,33 +154,85 @@ class LinkageCAD:
             for p0, p1, radius in segments
         ]
 
-        tool = solids[-5:] if add_tool_frame and solids else None
-        # fuse (boolean) tool parts together to make a single tool solid
-        if tool:
-            tool_combined = tool[0]
-            for part in tool[1:]:
-                tool_combined = tool_combined.fuse(part)
-            tool = tool_combined
+        if any(s is None for s in solids):
+            raise ValueError("Degenerate segment encountered while building solids.")
 
-
-        solids = solids[:-5] if add_tool_frame and solids else solids
-
-        link0 = solids[-2].fuse(solids[-1]).fuse(solids[0])
-        link1 = solids[0].fuse(solids[1]).fuse(solids[2])
-        link2 = solids[2].fuse(solids[3]).fuse(solids[4])
-        link3 = solids[4].fuse(solids[5]).fuse(solids[6])
-
-        if tool:
-            link2 = link2.fuse(tool)
+        tool = None
+        if add_tool_frame and solids:
+            tool_parts = solids[-4:]
+            tool = self._fuse_solids(tool_parts)
+            solids = solids[:-4]
 
         if not solids:
             raise ValueError("No valid solids were generated.")
 
+        links = self._build_link_solids(solids, tool=tool)
+
         assembly = build123d.Compound(label="assembly",
-                                      children=[link0, link1, link2, link3])
+                                      children=links)
 
         build123d.export_step(assembly, file_name)
         print(f"CAD solids exported to {file_name!r}")
+
+    def _build_link_solids(self,
+                           solids: list,
+                           tool=None,) -> list:
+        """
+        Build fused solids for all mechanism links.
+
+        Each link is composed of three consecutive mechanism cylinders in the
+        repeating pattern:
+            [2*i-2, 2*i-1, 2*i]  (with cyclic indexing)
+
+        :param list solids: Mechanism solids without tool-frame parts.
+        :param tool: Optional fused tool solid attached to the middle link.
+
+        :return: List of fused link solids.
+        :rtype: list
+        """
+        n_links = self.num_joints
+        n_segments = len(solids)
+
+        if n_segments != 2 * n_links:
+            raise ValueError(
+                f"Expected {2 * n_links} mechanism solids, got {n_segments}."
+            )
+
+        middle_link_idx = n_links // 2
+        links = []
+
+        for i in range(n_links):
+            idx0 = (2 * i - 2) % n_segments
+            idx1 = (2 * i - 1) % n_segments
+            idx2 = (2 * i) % n_segments
+
+            parts = [solids[idx0], solids[idx1], solids[idx2]]
+
+            if tool is not None and i == middle_link_idx:
+                parts.append(tool)
+
+            link = self._fuse_solids(parts)
+            links.append(link)
+
+        return links
+
+    @staticmethod
+    def _fuse_solids(solids: list):
+        """
+        Fuse a list of solids into a single solid.
+
+        :param list solids: Solids to be fused.
+
+        :return: Single fused solid.
+        """
+        if not solids:
+            raise ValueError("No solids provided for fusion.")
+
+        fused = solids[0]
+        for solid in solids[1:]:
+            fused = fused.fuse(solid)
+
+        return fused
 
     def _scaled_points(self, units: str = "m") -> np.ndarray:
         """
@@ -264,10 +316,12 @@ class LinkageCAD:
         pt0 = points[idx]
         pt1 = points[idx - 1]
 
+        mid_point = (pt0 + pt1) / 2
+
         length_tool_link = np.linalg.norm(pt1 - tool_origin)
 
-        yield tool_origin, pt0, link_radius
-        yield tool_origin, pt1, link_radius
+        yield tool_origin, mid_point, link_radius
+        # yield tool_origin, pt1, link_radius / 2
 
         for axis in tool_axes:
             yield tool_origin, axis * length_tool_link * 0.2, link_radius / 2

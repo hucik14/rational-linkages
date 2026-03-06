@@ -1584,8 +1584,8 @@ class RationalMechanism(RationalCurve):
         :param str file_name: name of the output STL file
         """
         from rational_linkages.LinkageCAD import LinkageCAD  # lazy import
-        desing_pts = self.get_design_points(scale=scale)
-        LinkageCAD(design_points=desing_pts).export_single_mesh(
+        design_pts = self.get_design_points(scale=scale)
+        LinkageCAD(design_points=design_pts).export_single_mesh(
             link_diameter=link_diameter,
             joint_diameter=joint_diameter,
             add_tool_frame=add_tool_frame,
@@ -1612,8 +1612,36 @@ class RationalMechanism(RationalCurve):
         """
         from rational_linkages.LinkageCAD import LinkageCAD  # lazy import
 
-        desing_pts = self.get_design_points(scale=scale)
-        LinkageCAD(design_points=desing_pts).export_single_solid(
+        design_pts = self.get_design_points(scale=scale)
+        LinkageCAD(design_points=design_pts).export_single_solid(
+            units=units,
+            link_diameter=link_diameter,
+            joint_diameter=joint_diameter,
+            add_tool_frame=add_tool_frame,
+            file_name=file_name
+        )
+
+    def export_solids(self,
+                      units: str = "mm",
+                      link_diameter
+                      : float = 10,
+                      joint_diameter: float = 20,
+                      add_tool_frame: bool = True,
+                      file_name: str = "mechanism_parts.step"
+                      ):
+        """
+        Export mechanism assembly with individual CAD solids (STEP).
+
+        :param str units: Units for the design (e.g., "mm" or "m").
+        :param float link_diameter: Diameter of the cylindrical links (default 10; i.e. mm).
+        :param float joint_diameter: Diameter of the cylindrical joints (default 20; i.e. mm).
+        :param bool add_tool_frame: Whether to include a simple tool frame geometry.
+        :param str file_name: Output STEP file name.
+        """
+        from rational_linkages.LinkageCAD import LinkageCAD  # lazy import
+
+        design_pts = self.get_design_points(scale=1.0)
+        LinkageCAD(design_points=design_pts).export_solids(
             units=units,
             link_diameter=link_diameter,
             joint_diameter=joint_diameter,
