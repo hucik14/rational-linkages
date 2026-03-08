@@ -905,17 +905,27 @@ if QtWidgets is not None:
             # --- Initialize plot items for the mechanism links ---
             self.lines = []
             num_lines = self.mechanism.num_joints * 2
-            for i in range(num_lines):
+
+            # base link in orange
+            line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                          color=(1, 0.5, 0, 1),
+                                          glOptions=self.render_mode,
+                                          width=5,
+                                          antialias=True)
+            self.lines.append(line_item)
+            self.plotter.widget.addItem(line_item)
+
+            for i in range(1, num_lines):
                 # if i is even, make the link color green, and joints red
                 if i % 2 == 0:
                     line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
-                                                  color=(0, 1, 0, 1),
+                                                  color=(1, 1, 0, 1), # yellow (links)
                                                   glOptions=self.render_mode,
                                                   width=5,
                                                   antialias=True)
                 else:
                     line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
-                                                  color=(1, 0, 0, 1),
+                                                  color=(1, 0, 1, 1), # magenta (joints)
                                                   glOptions=self.render_mode,
                                                   width=5,
                                                   antialias=True)
@@ -925,7 +935,7 @@ if QtWidgets is not None:
             # --- If desired, initialize tool plot and tool frame ---
             if self.show_tool:
                 self.tool_link = gl.GLLinePlotItem(pos=np.zeros((3, 3)),
-                                                   color=(0, 1, 0, 0.5),
+                                                   color=(1, 1, 0, 0.5),  # 50% yellow
                                                    glOptions=self.render_mode,
                                                    width=5,
                                                    antialias=True)
@@ -1131,7 +1141,13 @@ if QtWidgets is not None:
                     t, self.mechanism.tool_frame.dq2point_via_matrix())
                 pts2 = self.mechanism.factorizations[1].direct_kinematics(t)[-1]
 
-                tool_triangle = [pts0, pts1, pts2]
+                # shift points to thirds
+                mid_pt = (pts0 + pts2) / 2
+                pts0_3 = (mid_pt + pts0) / 2
+                pts2_3 = (mid_pt + pts2) / 2
+
+                # tool_triangle = [pts0, pts1, pts2]
+                tool_triangle = [pts0_3, pts1, pts2_3]
 
                 if self.base is not None:
                     # Transform the tool triangle by the base transformation.
