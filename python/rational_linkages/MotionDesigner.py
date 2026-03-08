@@ -88,7 +88,8 @@ class MotionDesigner:
                  method: str,
                  initial_points_or_poses: list[Union[PointHomogeneous, DualQuaternion]] = None,
                  arrows_length: float = 1.0,
-                 white_background: bool = False):
+                 white_background: bool = False,
+                 preview_mechanism: bool = False):
         """
         Initialize the application with the motion designer widget.
 
@@ -98,6 +99,10 @@ class MotionDesigner:
             The initial points or poses to use for the motion curve.
         :param float arrows_length: The length of the arrows for the poses.
         :param bool white_background: Whether to use a white background for the plot.
+        :param bool preview_mechanism: Whether to show a preview of the mechanism. The
+            mechanism is visualized as shortest polyline connecting the axes, in
+            default configuration. The computational time may be significant, leading
+            to lagging rendering.
         """
         if method not in ['cubic_from_points',
                           'cubic_from_poses',
@@ -117,13 +122,15 @@ class MotionDesigner:
         self.window = MotionDesignerWidget(method=method,
                                            initial_pts=initial_points_or_poses,
                                            arrows_length=arrows_length,
-                                           white_background=white_background)
+                                           white_background=white_background,
+                                           preview_mechanism=preview_mechanism)
 
     @classmethod
     def start(cls,
               initial_points_or_poses: list[Union[PointHomogeneous, DualQuaternion]] = None,
               arrows_length: float = 1.0,
-              white_background: bool = False):
+              white_background: bool = False,
+              preview_mechanism: bool = False):
         """
         Start Motion Designer with GUI method options.
 
@@ -186,7 +193,8 @@ class MotionDesigner:
         designer = cls(method=chosen_method,
                        initial_points_or_poses=initial_points_or_poses,
                        arrows_length=arrows_length,
-                       white_background=white_background)
+                       white_background=white_background,
+                       preview_mechanism=preview_mechanism)
         designer.show()
         return designer
 
@@ -226,7 +234,8 @@ if QtWidgets is not None:
                      steps: int = 1000,
                      interval: tuple = (0, 1),
                      arrows_length: float = 1.0,
-                     white_background: bool = False):
+                     white_background: bool = False,
+                     preview_mechanism: bool = False):
             """
             Initialize the motion designer widget.
             """
@@ -234,6 +243,7 @@ if QtWidgets is not None:
             self.setMinimumSize(900, 600)
 
             self.white_background = white_background
+            self.preview_mechanism = preview_mechanism
             self.points = self._initialize_points(method, initial_pts)
             self.method = method
             self.arrows_length = arrows_length
@@ -280,6 +290,12 @@ if QtWidgets is not None:
                     self.plotter.widget.add_label(pose, f"p{i}")
                     self.previous_rpy_sliders_values.append(pose.tr.rpy() * 100)
 
+            if method == 'cubic_from_points' or method == 'cubic_from_poses':
+                self.num_lines = 12
+            elif method == 'quadratic_from_points' or method == 'quadratic_from_poses':
+                self.num_lines = 8
+
+            self.lines = None  # mechanism preview lines
             self.curve_path_vis = None  # path of motion curve
             self.curve_frames_vis = None  # poses of motion curve
             self.lambda_val = 0.0
@@ -739,6 +755,50 @@ if QtWidgets is not None:
                 self.curve_path_vis.setData(pos=curve_points)
                 for i, frame in enumerate(self.curve_frames_vis):
                     frame.setData(curve_frames[i])
+
+            if self.preview_mechanism:
+                self._preview_mechanism(coeffs)
+
+        def _preview_mechanism(self, coefficients):
+            """
+            Compute and display the mechanism preview based on the current curve coefficients.
+            """
+            cr = RationalCurve.from_coeffs(coefficients)
+            me = RationalMechanism(cr.factorize())
+            me.smallest_polyline(update_design=True)
+
+            t_val = 1 / np.finfo(np.float64).eps   # infinite t
+            links = (me.factorizations[0].direct_kinematics(t_val) +
+                     me.factorizations[1].direct_kinematics(t_val)[::-1])
+            links.insert(0, links[-1])
+
+            if self.lines is None:
+                self.lines = []
+
+                # base link
+                line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                              color=(1, 0.5, 0, 0.5),
+                                              glOptions=self.render_mode,
+                                              width=5,
+                                              antialias=True)
+                self.lines.append(line_item)
+                self.plotter.widget.addItem(line_item)
+
+                # other links
+                for i in range(1, self.num_lines):
+                    line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                                  color=(1, 1, 0, 0.5),
+                                                  glOptions=self.render_mode,
+                                                  width=5,
+                                                  antialias=True)
+                    self.lines.append(line_item)
+                    self.plotter.widget.addItem(line_item)
+            else:
+                for i, line in enumerate(self.lines):
+                    pt1 = links[i]
+                    pt2 = links[i + 1]
+                    pts = np.array([pt1, pt2])
+                    line.setData(pos=pts)
 
         def closeEvent(self, event):
             """
