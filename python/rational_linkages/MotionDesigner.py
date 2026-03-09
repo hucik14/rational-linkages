@@ -1,4 +1,6 @@
 import sys
+import struct
+import os
 import numpy as np
 
 from typing import Union
@@ -216,6 +218,142 @@ class MotionDesigner:
             self.app.exec()
         except SystemExit:
             pass
+
+    def add_mesh_from_stl(self,
+                          path: str,
+                          color: tuple = (0.7, 0.7, 0.7, 0.3),
+                          name: str | None = None,
+                          smooth: bool = False,
+                          max_faces: int | None = 5000,
+                          weld_tol: float = 1e-8) -> object:
+        """
+        Add a mesh from an STL file to the view.
+
+        Load an STL file (ASCII or binary), produce (vertices, faces) arrays,
+        optionally reduce triangle count for performance, and add it to the view
+        via self.add_mesh\(\).
+
+        :param str path: The file path to the STL file.
+        :param tuple color: RGBA color for the mesh (default is light gray with
+            some transparency).
+        :param str | None name: Optional name for the mesh.
+        :param bool smooth: Whether to use smooth shading (default is False).
+        :param int | None max_faces: If set, the maximum number of faces to display.
+        :param float weld_tol: Tolerance for welding duplicate vertices (default
+            is 1e-8).
+
+        :return: The GL item created by self.add_mesh.
+        :rtype: object
+        """
+        if not os.path.isfile(path):
+            raise FileNotFoundError(path)
+
+        # read raw bytes
+        with open(path, "rb") as f:
+            data = f.read()
+
+        verts = []
+        faces = []
+
+        # detect binary STL reliably by expected size
+        is_binary = False
+        if len(data) >= 84:
+            try:
+                tri_count = struct.unpack_from("<I", data, 80)[0]
+                expected = 84 + tri_count * 50
+                if expected == len(data):
+                    is_binary = True
+            except struct.error:
+                is_binary = False
+
+        if is_binary:
+            # parse binary STL
+            tri_count = struct.unpack_from("<I", data, 80)[0]
+            offset = 84
+            for i in range(tri_count):
+                # 12 floats: normal(3) + v1(3) + v2(3) + v3(3) => 48 bytes, plus 2 byte attr
+                vals = struct.unpack_from("<12f", data, offset)
+                offset += 48
+                # skip 2 byte attribute
+                offset += 2
+                # vertices are vals[3:12]
+                v1 = (vals[3], vals[4], vals[5])
+                v2 = (vals[6], vals[7], vals[8])
+                v3 = (vals[9], vals[10], vals[11])
+                base = len(verts)
+                verts.extend([v1, v2, v3])
+                faces.append([base, base + 1, base + 2])
+        else:
+            # parse ASCII STL
+            try:
+                text = data.decode("utf-8", errors="ignore")
+            except Exception:
+                raise RuntimeError("Unable to decode ASCII STL")
+            lines = text.splitlines()
+            current_face = []
+            for ln in lines:
+                ln = ln.strip()
+                if ln.lower().startswith("vertex"):
+                    parts = ln.split()
+                    if len(parts) >= 4:
+                        try:
+                            x = float(parts[1])
+                            y = float(parts[2])
+                            z = float(parts[3])
+                            verts.append((x, y, z))
+                            current_face.append(len(verts) - 1)
+                            if len(current_face) == 3:
+                                faces.append(current_face)
+                                current_face = []
+                        except ValueError:
+                            continue
+                elif ln.lower().startswith("endfacet"):
+                    current_face = []
+
+        if len(faces) == 0 or len(verts) == 0:
+            raise RuntimeError("No triangles parsed from STL")
+
+        verts = np.array(verts, dtype=float)
+        faces = np.array(faces, dtype=int)
+
+        # optional subsample triangles for performance
+        if (max_faces is not None) and (faces.shape[0] > max_faces):
+            idx = np.linspace(0, faces.shape[0] - 1, max_faces, dtype=int)
+            faces = faces[idx]
+
+        # weld duplicate vertices within weld_tol
+        decimals = max(0, int(-np.log10(weld_tol))) if weld_tol > 0 else 8
+        key_map = {}
+        unique_verts = []
+        remap = np.empty(len(verts), dtype=int)
+        for i, v in enumerate(verts):
+            key = (round(float(v[0]), decimals),
+                   round(float(v[1]), decimals),
+                   round(float(v[2]), decimals))
+            if key in key_map:
+                remap[i] = key_map[key]
+            else:
+                idx_new = len(unique_verts)
+                key_map[key] = idx_new
+                unique_verts.append((v[0], v[1], v[2]))
+                remap[i] = idx_new
+
+        unique_verts = np.array(unique_verts, dtype=float)
+        faces = remap[faces]
+
+        # remove unused vertices and remap indices (compact the vertex array)
+        used = np.unique(faces.reshape(-1))
+        new_idx = -np.ones(unique_verts.shape[0], dtype=int)
+        new_idx[used] = np.arange(used.shape[0], dtype=int)
+        vertices_final = unique_verts[used]
+        faces_final = new_idx[faces]
+
+        # delegate to existing add_mesh
+        return self.window.add_mesh(vertices_final,
+                                    faces_final,
+                                    color=color,
+                                    name=name,
+                                    smooth=smooth)
 
 if QtWidgets is not None:
     class MotionDesignerWidget(QtWidgets.QWidget):
@@ -816,5 +954,65 @@ if QtWidgets is not None:
                 print(f"Motion family index: {self.motion_family_idx}")
             self.plotter.app.quit()
 
+        def add_mesh(self,
+                     vertices: np.ndarray,
+                     faces: np.ndarray,
+                     color: tuple = (0.7, 0.7, 0.7, 0.3),
+                     name: str | None = None,
+                     smooth: bool = False) -> object:
+            """
+            Add a CAD mesh to the 3D view. `vertices` should be (N, 3), `faces` (M, 3).
+            No transform is applied — the mesh is assumed already positioned in the base frame.
+            Returns the created GL item (can be stored or manipulated by caller).
+            """
+            if gl is None:
+                raise RuntimeError("OpenGL / pyqtgraph not available")
+
+            # lazy init container for CAD items
+            if not hasattr(self, "cad_items"):
+                self.cad_items = []
+
+            # create meshdata and mesh item
+            meshdata = gl.MeshData(vertexes=vertices, faces=faces)
+            mesh_item = gl.GLMeshItem(meshdata=meshdata,
+                                      smooth=bool(smooth),
+                                      color=color,
+                                      drawEdges=False,
+                                      glOptions=self.render_mode)
+            # store reference (name optional) and add to view
+            self.cad_items.append((name, mesh_item))
+            self.plotter.widget.addItem(mesh_item)
+            return mesh_item
+
+        def remove_mesh(self, name: str) -> bool:
+            """
+            Remove the first mesh with the given name. Returns True if removed.
+            """
+            if not hasattr(self, "cad_items"):
+                return False
+            for i, (n, item) in enumerate(self.cad_items):
+                if n == name:
+                    try:
+                        self.plotter.widget.removeItem(item)
+                    except Exception:
+                        pass
+                    del self.cad_items[i]
+                    return True
+            return False
+
+        def clear_meshes(self) -> None:
+            """
+            Remove all added CAD meshes from the view.
+            """
+            if not hasattr(self, "cad_items"):
+                return
+            for _, item in self.cad_items:
+                try:
+                    self.plotter.widget.removeItem(item)
+                except Exception:
+                    pass
+            self.cad_items = []
+
 else:
     MotionDesignerWidget = None
+
