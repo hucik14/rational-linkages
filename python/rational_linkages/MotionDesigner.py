@@ -221,6 +221,7 @@ class MotionDesigner:
 
     def add_mesh_from_stl(self,
                           path: str,
+                          scale: float = 1.0,
                           color: tuple = (0.7, 0.7, 0.7, 0.3),
                           name: str | None = None,
                           smooth: bool = False,
@@ -234,6 +235,7 @@ class MotionDesigner:
         via self.add_mesh\(\).
 
         :param str path: The file path to the STL file.
+        :param float scale: Scale factor for mesh vertices.
         :param tuple color: RGBA color for the mesh (default is light gray with
             some transparency).
         :param str | None name: Optional name for the mesh.
@@ -281,6 +283,10 @@ class MotionDesigner:
                 v2 = (vals[6], vals[7], vals[8])
                 v3 = (vals[9], vals[10], vals[11])
                 base = len(verts)
+                # scale vertices
+                v1 = (v1[0] * scale, v1[1] * scale, v1[2] * scale)
+                v2 = (v2[0] * scale, v2[1] * scale, v2[2] * scale)
+                v3 = (v3[0] * scale, v3[1] * scale, v3[2] * scale)
                 verts.extend([v1, v2, v3])
                 faces.append([base, base + 1, base + 2])
         else:
@@ -297,9 +303,9 @@ class MotionDesigner:
                     parts = ln.split()
                     if len(parts) >= 4:
                         try:
-                            x = float(parts[1])
-                            y = float(parts[2])
-                            z = float(parts[3])
+                            x = float(parts[1]) * scale
+                            y = float(parts[2]) * scale
+                            z = float(parts[3]) * scale
                             verts.append((x, y, z))
                             current_face.append(len(verts) - 1)
                             if len(current_face) == 3:
@@ -952,6 +958,7 @@ if QtWidgets is not None:
                 print(f"Lambda: {self.slider_lambda.value() / 100.0}")
             if self.swap_family_check_box:
                 print(f"Motion family index: {self.motion_family_idx}")
+            self.clear_meshes()
             self.plotter.app.quit()
 
         def add_mesh(self,
