@@ -103,7 +103,7 @@ class PlotterPyqtgraph:
             if self.white_background:
                 grid.setColor(QtGui.QColor(QtCore.Qt.GlobalColor.lightGray))
             else:
-                grid.setColor(QtGui.QColor(100,100,100,50))
+                grid.setColor(QtGui.QColor(128,128,128,80))
             self.widget.addItem(grid)
 
         # store parameters

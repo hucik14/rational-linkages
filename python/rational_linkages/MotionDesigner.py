@@ -244,7 +244,7 @@ class MotionDesigner:
     def add_mesh_from_stl(self,
                           path: str,
                           scale: float = 1.0,
-                          color: tuple = (0.4, 0.4, 0.4, 0.1),
+                          color: tuple = (0.4, 0.4, 0.4, 0.2),
                           name: str | None = None,
                           smooth: bool = False,
                           max_faces: int = None,
