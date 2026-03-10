@@ -244,10 +244,10 @@ class MotionDesigner:
     def add_mesh_from_stl(self,
                           path: str,
                           scale: float = 1.0,
-                          color: tuple = (0.7, 0.7, 0.7, 0.3),
+                          color: tuple = (0.4, 0.4, 0.4, 0.1),
                           name: str | None = None,
                           smooth: bool = False,
-                          max_faces: int | None = 5000,
+                          max_faces: int = None,
                           weld_tol: float = 1e-8) -> object:
         """
         Add a mesh from an STL file to the view.
@@ -262,7 +262,7 @@ class MotionDesigner:
             some transparency).
         :param str | None name: Optional name for the mesh.
         :param bool smooth: Whether to use smooth shading (default is False).
-        :param int | None max_faces: If set, the maximum number of faces to display.
+        :param int max_faces: If set, the maximum number of faces to display.
         :param float weld_tol: Tolerance for welding duplicate vertices (default
             is 1e-8).
 
@@ -343,6 +343,9 @@ class MotionDesigner:
 
         verts = np.array(verts, dtype=float)
         faces = np.array(faces, dtype=int)
+        if (max_faces is None) and (faces.shape[0]) > 200000:
+            warn("Too many faces may lead to very slow rendering. Consider reducing it using max_faces=200000 parameter.")
+            print('number of faces: {}'.format(faces.shape[0]))
 
         # optional subsample triangles for performance
         if (max_faces is not None) and (faces.shape[0] > max_faces):
