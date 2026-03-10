@@ -101,7 +101,7 @@ class PlotterPyqtgraph:
             grid.setSize(x=grid_size, y=grid_size)
             grid.setSpacing(x=grid_spacing, y=grid_spacing)
             if self.white_background:
-                grid.setColor(QtGui.QColor(QtCore.Qt.GlobalColor.darkGray))
+                grid.setColor(QtGui.QColor(QtCore.Qt.GlobalColor.lightGray))
             else:
                 grid.setColor(QtGui.QColor(100,100,100,50))
             self.widget.addItem(grid)
