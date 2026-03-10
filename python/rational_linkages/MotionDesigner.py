@@ -90,6 +90,8 @@ class MotionDesigner:
                  method: str,
                  initial_points_or_poses: list[Union[PointHomogeneous, DualQuaternion]] = None,
                  arrows_length: float = 1.0,
+                 sliders_range: int = 10,
+                 show_grid: bool = True,
                  white_background: bool = False,
                  preview_mechanism: bool = False):
         """
@@ -100,6 +102,9 @@ class MotionDesigner:
         :param list[PointHomogeneous] or list[DualQuaternion] initial_points_or_poses:
             The initial points or poses to use for the motion curve.
         :param float arrows_length: The length of the arrows for the poses.
+        :param int sliders_range: The plus/minus range for the sliders in the control
+            panel (default is 10, i.e. from -10 to 10 units).
+        :param bool show_grid: Whether to show a grid in the 3D view (default is True).
         :param bool white_background: Whether to use a white background for the plot.
         :param bool preview_mechanism: Whether to show a preview of the mechanism. The
             mechanism is visualized as shortest polyline connecting the axes, in
@@ -124,6 +129,8 @@ class MotionDesigner:
         self.window = MotionDesignerWidget(method=method,
                                            initial_pts=initial_points_or_poses,
                                            arrows_length=arrows_length,
+                                           sliders_range=sliders_range,
+                                           show_grid=show_grid,
                                            white_background=white_background,
                                            preview_mechanism=preview_mechanism)
 
@@ -132,10 +139,23 @@ class MotionDesigner:
               initial_points_or_poses: list[Union[PointHomogeneous, DualQuaternion]] = None,
               arrows_length: float = 1.0,
               white_background: bool = False,
+              sliders_range: int = 10,
+              show_grid: bool = True,
               preview_mechanism: bool = False):
         """
         Start Motion Designer with GUI method options.
 
+        :param list[PointHomogeneous] or list[DualQuaternion] initial_points_or_poses:
+            The initial points or poses to use for the motion curve.
+        :param float arrows_length: The length of the arrows for the poses.
+        :param bool white_background: Whether to use a white background for the plot.
+        :param int sliders_range: The plus/minus range for the sliders in the control
+            panel (default is 10, i.e. from -10 to 10 units).
+        :param bool show_grid: Whether to show a grid in the 3D view (default is True).
+        :param bool preview_mechanism: Whether to show a preview of the mechanism. The
+            mechanism is visualized as shortest polyline connecting the axes, in
+            default configuration. The computational time may be significant, leading
+            to lagging rendering.
         """
         if QtWidgets is None:
             raise RuntimeError(
@@ -195,6 +215,8 @@ class MotionDesigner:
         designer = cls(method=chosen_method,
                        initial_points_or_poses=initial_points_or_poses,
                        arrows_length=arrows_length,
+                       sliders_range=sliders_range,
+                       show_grid=show_grid,
                        white_background=white_background,
                        preview_mechanism=preview_mechanism)
         designer.show()
@@ -375,6 +397,8 @@ if QtWidgets is not None:
                      method: str = 'cubic_from_points',
                      initial_pts: Union[list[PointHomogeneous], list[DualQuaternion]] = None,
                      parent = None,
+                     sliders_range: int = 10,
+                     show_grid: bool = True,
                      steps: int = 1000,
                      interval: tuple = (0, 1),
                      arrows_length: float = 1.0,
@@ -393,11 +417,15 @@ if QtWidgets is not None:
             self.arrows_length = arrows_length
             self.mi = MotionInterpolation()
 
+            grid_size = sliders_range * 2
+
             # an instance of Pyqtgraph-based plotter
             self.plotter = PlotterPyqtgraph(steps=steps,
                                             interval=interval,
                                             arrows_length=self.arrows_length,
-                                            white_background=self.white_background)
+                                            white_background=self.white_background,
+                                            show_grid=show_grid,
+                                            grid_size=grid_size)
 
             self.mechanism_plotter = []
 
@@ -483,8 +511,8 @@ if QtWidgets is not None:
             for slider, textbox in [(self.slider_x, self.textbox_x),
                                     (self.slider_y, self.textbox_y),
                                     (self.slider_z, self.textbox_z)]:
-                slider.setMinimum(-1000)
-                slider.setMaximum(1000)
+                slider.setMinimum(int(-100 * sliders_range))
+                slider.setMaximum(int(100 * sliders_range))
                 slider.setSingleStep(1)
                 slider.valueChanged.connect(self.on_slider_value_changed)
 

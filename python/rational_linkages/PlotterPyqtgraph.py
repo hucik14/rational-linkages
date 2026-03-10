@@ -41,6 +41,8 @@ class PlotterPyqtgraph:
                  interval: tuple = (-1, 1),
                  arrows_length: float = 1.0,
                  white_background: bool = False,
+                 show_grid: bool = True,
+                 grid_size: float = 10.,
                  parent_app=None
                  ):
         """
@@ -87,12 +89,22 @@ class PlotterPyqtgraph:
         self.app.processEvents()
 
         # add a grid
-        grid = gl.GLGridItem()
-        grid.setSize(20, 20)
-        grid.setSpacing(1, 1)
-        if self.white_background:
-            grid.setColor(QtGui.QColor(QtCore.Qt.GlobalColor.lightGray))
-        self.widget.addItem(grid)
+        if show_grid:
+            grid = gl.GLGridItem()
+            if not np.isfinite(grid_size) or grid_size <= 0:
+                warn("Non‑positive or non‑finite grid_size; using default grid size = 10")
+                grid_size = 10
+                grid_spacing = 1.
+            else:
+                exponent = int(np.floor(np.log10(grid_size))) - 1
+                grid_spacing = float(np.power(10.0, exponent))
+            grid.setSize(x=grid_size, y=grid_size)
+            grid.setSpacing(x=grid_spacing, y=grid_spacing)
+            if self.white_background:
+                grid.setColor(QtGui.QColor(QtCore.Qt.GlobalColor.darkGray))
+            else:
+                grid.setColor(QtGui.QColor(100,100,100,50))
+            self.widget.addItem(grid)
 
         # store parameters
         self.t_space = np.linspace(interval[0], interval[1], steps)
