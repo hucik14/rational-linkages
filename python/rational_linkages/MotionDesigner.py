@@ -1,4 +1,6 @@
 import sys
+import struct
+import os
 import numpy as np
 
 from typing import Union
@@ -88,7 +90,10 @@ class MotionDesigner:
                  method: str,
                  initial_points_or_poses: list[Union[PointHomogeneous, DualQuaternion]] = None,
                  arrows_length: float = 1.0,
-                 white_background: bool = False):
+                 sliders_range: int = 10,
+                 show_grid: bool = True,
+                 white_background: bool = False,
+                 preview_mechanism: bool = False):
         """
         Initialize the application with the motion designer widget.
 
@@ -97,7 +102,14 @@ class MotionDesigner:
         :param list[PointHomogeneous] or list[DualQuaternion] initial_points_or_poses:
             The initial points or poses to use for the motion curve.
         :param float arrows_length: The length of the arrows for the poses.
+        :param int sliders_range: The plus/minus range for the sliders in the control
+            panel (default is 10, i.e. from -10 to 10 units).
+        :param bool show_grid: Whether to show a grid in the 3D view (default is True).
         :param bool white_background: Whether to use a white background for the plot.
+        :param bool preview_mechanism: Whether to show a preview of the mechanism. The
+            mechanism is visualized as shortest polyline connecting the axes, in
+            default configuration. The computational time may be significant, leading
+            to lagging rendering.
         """
         if method not in ['cubic_from_points',
                           'cubic_from_poses',
@@ -117,16 +129,33 @@ class MotionDesigner:
         self.window = MotionDesignerWidget(method=method,
                                            initial_pts=initial_points_or_poses,
                                            arrows_length=arrows_length,
-                                           white_background=white_background)
+                                           sliders_range=sliders_range,
+                                           show_grid=show_grid,
+                                           white_background=white_background,
+                                           preview_mechanism=preview_mechanism)
 
     @classmethod
     def start(cls,
               initial_points_or_poses: list[Union[PointHomogeneous, DualQuaternion]] = None,
               arrows_length: float = 1.0,
-              white_background: bool = False):
+              white_background: bool = False,
+              sliders_range: int = 10,
+              show_grid: bool = True,
+              preview_mechanism: bool = False):
         """
         Start Motion Designer with GUI method options.
 
+        :param list[PointHomogeneous] or list[DualQuaternion] initial_points_or_poses:
+            The initial points or poses to use for the motion curve.
+        :param float arrows_length: The length of the arrows for the poses.
+        :param bool white_background: Whether to use a white background for the plot.
+        :param int sliders_range: The plus/minus range for the sliders in the control
+            panel (default is 10, i.e. from -10 to 10 units).
+        :param bool show_grid: Whether to show a grid in the 3D view (default is True).
+        :param bool preview_mechanism: Whether to show a preview of the mechanism. The
+            mechanism is visualized as shortest polyline connecting the axes, in
+            default configuration. The computational time may be significant, leading
+            to lagging rendering.
         """
         if QtWidgets is None:
             raise RuntimeError(
@@ -186,7 +215,10 @@ class MotionDesigner:
         designer = cls(method=chosen_method,
                        initial_points_or_poses=initial_points_or_poses,
                        arrows_length=arrows_length,
-                       white_background=white_background)
+                       sliders_range=sliders_range,
+                       show_grid=show_grid,
+                       white_background=white_background,
+                       preview_mechanism=preview_mechanism)
         designer.show()
         return designer
 
@@ -209,6 +241,151 @@ class MotionDesigner:
         except SystemExit:
             pass
 
+    def add_mesh_from_stl(self,
+                          path: str,
+                          scale: float = 1.0,
+                          color: tuple = (0.4, 0.4, 0.4, 0.2),
+                          name: str | None = None,
+                          smooth: bool = False,
+                          max_faces: int = None,
+                          weld_tol: float = 1e-8) -> object:
+        """
+        Add a mesh from an STL file to the view.
+
+        Load an STL file (ASCII or binary), produce (vertices, faces) arrays,
+        optionally reduce triangle count for performance, and add it to the view
+        via self.add_mesh\(\).
+
+        :param str path: The file path to the STL file.
+        :param float scale: Scale factor for mesh vertices.
+        :param tuple color: RGBA color for the mesh (default is light gray with
+            some transparency).
+        :param str | None name: Optional name for the mesh.
+        :param bool smooth: Whether to use smooth shading (default is False).
+        :param int max_faces: If set, the maximum number of faces to display.
+        :param float weld_tol: Tolerance for welding duplicate vertices (default
+            is 1e-8).
+
+        :return: The GL item created by self.add_mesh.
+        :rtype: object
+        """
+        if not os.path.isfile(path):
+            raise FileNotFoundError(path)
+
+        # read raw bytes
+        with open(path, "rb") as f:
+            data = f.read()
+
+        verts = []
+        faces = []
+
+        # detect binary STL reliably by expected size
+        is_binary = False
+        if len(data) >= 84:
+            try:
+                tri_count = struct.unpack_from("<I", data, 80)[0]
+                expected = 84 + tri_count * 50
+                if expected == len(data):
+                    is_binary = True
+            except struct.error:
+                is_binary = False
+
+        if is_binary:
+            # parse binary STL
+            tri_count = struct.unpack_from("<I", data, 80)[0]
+            offset = 84
+            for i in range(tri_count):
+                # 12 floats: normal(3) + v1(3) + v2(3) + v3(3) => 48 bytes, plus 2 byte attr
+                vals = struct.unpack_from("<12f", data, offset)
+                offset += 48
+                # skip 2 byte attribute
+                offset += 2
+                # vertices are vals[3:12]
+                v1 = (vals[3], vals[4], vals[5])
+                v2 = (vals[6], vals[7], vals[8])
+                v3 = (vals[9], vals[10], vals[11])
+                base = len(verts)
+                # scale vertices
+                v1 = (v1[0] * scale, v1[1] * scale, v1[2] * scale)
+                v2 = (v2[0] * scale, v2[1] * scale, v2[2] * scale)
+                v3 = (v3[0] * scale, v3[1] * scale, v3[2] * scale)
+                verts.extend([v1, v2, v3])
+                faces.append([base, base + 1, base + 2])
+        else:
+            # parse ASCII STL
+            try:
+                text = data.decode("utf-8", errors="ignore")
+            except Exception:
+                raise RuntimeError("Unable to decode ASCII STL")
+            lines = text.splitlines()
+            current_face = []
+            for ln in lines:
+                ln = ln.strip()
+                if ln.lower().startswith("vertex"):
+                    parts = ln.split()
+                    if len(parts) >= 4:
+                        try:
+                            x = float(parts[1]) * scale
+                            y = float(parts[2]) * scale
+                            z = float(parts[3]) * scale
+                            verts.append((x, y, z))
+                            current_face.append(len(verts) - 1)
+                            if len(current_face) == 3:
+                                faces.append(current_face)
+                                current_face = []
+                        except ValueError:
+                            continue
+                elif ln.lower().startswith("endfacet"):
+                    current_face = []
+
+        if len(faces) == 0 or len(verts) == 0:
+            raise RuntimeError("No triangles parsed from STL")
+
+        verts = np.array(verts, dtype=float)
+        faces = np.array(faces, dtype=int)
+        if (max_faces is None) and (faces.shape[0]) > 200000:
+            warn("Too many faces may lead to very slow rendering. Consider reducing it using max_faces=200000 parameter.")
+            print('number of faces: {}'.format(faces.shape[0]))
+
+        # optional subsample triangles for performance
+        if (max_faces is not None) and (faces.shape[0] > max_faces):
+            idx = np.linspace(0, faces.shape[0] - 1, max_faces, dtype=int)
+            faces = faces[idx]
+
+        # weld duplicate vertices within weld_tol
+        decimals = max(0, int(-np.log10(weld_tol))) if weld_tol > 0 else 8
+        key_map = {}
+        unique_verts = []
+        remap = np.empty(len(verts), dtype=int)
+        for i, v in enumerate(verts):
+            key = (round(float(v[0]), decimals),
+                   round(float(v[1]), decimals),
+                   round(float(v[2]), decimals))
+            if key in key_map:
+                remap[i] = key_map[key]
+            else:
+                idx_new = len(unique_verts)
+                key_map[key] = idx_new
+                unique_verts.append((v[0], v[1], v[2]))
+                remap[i] = idx_new
+
+        unique_verts = np.array(unique_verts, dtype=float)
+        faces = remap[faces]
+
+        # remove unused vertices and remap indices (compact the vertex array)
+        used = np.unique(faces.reshape(-1))
+        new_idx = -np.ones(unique_verts.shape[0], dtype=int)
+        new_idx[used] = np.arange(used.shape[0], dtype=int)
+        vertices_final = unique_verts[used]
+        faces_final = new_idx[faces]
+
+        # delegate to existing add_mesh
+        return self.window.add_mesh(vertices_final,
+                                    faces_final,
+                                    color=color,
+                                    name=name,
+                                    smooth=smooth)
+
 if QtWidgets is not None:
     class MotionDesignerWidget(QtWidgets.QWidget):
         """
@@ -223,10 +400,13 @@ if QtWidgets is not None:
                      method: str = 'cubic_from_points',
                      initial_pts: Union[list[PointHomogeneous], list[DualQuaternion]] = None,
                      parent = None,
+                     sliders_range: int = 10,
+                     show_grid: bool = True,
                      steps: int = 1000,
                      interval: tuple = (0, 1),
                      arrows_length: float = 1.0,
-                     white_background: bool = False):
+                     white_background: bool = False,
+                     preview_mechanism: bool = False):
             """
             Initialize the motion designer widget.
             """
@@ -234,16 +414,21 @@ if QtWidgets is not None:
             self.setMinimumSize(900, 600)
 
             self.white_background = white_background
+            self.preview_mechanism = preview_mechanism
             self.points = self._initialize_points(method, initial_pts)
             self.method = method
             self.arrows_length = arrows_length
             self.mi = MotionInterpolation()
 
+            grid_size = sliders_range * 2
+
             # an instance of Pyqtgraph-based plotter
             self.plotter = PlotterPyqtgraph(steps=steps,
                                             interval=interval,
                                             arrows_length=self.arrows_length,
-                                            white_background=self.white_background)
+                                            white_background=self.white_background,
+                                            show_grid=show_grid,
+                                            grid_size=grid_size)
 
             self.mechanism_plotter = []
 
@@ -280,6 +465,12 @@ if QtWidgets is not None:
                     self.plotter.widget.add_label(pose, f"p{i}")
                     self.previous_rpy_sliders_values.append(pose.tr.rpy() * 100)
 
+            if method == 'cubic_from_points' or method == 'cubic_from_poses':
+                self.num_lines = 12
+            elif method == 'quadratic_from_points' or method == 'quadratic_from_poses':
+                self.num_lines = 8
+
+            self.lines = None  # mechanism preview lines
             self.curve_path_vis = None  # path of motion curve
             self.curve_frames_vis = None  # poses of motion curve
             self.lambda_val = 0.0
@@ -323,8 +514,8 @@ if QtWidgets is not None:
             for slider, textbox in [(self.slider_x, self.textbox_x),
                                     (self.slider_y, self.textbox_y),
                                     (self.slider_z, self.textbox_z)]:
-                slider.setMinimum(-1000)
-                slider.setMaximum(1000)
+                slider.setMinimum(int(-100 * sliders_range))
+                slider.setMaximum(int(100 * sliders_range))
                 slider.setSingleStep(1)
                 slider.valueChanged.connect(self.on_slider_value_changed)
 
@@ -740,6 +931,53 @@ if QtWidgets is not None:
                 for i, frame in enumerate(self.curve_frames_vis):
                     frame.setData(curve_frames[i])
 
+            if self.preview_mechanism:
+                self._preview_mechanism(coeffs)
+
+        def _preview_mechanism(self, coefficients):
+            """
+            Compute and display the mechanism preview.
+
+            :param np.ndarray coefficients: The coefficients of the rational curve,
+                used to compute the mechanism configuration at t → ∞.
+            """
+            cr = RationalCurve.from_coeffs(coefficients)  # TODO avoid sympy
+            me = RationalMechanism(cr.factorize())  # TODO avoid sympy
+            me.smallest_polyline(update_design=True)
+
+            t_val = 1 / np.finfo(np.float64).eps   # infinite t
+            links = (me.factorizations[0].direct_kinematics(t_val) +
+                     me.factorizations[1].direct_kinematics(t_val)[::-1])
+            links.insert(0, links[-1])
+
+            if self.lines is None:
+                self.lines = []
+
+                # base link
+                line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                              color=(1, 0.5, 0, 0.5),
+                                              glOptions=self.render_mode,
+                                              width=5,
+                                              antialias=True)
+                self.lines.append(line_item)
+                self.plotter.widget.addItem(line_item)
+
+                # other links
+                for i in range(1, self.num_lines):
+                    line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                                                  color=(1, 1, 0, 0.5),
+                                                  glOptions=self.render_mode,
+                                                  width=5,
+                                                  antialias=True)
+                    self.lines.append(line_item)
+                    self.plotter.widget.addItem(line_item)
+            else:
+                for i, line in enumerate(self.lines):
+                    pt1 = links[i]
+                    pt2 = links[i + 1]
+                    pts = np.array([pt1, pt2])
+                    line.setData(pos=pts)
+
         def closeEvent(self, event):
             """
             Called when the window is closed. Ensure that the Qt application exits.
@@ -751,7 +989,68 @@ if QtWidgets is not None:
                 print(f"Lambda: {self.slider_lambda.value() / 100.0}")
             if self.swap_family_check_box:
                 print(f"Motion family index: {self.motion_family_idx}")
+            self.clear_meshes()
             self.plotter.app.quit()
+
+        def add_mesh(self,
+                     vertices: np.ndarray,
+                     faces: np.ndarray,
+                     color: tuple = (0.7, 0.7, 0.7, 0.3),
+                     name: str | None = None,
+                     smooth: bool = False) -> object:
+            """
+            Add a CAD mesh to the 3D view. `vertices` should be (N, 3), `faces` (M, 3).
+            No transform is applied — the mesh is assumed already positioned in the base frame.
+            Returns the created GL item (can be stored or manipulated by caller).
+            """
+            if gl is None:
+                raise RuntimeError("OpenGL / pyqtgraph not available")
+
+            # lazy init container for CAD items
+            if not hasattr(self, "cad_items"):
+                self.cad_items = []
+
+            # create meshdata and mesh item
+            meshdata = gl.MeshData(vertexes=vertices, faces=faces)
+            mesh_item = gl.GLMeshItem(meshdata=meshdata,
+                                      smooth=bool(smooth),
+                                      color=color,
+                                      drawEdges=False,
+                                      glOptions=self.render_mode)
+            # store reference (name optional) and add to view
+            self.cad_items.append((name, mesh_item))
+            self.plotter.widget.addItem(mesh_item)
+            return mesh_item
+
+        def remove_mesh(self, name: str) -> bool:
+            """
+            Remove the first mesh with the given name. Returns True if removed.
+            """
+            if not hasattr(self, "cad_items"):
+                return False
+            for i, (n, item) in enumerate(self.cad_items):
+                if n == name:
+                    try:
+                        self.plotter.widget.removeItem(item)
+                    except Exception:
+                        pass
+                    del self.cad_items[i]
+                    return True
+            return False
+
+        def clear_meshes(self) -> None:
+            """
+            Remove all added CAD meshes from the view.
+            """
+            if not hasattr(self, "cad_items"):
+                return
+            for _, item in self.cad_items:
+                try:
+                    self.plotter.widget.removeItem(item)
+                except Exception:
+                    pass
+            self.cad_items = []
 
 else:
     MotionDesignerWidget = None
+

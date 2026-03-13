@@ -1,3 +1,5 @@
+.. _mechanism_with_tool:
+
 Mechanism in the World Frame
 ============================
 
@@ -52,7 +54,7 @@ to assembly your mechanism correctly. See the example below:
 
 .. testoutput:: [assembling-mechanism-with-tool]
 
-    Mesh exported as mesh_bennett_ark24.stl
+    Mesh exported to 'mesh_bennett_ark24.stl'
 
 
 .. testcleanup:: [assembling-mechanism-with-tool]
@@ -67,21 +69,22 @@ joints are always static, they can be used to determine the position of the mech
 once you start assembling the CAD model.
 
 It can be useful to observe the visualization of the mechanism. For this purpose, the mechanism
-can be meshed and exported as STL or STEP file. The methods :meth:`.RationalMechanism.export_single_mesh()`
-and :meth:`.RationalMechanism.export_single_solid()` can be
-used for this purpose. They accept arguments for size of the joints and links cylinders, and also can
-add the tool link and frame meshes. Be careful with units (in :meth:`.RationalMechanism.export_single_solid()`
-it has to be specified if the result and inputs are in millimeters or meters.
-The Python libraries
-:mod:`build123d` are required for STEP files generation, while
-:mod:`trimesh` and :mod:`manifold3d` are required for STL generation.
+can be meshed and exported as STL or STEP file. The methods
+
+* :meth:`.RationalMechanism.export_single_mesh()`,
+* :meth:`.RationalMechanism.export_single_solid()`,
+* and :meth:`.RationalMechanism.export_solids()`
+
+can be used for this purpose. See tutorial :ref:`cad_tutorial`
+for more details on how to use them. The result can look like on the figure below.
 
 .. figure:: figures/pts_on_axes.png
     :width: 500 px
     :align: center
     :alt: Assembling mechanism with tool (left); corresponding generated STL mesh (right)
 
-See the following figure describing how the related attributes of the :class:`.RationalMechanism` class are
+
+See another figure bellow describing how the related attributes of the :class:`.RationalMechanism` class are
 programmed in the background. The reason for this implementation is that the mechanisms can have more than 4 joints,
 and therefore the number of joints and links is variable.
 
