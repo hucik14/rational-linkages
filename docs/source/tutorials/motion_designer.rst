@@ -1,3 +1,5 @@
+.. _motion_designer:
+
 Motion Designer
 ===============
 
@@ -58,3 +60,7 @@ of ``steps``.
 After closing the window, chosen parameters will be printed out, so they can be used in
 :ref:`interpolation_examples`, or used as an input for a new :class:`.MotionDesigner` instance (see the
 docstring of the class for more details).
+
+
+MotionDesigner can also preview the mechanism or visualize STL of your workcell.
+See the section :ref:`stl_preview-motion_designer` for more details.
