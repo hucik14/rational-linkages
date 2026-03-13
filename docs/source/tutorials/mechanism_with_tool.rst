@@ -54,7 +54,7 @@ to assembly your mechanism correctly. See the example below:
 
 .. testoutput:: [assembling-mechanism-with-tool]
 
-    Mesh exported as mesh_bennett_ark24.stl
+    Mesh exported to 'mesh_bennett_ark24.stl'
 
 
 .. testcleanup:: [assembling-mechanism-with-tool]
