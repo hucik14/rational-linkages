@@ -14,6 +14,7 @@ Tutorials
    tutorials/combinatorial_search
    tutorials/synthesis_bennett
    tutorials/mechanism_with_tool
+   tutorials/cad
    tutorials/rational_pluecker_lines
    tutorials/motion_recovering
    tutorials/control

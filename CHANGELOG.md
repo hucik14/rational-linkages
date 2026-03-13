@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.6.0 (2026-03-13)
+
+### added (8 changes)
+
+- [docs for CAD generation](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/196fdc1e)
+- [setting for the sliders range in MotionDesigner, auto-adjust grid](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/0da0d101)
+- [STL meshes can be scaled via argument](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/12f73713)
+- [add STL meshes in the MotionDesigner visualization](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/c33c2e1e)
+- [MotionDesigner can preview mechanism using preview_mechanism=True flag](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/99039fb8)
+- [mechanism parts can be exported as STEP assembly](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/fe432c8c)
+- [new class to represent LinkageCAD and generating methods](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/52e1a813)
+- [added method to get design points](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/23aad7b7)
+
+
+### changed (2 changes)
+
+- [for better visibility, Pyqtgraph mechanism plots with new color scheme](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/19fecd93)
+- [refactor with LinkageCAD class](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/63d5fcc5)
+
+
 ## 2.5.0 (2026-02-20)
 
 ### added (11 changes)
