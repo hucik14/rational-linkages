@@ -66,11 +66,18 @@ class TestUtils(TestCase):
         result6 = dq_algebraic2vector(expr6)
         self.assertEqual(result6, [0, -1, -1, 0, 0, 0, 0, -1])
 
-        # Test 7: Expression with real numbers
-        # TODO implement
-        # expr7 = epsilon * (i + j) + 2 - 3*i - j
-        # result7 = dq_algebraic2vector(expr7)
-        # self.assertEqual(result7, [2, -3, -1, 0, 0, 1, 1, 0])
+    def test_algebraic2vector_real(self):
+        i, j, k, epsilon = sympy.symbols('i j k epsilon')
+        expr7 = epsilon * (i + j) + 2 - 3*i - j
+        result7 = dq_algebraic2vector(expr7)
+        self.assertEqual(result7, [2, -3, -1, 0, 0, 1, 1, 0])
+
+        expr8 = -3 + epsilon + i
+        result8 = dq_algebraic2vector(expr8)
+        self.assertEqual(result8, [-3, 1, 0, 0, 1, 0, 0, 0])
+
+        result9 = dq_algebraic2vector( - epsilon)
+        self.assertEqual(result9, [0, 0, 0, 0, -1, 0, 0, 0])
 
     def test_extract_coeffs(self):
         x = sympy.symbols('x')

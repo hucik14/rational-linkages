@@ -13,18 +13,21 @@ def dq_algebraic2vector(ugly_expression: list) -> list:
     :return: 8-vector representation of the algebraic equation
     :rtype: list
     """
-    from sympy import expand, symbols  # lazy import
+    from sympy import expand, symbols, Integer  # lazy import
     i, j, k, epsilon = symbols('i j k epsilon')
 
     expr = expand(ugly_expression)
 
-    basis = [0, i, j, k]
+    basis = [Integer(1), i, j, k]
 
     primal = expr.coeff(epsilon, 0)
     dual = expr.coeff(epsilon)
 
-    primal_coeffs = [primal.coeff(b) for b in basis]
-    dual_coeffs = [dual.coeff(b) for b in basis]
+    pd = primal.as_coefficients_dict()
+    primal_coeffs = [pd.get(b, 0) for b in basis]
+
+    dd = dual.as_coefficients_dict()
+    dual_coeffs = [dd.get(b, 0) for b in basis]
 
     return primal_coeffs + dual_coeffs
 
