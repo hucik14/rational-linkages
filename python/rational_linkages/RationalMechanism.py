@@ -348,7 +348,7 @@ class RationalMechanism(RationalCurve):
         for i in range(len(self.factorizations[0].linkage)):
             connection_params[i, :] = self.factorizations[0].linkage[i].points_params
 
-        if len(self.factorizations) > 1:  # TODO refactor with random choice of the branch
+        if len(self.factorizations) > 1:
             for i in range(len(self.factorizations[1].linkage)):
                 # iterate from back to front
                 connection_params[-1-i, :] = self.factorizations[1].linkage[i].points_params[::-1]
@@ -1119,7 +1119,6 @@ class RationalMechanism(RationalCurve):
             raise ValueError("unit must be deg or rad")
 
         if method == 'algebraic':
-            # TODO: implement algebraic method
             raise NotImplementedError("Algebraic method is not implemented yet.")
         elif method == 'gauss-newton':
             t = self._ik_gauss_newton(pose, robust_search=robust)
@@ -1472,7 +1471,6 @@ class RationalMechanism(RationalCurve):
         vel = np.diff(traj, axis=0) / time_gap
         #vel = np.append(np.array([0.0]), vel)  # add .0 to equalize the array length
         vel = np.append(vel, vel[-1])
-        # TODO: check if this is correct
         acc = np.diff(vel, axis=0) / time_gap
         #acc = np.append(acc, np.array([0.0]))  # add .0 to equalize the array length
         acc = np.append(acc, acc[-1])

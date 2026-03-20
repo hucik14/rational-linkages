@@ -128,7 +128,6 @@ class NormalizedLine:
                 self.direction = direction
                 self.moment = moment
             elif np.abs(np.linalg.norm(direction)) > 1e-10:
-                # TODO handle when np.linalg.norm(direction) == inf
                 self.direction = direction / np.linalg.norm(direction)
                 self.moment = moment / np.linalg.norm(direction)
             else:

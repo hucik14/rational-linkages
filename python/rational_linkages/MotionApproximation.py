@@ -12,8 +12,6 @@ try:
 except ImportError:
     minimize = None
 
-### NOT YET in the documentation ### TODO: add to docs
-
 
 class MotionApproximation:
     """

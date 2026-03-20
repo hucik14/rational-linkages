@@ -941,8 +941,8 @@ if QtWidgets is not None:
             :param np.ndarray coefficients: The coefficients of the rational curve,
                 used to compute the mechanism configuration at t → ∞.
             """
-            cr = RationalCurve.from_coeffs(coefficients)  # TODO avoid sympy
-            me = RationalMechanism(cr.factorize())  # TODO avoid sympy
+            cr = RationalCurve.from_coeffs(coefficients)
+            me = RationalMechanism(cr.factorize())
             me.smallest_polyline(update_design=True)
 
             t_val = 1 / np.finfo(np.float64).eps   # infinite t

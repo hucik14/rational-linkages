@@ -689,7 +689,6 @@ class DualQuaternion:
 
             direction = dq[1:4]
             moment = -1 * dq[5:8]
-            # TODO normalize the direction and moment when sympy expressions are used
 
         else:
             k = dq[0] ** 2 - dq[1] ** 2 - dq[2] ** 2 - dq[3] ** 2  # differs from Study

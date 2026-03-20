@@ -112,7 +112,7 @@ class CombinatorialSearch:
     def __init__(self,
                  mechanism: RationalMechanism,
                  linkage_length: float,
-                 step_length: float = 10.0,  # TODO step length estimation
+                 step_length: float = 10.0,
                  min_joint_segment_length: float = 0.001,
                  max_iters: int = 10):
         """
@@ -189,7 +189,6 @@ class CombinatorialSearch:
         else:
             combs = combinations
 
-        # TODO: parallelize the search
         for i, sequence in enumerate(combs):
             print("--- iteration: {}, shift_value: {}, sequence {} of {}: {}"
                   .format(iteration, shift_val, i + 1, len(combs), sequence))
