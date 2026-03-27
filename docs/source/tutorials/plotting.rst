@@ -60,6 +60,35 @@ Which will result in the following image:
     :align: center
     :alt: Output static plot
 
+Additionally, it is also possible to plot motion curve of a mechanism.
+
+.. testcode:: [plotting_example1b]
+
+    # Plotting motion curve of a mechanism
+
+    from rational_linkages import Plotter
+    from rational_linkages.models import bennett_ark24
+
+
+    m = bennett_ark24()
+
+    p = Plotter(backend="matplotlib", arrows_length=0.03)
+    p.plot(m.curve(), interval='closed', with_poses=True)
+    p.show()
+
+.. testcleanup:: [plotting_example1b]
+
+    del p, m, Plotter, bennett_ark24
+
+
+Which will result in the following image:
+
+.. figure:: figures/mech_curve.svg
+    :width: 500 px
+    :align: center
+    :alt: Output static plot
+
+
 Interactive plotting
 --------------------
 
