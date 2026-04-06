@@ -81,7 +81,7 @@ code snippet plots the half-turn transformation corresponding to a line in 3D sp
     dq2 = deepcopy(dq1)  # alter the rotation part of the dual quaternion to get some other transformation
     dq2[0] = 2
 
-    p = Plotter(arrows_length=0.5)
+    p = Plotter(arrows_length=0.5, backend='matplotlib')
     p.plot(l)
     p.plot(pt1, label='pt1', color='red')
     p.plot(pt2, label='pt2', color='red')
@@ -95,7 +95,7 @@ code snippet plots the half-turn transformation corresponding to a line in 3D sp
     del Plotter, DualQuaternion, NormalizedLine, PointHomogeneous, deepcopy
     del pt1, pt2, l, dq1, dq2, p
 
-We can additionally see that if we alter the zero element of `dq1` to get `dq2`, we get a transformation
+We can additionally see that if we alter the zero element of :code:`dq1` to get :code:`dq2`, we get a transformation
 that corresponds to some rotation around the line, but not a half-turn transformation anymore.
 
 .. figure:: figures/half_turn.svg
