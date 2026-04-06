@@ -62,6 +62,48 @@ Lines can be embedded into dual quaternion space in the following way:
 
 How dual quaternions act on lines can be found in :ref:`dq_action_on_line`.
 
+Dual quaternions that correspond to lines can be interpreted as the `half-turn` transformations,
+i.e. transformations that rotate the origin by 180 degrees around the line. The following
+code snippet plots the half-turn transformation corresponding to a line in 3D space.
+
+.. testcode:: [half_turn_example]
+
+    from rational_linkages import Plotter, DualQuaternion, NormalizedLine, PointHomogeneous
+    from copy import deepcopy
+
+
+    pt1 = PointHomogeneous([1, 0.3, 1, 0])  # w = 1, x = 0.3, y = 1, z = 0
+    pt2 = PointHomogeneous([1, 0.3, 1, 1])  # w = 1, x = 0.3, y = 1, z = 1
+    l = NormalizedLine.from_two_points(pt1, pt2)
+
+    dq1 = DualQuaternion(l.line2dq_array())
+
+    dq2 = deepcopy(dq1)  # alter the rotation part of the dual quaternion to get some other transformation
+    dq2[0] = 2
+
+    p = Plotter(arrows_length=0.5)
+    p.plot(l)
+    p.plot(pt1, label='pt1', color='red')
+    p.plot(pt2, label='pt2', color='red')
+
+    p.plot(dq1, label='half-turn')
+    p.plot(dq2, label='some-rotation')
+    p.show()
+
+.. testcleanup:: [half_turn_example]
+
+    del Plotter, DualQuaternion, NormalizedLine, PointHomogeneous, deepcopy
+    del pt1, pt2, l, dq1, dq2, p
+
+We can additionally see that if we alter the zero element of `dq1` to get `dq2`, we get a transformation
+that corresponds to some rotation around the line, but not a half-turn transformation anymore.
+
+.. figure:: figures/half_turn.svg
+    :align: center
+    :alt: half-turn transformation
+
+    Half-turn transformation corresponding to a line in 3D space
+
 **References:**
 
 .. footbibliography::
