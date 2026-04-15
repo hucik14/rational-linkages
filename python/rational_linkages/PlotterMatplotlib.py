@@ -39,6 +39,8 @@ class PlotterMatplotlib:
                  jupyter_notebook: bool = False,
                  show_legend: bool = False,
                  show_controls: bool = True,
+                 paper_visual: bool = False,
+                 ticks_step: float = None,
                  interval: tuple = (-1, 1),
                  steps: int = 50,
                  arrows_length: float = 1.0,
@@ -50,11 +52,14 @@ class PlotterMatplotlib:
         :param bool jupyter_notebook: activate jupyter notebook mode
         :param bool show_legend: show the legend
         :param bool show_controls: show or hide the controls for interactive plotting
+        :param bool paper_visual: make the visual output suitable for a scientific paper
+        :param float ticks_step: step for ticks on axes, if None, automatic ticks will
+            be used
         :param int steps: number of steps for plotting
         :param arrows_length: length of quiver arrows for poses and frames
         :param float joint_sliders_lim: limit for joint sliders, will be +/- value
-        :param float tuple interval: interval for plotting, in case of a curve can be specified as interval = 'closed' for
-            full parametrization
+        :param float tuple interval: interval for plotting, in case of a curve can be
+            specified as interval = 'closed' for full parametrization
         :with_poses: plot the poses along the curve
         """
 
@@ -72,14 +77,48 @@ class PlotterMatplotlib:
                         raise RuntimeError(
                             "Matplotlib backend error. Use Pyqtgraph backend instead."
                         )
+        self.paper_visual = paper_visual
+        self.ticks_step = ticks_step
+
+        if self.paper_visual:
+            font_size = 8
+            plt.rcParams.update({
+                "font.family": "serif",
+                "font.serif": ["CMU Serif", "Computer Modern Roman", "DejaVu Serif"],
+                "mathtext.fontset": "cm",
+                "font.size": font_size,
+                "axes.labelsize": font_size,
+                "legend.fontsize": font_size,
+                "xtick.labelsize": font_size,
+                "ytick.labelsize": font_size,
+            })
 
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(projection="3d")
 
-        self.ax.set_xlabel("X-axis")
-        self.ax.set_ylabel("Y-axis")
-        self.ax.set_zlabel("Z-axis")
+        self.ax.set_xlabel("X")
+        self.ax.set_ylabel("Y")
+        self.ax.set_zlabel("Z")
         self.ax.set_aspect("equal")
+
+        if self.paper_visual:
+            self.ax.set_xlabel("X [m]")
+            self.ax.set_ylabel("Y [m]")
+            self.ax.set_zlabel("Z [m]")
+            self.fig.patch.set_facecolor('white')
+            self.ax.set_facecolor('white')
+            self.ax.set_proj_type('ortho')
+
+            # transparent grid
+            for axis in (self.ax.xaxis, self.ax.yaxis, self.ax.zaxis):
+                axis.pane.set_facecolor((1, 1, 1, 1))
+                axis.pane.set_edgecolor((1, 1, 1, 1))
+
+            if self.ticks_step:
+                from matplotlib.ticker import MultipleLocator
+                self.ax.xaxis.set_major_locator(MultipleLocator(ticks_step))
+                self.ax.yaxis.set_major_locator(MultipleLocator(ticks_step))
+                self.ax.zaxis.set_major_locator(MultipleLocator(ticks_step))
 
         # Initialize min/max variables
         self.min_x, self.max_x = float('inf'), float('-inf')
@@ -553,7 +592,7 @@ class PlotterMatplotlib:
         kwargs['label'] = "tool path"
 
         x, y, z = zip(*ee_points)
-        self.ax.plot(x, y, z, **kwargs)
+        self.ax.plot(x, y, z, **kwargs, color='lightgray', lw=2)
 
     @_plotting_decorator
     def _plot_miniball(self, ball: MiniBall, **kwargs):
