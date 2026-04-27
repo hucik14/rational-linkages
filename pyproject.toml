@@ -8,10 +8,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "2.6.0"
+version = "3.0.0"
 description = "Rational Linkages"
 authors = [
-    {name = "Daniel Huczala", email = "daniel.huczala@uibk.ac.at"},
+    {name = "Daniel Huczala", email = "daniel.huczala@snu.ac.kr"},
 ]
 requires-python = ">=3.10"
 license = "GPL-3.0-or-later"
@@ -52,20 +52,22 @@ doc = [
     "nbsphinx",
     "sphinxcontrib-bibtex",
     "toml",
-    "pandoc",
     "gitpython",
 ]
 dev = [
     "build",
     "cibuildwheel",
-    "coverage",
-    "pytest",
-    "flake8",
-    "flake8-pyproject",
-    "black",
-    "isort",
     "twine",
+    "pytest",
+    "pytest-cov",
+    "sybil",
+    "ruff"
 ]
+
+[project.urls]
+Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"
+Documentation = "http://rational-linkages.readthedocs.io/"
+Issues = "https://github.com/hucik14/rational-linkages/issues"
 
 [tool.setuptools.packages.find]
 where = ["python"]
@@ -85,19 +87,13 @@ skip = "pp* cp3*t-*"  # skip pypy and t-debug builds
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"
 environment = { CARGO_TERM_COLOR = "always" }
-#before-build = "pip install ."
-#test-command = "pytest {package}/python/tests"
+test-command = "pytest {package}/python/tests"
 #test-skip = ["*-macosx_arm64", "*-macosx_x86_64"]
 
 [tool.cibuildwheel.linux]
 #archs = ["x86_64", "aarch64"]  # legacy option, now set by CIBW_ARCHS_LINUX in wheels.yml of GitHub Actions
 environment = { PATH = "$HOME/.cargo/bin:$PATH" }
 before-build = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-# run at x86_64 host before cibuildwheel: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-# run at aarch64 host before cibuildwheel: docker run --rm --privileged tonistiigi/binfmt --install amd64
-# to build locally just for one architecture:
-#     CIBW_ARCHS_LINUX=x86_64 cibuildwheel --platform linux
-#     CIBW_ARCHS_LINUX=aarch64 cibuildwheel --platform linux
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
@@ -107,39 +103,25 @@ archs = ["AMD64"]
 archs = ["arm64", "x86_64"]
 environment = { MACOSX_DEPLOYMENT_TARGET = "12.0.1" }
 
-[project.urls]
-Homepage = "https://git.uibk.ac.at/geometrie-vermessung/rational-linkages"
-Documentation = "http://rational-linkages.readthedocs.io/"
-Issues = "https://github.com/hucik14/rational-linkages/issues"
+[tool.ruff]
+src = ["python"]
+line-length = 100
+target-version = "py310"
 
-[tool.black]
-line-length = 88
-target-version = ["py311"]
-exclude = "(.git|.idea|docs|dist|rational_linkages.egg-info)/.*"
+[tool.pytest.ini_options]
+#testpaths = ["python/tests"]
+testpaths = ["python/tests", "python/rational_linkages"]  # for local docs testing with plotting
 
-[tool.isort]
-profile = "black"
-line_length = 88
-skip = [".git", ".idea", "docs", "dist", "rational_linkages.egg-info"]
-known_first_party = ["rational_linkages"]
-force_to_top = ["rational_linkages"]
-
-[tool.flake8]
-max-line-length = '88'
-ignore = ["E501"]
-exclude = ".git, .idea, docs, dist, rational_linkages.egg-info"
-
-[tool.coverage.run]
-command_line = "-m pytest python/tests"
+[tool.coverage.report]
 omit = [
     "*/test*",
-    "*__init__.py",
-    "*PlotterMatplotlib.py",
-    "*PlotterPyqtgraph.py",
-    "*MotionDesigner.py",
-    "*MotionApproximation.py",
-    "*StaticMechanism.py",
-    "*AffineMetric.py",
-    "*CollisionAnalyser.py",
-    "*Miniball.py",
-    ]
+    "*/__init__.py",
+    "*/PlotterMatplotlib.py",
+    "*/PlotterPyqtgraph.py",
+    "*/MotionDesigner.py",
+    "*/MotionApproximation.py",
+    "*/StaticMechanism.py",
+    "*/AffineMetric.py",
+    "*/CollisionAnalyser.py",
+    "*/Miniball.py",
+]
