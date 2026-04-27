@@ -1,204 +1,424 @@
-from typing import Union
+from typing import Optional, Sequence, Union
 
-import numpy as np
+import numpy
 
-from .NormalizedLine import NormalizedLine
-from .PointHomogeneous import PointHomogeneous
+from .backend import is_symbolic
 
 
 class NormalizedPlane:
     """
-    A class to represent a normalized plane.
+    Plane in 3D space represented by a unit normal and an oriented distance.
+
+    The plane is stored as ``[d, n1, n2, n3]`` where ``n`` is the unit normal
+    and ``d = n · (-point)`` is the signed distance from the origin.
+
+    By default, all computation is performed with NumPy (``float64``). When
+    the global backend is set to ``"sympy"`` via
+    :func:`~rational_linkages.set_backend`, construction transparently returns a
+    :class:`~rational_linkages.NormalizedPlaneSymbolic` instance instead.
+
+    Parameters
+    ----------
+    normal :
+        3-vector normal to the plane. Normalized to unit length on construction.
+    point :
+        3-vector of any point lying on the plane.
+
+    Attributes
+    ----------
+    normal : numpy.ndarray
+        Unit normal vector ``[n1, n2, n3]``.
+    point : numpy.ndarray
+        A point on the plane ``[x, y, z]``.
+    oriented_distance : float
+        Signed distance from the origin, ``d = n · (-point)``.
+    coordinates : numpy.ndarray
+        4-vector ``[d, n1, n2, n3]``.
+
+    Examples
+    --------
+    .. code-block:: python
+
+        from rational_linkages import NormalizedPlane
+
+        plane = NormalizedPlane([0, 0, 1], [0, 0, 5])   # z = 5
+
+    .. code-block:: python
+
+        # Symbolic backend
+
+        import rational_linkages
+        rational_linkages.set_backend("sympy")
+
+        from rational_linkages import NormalizedPlane
+        from sympy import symbols
+
+        a, b, c, d = symbols("a b c d", real=True)
+        plane = NormalizedPlane([a, b, c], [d, 0, 0])
+
+        rational_linkages.set_backend("numpy")
     """
-    def __init__(self,
-                 normal: Union[list, np.ndarray],
-                 point: Union[list, np.ndarray]):
+
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
+
+    def __new__(cls, normal=None, point=None):
         """
-        Initialize a NormalizedPlane object.
+        Intercept construction and return a
+        :class:`~rational_linkages.NormalizedPlaneSymbolic` when the global
+        backend is ``"sympy"``.
 
-        :param Union[list, np.ndarray] normal: The normal vector of the plane.
-        :param Union[list, np.ndarray] point: A point on the plane.
+        Only applied when ``cls`` is exactly ``NormalizedPlane``; subclass
+        constructors are never redirected, preventing infinite recursion.
+
+        Parameters
+        ----------
+        normal :
+            Forwarded unchanged to ``__init__``.
+        point :
+            Forwarded unchanged to ``__init__``.
+
+        Returns
+        -------
+        NormalizedPlane or NormalizedPlaneSymbolic
         """
-        self.point = np.asarray(point)
+        if cls is NormalizedPlane and is_symbolic():
+            from .NormalizedPlaneSymbolic import NormalizedPlaneSymbolic  # lazy import
+            return object.__new__(NormalizedPlaneSymbolic)
+        return object.__new__(cls)
 
-        # normalize the normal vector
-        n = np.asarray(normal)
-        self.normal = n / np.linalg.norm(n)
+    # ------------------------------------------------------------------
+    # Construction
+    # ------------------------------------------------------------------
 
-        self.oriented_distance = np.dot(self.normal, -1 * self.point)
+    def __init__(
+        self,
+        normal: Sequence[float],
+        point: Sequence[float],
+    ):
+        self.point = numpy.asarray(point, dtype=numpy.float64)
+        n = numpy.asarray(normal, dtype=numpy.float64)
+        self.normal = n / numpy.linalg.norm(n)
+        self.oriented_distance = float(numpy.dot(self.normal, -self.point))
+        self.coordinates = numpy.concatenate(
+            ([self.oriented_distance], self.normal)
+        )
+        self._reflection_matrix: Optional[numpy.ndarray] = None
+        self._reflection_tr: Optional[numpy.ndarray] = None
 
-        self.coordinates = np.concatenate([self.oriented_distance, self.normal],
-                                          axis=None)
-
-        self._reflection_matrix = None
-        self._reflection_tr = None
-
+    # ------------------------------------------------------------------
+    # Class methods
+    # ------------------------------------------------------------------
 
     @classmethod
-    def from_two_points_as_bisector(cls,
-                                    point1: PointHomogeneous,
-                                    point2: PointHomogeneous):
+    def from_two_points_as_bisector(
+        cls,
+        point1: "PointHomogeneous",
+        point2: "PointHomogeneous",
+    ) -> "NormalizedPlane":
         """
-        Create a normalized plane from two points, plane footpoint is in the middle.
+        Construct the bisector plane of two points.
 
-        The normal is spanned by line between the two points.
+        The plane's foot-point is the midpoint of the two points and its
+        normal is the vector connecting them.
 
-        :param PointHomogeneous point1: The first point.
-        :param PointHomogeneous point2: The second point.
+        Parameters
+        ----------
+        point1 :
+            First :class:`~rational_linkages.PointHomogeneous`.
+        point2 :
+            Second :class:`~rational_linkages.PointHomogeneous`.
 
-        :return: The normalized plane.
-        :rtype: NormalizedPlane
+        Returns
+        -------
+        NormalizedPlane
         """
-        normal = point2.normalized_in_3d() - point1.normalized_in_3d()
-        mid_point = (point1.normalized_in_3d() + point2.normalized_in_3d()) / 2
-        return cls(normal, mid_point)
+        p1 = point1.normalized_euclidean()
+        p2 = point2.normalized_euclidean()
+        normal = p2 - p1
+        midpoint = (p1 + p2) / 2.0
+        return cls(normal, midpoint)
 
     @classmethod
-    def from_three_points(cls,
-                      point0: PointHomogeneous,
-                      point1: PointHomogeneous,
-                      point2: PointHomogeneous):
+    def from_three_points(
+        cls,
+        point0: "PointHomogeneous",
+        point1: "PointHomogeneous",
+        point2: "PointHomogeneous",
+    ) -> "NormalizedPlane":
         """
-        Create a normalized plane from three points.
+        Construct a plane through three non-collinear points.
 
-        :param PointHomogeneous point0: The first point.
-        :param PointHomogeneous point1: The second point.
-        :param PointHomogeneous point2: The third point.
+        Parameters
+        ----------
+        point0 :
+            First :class:`~rational_linkages.PointHomogeneous`.
+        point1 :
+            Second :class:`~rational_linkages.PointHomogeneous`.
+        point2 :
+            Third :class:`~rational_linkages.PointHomogeneous`.
 
-        :return: The normalized plane.
-        :rtype: NormalizedPlane
+        Returns
+        -------
+        NormalizedPlane
 
-        :raises ValueError: If the points are collinear.
+        Raises
+        ------
+        ValueError
+            If the three points are collinear.
         """
-        normal = np.cross(point1.normalized_in_3d() - point0.normalized_in_3d(),
-                          point2.normalized_in_3d() - point0.normalized_in_3d())
-        if np.linalg.norm(normal) == 0:
-            raise ValueError('The points are collinear.')
-
-        return cls(normal, point0.normalized_in_3d())
+        p0 = point0.normalized_euclidean()
+        p1 = point1.normalized_euclidean()
+        p2 = point2.normalized_euclidean()
+        normal = numpy.cross(p1 - p0, p2 - p0)
+        if numpy.linalg.norm(normal) == 0.0:
+            raise ValueError("NormalizedPlane.from_three_points: points are collinear.")
+        return cls(normal, p0)
 
     @classmethod
-    def from_line_and_point(cls,
-                            line: NormalizedLine,
-                            point: PointHomogeneous):
+    def from_line_and_point(
+        cls,
+        line: "NormalizedLine",
+        point: "PointHomogeneous",
+    ) -> "NormalizedPlane":
         """
-        Create a plane from a line and a point that are contained in the plane.
+        Construct the plane spanned by a line and a point not on the line.
 
-        :param NormalizedLine line: The line.
-        :param PointHomogeneous point: The point.
+        Parameters
+        ----------
+        line :
+            A :class:`~rational_linkages.NormalizedLine` contained in the plane.
+        point :
+            A :class:`~rational_linkages.PointHomogeneous` contained in the plane.
 
-        :return: The normalized plane.
-        :rtype: NormalizedPlane
+        Returns
+        -------
+        NormalizedPlane
 
-        :raises ValueError: If the point is on the line.
+        Raises
+        ------
+        ValueError
+            If *point* lies on *line*.
         """
-        if line.contains_point(point.normalized_in_3d()):
-            raise ValueError('The point is on the line.')
+        from .PointHomogeneous import PointHomogeneous  # lazy import
 
-        point1 = PointHomogeneous.from_3d_point(line.point_on_line(0.123456789))
-        point2 = PointHomogeneous.from_3d_point(line.point_on_line(0.987654321))
-        return cls.from_three_points(point, point1, point2)
+        if line.contains_point(point.normalized_euclidean()):
+            raise ValueError(
+                "NormalizedPlane.from_line_and_point: point lies on the line."
+            )
+        p1 = PointHomogeneous.from_3d_point(line.point_on_line(0.123456789))
+        p2 = PointHomogeneous.from_3d_point(line.point_on_line(0.987654321))
+        return cls.from_three_points(point, p1, p2)
+
+    # ------------------------------------------------------------------
+    # Indexing
+    # ------------------------------------------------------------------
+
+    def __getitem__(self, idx):
+        """Return the plane coordinate at *idx*."""
+        return self.coordinates[idx]
+
+    def __len__(self) -> int:
+        """Number of plane coordinates, always 4."""
+        return 4
+
+    # ------------------------------------------------------------------
+    # Representation
+    # ------------------------------------------------------------------
+
+    def __repr__(self) -> str:
+        c = numpy.array2string(
+            self.coordinates,
+            precision=10,
+            suppress_small=True,
+            separator=", ",
+            max_line_width=100000,
+        )
+        return f"{self.__class__.__qualname__}({c})"
+
+    # ------------------------------------------------------------------
+    # Equality
+    # ------------------------------------------------------------------
+
+    def __eq__(self, other: "NormalizedPlane") -> bool:
+        """
+        Coefficient-wise equality.
+
+        Parameters
+        ----------
+        other :
+            Plane to compare against.
+
+        Returns
+        -------
+        bool
+        """
+        return numpy.array_equal(self.coordinates, other.coordinates)
+
+    # ------------------------------------------------------------------
+    # Cached properties
+    # ------------------------------------------------------------------
 
     @property
-    def reflection_matrix(self):
+    def reflection_matrix(self) -> numpy.ndarray:
+        """
+        3×3 Householder reflection matrix about the plane's normal.
+
+        Cached after first access.
+
+        Returns
+        -------
+        numpy.ndarray
+            ``I - 2 * n ⊗ n``.
+        """
         if self._reflection_matrix is None:
-            self._reflection_matrix = np.eye(3) - 2 * np.outer(self.normal, self.normal)
+            self._reflection_matrix = (
+                numpy.eye(3) - 2.0 * numpy.outer(self.normal, self.normal)
+            )
         return self._reflection_matrix
 
     @property
-    def reflection_tr(self):
+    def reflection_tr(self) -> numpy.ndarray:
+        """
+        4×4 homogeneous reflection transformation matrix.
+
+        Cached after first access.
+
+        Returns
+        -------
+        numpy.ndarray
+            4×4 array encoding the reflection about this plane.
+        """
         if self._reflection_tr is None:
-            self._reflection_tr = np.eye(4)
-            self._reflection_tr[1:4, 1:4] = self.reflection_matrix
-            self._reflection_tr[1:4, 0] = -2 * self.oriented_distance * self.normal
+            mat = numpy.eye(4)
+            mat[1:4, 1:4] = self.reflection_matrix
+            mat[1:4, 0] = -2.0 * self.oriented_distance * self.normal
+            self._reflection_tr = mat
         return self._reflection_tr
 
-    def __repr__(self):
-        return f'NormalizedPlane({self.coordinates})'
+    # ------------------------------------------------------------------
+    # Core operations
+    # ------------------------------------------------------------------
 
-    def __getitem__(self, item):
-        return self.coordinates[item]
-
-    def array(self):
-        return self.coordinates
-
-    def as_dq_array(self):
-        return np.concatenate([[0],
-                               self.normal,
-                               self.oriented_distance,
-                               [0, 0, 0]], axis=None)
-
-    def intersection_with_plane(self, other):
+    def array(self) -> numpy.ndarray:
         """
-        Get the intersection line of two planes.
+        Return plane coordinates as a NumPy array.
 
-        :param NormalizedPlane other: The other plane.
-
-        :return: Screw coordinates of intersecting line.
-        :rtype: np.ndarray
+        Returns
+        -------
+        numpy.ndarray
+            4-vector ``[d, n1, n2, n3]``.
         """
-        n1 = self.normal
-        n2 = other.normal
-        p1 = self.point
-        p2 = other.point
+        return self.coordinates.copy()
 
-        line_dir = np.cross(n1, n2)
-        line_dir = line_dir / np.linalg.norm(line_dir)
-
-        # solve for point on axis
-        mat = np.stack([n1, n2, line_dir], axis=0)
-        vec = np.array([np.dot(n1, p1), np.dot(n2, p2), 0])
-        line_point = np.linalg.lstsq(mat, vec, rcond=None)[0]
-
-        line_moment = np.cross(-1 * line_dir, line_point)
-
-        return np.concatenate([line_dir, line_moment], axis=None)
-
-    def intersection_with_line(self, line: NormalizedLine) -> np.ndarray:
+    def plane2dq_array(self) -> numpy.ndarray:
         """
-        Get the intersection point of the plane with a line.
+        Embed the plane into dual quaternion space as an 8-vector.
 
-        See more in Pottmann et al., "Computational Line Geometry", 2001, Section 3.4.2.
-        page 138, eq. 2.17.
+        Maps ``[d, n]`` → ``[0, n1, n2, n3, d, 0, 0, 0]``.
 
-        :param NormalizedLine line: The line.
-
-        :return: The homogeneous coordinates of the intersection point.
-        :rtype: np.ndarray
-
-        :raises ValueError: If the line is parallel to the plane.
+        Returns
+        -------
+        numpy.ndarray
+            8-vector.
         """
-        l = line.direction
-        l_ = line.moment
+        return numpy.array([
+            0,
+            self.normal[0],
+            self.normal[1],
+            self.normal[2],
+            self.oriented_distance,
+            0,
+            0,
+            0,
+        ])
 
-        u0 = self.oriented_distance
-        u = self.normal
-
-        p0 = np.dot(u, l)
-        p = -u0 * l + np.cross(u, l_)
-
-        return np.concatenate([p0, p], axis=None)
-
-    def data_to_plot(self, xlim: tuple = (-1, 1), ylim: tuple = (-1, 1)):
+    def intersection_with_plane(
+        self, other: "NormalizedPlane"
+    ) -> numpy.ndarray:
         """
-        Get the data to plot the plane.
+        Return the Plücker screw coordinates of the line where two planes meet.
 
-        :param tuple xlim: The x limits.
-        :param tuple ylim: The y limits.
+        Parameters
+        ----------
+        other :
+            The second plane.
 
-        :return: The data to plot the plane.
-        :rtype: tuple
+        Returns
+        -------
+        numpy.ndarray
+            6-vector ``[direction | moment]``.
         """
-        normal = np.asarray(self.normal)
-        a, b, c = normal
+        n1, n2 = self.normal, other.normal
+        p1, p2 = self.point, other.point
+
+        line_dir = numpy.cross(n1, n2)
+        line_dir = line_dir / numpy.linalg.norm(line_dir)
+
+        mat = numpy.stack([n1, n2, line_dir], axis=0)
+        rhs = numpy.array([numpy.dot(n1, p1), numpy.dot(n2, p2), 0.0])
+        line_point = numpy.linalg.lstsq(mat, rhs, rcond=None)[0]
+
+        line_moment = numpy.cross(-line_dir, line_point)
+        return numpy.concatenate((line_dir, line_moment))
+
+    def intersection_with_line(
+        self, line: "NormalizedLine"
+    ) -> numpy.ndarray:
+        """
+        Return the homogeneous intersection point of the plane with a line.
+
+        See Pottmann et al., *Computational Line Geometry*, 2001, §3.4.2,
+        eq. 2.17.
+
+        Parameters
+        ----------
+        line :
+            The line to intersect with.
+
+        Returns
+        -------
+        numpy.ndarray
+            4-vector ``[w, x, y, z]`` in homogeneous coordinates.
+        """
+        p0 = numpy.dot(self.normal, line.direction)
+        p_vec = (
+            -self.oriented_distance * line.direction
+            + numpy.cross(self.normal, line.moment)
+        )
+        return numpy.concatenate(([p0], p_vec))
+
+    # ------------------------------------------------------------------
+    # Plotting
+    # ------------------------------------------------------------------
+
+    def get_plot_data(
+        self,
+        xlim: tuple = (-1.0, 1.0),
+        ylim: tuple = (-1.0, 1.0),
+    ) -> tuple:
+        """
+        Return a meshgrid suitable for 3-D surface plotting.
+
+        Parameters
+        ----------
+        xlim :
+            ``(x_min, x_max)`` range. Default ``(-1, 1)``.
+        ylim :
+            ``(y_min, y_max)`` range. Default ``(-1, 1)``.
+
+        Returns
+        -------
+        tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]
+            ``(x_pts, y_pts, z_pts)`` meshgrid arrays.
+        """
+        a, b, c = self.normal
         d = self.oriented_distance
-        x = np.linspace(xlim[0], xlim[1], 5)
-        y = np.linspace(ylim[0], ylim[1], 5)
-        x_pts, y_pts = np.meshgrid(x, y)
-
-        if np.isclose(c, 0.0):
+        x = numpy.linspace(xlim[0], xlim[1], 5)
+        y = numpy.linspace(ylim[0], ylim[1], 5)
+        x_pts, y_pts = numpy.meshgrid(x, y)
+        if numpy.isclose(c, 0.0):
             c = 1e-6
-
-        z_pts = -1 * (d + a * x_pts + b * y_pts) / c
-
+        z_pts = -(d + a * x_pts + b * y_pts) / c
         return x_pts, y_pts, z_pts

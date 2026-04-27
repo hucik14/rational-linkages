@@ -1,300 +1,624 @@
 from typing import Union
 from warnings import warn
 
-import numpy as np
+import numpy
+
+from .backend import is_symbolic
 
 
 class TransfMatrix:
     """
-    Transformation matrix class - following European convention
+    Rigid body transformation in 3D space, stored as a 4×4 matrix.
 
-    The transformation matrix is stored as vectors n, o, a, and t, which can be changed
-    independently, but be aware of the normalization of the rotation matrix.
+    Follows the **homogeneous-first convention**: the homogeneous coordinate
+    occupies position ``[0, 0]``, the translation vector fills column 0
+    (rows 1–3), and the rotation matrix fills the lower-right 3×3 block::
 
-    :ivar np.array n: normal vector (x-axis)
-    :ivar np.array o: orthogonal vector (y-axis)
-    :ivar np.array a: approach vector (z-axis)
-    :ivar np.array t: translation vector
+        [[1,   0,   0,   0  ],
+         [tx,  r11, r12, r13],
+         [ty,  r21, r22, r23],
+         [tz,  r31, r32, r33]]
 
-    :ivar np.array matrix: 4x4 transformation matrix
+    To convert to or from the standard convention (rotation top-left,
+    translation top-right), use :meth:`to_standard` and
+    :meth:`from_standard`.
+
+    By default, all computation is performed with NumPy (``float64``). When
+    the global backend is set to ``"sympy"`` via
+    :func:`~rational_linkages.set_backend`, construction transparently
+    returns a :class:`TransfMatrixSymbolic` instance instead.
+
+    Parameters
+    ----------
+    matrix :
+        4×4 array-like. If ``None``, the identity transformation is
+        constructed.
+
+    Attributes
+    ----------
+    matrix : numpy.ndarray
+        4×4 ``float64`` array storing the full transformation.
+
+    Examples
+    --------
+    .. code-block:: python
+
+        from rational_linkages.TransfMatrix import TransfMatrix
+
+        identity = TransfMatrix()
+        mat = TransfMatrix([[1, 0, 0, 0],
+                         [1, 1, 0, 0],
+                         [2, 0, 1, 0],
+                         [3, 0, 0, 1]])
+        print(mat.t)   # [1., 2., 3.]
+        print(mat.n)   # [1., 0., 0.]
     """
-    def __init__(self, *args):
-        """
-        Constructor for Trasformation Matrix class; the matrix itself is stored
-        as vectors n, o, a, and t, which can be changed independently
 
-        :param *args: empty == create identity matrix, 1 argument of matrix == SE3matrix
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
 
-        :raises ValueError: if the matrix is not a proper rotation matrix
+    def __new__(cls, matrix=None):
         """
-        if len(args) == 0:
-            mat = np.eye(4)
+        Intercept construction and return a :class:`TransfMatrixSymbolic`
+        when the global backend is ``"sympy"``.
+
+        Only applied when ``cls`` is exactly ``TransfMatrix``; subclass
+        constructors are never redirected.
+        """
+        if cls is TransfMatrix and is_symbolic():
+            from .TransfMatrixSymbolic import TransfMatrixSymbolic
+            return object.__new__(TransfMatrixSymbolic)
+        return object.__new__(cls)
+
+    # ------------------------------------------------------------------
+    # Construction
+    # ------------------------------------------------------------------
+
+    def __init__(self, matrix=None):
+        if matrix is None:
+            self.matrix = numpy.eye(4, dtype=numpy.float64)
         else:
-            mat = np.asarray(args[0])
-
-        self.n = mat[1:4, 1]
-        self.o = mat[1:4, 2]
-        self.a = mat[1:4, 3]
-
-        self.t = mat[1:4, 0]
-
-        # test if the transformation matrix has proper rotation matrix
-        if not self.is_rotation():
-            raise ValueError("Matrix has not a proper rotation matrix")
-
-    def __mul__(self, other):
-        return TransfMatrix(self.matrix @ other.matrix)
-
-    @property
-    def matrix(self):
-        """
-        If matrix is called, return 4x4 matrix
-        :return: 4x4 np array
-        """
-        m = np.eye(4)
-        m[1:4, 1] = self.n
-        m[1:4, 2] = self.o
-        m[1:4, 3] = self.a
-
-        m[1:4, 0] = self.t
-        return m
-
-    def __repr__(self):
-        return np.array2string(self.matrix,
-                               precision=10,
-                               suppress_small=True,
-                               separator=', ',
-                               max_line_width=100000)
+            self.matrix = numpy.asarray(matrix, dtype=numpy.float64)
+            if self.matrix.shape != (4, 4):
+                raise ValueError(
+                    "TransfMatrix: matrix must be a 4×4 array"
+                )
+        self.is_rotation()
 
     @classmethod
-    def from_rpy(cls, rpy: list[float], unit: str = 'rad') -> np.array:
+    def from_standard(cls, matrix) -> "TransfMatrix":
         """
-        Create transformation matrix from roll, pitch, yaw angles
+        Construct a :class:`TransfMatrix` from a standard-convention matrix.
 
-        :param list rpy: 3-dimensional list of floats of roll, pitch, yaw angles,
-            in radians or degrees in this order
-        :param str unit: 'rad' or 'deg' for radians or degrees
+        Expects the standard SE(3) layout (rotation top-left, translation
+        top-right, bottom row ``[0, 0, 0, 1]``).
 
-        :return: transformation matrix
-        :rtype: TransfMatrix
+        Parameters
+        ----------
+        matrix :
+            4×4 array-like in standard convention.
 
-        :raises ValueError: if unit is not 'rad' or 'deg' or if rpy is not
-            3-dimensional list
+        Returns
+        -------
+        TransfMatrix
         """
+        if cls is TransfMatrix and is_symbolic():
+            from .TransfMatrixSymbolic import TransfMatrixSymbolic
+            return TransfMatrixSymbolic.from_standard(matrix)
+
+        m = numpy.asarray(matrix, dtype=numpy.float64)
+        if m.shape != (4, 4):
+            raise ValueError(
+                "TransfMatrix.from_standard: matrix must be a 4×4 array"
+            )
+        out = numpy.eye(4, dtype=numpy.float64)
+        out[1:4, 1:4] = m[0:3, 0:3]  # rotation block
+        out[1:4, 0] = m[0:3, 3]  # translation column
+        return cls(out)
+
+    @classmethod
+    def from_rpy(cls, rpy: list, unit: str = "rad") -> "TransfMatrix":
+        """
+        Construct from roll–pitch–yaw angles.
+
+        Applies rotations in Z–Y–X order (yaw → pitch → roll).
+
+        Parameters
+        ----------
+        rpy :
+            3-vector ``[roll, pitch, yaw]`` in radians or degrees.
+        unit :
+            ``"rad"`` (default) or ``"deg"``.
+
+        Returns
+        -------
+        TransfMatrix
+
+        Raises
+        ------
+        ValueError
+            If ``rpy`` is not a 3-vector or ``unit`` is unrecognised.
+        """
+        if cls is TransfMatrix and is_symbolic():
+            from .TransfMatrixSymbolic import TransfMatrixSymbolic
+            return TransfMatrixSymbolic.from_rpy(rpy=rpy, unit=unit)
+
         if len(rpy) != 3:
-            raise ValueError("Roll, pitch, yaw angles must be 3-dimensional list of "
-                             "floats")
+            raise ValueError(
+                "TransfMatrix.from_rpy: rpy must be a 3-vector"
+            )
+        if unit == "deg":
+            rpy = numpy.deg2rad(rpy)
+        elif unit != "rad":
+            raise ValueError("TransfMatrix.from_rpy: unit must be 'rad' or 'deg'")
 
-        if unit == 'deg':
-            rpy = np.deg2rad(rpy)
-        elif unit != 'rad':
-            raise ValueError("Unit must be 'rad' or 'deg'")
-
-        rot_x = np.array([[1, 0, 0],
-                         [0, np.cos(rpy[0]), -np.sin(rpy[0])],
-                         [0, np.sin(rpy[0]), np.cos(rpy[0])]])
-
-        rot_y = np.array([[np.cos(rpy[1]), 0, np.sin(rpy[1])],
-                          [0, 1, 0],
-                          [-np.sin(rpy[1]), 0, np.cos(rpy[1])]])
-
-        rot_z = np.array([[np.cos(rpy[2]), -np.sin(rpy[2]), 0],
-                          [np.sin(rpy[2]), np.cos(rpy[2]), 0],
-                          [0, 0, 1]])
-
-        m = np.eye(4)
+        rot_x = numpy.array([
+            [1, 0, 0],
+            [0, numpy.cos(rpy[0]), -numpy.sin(rpy[0])],
+            [0, numpy.sin(rpy[0]), numpy.cos(rpy[0])],
+        ])
+        rot_y = numpy.array([
+            [numpy.cos(rpy[1]), 0, numpy.sin(rpy[1])],
+            [0, 1, 0],
+            [-numpy.sin(rpy[1]), 0, numpy.cos(rpy[1])],
+        ])
+        rot_z = numpy.array([
+            [numpy.cos(rpy[2]), -numpy.sin(rpy[2]), 0],
+            [numpy.sin(rpy[2]), numpy.cos(rpy[2]), 0],
+            [0, 0, 1],
+        ])
+        m = numpy.eye(4)
         m[1:4, 1:4] = rot_z @ rot_y @ rot_x
         return cls(m)
 
     @classmethod
-    def from_rpy_xyz(cls, rpy: list[float], xyz: list[float], unit: str = 'rad'):
+    def from_rpy_xyz(cls,
+                     rpy: list,
+                     xyz: list,
+                     unit: str = "rad") -> "TransfMatrix":
         """
-        Create transformation matrix from roll, pitch, yaw angles and translation
+        Construct from roll–pitch–yaw angles and a translation vector.
 
-        :param list rpy: 3-dimensional list of floats of roll, pitch, yaw angles,
-            in radians or degrees in this order
-        :param list xyz: 3-dimensional list of floats of translation
-        :param str unit: 'rad' or 'deg' for radians or degrees
+        Parameters
+        ----------
+        rpy :
+            3-vector ``[roll, pitch, yaw]``.
+        xyz :
+            3-vector ``[tx, ty, tz]``.
+        unit :
+            ``"rad"`` (default) or ``"deg"``.
 
-        :return: transformation matrix
-        :rtype: TransfMatrix
+        Returns
+        -------
+        TransfMatrix
 
-        :raises ValueError: if unit is not 'rad' or 'deg' or if rpy is not
-            3-dimensional list
+        Raises
+        ------
+        ValueError
+            If ``rpy`` or ``xyz`` are not 3-vectors, or ``unit`` is
+            unrecognised.
         """
+        if cls is TransfMatrix and is_symbolic():
+            from .TransfMatrixSymbolic import TransfMatrixSymbolic
+            return TransfMatrixSymbolic.from_rpy_xyz(rpy=rpy, xyz=xyz, unit=unit)
+
         if len(rpy) != 3 or len(xyz) != 3:
-            raise ValueError("Roll, pitch, yaw angles or XYZ valuse must "
-                             "be 3-dimensional list of floats")
-
-        mat_applied_rotation = cls.from_rpy(rpy, unit)
-
-        # update translation
-        mat_applied_rotation.t = xyz
-
-        return cls(mat_applied_rotation.matrix)
+            raise ValueError(
+                "TransfMatrix.from_rpy_xyz: rpy and xyz must both be 3-vectors"
+            )
+        mat = cls.from_rpy(rpy, unit)
+        mat.t = xyz
+        return cls(mat.matrix)
 
     @classmethod
-    def from_vectors(cls,
-                     normal_x: list[Union[float, np.ndarray]],
-                     approach_z: list[Union[float, np.ndarray]],
-                     origin: list[Union[float, np.ndarray]] = [0, 0, 0]):
+    def from_vectors(
+            cls,
+            normal_x: Union[list, numpy.ndarray],
+            approach_z: Union[list, numpy.ndarray],
+            origin: Union[list, numpy.ndarray] = None,
+    ) -> "TransfMatrix":
         """
-        Create transf. matrix from normal and approach vectors, translation is optional
+        Construct from a normal (x-axis) and approach (z-axis) vector.
 
-        :param list normal_x: 3-dimensional list of floats of normal (x-axis) vector
-        :param list approach_z: 3-dimensional list of floats of approach (z-axis) vector
-        :param list origin: 3-dimensional list of floats of translation vector
+        The orthogonal (y-axis) vector is derived as
+        ``o = approach_z × normal_x``; ``normal_x`` is then recomputed as
+        ``n = o × approach_z`` to guarantee ``det(R) = 1``. Both input
+        vectors are silently normalised if necessary.
 
-        :return: transformation matrix
-        :rtype: TransfMatrix
+        Parameters
+        ----------
+        normal_x :
+            3-vector defining the x-axis of the frame.
+        approach_z :
+            3-vector defining the z-axis of the frame.
+        origin :
+            3-vector translation. Defaults to ``[0, 0, 0]``.
 
-        :raises ValueError: if normal_x, approach_z or origin is not 3-dimensional list
-        :warns: if normal_x or approach_z is not normalized
+        Returns
+        -------
+        TransfMatrix
+
+        Raises
+        ------
+        ValueError
+            If any input is not a 3-vector.
         """
-        normal_x = np.asarray(normal_x)
-        approach_z = np.asarray(approach_z)
-        origin = np.asarray(origin)
+        if cls is TransfMatrix and is_symbolic():
+            from .TransfMatrixSymbolic import TransfMatrixSymbolic
+            return TransfMatrixSymbolic.from_vectors(normal_x=normal_x,
+                                                  approach_z=approach_z,
+                                                  origin=origin)
 
-        # check if vectors are of dimension 3
-        if normal_x.shape != (3,):
-            raise ValueError("Normal vector must be 3-dimensional list of floats")
-        if approach_z.shape != (3,):
-            raise ValueError("Approach vector must be 3-dimensional list of floats")
-        if origin.shape != (3,):
-            raise ValueError("Origin vector must be 3-dimensional list of floats")
+        normal_x = numpy.asarray(normal_x, dtype=numpy.float64)
+        approach_z = numpy.asarray(approach_z, dtype=numpy.float64)
+        origin = numpy.zeros(3,
+                             dtype=numpy.float64) if origin is None else numpy.asarray(
+            origin, dtype=numpy.float64
+        )
 
-        # check if approach vector is normalized
-        if not np.isclose(np.linalg.norm(approach_z), 1):
-            warn("Approach vector is not normalized, normalizing...")
-            approach_z = approach_z / np.linalg.norm(approach_z)
+        for name, vec in [("normal_x", normal_x),
+                          ("approach_z", approach_z),
+                          ("origin", origin)]:
+            if vec.shape != (3,):
+                raise ValueError(
+                    f"TransfMatrix.from_vectors: {name} must be a 3-vector"
+                )
 
-        # create orthogonal
-        orthogonal_y = np.cross(approach_z, normal_x)
-        # recreate normal (only approach vector can be kept so det(R) == 1)
-        normal_x = np.cross(orthogonal_y, approach_z)
+        for name, vec in [("normal_x", normal_x), ("approach_z", approach_z)]:
+            if numpy.allclose(vec, 0):
+                raise ValueError(
+                    f"TransfMatrix.from_vectors: {name} must not be a zero vector"
+                )
 
-        # normalize orthogonal and normal vectors
-        orthogonal_y = orthogonal_y / np.linalg.norm(orthogonal_y)
-        normal_x = normal_x / np.linalg.norm(normal_x)
+        # silent normalisation
+        approach_z = approach_z / numpy.linalg.norm(approach_z)
+        orthogonal_y = numpy.cross(approach_z, normal_x)
+        normal_x = numpy.cross(orthogonal_y, approach_z)
+        orthogonal_y = orthogonal_y / numpy.linalg.norm(orthogonal_y)
+        normal_x = normal_x / numpy.linalg.norm(normal_x)
 
-        mat = np.eye(4)
-        mat[1:4, 0] = origin
-        mat[1:4, 1] = normal_x
-        mat[1:4, 2] = orthogonal_y
-        mat[1:4, 3] = approach_z
-
-        return cls(mat)
+        m = numpy.eye(4)
+        m[1:4, 0] = origin
+        m[1:4, 1] = normal_x
+        m[1:4, 2] = orthogonal_y
+        m[1:4, 3] = approach_z
+        return cls(m)
 
     @classmethod
-    def from_dh_parameters(cls, theta: float, d: float, a: float, alpha: float,
-                           unit: str = 'rad'):
+    def from_dh_parameters(
+            cls,
+            theta: float,
+            d: float,
+            a: float,
+            alpha: float,
+            unit: str = "rad",
+    ) -> "TransfMatrix":
         """
-        Create transformation matrix from Denavit-Hartenberg parameters
+        Construct from Denavit–Hartenberg parameters.
 
-        It follows the standard DH convention. The transformation matrix is created as:
-        rotation around z-axis by theta, translation along z-axis by d, translation
-        along x-axis by a, rotation around x-axis by alpha.
+        Follows the standard DH convention: rotation about z by *theta*,
+        translation along z by *d*, translation along x by *a*, rotation
+        about x by *alpha*.
 
-        :param float theta: rotation around z-axis
-        :param float d: translation along z-axis
-        :param float a: translation along x-axis
-        :param float alpha: rotation around x-axis
-        :param str unit: 'rad' or 'deg' for radians or degrees
+        Parameters
+        ----------
+        theta :
+            Rotation about the z-axis.
+        d :
+            Translation along the z-axis.
+        a :
+            Translation along the x-axis.
+        alpha :
+            Rotation about the x-axis.
+        unit :
+            ``"rad"`` (default) or ``"deg"``.
 
-        :return: transformation matrix
-        :rtype: TransfMatrix
+        Returns
+        -------
+        TransfMatrix
 
-        :raises ValueError: if unit is not 'rad' or 'deg'
+        Raises
+        ------
+        ValueError
+            If ``unit`` is unrecognised.
         """
-        if unit == 'deg':
-            theta = np.deg2rad(theta)
-            alpha = np.deg2rad(alpha)
-        elif unit != 'rad':
-            raise ValueError("Unit must be 'rad' or 'deg'")
+        if cls is TransfMatrix and is_symbolic():
+            from .TransfMatrixSymbolic import TransfMatrixSymbolic
+            return TransfMatrixSymbolic.from_dh_parameters(theta=theta,
+                                                        d=d,
+                                                        a=a,
+                                                        alpha=alpha,
+                                                        unit=unit)
 
-        mat = np.eye(4)
-        mat[1:4, 0] = [a * np.cos(theta), a * np.sin(theta), d]
-        mat[1, 1:4] = [np.cos(theta),
-                       -np.sin(theta) * np.cos(alpha),
-                       np.sin(theta) * np.sin(alpha)]
-        mat[2, 1:4] = [np.sin(theta),
-                       np.cos(theta) * np.cos(alpha),
-                       -np.cos(theta) * np.sin(alpha)]
-        mat[3, 1:4] = [0, np.sin(alpha), np.cos(alpha)]
+        if unit == "deg":
+            theta = numpy.deg2rad(theta)
+            alpha = numpy.deg2rad(alpha)
+        elif unit != "rad":
+            raise ValueError(
+                "TransfMatrix.from_dh_parameters: unit must be 'rad' or 'deg'"
+            )
 
-        return cls(mat)
+        try:
+            m = numpy.eye(4)
+            m[1:4, 0] = [a * numpy.cos(theta), a * numpy.sin(theta), d]
+            m[1, 1:4] = [
+                numpy.cos(theta),
+                -numpy.sin(theta) * numpy.cos(alpha),
+                numpy.sin(theta) * numpy.sin(alpha),
+            ]
+            m[2, 1:4] = [
+                numpy.sin(theta),
+                numpy.cos(theta) * numpy.cos(alpha),
+                -numpy.cos(theta) * numpy.sin(alpha),
+            ]
+            m[3, 1:4] = [0, numpy.sin(alpha), numpy.cos(alpha)]
+        except Exception:
+            from sympy import Matrix, cos, sin  # lazy import
+            m = Matrix.eye(4)
+            m[1:4, 0] = [a * cos(theta), a * sin(theta), d]
+            m[1, 1] = cos(theta)
+            m[1, 2] = -sin(theta) * cos(alpha)
+            m[1, 3] = sin(theta) * sin(alpha)
+            m[2, 1] = sin(theta)
+            m[2, 2] = cos(theta) * cos(alpha)
+            m[2, 3] = -cos(theta) * sin(alpha)
+            m[3, 1] = 0
+            m[3, 2] = sin(alpha)
+            m[3, 3] = cos(alpha)
+        return cls(m)
 
     @classmethod
-    def from_rotation(cls,
-                      axis: str,
-                      angle: float,
-                      xyz: list[float] = np.array([0, 0, 0]),
-                      unit: str = 'rad') -> np.array:
+    def from_rotation(
+            cls,
+            axis: str,
+            angle: float,
+            xyz: Union[list, numpy.ndarray] = None,
+            unit: str = "rad",
+    ) -> "TransfMatrix":
         """
-        Create a transformation matrix from a rotation around an axis.
+        Construct from a rotation about a principal axis.
 
-        :param str axis: The axis of rotation ('x', 'y', or 'z').
-        :param float angle: The angle of rotation in radians.
-        :param list xyz: The translation vector. Default is [0, 0, 0].
-        :param str unit: The unit of the angle ('rad' or 'deg'). Default is 'rad'.
+        Parameters
+        ----------
+        axis :
+            ``"x"``, ``"y"``, or ``"z"``.
+        angle :
+            Rotation angle.
+        xyz :
+            3-vector translation. Defaults to ``[0, 0, 0]``.
+        unit :
+            ``"rad"`` (default) or ``"deg"``.
 
-        :return: A 4x4 transformation matrix.
-        :rtype: np.ndarray
+        Returns
+        -------
+        TransfMatrix
+
+        Raises
+        ------
+        ValueError
+            If ``axis`` is not ``"x"``, ``"y"``, or ``"z"``, or ``unit``
+            is unrecognised.
         """
-        if unit == 'deg':
-            angle = np.deg2rad(angle)
-        elif unit != 'rad':
-            raise ValueError("Unit must be 'rad' or 'deg'")
+        if cls is TransfMatrix and is_symbolic():
+            from .TransfMatrixSymbolic import TransfMatrixSymbolic
+            return TransfMatrixSymbolic.from_rotation(axis=axis,
+                                                   angle=angle,
+                                                   xyz=xyz,
+                                                   unit=unit)
+
+        if xyz is None:
+            xyz = numpy.zeros(3)
+        if unit == "deg":
+            angle = numpy.deg2rad(angle)
+        elif unit != "rad":
+            raise ValueError(
+                "TransfMatrix.from_rotation: unit must be 'rad' or 'deg'"
+            )
 
         angle = float(angle)
-        c = np.cos(angle)
-        s = np.sin(angle)
+        c, s = numpy.cos(angle), numpy.sin(angle)
 
-        if axis == 'x':
-            return cls(np.array([[1, 0, 0, 0],
-                                 [xyz[0], 1, 0, 0],
-                                 [xyz[1], 0, c, -s],
-                                 [xyz[2], 0, s, c]]))
-        elif axis == 'y':
-            return cls(np.array([[1, 0, 0, 0],
-                                 [xyz[0], c, 0, s],
-                                 [xyz[1], 0, 1, 0],
-                                 [xyz[2], -s, 0, c]]))
-        elif axis == 'z':
-            return cls(np.array([[1, 0, 0, 0],
-                                 [xyz[0], c, -s, 0],
-                                 [xyz[1], s, c, 0],
-                                 [xyz[2], 0, 0, 1]]))
+        if axis == "x":
+            return cls(numpy.array([
+                [1, 0, 0, 0],
+                [xyz[0], 1, 0, 0],
+                [xyz[1], 0, c, -s],
+                [xyz[2], 0, s, c],
+            ]))
+        elif axis == "y":
+            return cls(numpy.array([
+                [1, 0, 0, 0],
+                [xyz[0], c, 0, s],
+                [xyz[1], 0, 1, 0],
+                [xyz[2], -s, 0, c],
+            ]))
+        elif axis == "z":
+            return cls(numpy.array([
+                [1, 0, 0, 0],
+                [xyz[0], c, -s, 0],
+                [xyz[1], s, c, 0],
+                [xyz[2], 0, 0, 1],
+            ]))
         else:
-            raise ValueError("Axis must be 'x', 'y', or 'z'")
+            raise ValueError(
+                "TransfMatrix.from_rotation: axis must be 'x', 'y', or 'z'"
+            )
 
-    def array(self) -> np.array:
+    # ------------------------------------------------------------------
+    # Properties — n, o, a, t
+    # ------------------------------------------------------------------
+
+    @property
+    def n(self) -> numpy.ndarray:
+        """Normal vector (x-axis of the rotation frame), column 1."""
+        return self.matrix[1:4, 1]
+
+    @n.setter
+    def n(self, value):
+        self.matrix[1:4, 1] = numpy.asarray(value, dtype=numpy.float64)
+
+    @property
+    def o(self) -> numpy.ndarray:
+        """Orthogonal vector (y-axis of the rotation frame), column 2."""
+        return self.matrix[1:4, 2]
+
+    @o.setter
+    def o(self, value):
+        self.matrix[1:4, 2] = numpy.asarray(value, dtype=numpy.float64)
+
+    @property
+    def a(self) -> numpy.ndarray:
+        """Approach vector (z-axis of the rotation frame), column 3."""
+        return self.matrix[1:4, 3]
+
+    @a.setter
+    def a(self, value):
+        self.matrix[1:4, 3] = numpy.asarray(value, dtype=numpy.float64)
+
+    @property
+    def t(self) -> numpy.ndarray:
+        """Translation vector, column 0 (rows 1–3)."""
+        return self.matrix[1:4, 0]
+
+    @t.setter
+    def t(self, value):
+        self.matrix[1:4, 0] = numpy.asarray(value, dtype=numpy.float64)
+
+    # ------------------------------------------------------------------
+    # Operators
+    # ------------------------------------------------------------------
+
+    def __mul__(self, other: "TransfMatrix") -> "TransfMatrix":
         """
-        Return transformation matrix as 4x4 numpy array
+        Compose two transformations.
 
-        :return: 4x4 numpy array
-        :rtype: np.array
+        Parameters
+        ----------
+        other :
+            Right-hand transformation.
+
+        Returns
+        -------
+        TransfMatrix
+        """
+        return self.__class__(self.matrix @ other.matrix)
+
+    def __repr__(self) -> str:
+        return numpy.array2string(
+            self.matrix,
+            precision=10,
+            suppress_small=True,
+            separator=", ",
+            max_line_width=100000,
+        )
+
+    def __eq__(self, other: "TransfMatrix") -> bool:
+        return numpy.allclose(self.matrix, other.matrix)
+
+    # ------------------------------------------------------------------
+    # Core
+    # ------------------------------------------------------------------
+
+    def array(self) -> numpy.ndarray:
+        """
+        Return the transformation as a 4×4 NumPy array.
+
+        Thin alias for ``self.matrix``.
+
+        Returns
+        -------
+        numpy.ndarray
         """
         return self.matrix
 
-    def is_rotation(self):
+    def rot_matrix(self) -> numpy.ndarray:
         """
-        Check if matrix is rotation matrix with determinant equal to 1
+        Return the 3×3 rotation sub-matrix.
 
-        :return: True if matrix is rotation
+        Returns
+        -------
+        numpy.ndarray
+            Rows and columns 1–3 of the full matrix.
         """
-        if np.isclose(np.linalg.det(self.rot_matrix()), 1):
-            return True
-        else:
-            warn("Matrix has NOT determinant equal to 1")
+        return self.matrix[1:4, 1:4]
+
+    def is_rotation(self) -> bool:
+        """
+        Check whether the rotation sub-matrix has determinant 1.
+
+        Emits a :class:`UserWarning` if the check fails; does not raise.
+
+        Returns
+        -------
+        bool
+            ``True`` if ``det(R) ≈ 1``.
+        """
+        det = numpy.linalg.det(self.rot_matrix())
+        if not numpy.isclose(det, 1.0):
+            warn(
+                f"TransfMatrix: rotation sub-matrix has determinant {det:.6g}, "
+                "expected 1. The matrix may not represent a valid rigid body "
+                "transformation.",
+                UserWarning,
+                stacklevel=3,
+            )
             return False
+        return True
 
-    def matrix2dq(self) -> np.array:
+    def inv(self) -> "TransfMatrix":
         """
-        Convert SE(3) matrix representation to dual quaternion array
+        Return the inverse transformation.
 
-        :return: return 8-dimensional array of dual quaternion
-        :rtype: np.array
+        Computed analytically: ``R^{-1} = R^T``,
+        ``t^{-1} = -R^T t``.
+
+        Returns
+        -------
+        TransfMatrix
+        """
+        inv_rot = self.rot_matrix().T
+        inv_t = -inv_rot @ self.t
+        m = numpy.eye(4)
+        m[1:4, 1:4] = inv_rot
+        m[1:4, 0] = inv_t
+        return self.__class__(m)
+
+    # ------------------------------------------------------------------
+    # Convention conversion
+    # ------------------------------------------------------------------
+
+    def to_standard(self) -> numpy.ndarray:
+        """
+        Convert to the standard SE(3) convention.
+
+        In the standard convention the rotation matrix occupies the
+        top-left 3×3 block, the translation vector occupies the
+        top-right column, and the bottom row is ``[0, 0, 0, 1]``::
+
+            [[r11, r12, r13, tx],
+             [r21, r22, r23, ty],
+             [r31, r32, r33, tz],
+             [0,   0,   0,   1 ]]
+
+        Returns
+        -------
+        numpy.ndarray
+            4×4 ``float64`` array in standard convention.
+        """
+        m = numpy.eye(4, dtype=numpy.float64)
+        m[0:3, 0:3] = self.rot_matrix()
+        m[0:3, 3] = self.t
+        return m
+
+    def matrix2dq(self) -> numpy.ndarray:
+        """
+        Convert to a dual quaternion 8-vector.
+
+        Returns
+        -------
+        numpy.ndarray
+            8-vector ``[p0, p1, p2, p3, d0, d1, d2, d3]``.
         """
         conditions = [
             (1 + self.n[0] + self.o[1] + self.a[2],
@@ -312,145 +636,130 @@ class TransfMatrix:
             (self.n[1] - self.o[0],
              self.n[2] + self.a[0],
              self.a[1] + self.o[2],
-             1 - self.n[0] - self.o[1] + self.a[2])
+             1 - self.n[0] - self.o[1] + self.a[2]),
         ]
 
-        p = np.zeros(4)
+        p = numpy.zeros(4)
         for condition in conditions:
             p[0], p[1], p[2], p[3] = condition
             if p[0] != 0 or sum(p) != 0:
                 break
 
-        d = np.zeros(4)
-        d[0] = (self.t[0] * p[1] + self.t[1] * p[2] + self.t[2] * p[3]) / 2
+        d = numpy.zeros(4)
+        d[0] = ( self.t[0] * p[1] + self.t[1] * p[2] + self.t[2] * p[3]) / 2
         d[1] = (-self.t[0] * p[0] + self.t[2] * p[2] - self.t[1] * p[3]) / 2
         d[2] = (-self.t[1] * p[0] - self.t[2] * p[1] + self.t[0] * p[3]) / 2
         d[3] = (-self.t[2] * p[0] + self.t[1] * p[1] - self.t[0] * p[2]) / 2
 
-        # normalization
         if p[0] != 0:
             d = d / p[0]
             p = p / p[0]
         else:
-            norm = np.linalg.norm(p)
+            norm = numpy.linalg.norm(p)
             d = d / norm
             p = p / norm
 
-        return np.concatenate((p, d))
+        return numpy.concatenate((p, d))
 
-    def rot_matrix(self):
-        r = self.matrix[1:4, 1:4]
-        return r
+    def rpy(self) -> numpy.ndarray:
+        """
+        Return roll–pitch–yaw angles of the rotation sub-matrix.
 
-    def rpy(self):
+        Returns
+        -------
+        numpy.ndarray
+            3-vector ``[roll, pitch, yaw]`` in radians.
         """
-        Return roll, pitch, yaw angles of the rotation matrix
-        
-        :return: 3-dimensional numpy array of roll, pitch, yaw angles
-        """
-        rpy = np.zeros((3,))
+        rpy = numpy.zeros(3)
         R = self.rot_matrix()
-        if abs(abs(R[2, 0]) - 1) < 10 * np.finfo(np.float64).eps:  # when |R31| == 1
-            # singularity
-            rpy[0] = 0  # roll is zero
+        if abs(abs(R[2, 0]) - 1) < 10 * numpy.finfo(numpy.float64).eps:
+            rpy[0] = 0
             if R[2, 0] < 0:
-                rpy[2] = -np.arctan2(R[0, 1], R[0, 2])  # R-Y
+                rpy[2] = -numpy.arctan2(R[0, 1], R[0, 2])
             else:
-                rpy[2] = np.arctan2(-R[0, 1], -R[0, 2])  # R+Y
-            rpy[1] = -np.arcsin(np.clip(R[2, 0], -1.0, 1.0))
+                rpy[2] = numpy.arctan2(-R[0, 1], -R[0, 2])
+            rpy[1] = -numpy.arcsin(numpy.clip(R[2, 0], -1.0, 1.0))
         else:
-            rpy[0] = np.arctan2(R[2, 1], R[2, 2])  # R
-            rpy[2] = np.arctan2(R[1, 0], R[0, 0])  # Y
-
-            k = np.argmax(np.abs([R[0, 0], R[1, 0], R[2, 1], R[2, 2]]))
+            rpy[0] = numpy.arctan2(R[2, 1], R[2, 2])
+            rpy[2] = numpy.arctan2(R[1, 0], R[0, 0])
+            k = numpy.argmax(numpy.abs([R[0, 0], R[1, 0], R[2, 1], R[2, 2]]))
             if k == 0:
-                rpy[1] = -np.arctan(R[2, 0] * np.cos(rpy[2]) / R[0, 0])
+                rpy[1] = -numpy.arctan(R[2, 0] * numpy.cos(rpy[2]) / R[0, 0])
             elif k == 1:
-                rpy[1] = -np.arctan(R[2, 0] * np.sin(rpy[2]) / R[1, 0])
+                rpy[1] = -numpy.arctan(R[2, 0] * numpy.sin(rpy[2]) / R[1, 0])
             elif k == 2:
-                rpy[1] = -np.arctan(R[2, 0] * np.sin(rpy[0]) / R[2, 1])
+                rpy[1] = -numpy.arctan(R[2, 0] * numpy.sin(rpy[0]) / R[2, 1])
             elif k == 3:
-                rpy[1] = -np.arctan(R[2, 0] * np.cos(rpy[0]) / R[2, 2])
-
+                rpy[1] = -numpy.arctan(R[2, 0] * numpy.cos(rpy[0]) / R[2, 2])
         return rpy
 
-    def dh_to_other_frame(self, other: 'TransfMatrix') -> list[float]:
+    def dh_to_other_frame(self, other: "TransfMatrix") -> list:
         """
-        Return Denavit-Hartenberg parameters from one frame to another
+        Return Denavit–Hartenberg parameters from this frame to *other*.
 
-        :param TransfMatrix other: transformation matrix of the other frame
+        Parameters
+        ----------
+        other :
+            Target frame.
 
-        :return: DH parameters [theta, d, a, alpha]
-        :rtype: list[float]
+        Returns
+        -------
+        list[float]
+            ``[theta, d, a, alpha]`` in radians.
 
-        :warns: if the two frames do not fulfill the DH convention
+        Warns
+        -----
+        UserWarning
+            If the two frames do not satisfy the DH convention.
         """
-        from .NormalizedLine import NormalizedLine
+        from .NormalizedLine import NormalizedLine  # lazy — avoids circular import
 
-        # theta
-        th = np.arctan2(np.linalg.norm(np.cross(self.n, other.n)),
-                        np.dot(self.n, other.n))
-        # using right-hand rule, if a dot product of Xi axis is in negative
-        theta = -th if np.dot(self.o, other.n) < 0 else th
+        th = numpy.arctan2(
+            numpy.linalg.norm(numpy.cross(self.n, other.n)),
+            numpy.dot(self.n, other.n),
+        )
+        theta = -th if numpy.dot(self.o, other.n) < 0 else th
 
-        # d, using normal vectors (x-axis) of the frames
         line0 = NormalizedLine.from_direction_and_point(self.n, self.t)
         line1 = NormalizedLine.from_direction_and_point(other.n, other.t)
-
         _, dist, __ = line0.common_perpendicular_to_other_line(line1)
+        d = -dist if numpy.dot(other.t - self.t, self.a) < 0 else dist
 
-        # using right-hand rule, if the dot product of vectors between two links and
-        # z-axis is less than 0 it has to be different direction
-        d = -dist if np.dot(other.t - self.t, self.a) < 0 else dist
-
-        # a, using approach vectors (z-axis) of the frames
         line0 = NormalizedLine.from_direction_and_point(self.a, self.t)
         line1 = NormalizedLine.from_direction_and_point(other.a, other.t)
-
         _, dist, __ = line0.common_perpendicular_to_other_line(line1)
+        a = -dist if numpy.dot(other.t - self.t, other.n) < 0 else dist
 
-        # using right-hand rule, if the dot product of vectors between two links and
-        # x-axis is less than 0 it has to be different direction
-        a = -dist if np.dot(other.t - self.t, other.n) < 0 else dist
+        al = numpy.arctan2(
+            numpy.linalg.norm(numpy.cross(self.a, other.a)),
+            numpy.dot(self.a, other.a),
+        )
+        alpha = -al if numpy.dot(other.o, self.a) < 0 else al
 
-        # alpha
-        al = np.arctan2(np.linalg.norm(np.cross(self.a, other.a)),
-                        np.dot(self.a, other.a))
-
-        # using right-hand rule, if a dot product of Zi-1 axis is in negative direction
-        # of Yi axis, the angle has to be negative
-        alpha = -al if np.dot(other.o, self.a) < 0 else al
-
-        # check if the two frames fulfill the DH convention
         test_frame = TransfMatrix.from_dh_parameters(theta, d, a, alpha)
-        if not np.allclose(self.matrix @ test_frame.matrix, other.matrix):
-            warn("Frames do not fulfill the DH convention")
+        if not numpy.allclose(self.matrix @ test_frame.matrix, other.matrix):
+            warn(
+                "TransfMatrix.dh_to_other_frame: frames do not satisfy the "
+                "DH convention.",
+                UserWarning,
+                stacklevel=2,
+            )
 
         return [theta, d, a, alpha]
 
-    def inv(self):
+    def get_plot_data(self) -> tuple:
         """
-        Return inverse transformation matrix
+        Return three quiver coordinate pairs for 3-D plotting.
 
-        :return: inverse transformation matrix
-        :rtype: TransfMatrix
+        Each pair is a 6-vector ``[origin | direction]``.
+
+        Returns
+        -------
+        tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]
+            ``(x_vec, y_vec, z_vec)``.
         """
-        inv_rotation = np.transpose(self.rot_matrix())
-        inv_translation = -inv_rotation @ self.t
-
-        m = np.eye(4)
-        m[1:4, 1:4] = inv_rotation
-        m[1:4, 0] = inv_translation
-        return TransfMatrix(m)
-
-    def get_plot_data(self):
-        """
-        Return three quiver coordinates for plotting
-
-        :return: 6-dimensional numpy array of point and vector direction
-        """
-        x_vec = np.concatenate((self.t, self.n))
-        y_vec = np.concatenate((self.t, self.o))
-        z_vec = np.concatenate((self.t, self.a))
-
-        return x_vec, y_vec, z_vec
+        return (
+            numpy.concatenate((self.t, self.n)),
+            numpy.concatenate((self.t, self.o)),
+            numpy.concatenate((self.t, self.a)),
+        )
