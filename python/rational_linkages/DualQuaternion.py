@@ -688,8 +688,8 @@ class DualQuaternion:
         """
         p_arr = self.p.array()
         d_arr = self.d.array()
-        primal_norm = float(numpy.dot(p_arr, p_arr))
-        dual_norm = 2.0 * float(numpy.dot(p_arr, d_arr))
+        primal_norm = numpy.dot(p_arr, p_arr)
+        dual_norm = 2.0 * numpy.dot(p_arr, d_arr)
         return self.__class__(
             numpy.array([primal_norm, 0.0, 0.0, 0.0, dual_norm, 0.0, 0.0, 0.0])
         )

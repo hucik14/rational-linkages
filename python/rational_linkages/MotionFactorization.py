@@ -143,14 +143,12 @@ class MotionFactorization(RationalCurve):
         :return: object after the action
         :rtype: PointHomogeneous, NormalizedLine
         """
-        from .DualQuaternionAction import DualQuaternionAction
+        from .dualQuaternionAction import act
 
         start_idx = 0 if start_idx is None else start_idx
         end_idx = self.number_of_factors - 1 if end_idx is None else end_idx
         acting_sequence = self.get_numerical_factors(param)[start_idx : end_idx + 1]
-
-        action = DualQuaternionAction()
-        return action.act(acting_sequence, affected_object)
+        return act(acting_sequence, affected_object)
 
     def direct_kinematics(self, t_numerical: float, inverted_part: bool = False
                           ) -> list[np.array]:

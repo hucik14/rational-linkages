@@ -28,7 +28,7 @@ Dual Quaternion
 Dual Quaternion Action
 ----------------------
 
-.. automodule:: rational_linkages.DualQuaternionAction
+.. automodule:: rational_linkages.dualQuaternionAction
    :members:
    :undoc-members:
    :show-inheritance:

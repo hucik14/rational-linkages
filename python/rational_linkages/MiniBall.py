@@ -46,7 +46,7 @@ class MiniBall:
             center = result.x[:-1]
             radius_squared = np.square(result.x[-1])
         elif method == 'welzl':
-            points = np.array([point.coordinates_normalized for point in self.points])
+            points = np.array([point.array() for point in self.points])
             center, radius_squared = self.get_bounding_ball(points, metric=self.metric)
         else:
             raise ValueError("Invalid method.")

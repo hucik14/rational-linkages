@@ -58,7 +58,7 @@ class PointHomogeneousSymbolic(PointHomogeneous):
         # Bypass PointHomogeneous.__init__ bookkeeping that assumes float64; redo it
         # with symbolic-aware helpers.
         self.coordinates = self._initialize_coordinates(point)
-        self.is_at_infinity = self._check_if_at_infinity()
+        self._is_at_infinity = None
         self.is_2d = True if len(self.coordinates) == 3 else False
         self.is_3d = True if len(self.coordinates) == 4 else False
         self._normalized: Optional["PointHomogeneousSymbolic"] = None

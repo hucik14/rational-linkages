@@ -98,7 +98,7 @@ class PointHomogeneous:
 
     def __init__(self, point: Optional[Sequence[float]] = None):
         self.coordinates = self._initialize_coordinates(point)
-        self.is_at_infinity = self._check_if_at_infinity()
+        self._is_at_infinity = None
         self.is_2d = True if len(self.coordinates) == 3 else False
         self.is_3d = True if len(self.coordinates) == 4 else False
         self._normalized: Optional["PointHomogeneous"] = None
@@ -209,6 +209,12 @@ class PointHomogeneous:
     # ------------------------------------------------------------------
     # Properties
     # ------------------------------------------------------------------
+
+    @property
+    def is_at_infinity(self) -> bool:
+        if self._is_at_infinity is None:
+            self._is_at_infinity = self._check_if_at_infinity()
+        return self._is_at_infinity
 
     @property
     def x(self) -> float:
@@ -616,3 +622,62 @@ class PointHomogeneous:
             ``float64`` array of shape ``(3,)``.
         """
         return self.normalized_euclidean()
+
+
+class PointOrbit:
+    def __init__(self, point_center, radius_squared, t_interval):
+        """
+        Orbit of a point (its covering ball)
+        """
+        if not isinstance(point_center, PointHomogeneous):
+            self.center = PointHomogeneous(point_center)
+        else:
+            self.center = point_center
+
+        self.radius_squared = radius_squared
+
+        self._radius = None
+
+        self.t_interval = t_interval
+
+    def __repr__(self):
+        return f"PointOrbit(center={self.center}, radius_squared={self.radius_squared}, t_interval={self.t_interval})"
+
+    @property
+    def radius(self):
+        if self._radius is None:
+            self._radius = numpy.sqrt(self.radius_squared)
+        return self._radius
+
+    def get_plot_data_mpl(self) -> tuple:
+        """
+        Get data for plotting in 3D space
+
+        :return: surface coordinates
+        :rtype: tuple
+        """
+        if len(self.center.coordinates) == 4:
+            # Create the 3D sphere representing the circle
+            u = numpy.linspace(0, 2 * numpy.pi, 10)
+            v = numpy.linspace(0, numpy.pi, 10)
+
+            x = (self.radius * numpy.outer(numpy.cos(u), numpy.sin(v))
+                 + self.center.normalized_in_3d()[0])
+            y = (self.radius * numpy.outer(numpy.sin(u), numpy.sin(v))
+                 + self.center.normalized_in_3d()[1])
+            z = (self.radius * numpy.outer(numpy.ones(numpy.size(u)), numpy.cos(v))
+                 + self.center.normalized_in_3d()[2])
+        else:
+            raise ValueError("Cannot plot ball due to incompatible dimension.")
+
+        return x, y, z
+
+    def get_plot_data(self) -> tuple:
+        """
+        Get data for plotting in 3D space
+
+        :return: center and radius
+        :rtype: tuple
+        """
+        center = tuple(self.center.normalized_in_3d())
+        return center, self.radius

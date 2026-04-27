@@ -33,7 +33,7 @@ class TestMotionInterpolation(TestCase):
         poses = [p1, p2, p1, p2, p1, p1]
         self.assertRaises(ValueError, mi.interpolate, poses)
 
-        p2 = TransfMatrix(p2.dq2matrix())
+        p0 = TransfMatrix(p0.dq2matrix())
         curve = mi.interpolate([p0, p1, p2])
         self.assertIsInstance(curve, RationalCurve)
 

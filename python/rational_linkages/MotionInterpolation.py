@@ -128,7 +128,7 @@ class MotionInterpolation:
         if ((isinstance(poses_or_points[0], TransfMatrix)
             and not np.allclose(p0_array, TransfMatrix().matrix))
                 or (isinstance(poses_or_points[0], DualQuaternion)
-                    and not np.allclose(p0_array, DualQuaternion().dq))):
+                    and not np.allclose(p0_array, DualQuaternion().array()))):
 
             if len(poses_or_points) == 4:
                 raise ValueError('The first pose must be the identity matrix')
@@ -145,10 +145,11 @@ class MotionInterpolation:
         for pose in poses_or_points:
             if isinstance(pose, TransfMatrix):
                 rational_poses.append(DualQuaternion.as_rational(pose.matrix2dq()))
-            elif isinstance(pose, DualQuaternion) and not pose.is_rational:
+            # elif isinstance(pose, DualQuaternion) and not pose.is_rational:
+            elif isinstance(pose, DualQuaternion):
                 rational_poses.append(DualQuaternion.as_rational(pose.array()))
-            elif isinstance(pose, DualQuaternion) and pose.is_rational:
-                rational_poses.append(pose)
+            # elif isinstance(pose, DualQuaternion) and pose.is_rational:
+            #     rational_poses.append(pose)
             elif isinstance(pose, PointHomogeneous):
                 rational_poses.append(pose)
             else:
@@ -307,8 +308,8 @@ class MotionInterpolation:
         :rtype: list[sp.Poly]
         """
         # Calculate the mid point between the two poses
-        p0 = PointHomogeneous(poses[0].dq)
-        p1 = PointHomogeneous(poses[1].dq)
+        p0 = PointHomogeneous(poses[0].array())
+        p1 = PointHomogeneous(poses[1].array())
         mid_p = p0.linear_interpolation(p1, 0.5)
         mid_pose = DualQuaternion(mid_p.array())
 

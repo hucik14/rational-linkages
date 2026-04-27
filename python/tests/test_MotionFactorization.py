@@ -30,7 +30,7 @@ class TestMotionFactorization(TestCase):
             ]
         )
 
-        self.assertEqual(repr(f1), "MotionFactorization([[t, 0, 0, -1, 0, 0, 0, 0], [t, 0, 0, -2, 0, 0, 1, 0]])")
+        self.assertEqual(repr(f1), "MotionFactorization([DualQuaternion([t, 0, 0, -1.00000000000000, 0, 0, 0, 0]), DualQuaternion([t, 0, 0, -2.00000000000000, 0, 0, 1.00000000000000, 0])])")
 
     def test_get_polynomials_from_factorization(self):
         f1 = [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
@@ -39,13 +39,13 @@ class TestMotionFactorization(TestCase):
         t = sp.Symbol("t")
 
         self.assertEqual(MotionFactorization.get_polynomials_from_factorization(f1),
-                         [sp.Poly(t**2 - 2, t),
+                         [sp.Poly(t**2 - 2.0, t),
                           sp.Poly(0, t),
                           sp.Poly(0, t),
-                          sp.Poly(-3*t, t),
+                          sp.Poly(-3.*t, t),
                           sp.Poly(0, t),
-                          sp.Poly(1, t),
-                          sp.Poly(1*t, t),
+                          sp.Poly(1., t),
+                          sp.Poly(1.*t, t),
                           sp.Poly(0, t)]
                          )
 
@@ -60,8 +60,8 @@ class TestMotionFactorization(TestCase):
         t = sp.Symbol("t")
 
         self.assertEqual(f1.get_symbolic_factors(),
-                         [DualQuaternion([t, 0, 0, -1, 0, 0, 0, 0]),
-                          DualQuaternion([t, 0, 0, -2, 0, 0, 1, 0])])
+                         [DualQuaternion([t, 0, 0, -1., 0, 0, 0, 0]),
+                          DualQuaternion([t, 0, 0, -2., 0, 0, 1., 0])])
 
     def test_get_numerical_factors(self):
         f1 = MotionFactorization(

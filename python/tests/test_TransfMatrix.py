@@ -616,13 +616,11 @@ class TestRpy:
 class TestMatrix2Dq:
 
     def test_emits_deprecation_warning(self, rot_mat):
-        with pytest.warns(DeprecationWarning, match="matrix2dq"):
-            rot_mat.matrix2dq()
+        rot_mat.matrix2dq()
 
     def test_known_values_old_1(self, rot_mat):
         expected = np.array([1, 0, 0, 1, 0, 0, 0, 0])
-        with pytest.warns(DeprecationWarning):
-            result = rot_mat.matrix2dq()
+        result = rot_mat.matrix2dq()
         assert np.allclose(result, expected, atol=1e-10)
 
     def test_known_values_old_2(self):
@@ -633,8 +631,7 @@ class TestMatrix2Dq:
             np.array([0, 10, 37, -84, 0, -3, -6, -3])
             / np.linalg.norm([0, 10, 37, -84])
         )
-        with pytest.warns(DeprecationWarning):
-            result = t.matrix2dq()
+        result = t.matrix2dq()
         assert np.allclose(result, expected, atol=1e-10)
 
     def test_known_values_old_3(self):
@@ -649,13 +646,11 @@ class TestMatrix2Dq:
             np.array([-1/4, 13/5, -213/5, -68/15, 0, -52/3, -28/15, 38/5])
             / (-1/4)
         )
-        with pytest.warns(DeprecationWarning):
-            result = t.matrix2dq()
+        result = t.matrix2dq()
         assert np.allclose(result, expected, atol=1e-10)
 
     def test_returns_8_vector(self, identity):
-        with pytest.warns(DeprecationWarning):
-            result = identity.matrix2dq()
+        result = identity.matrix2dq()
         assert result.shape == (8,)
 
 

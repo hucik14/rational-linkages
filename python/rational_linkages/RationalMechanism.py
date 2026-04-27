@@ -175,7 +175,7 @@ class RationalMechanism(RationalCurve):
             filename = filename + '.pkl'
 
         # update the line segments (physical realization of the linkage) before saving
-        self.update_segments()
+        # self.update_segments()
 
         with open(filename, 'wb') as file:
             pickle.dump(self, file)
