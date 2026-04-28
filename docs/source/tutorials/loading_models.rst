@@ -7,7 +7,7 @@ The package can load a prepared model from its source. So far, a **Bennett mecha
 model from :ref:`ARK 2024 paper - extended information<ark2024extended>` is available,
 **collision-free 6R mechanism**, and **6R mechanism with plane-fold configuration**.
 
-.. testcode:: [loading_models_example1]
+.. code-block:: python
 
     from rational_linkages.models import bennett_ark24, collisions_free_6r, plane_fold_6r
 
@@ -20,14 +20,11 @@ model from :ref:`ARK 2024 paper - extended information<ark2024extended>` is avai
     # load the model with plane-fold configuration
     r6plane = plane_fold_6r()
 
-.. testcleanup:: [loading_models_example1]
-
-    del bennett_ark24, collisions_free_6r, plane_fold_6r
-    del bennett, r6
+.. clear-namespace
 
 Plotting a model can be done as in the following example.
 
-.. testcode:: [loading_models_example2]
+.. code-block:: python
 
     # Loading a model from the package
 
@@ -55,7 +52,5 @@ Plotting a model can be done as in the following example.
     # show the plot
     myplt.show()
 
-.. testcleanup:: [loading_models_example2]
+.. clear-namespace
 
-    del Plotter, TransfMatrix, bennett_ark24
-    del m, myplt, base, p0

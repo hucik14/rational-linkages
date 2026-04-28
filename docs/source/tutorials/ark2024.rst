@@ -31,7 +31,7 @@ It performs the motion :math:`C(t)` given byt the following equation
 
 This equation serves as the input for the following script.
 
-.. testcode:: [ark2024_example]
+.. code-block:: python
 
         # Bennett mechanism example
 
@@ -63,10 +63,7 @@ This equation serves as the input for the following script.
         # plot the mechanism
         p.show()
 
-.. testcleanup:: [ark2024_example]
-
-        del RationalCurve, RationalMechanism, FactorizationProvider, Plotter, np
-        del coeffs, c, factors, m, p
+.. clear-namespace
 
 
 The curve :math:`C(t)` is of degree 2 in the variable :math:`t`, and can be factorized
@@ -184,6 +181,7 @@ collisions happen. This value can be passed to the plotting window at the textbo
 
             # generate the design
             dh, cp, _ = m.get_design(unit='deg', scale=200)
+.. clear-namespace
 
 This last line of the script generates the design of the mechanism with the following
 output:

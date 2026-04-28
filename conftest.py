@@ -2,11 +2,24 @@ from pathlib import Path
 from sybil import Sybil
 from sybil.parsers.rest import PythonCodeBlockParser, ClearNamespaceParser
 
-pytest_collect_file = Sybil(
+base = Path(__file__).resolve().parent
+
+python_files = Sybil(
     parsers=[
         PythonCodeBlockParser(),
         ClearNamespaceParser(),
     ],
-    path=Path(__file__).resolve().parent / "python" / "rational_linkages",
+    path=base / "python" / "rational_linkages",
     patterns=["*.py"],
-).pytest()
+)
+
+rst_files = Sybil(
+    parsers=[
+        PythonCodeBlockParser(),
+        ClearNamespaceParser(),
+    ],
+    path=base / "docs" / "source",
+    patterns=["*.rst"],
+)
+
+pytest_collect_file = (python_files + rst_files).pytest()

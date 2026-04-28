@@ -15,7 +15,7 @@ Static plotting
 By default, the plots are not interactive. This is suitable for simple plots with
 static objects:
 
-.. testcode:: [plotting_example1]
+.. code-block:: python
 
     # Plotting static objects
 
@@ -48,10 +48,7 @@ static objects:
 
     plt.show()
 
-.. testcleanup:: [plotting_example1]
-
-    del plt, identity, pose1, pose2, point, line
-    del Plotter, DualQuaternion, PointHomogeneous, NormalizedLine, TransfMatrix
+.. clear-namespace
 
 Which will result in the following image:
 
@@ -62,7 +59,7 @@ Which will result in the following image:
 
 Additionally, it is also possible to plot motion curve of a mechanism.
 
-.. testcode:: [plotting_example1b]
+.. code-block:: python
 
     # Plotting motion curve of a mechanism
 
@@ -76,9 +73,7 @@ Additionally, it is also possible to plot motion curve of a mechanism.
     p.plot(m.curve(), interval='closed', with_poses=True)
     p.show()
 
-.. testcleanup:: [plotting_example1b]
-
-    del p, m, Plotter, bennett_ark24
+.. clear-namespace
 
 
 Which will result in the following image:
@@ -94,8 +89,7 @@ Interactive plotting
 
 In the interactive mode, the mechanisms can be animated.
 
-.. testcode:: [plotting_example2]
-    :skipif: skip_this_doctest == True
+.. code-block:: python
 
     # Interactive plotting with a loaded mechanism model
 
@@ -115,11 +109,7 @@ In the interactive mode, the mechanisms can be animated.
     plt.plot(point, label='pt')
     plt.show()
 
-.. testcleanup:: [plotting_example2]
-    :skipif: skip_this_doctest == True
-
-    del plt, m, point
-    del Plotter, PointHomogeneous, bennett_ark24
+.. clear-namespace
 
 Which will result in the following image. The interactive plotter can be used to animate
 the mechanism using the slider widget
@@ -149,7 +139,7 @@ limits. In such cases, it is possible to use key word arguments ``arrows_length`
 The ``joint_sliders_lim`` specifies the limits of the range sliders, and the ``arrows_length``
 to adjust the size of the length of the frames/poses that are plotted.
 
-.. testcode:: [plotting_example3]
+.. code-block:: python
 
     # Interactive plotting with a loaded mechanism model, adjusted scaling
 
@@ -162,10 +152,7 @@ to adjust the size of the length of the frames/poses that are plotted.
     plt = Plotter(mechanism=m, arrows_length=0.05, joint_sliders_lim=0.5)
     plt.show()
 
-.. testcleanup:: [plotting_example3]
-
-        del plt, m
-        del Plotter, bennett
+.. clear-namespace
 
 .. _alternative_tools:
 
@@ -190,7 +177,7 @@ However, the tool of a mechanism frame can be handled in three ways:
 
 The following examples show the three options.
 
-.. testcode:: [plotting_example4]
+.. code-block:: python
 
     # Tool frame on motion curve
 
@@ -212,17 +199,14 @@ The following examples show the three options.
     plt = Plotter(mechanism=m, backend='matplotlib', arrows_length=0.2)
     plt.show()
 
-.. testcleanup:: [plotting_example4]
-
-    del plt, m, f1, f2
-    del RationalMechanism, DualQuaternion, Plotter, MotionFactorization
+.. clear-namespace
 
 .. figure:: figures/plot_tool1.png
     :width: 500 px
     :align: center
     :alt: Tool frame on motion curve
 
-.. testcode:: [plotting_example5]
+.. code-block:: python
 
     # Tool frame in the middle of the last link
 
@@ -248,10 +232,7 @@ The following examples show the three options.
            color='red', linewidth='0.7', linestyle=':')
     plt.show()
 
-.. testcleanup:: [plotting_example5]
-
-    del plt, m, f1, f2
-    del RationalMechanism, DualQuaternion, Plotter, MotionFactorization
+.. clear-namespace
 
 
 .. figure:: figures/plot_tool2.png
@@ -259,7 +240,7 @@ The following examples show the three options.
     :align: center
     :alt: Tool frame in the middle of the last link
 
-.. testcode:: [plotting_example6]
+.. code-block:: python
 
     # Tool frame specified as DualQuaternion
 
@@ -289,10 +270,7 @@ The following examples show the three options.
            color='red', linewidth='0.7', linestyle=':')
     plt.show()
 
-.. testcleanup:: [plotting_example6]
-
-    del plt, m, f1, f2, tool_matrix, tool_dq
-    del RationalMechanism, DualQuaternion, TransfMatrix, Plotter, MotionFactorization
+.. clear-namespace
 
 .. figure:: figures/plot_tool3.png
     :width: 500 px

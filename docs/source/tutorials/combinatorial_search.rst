@@ -11,12 +11,6 @@ The basic outline can be run as follows:
 
 .. code-block:: python
 
-    # IMPORTANT NOTE:
-    #
-    # due to time-consuming nature of the search, the following code
-    # is NOT automatically tested. In case of error, please report
-    # this issue to the developers.
-
     from rational_linkages import (DualQuaternion, MotionFactorization,
                                    RationalMechanism, Plotter)
 
@@ -39,6 +33,8 @@ The basic outline can be run as follows:
         # plot mechanism
         myplt = Plotter(mechanism=m, show_tool=False, steps=200, arrows_length=0.2, joint_sliders_lim=3.0)
         myplt.show()
+
+.. clear-namespace
 
 This will perform full search and tries to find a collision-free design of the given
 mechanism. The result will be found at iteration :code:`4`, for links shifting combination
@@ -63,8 +59,7 @@ arguments also these keyword arguments:
 
 and they can be set as follows:
 
-.. testcode:: [comb_search_tutorial_example2]
-    :skipif: skip_this_doctest == True
+.. code-block:: python
 
     from rational_linkages import (DualQuaternion, MotionFactorization,
                                    RationalMechanism, Plotter)
@@ -91,17 +86,7 @@ and they can be set as follows:
     myplt = Plotter(mechanism=m, show_tool=False, steps=200, arrows_length=0.2, joint_sliders_lim=3.0)
     myplt.show()
 
-.. testoutput:: [comb_search_tutorial_example2]
-    :hide:
-    :options: +ELLIPSIS
-
-    ...
-
-.. testcleanup:: [comb_search_tutorial_example2]
-    :skipif: skip_this_doctest == True
-
-    del DualQuaternion, MotionFactorization, RationalMechanism, Plotter
-    del h1, h2, h3, f1, factorizations, m, myplt
+.. clear-namespace
 
 
 **References:**

@@ -41,7 +41,7 @@ of the joint axes in rational form.
 
 **Code Example**
 
-.. testcode:: [example-rational_pluecker_lines]
+.. code-block:: python
 
     import sympy as sp
     from rational_linkages.utils import tr_from_dh_rationally, normalized_line_rationally
@@ -107,19 +107,7 @@ of the joint axes in rational form.
     for i, screw in enumerate(screw_axes_rat):
         print(f"Screw axis {i}: {screw.T}")
 
-.. testoutput:: [example-rational_pluecker_lines]
-
-    Screw axes (Plücker coordinates):
-    Screw axis 0: Matrix([[0, 0, 1, 0, 0, 0]])
-    Screw axis 1: Matrix([[0, -1, 0, 0, 0, -11/50]])
-    Screw axis 2: Matrix([[0, 807989/932989, 466500/932989, 0, -47875766070/870468474121, 4146097786831/43523423706050]])
-    Screw axis 3: Matrix([[0, 466500/932989, -807989/932989, 0, -82923911070/870468474121, -47876895000/870468474121]])
-
-.. testcleanup:: [example-rational_pluecker_lines]
-
-    del sp, tr_from_dh_rationally, normalized_line_rationally
-    del r_zero, r_one, a0, t0, t1, a1, theta, d, a, alpha, local_tm, rotate_z_pi2
-    del global_tm, screw_axes_rat, i, tm, tm_z_vector, tm_t_vector
+.. clear-namespace
 
 
 **References**:

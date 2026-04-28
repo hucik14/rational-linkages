@@ -28,7 +28,7 @@ Quadratic interpolation of 3 poses
 The following example applies the method by :footcite:t:`Brunnthaler2005`.
 
 
-.. testcode:: [motion_interp_example1]
+.. code-block:: python
 
     # Quadratic interpolation of 3 poses
 
@@ -48,10 +48,7 @@ The following example applies the method by :footcite:t:`Brunnthaler2005`.
         plt.plot(pose, label='p{}'.format(i+1))
     plt.show()
 
-.. testcleanup:: [motion_interp_example1]
-
-    del plt, p0, p1, p2, c
-    del DualQuaternion, Plotter, MotionInterpolation
+.. clear-namespace
 
 Cubic interpolation of 4 poses
 ------------------------------
@@ -62,7 +59,7 @@ or see simplified description in :ref:`interpolation_background`.
 
 Here is presented an example of cubic interpolation of 4 poses.
 
-.. testcode:: [motion_interp_example2]
+.. code-block:: python
 
     # Cubic interpolation of 4 poses
 
@@ -95,11 +92,7 @@ Here is presented an example of cubic interpolation of 4 poses.
     # show the plot
     myplt.show()
 
-.. testcleanup:: [motion_interp_example2]
-
-    del myplt, p0, p1, p2, p3, c, fs, m
-    del DualQuaternion, Plotter, MotionInterpolation
-    del RationalMechanism
+.. clear-namespace
 
 The input are 4 dual quaternions, :math:`p_0, p_1, p_2, p_3`, and the output is a
 parametric rational curve :math:`C(t)` that interpolates the poses. Keep in mind that
@@ -155,8 +148,7 @@ but interpolates only 2 poses. The 3rd pose is set first set to the identity. If
 fails, the 3rd pose is than obtained by setting a random rotation and optimizing the
 position of the 3rd pose to achieve the shortest curve-path length.
 
-.. testcode:: [motion_interp_example3]
-    :skipif: skip_this_doctest == True
+.. code-block:: python
 
     # Quadratic interpolation of 2 poses with an optimized 3rd pose
 
@@ -178,17 +170,7 @@ position of the 3rd pose to achieve the shortest curve-path length.
 
     p.show()
 
-.. testoutput:: [motion_interp_example3]
-    :hide:
-    :options: +ELLIPSIS
-
-    ...
-
-.. testcleanup:: [motion_interp_example3]
-    :skipif: skip_this_doctest == True
-
-    del p, p0, p1, interpolated_curve, m
-    del Plotter, MotionInterpolation, TransfMatrix, RationalMechanism
+.. clear-namespace
 
 
 .. _changing_bases_interpolation:
@@ -200,8 +182,7 @@ The following example applies the method by :footcite:t:`Zube2018`. The result i
 non-monic polynomial, i.e. the factorized mechanism will be transformed by a static
 transformation.
 
-.. testcode:: [motion_interp_example4]
-    :skipif: skip_this_doctest == True
+.. code-block:: python
 
     # Quadratic interpolation of 5 points
 
@@ -233,11 +214,7 @@ transformation.
 
     p.show()
 
-.. testcleanup:: [motion_interp_example4]
-    :skipif: skip_this_doctest == True
-
-    del p, points, interpolated_curve, m, rebase, a0, a1, a2, a3, a4
-    del Plotter, MotionInterpolation, PointHomogeneous, DualQuaternion, RationalMechanism
+.. clear-namespace
 
 
 The resulting curve is plotted in the following figure.
@@ -258,8 +235,7 @@ and interpolates 7 points (3D points) with a cubic rational motion. The result i
 again non-monic polynomial, i.e. the factorized mechanism will be transformed
 by a static transformation.
 
-.. testcode:: [motion_interp_example5]
-    :skipif: skip_this_doctest == True
+.. code-block:: python
 
     # Cubic interpolation of 7 points
 
@@ -294,11 +270,7 @@ by a static transformation.
 
     p.show()
 
-.. testcleanup:: [motion_interp_example5]
-    :skipif: skip_this_doctest == True
-
-    del p, points, interpolated_curve, m, rebase, a0, a1, a2, a3, a4, a5, a6
-    del Plotter, MotionInterpolation, PointHomogeneous, DualQuaternion, RationalMechanism
+.. clear-namespace
 
 
 The resulting curve is plotted in the following figure.

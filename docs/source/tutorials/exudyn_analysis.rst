@@ -45,8 +45,9 @@ The class :class:`.ExudynAnalysis` gathers the necessary geometric and kinematic
 properties of a linkage, that can be used to create a simulation model in Exudyn.
 Use the following code to create an Exudyn model from a linkage:
 
-.. testcode:: [exudyn_example]
-    :skipif: skip_this_doctest == True
+.. code-block::
+
+    # THIS CODE IS NOT TESTED
 
     from rational_linkages import ExudynAnalysis
     from rational_linkages.models import collisions_free_6r, bennett_ark24
@@ -194,18 +195,7 @@ Use the following code to create an Exudyn model from a linkage:
     # visualize results after simulation:
     #mbs.SolutionViewer()
 
-.. testoutput:: [exudyn_example]
-    :hide:
-    :options: +ELLIPSIS
-
-    ...
-
-.. testcleanup:: [exudyn_example]
-    :skipif: skip_this_doctest == True
-
-    del ExudynAnalysis, collisions_free_6r, bennett_ark24
-    del exu, SC, mbs, InertiaCuboid, color4red, color4green, color4blue,
-    del color4magenta, color4yellow
+.. clear-namespace
 
 
 **References:**

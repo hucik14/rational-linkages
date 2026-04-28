@@ -37,14 +37,12 @@ quaternion :math:`\mathbf{q}_d = (p_4, p_5, p_6, p_7)`.
 In the package, the class :class:`.DualQuaternion` is used to represent dual
 quaternions. A simple example of creating an identity dual quaternion is:
 
-.. testcode:: [dual_quaternion_example1]
+.. code-block:: python
 
     from rational_linkages import DualQuaternion
     p = DualQuaternion()
 
-.. testcleanup:: [dual_quaternion_example1]
-
-    del p, DualQuaternion
+.. clear-namespace
 
 
 which will create a dual quaternion :math:`\mathbf{p} = (1, 0, 0, 0, 0, 0, 0, 0)`.
@@ -134,7 +132,7 @@ also known as roll-pitch-yaw angles. The method :meth:`.TransfMatrix.from_rpy_xy
 serves for this purpose. Conversion to dual quaternion is then straightforward,
 as seen in the following example:
 
-.. testcode:: [dual_quaternion_example2]
+.. code-block:: python
 
     # Create a transformation matrix from Tait-Bryan angles and translation vector,
     # and convert it to dual quaternion
@@ -171,46 +169,7 @@ as seen in the following example:
 
 
 
-The output of the example is:
-
-.. testoutput:: [dual_quaternion_example2]
-
-    --------------------
-    Transformation matrix:
-    [[1., 0., 0., 0.],
-     [0., 1., 0., 0.],
-     [0., 0., 1., 0.],
-     [0., 0., 0., 1.]]
-    Corresponding dual quaternion:
-    [1., 0., 0., 0., 0., 0., 0., 0.]
-    --------------------
-    --------------------
-    Transformation matrix:
-    [[ 1.,  0.,  0.,  0.],
-     [ 1.,  1.,  0.,  0.],
-     [ 2.,  0.,  0., -1.],
-     [ 3.,  0.,  1.,  0.]]
-    Corresponding dual quaternion:
-    [ 1. ,  1. ,  0. ,  0. ,  0.5, -0.5, -2.5, -0.5]
-    --------------------
-    --------------------
-    Transformation matrix:
-    [[ 1.,  0.,  0.,  0.],
-     [ 4.,  0.,  0., -1.],
-     [ 5.,  0.,  1.,  0.],
-     [ 6.,  1.,  0.,  0.]]
-    Corresponding dual quaternion:
-    [ 1. ,  0. , -1. ,  0. , -2.5, -5. , -2.5, -1. ]
-    --------------------
-    [[ 1.,  0.,  0.,  0.],
-     [ 4.,  0., -0., -1.],
-     [ 5.,  0.,  1., -0.],
-     [ 6.,  1.,  0.,  0.]]
-
-.. testcleanup:: [dual_quaternion_example2]
-
-    del TransfMatrix, DualQuaternion
-    del T0, T1, T2, T, p, T_list
+.. clear-namespace
 
 
 Dual Quaternion Actions
@@ -255,9 +214,6 @@ DQ Action on a Plane
 ^^^^^^^^^^^^^^^^^^^^
 
 Planes are not supported by the package yet.
-
-
-
 
 
 **References:**

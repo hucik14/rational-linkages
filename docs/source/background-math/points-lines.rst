@@ -66,7 +66,7 @@ Dual quaternions that correspond to lines can be interpreted as the `half-turn` 
 i.e. transformations that rotate the origin by 180 degrees around the line. The following
 code snippet plots the half-turn transformation corresponding to a line in 3D space.
 
-.. testcode:: [half_turn_example]
+.. code-block:: python
 
     from rational_linkages import Plotter, DualQuaternion, NormalizedLine, PointHomogeneous
     from copy import deepcopy
@@ -90,10 +90,7 @@ code snippet plots the half-turn transformation corresponding to a line in 3D sp
     p.plot(dq2, label='some-rotation')
     p.show()
 
-.. testcleanup:: [half_turn_example]
-
-    del Plotter, DualQuaternion, NormalizedLine, PointHomogeneous, deepcopy
-    del pt1, pt2, l, dq1, dq2, p
+.. clear-namespace
 
 We can additionally see that if we alter the zero element of :code:`dq1` to get :code:`dq2`, we get a transformation
 that corresponds to some rotation around the line, but not a half-turn transformation anymore.

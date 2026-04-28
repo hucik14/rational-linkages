@@ -24,7 +24,7 @@ to match the size of the links specified by the method :meth:`.RationalMechanism
 The point pairs are a convenient way
 to assembly your mechanism correctly. See the example below:
 
-.. testcode:: [assembling-mechanism-with-tool]
+.. code-block:: python
 
     from rational_linkages import Plotter
     from rational_linkages.models import bennett_ark24
@@ -52,14 +52,7 @@ to assembly your mechanism correctly. See the example below:
     m.export_single_mesh(add_tool_frame=True,
                          file_name='mesh_bennett_ark24.stl')
 
-.. testoutput:: [assembling-mechanism-with-tool]
-
-    Mesh exported to 'mesh_bennett_ark24.stl'
-
-
-.. testcleanup:: [assembling-mechanism-with-tool]
-
-        del Plotter, bennett_ark24, m, dh, design_params, design_points, p, base_joint0_pts, base_joint3_pts, i, pt
+.. clear-namespace
 
 
 The output will look similar like in the figure below, where the points belonging

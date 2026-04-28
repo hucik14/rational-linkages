@@ -51,7 +51,7 @@ In theory, the same calculation could be done for 6R linkages, but these are not
 always rational and the calculation might fail since there are no rational
 transformations for all :math:`t_i`.
 
-.. testcode::
+.. code-block:: python
 
     import sympy as sp
     from rational_linkages import RationalCurve, Plotter, RationalMechanism, DualQuaternion
@@ -122,14 +122,7 @@ transformations for all :math:`t_i`.
     p.show()
 
 
-.. testcleanup::
-
-    del DualQuaternion, RationalCurve, RationalMechanism, Plotter
-    del h1, h2, h3, h4
-    del t1, t2, t3, t4, u, t
-    del t_dq, t1_dq, t2_dq, t3_dq, t4_dq
-    del eqs, eqs_list, eqs_closure, gb, eqs_gb, check_eqs
-    del t2_res, c, m, p
+.. clear-namespace
 
 
 **References**

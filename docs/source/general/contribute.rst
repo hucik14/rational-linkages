@@ -60,7 +60,7 @@ Example of a docstring:
 
         :example:
 
-        .. testcode:: [example_function]
+        .. code-block::
 
             # General usage of a function, this section will be also included in doctest
 
@@ -70,10 +70,7 @@ Example of a docstring:
             b = 2.0
             c = example_function(a, b)
 
-        .. testcleanup:: [example_function]
-
-            del numpy
-            del a, b, c
+        .. clear-namespace
 
         :note: additional notes
 

@@ -20,7 +20,7 @@ rational dual quaternions, constructed using the method
 Factorization of planar 4-bar
 -----------------------------
 
-.. testcode:: [motion_factorization_example1]
+.. code-block:: python
 
     from rational_linkages import (DualQuaternion, MotionFactorization,
                                    RationalMechanism, Plotter)
@@ -39,10 +39,7 @@ Factorization of planar 4-bar
     plt = Plotter(mechanism=m, arrows_length=0.05)
     plt.show()
 
-.. testcleanup:: [motion_factorization_example1]
-
-    del DualQuaternion, MotionFactorization, RationalMechanism, Plotter
-    del f1, factorizations, m, plt
+.. clear-namespace
 
 Which results in the following plot:
 
@@ -55,7 +52,7 @@ Which results in the following plot:
 Factorization of spatial 6R mechanism
 -------------------------------------
 
-.. testcode:: [motion_factorization_example2]
+.. code-block:: python
 
     from rational_linkages import (DualQuaternion, MotionFactorization, RationalMechanism,
                                    Plotter)
@@ -77,10 +74,7 @@ Factorization of spatial 6R mechanism
     plt = Plotter(mechanism=m, arrows_length=0.2)
     plt.show()
 
-.. testcleanup:: [motion_factorization_example2]
-
-    del DualQuaternion, MotionFactorization, RationalMechanism, Plotter
-    del h1, h2, h3, f1, factorizations, m, plt
+.. clear-namespace
 
 Which results in the following plot:
 

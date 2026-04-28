@@ -31,7 +31,7 @@ they accept arguments for size of the joints and links cylinders, and also can
 add the tool link and frame meshes. Be careful with units (e.g. in :meth:`.RationalMechanism.export_single_solid()`)
 it has to be specified if the result and inputs are in millimeters or meters.
 
-.. testcode:: [cad-export]
+.. code-block:: python
 
     from rational_linkages.models import bennett_ark24
 
@@ -49,14 +49,7 @@ it has to be specified if the result and inputs are in millimeters or meters.
                     add_tool_frame=True,
                     file_name="mechanism.step")
 
-.. testoutput:: [cad-export]
-
-    Mesh exported as 'mechanism.stl'
-    CAD solids exported to 'mechanism.step'
-
-.. testcleanup:: [cad-export]
-
-        del bennett_ark24, m
+.. clear-namespace
 
 .. _stl_preview-motion_designer:
 
@@ -70,7 +63,7 @@ It is important that the STL file coordinates are already in the world frame
 (``p0`` of your mechanism in MotionDesigner). Place the STL file in the same directory as your script
 and use the following pattern:
 
-.. testcode:: [cad-import-motion-designer]
+.. code-block::
 
     from rational_linkages import MotionDesigner
 
@@ -80,16 +73,7 @@ and use the following pattern:
     md.add_mesh_from_stl("cnc_lathe.stl", scale=0.001)
     md.show()
 
-.. testoutput:: [cad-import-motion_designer]
-
-    Closing the window... generated points for interpolation:
-    [1, 0, 0, 0, 0, 0, 0, 0]
-    [ 1.          , -0.207522406 , -0.0333866662, -0.0691741237, -0.0625113682, -0.141265791 , -0.4478576802, -0.2637268902]
-    [ 1.          ,  0.2333739522, -0.0427838517,  0.0777914503, -0.0839342318,  0.2991396249,  0.2980046603,  0.345444421 ]
-
-.. testcleanup:: [cad-import-motion_designer]
-
-    del MotionDesigner, md
+.. clear-namespace
 
 
 

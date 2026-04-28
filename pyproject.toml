@@ -109,9 +109,10 @@ line-length = 100
 target-version = "py310"
 
 [tool.pytest.ini_options]
-#testpaths = ["python/tests"]
-testpaths = ["python/rational_linkages"]  # for local docs testing with plotting
-#testpaths = ["python/tests", "python/rational_linkages"]  # for local docs testing with plotting
+testpaths = ["python/tests"]  # unit test suit
+#testpaths = ["python/rational_linkages"]  # docstring examples
+#testpaths = ["docs/source"]  # docs examples
+#testpaths = ["python/tests", "python/rational_linkages", "docs/source"]  # test all
 
 [tool.coverage.report]
 omit = [
