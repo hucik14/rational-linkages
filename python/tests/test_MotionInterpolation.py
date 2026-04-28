@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 import numpy as np
 import sympy as sp
 from rational_linkages import (DualQuaternion, MotionInterpolation, RationalCurve,
@@ -9,7 +9,7 @@ class TestMotionInterpolation(TestCase):
     def test_interpolate(self):
         mi = MotionInterpolation()
         # Create some dummy poses
-        p0 = DualQuaternion.as_rational([0, 17, -33, -89, 0, -6, 5, -3])
+        p0 = DualQuaternion([0, 17, -33, -89, 0, -6, 5, -3], rational=True)
         p1 = DualQuaternion([0, 84, -21, -287, 0, -30, 3, -9])
         p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
 
@@ -55,7 +55,7 @@ class TestMotionInterpolation(TestCase):
 
     def test_interpolate_quadratic_2_poses_optimization(self):
         mi = MotionInterpolation()
-        p0 = DualQuaternion.as_rational([0, 17, -33, -89, 0, -6, 5, -3])
+        p0 = DualQuaternion([0, 17, -33, -89, 0, -6, 5, -3], rational=True)
         p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
 
         curve = RationalCurve(mi.interpolate_quadratic_2_poses_optimized([p2, p0],
@@ -64,17 +64,17 @@ class TestMotionInterpolation(TestCase):
 
     def test_interpolate_quadratic_2_poses_random(self):
         mi = MotionInterpolation()
-        p0 = DualQuaternion.as_rational([0, 17, -33, -89, 0, -6, 5, -3])
+        p0 = DualQuaternion([0, 17, -33, -89, 0, -6, 5, -3], rational=True)
         p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
 
         curve = RationalCurve(mi.interpolate_quadratic_2_poses_random([p2, p0]))
         self.assertIsInstance(curve, RationalCurve)
 
     def test_interpolate_cubic(self):
-        p0 = DualQuaternion([1, 0, 0, 0, 0, 0, 0, 0])
-        p1 = DualQuaternion.as_rational([0, 0, 0, 1, 1, 0, 1, 0])
-        p2 = DualQuaternion.as_rational([1, 2, 0, 0, -2, 1, 0, 0])
-        p3 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
+        p0 = DualQuaternion([1, 0, 0, 0, 0, 0, 0, 0], rational=True)
+        p1 = DualQuaternion([0, 0, 0, 1, 1, 0, 1, 0], rational=True)
+        p2 = DualQuaternion([1, 2, 0, 0, -2, 1, 0, 0], rational=True)
+        p3 = DualQuaternion([3, 0, 1, 0, 1, 0, -3, 0], rational=True)
 
         mi = MotionInterpolation()
 
@@ -92,10 +92,10 @@ class TestMotionInterpolation(TestCase):
 
         self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
 
-        p0 = DualQuaternion([1, 0, 0, 0, 0, 0, 0, 0])
-        p1 = DualQuaternion.as_rational([0, 5, 0, 0, 0, 0, 0, 0])
-        p2 = DualQuaternion.as_rational([0, 5, 0, 3, 0, -3, 0, 0])
-        p3 = DualQuaternion.as_rational([12, 0, 0, 3, 0, 0, 0, -10])
+        p0 = DualQuaternion([1, 0, 0, 0, 0, 0, 0, 0], rational=True)
+        p1 = DualQuaternion([0, 5, 0, 0, 0, 0, 0, 0], rational=True)
+        p2 = DualQuaternion([0, 5, 0, 3, 0, -3, 0, 0], rational=True)
+        p3 = DualQuaternion([12, 0, 0, 3, 0, 0, 0, -10], rational=True)
 
         self.assertRaises(Exception, mi.interpolate, [p0, p1, p2, p3])
 
@@ -158,8 +158,34 @@ class TestMotionInterpolation(TestCase):
         p3 = PointHomogeneous([1, -3, 0, 3], rational=True)
         p4 = PointHomogeneous([1, 2, 1, -1], rational=True)
         curve = mi.interpolate([p0, p1, p2, p3, p4])
+        self.assertTrue(str(curve.set_of_polynomials[0].domain) == 'RR')
+        self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
+
+    @skip("handle sympy input for Pt")
+    def test_interpolate_points_quadratic_rationally(self):
+        # Test rational output
+        from rational_linkages import set_backend
+        mi = MotionInterpolation()
+        expected_coeffs = np.array([[3.66914104, -4.23860021, 1.],
+                                    [0.5980912, -0.4931071, 0.],
+                                    [2.62990456, -1.99151644, 0.],
+                                    [0.68716861, -0.41569459, 0.],
+                                    [0.28844115, 0., 0.],
+                                    [-2.5068929, 1.621421, 0.],
+                                    [0.76564157, -0.65694592, 0.],
+                                    [-2.28844115, 1.91781548, 0.]])
+        expected_coeffs = expected_coeffs / 2
+        set_backend("sympy")
+        p0 = PointHomogeneous([1, 0, 0, 0])
+        p1 = PointHomogeneous([1, 1, 0, -2])
+        p2 = PointHomogeneous([1, 2, -1, 0])
+        p3 = PointHomogeneous([1, -3., 0, 3])
+        p4 = PointHomogeneous([1, 4/2, 1, -1], rational=True)
+        curve = mi.interpolate([p0, p1, p2, p3, p4])
+        set_backend("numpy")
         self.assertTrue(str(curve.set_of_polynomials[0].domain) == 'QQ')
         self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
+
 
     def test_interpolate_points_cubic(self):
         mi = MotionInterpolation()
@@ -192,16 +218,19 @@ class TestMotionInterpolation(TestCase):
         tm_point = DualQuaternion(curve.evaluate(0.5)).dq2point_via_matrix()
         self.assertTrue(np.allclose(tm_point, p3.normalized_in_3d()))
 
+        from rational_linkages import set_backend
+        set_backend("sympy")
         # Create some dummy points
-        p0 = PointHomogeneous([1, 0, 0, 0], rational=True)
-        p1 = PointHomogeneous([1, 1, 0, -2], rational=True)
-        p2 = PointHomogeneous([1, 2, -1, 0], rational=True)
-        p3 = PointHomogeneous([1, -3, 0, 3], rational=True)
-        p4 = PointHomogeneous([1, 2, 1, -1], rational=True)
-        p5 = PointHomogeneous([1, 2, 1, 1], rational=True)
-        p6 = PointHomogeneous([1, 2, 1, 2], rational=True)
+        p0 = PointHomogeneous([1, 0, 0, 0])
+        p1 = PointHomogeneous([1, 1, 0, -2])
+        p2 = PointHomogeneous([1, 2, -1, 0])
+        p3 = PointHomogeneous([1, -3, 0, 3])
+        p4 = PointHomogeneous([1, 2, 1, -1])
+        p5 = PointHomogeneous([1, 2, 1, 1])
+        p6 = PointHomogeneous([1, 2, 1, 2])
 
         curve = mi.interpolate([p0, p1, p2, p3, p4, p5, p6])
+        set_backend("numpy")
         self.assertTrue(str(curve.set_of_polynomials[0].domain) == 'QQ')
         self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
 

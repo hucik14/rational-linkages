@@ -84,7 +84,7 @@ class DualQuaternion:
     # Factory
     # ------------------------------------------------------------------
 
-    def __new__(cls, coeffs=None):
+    def __new__(cls, coeffs=None, rational: bool = False):
         """
         Intercept construction and return a
         :class:`~rational_linkages.DualQuaternionSymbolic` when the global
@@ -97,12 +97,14 @@ class DualQuaternion:
         ----------
         coeffs :
             Forwarded unchanged to ``__init__``.
+        rational :
+            Keeps or forces rational values by using symbolic backend
 
         Returns
         -------
         DualQuaternion or DualQuaternionSymbolic
         """
-        if cls is DualQuaternion and is_symbolic():
+        if cls is DualQuaternion and (is_symbolic() or rational):
             from .DualQuaternionSymbolic import DualQuaternionSymbolic
             return object.__new__(DualQuaternionSymbolic)
         return object.__new__(cls)
@@ -111,7 +113,8 @@ class DualQuaternion:
     # Construction
     # ------------------------------------------------------------------
 
-    def __init__(self, coeffs: Optional[Sequence[float]] = None):
+    def __init__(self, coeffs: Optional[Sequence[float]] = None, rational: bool = False):
+        self.is_rational = rational
         if coeffs is not None:
             if len(coeffs) != 8:
                 raise ValueError("DualQuaternion: input has to be 8-vector")

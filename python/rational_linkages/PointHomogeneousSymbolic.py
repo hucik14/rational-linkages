@@ -54,7 +54,15 @@ class PointHomogeneousSymbolic(PointHomogeneous):
     # Construction
     # ------------------------------------------------------------------
 
-    def __init__(self, point: Optional[Sequence] = None):
+    def __init__(self, point: Optional[Sequence] = None, rational: bool = False):
+
+        # rationalize the input
+        if rational:
+            # check if any element is not already a sympy object
+            if not all(isinstance(c, sympy.Basic) for c in point):
+                point = [sympy.Rational(v) for v in point]
+
+        self.is_rational = True
         # Bypass PointHomogeneous.__init__ bookkeeping that assumes float64; redo it
         # with symbolic-aware helpers.
         self.coordinates = self._initialize_coordinates(point)

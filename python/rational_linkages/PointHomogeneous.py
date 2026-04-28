@@ -69,7 +69,7 @@ class PointHomogeneous:
     # Factory
     # ------------------------------------------------------------------
 
-    def __new__(cls, point=None):
+    def __new__(cls, point=None, rational: bool = False):
         """
         Intercept construction and return a
         :class:`~rational_linkages.PointHomogeneousSymbolic` when the global backend
@@ -82,12 +82,14 @@ class PointHomogeneous:
         ----------
         point :
             Forwarded unchanged to ``__init__``.
+        rational :
+            Keeps or forces rational values by using symbolic backend
 
         Returns
         -------
         PointHomogeneous or PointHomogeneousSymbolic
         """
-        if cls is PointHomogeneous and is_symbolic():
+        if cls is PointHomogeneous and (is_symbolic() or rational == True):
             from .PointHomogeneousSymbolic import PointHomogeneousSymbolic  # lazy import
             return object.__new__(PointHomogeneousSymbolic)
         return object.__new__(cls)
@@ -96,7 +98,8 @@ class PointHomogeneous:
     # Construction
     # ------------------------------------------------------------------
 
-    def __init__(self, point: Optional[Sequence[float]] = None):
+    def __init__(self, point: Optional[Sequence[float]] = None, rational: bool = False):
+        self.is_rational = rational
         self.coordinates = self._initialize_coordinates(point)
         self._is_at_infinity = None
         self.is_2d = True if len(self.coordinates) == 3 else False

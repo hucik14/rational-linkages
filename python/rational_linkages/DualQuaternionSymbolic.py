@@ -66,9 +66,16 @@ class DualQuaternionSymbolic(DualQuaternion):
     # Construction
     # ------------------------------------------------------------------
 
-    def __init__(self, coeffs: Optional[Sequence] = None):
+    def __init__(self, coeffs: Optional[Sequence] = None, rational: bool = False):
         from .QuaternionSymbolic import QuaternionSymbolic
 
+        # rationalize the input
+        if rational:
+            # check if any element is not already a sympy object
+            if not all(isinstance(c, sympy.Basic) for c in coeffs):
+                coeffs = [sympy.Rational(v) for v in coeffs]
+
+        self.is_rational = True
         if coeffs is not None:
             if len(coeffs) != 8:
                 raise ValueError(

@@ -10,7 +10,6 @@ from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
 from .RationalBezier import RationalBezier
 from .RationalCurve import RationalCurve
-from .RationalDualQuaternion import RationalDualQuaternion
 from .TransfMatrix import TransfMatrix
 from .utils_rust import motion_interp_x3
 
@@ -36,9 +35,9 @@ class MotionInterpolation:
 
         # 4 poses
         p0 = DualQuaternion()  # identity
-        p1 = DualQuaternion.as_rational([0, 0, 0, 1, 1, 0, 1, 0])
-        p2 = DualQuaternion.as_rational([1, 2, 0, 0, -2, 1, 0, 0])
-        p3 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
+        p1 = DualQuaternion([0, 0, 0, 1, 1, 0, 1, 0])
+        p2 = DualQuaternion([1, 2, 0, 0, -2, 1, 0, 0])
+        p3 = DualQuaternion([3, 0, 1, 0, 1, 0, -3, 0])
 
         # obtain the interpolated motion curve
         c = MotionInterpolation.interpolate([p0, p1, p2, p3])
@@ -144,12 +143,11 @@ class MotionInterpolation:
         # convert poses to rational dual quaternions
         for pose in poses_or_points:
             if isinstance(pose, TransfMatrix):
-                rational_poses.append(DualQuaternion.as_rational(pose.matrix2dq()))
-            # elif isinstance(pose, DualQuaternion) and not pose.is_rational:
-            elif isinstance(pose, DualQuaternion):
-                rational_poses.append(DualQuaternion.as_rational(pose.array()))
-            # elif isinstance(pose, DualQuaternion) and pose.is_rational:
-            #     rational_poses.append(pose)
+                rational_poses.append(DualQuaternion(pose.matrix2dq(), rational=True))
+            elif isinstance(pose, DualQuaternion) and not pose.is_rational:
+                rational_poses.append(DualQuaternion(pose.array(), rational=True))
+            elif isinstance(pose, DualQuaternion) and pose.is_rational:
+                rational_poses.append(pose)
             elif isinstance(pose, PointHomogeneous):
                 rational_poses.append(pose)
             else:
@@ -200,13 +198,14 @@ class MotionInterpolation:
         p2 = poses[2].array()
 
         c = alpha * p2 + (p1 - alpha * p2 - omega * p0) * t + omega * p0 * t**2
-        symbolic_curve = RationalDualQuaternion(c)
+        symbolic_curve = DualQuaternion(c, rational=True)
 
         # apply Stydy condition, i.e. obtain epsilon norm of the curve
         study_norm = symbolic_curve.norm()
 
         # simplify the norm
-        study_norm = sp.simplify(study_norm[4] / (t * (t - 1)))
+        study_norm = study_norm[4] / (t * (t - sp.Rational(1)))
+        study_norm = sp.simplify(study_norm)
 
         # obtain the equations for alpha and omega
         eq0 = study_norm.subs(t, 0)
@@ -321,9 +320,9 @@ class MotionInterpolation:
         best_pose = None
 
         for i in range(1, 10):
-            additional_pose = DualQuaternion.as_rational(
+            additional_pose = DualQuaternion(
                 DualQuaternion.random_on_study_quadric(
-                    mean * 0.3 * i).array()).back_projection()
+                    mean * 0.3 * i).array(), rational=True).back_projection()
 
             new_poses = deepcopy(poses)
             new_poses.append(additional_pose)
@@ -379,13 +378,11 @@ class MotionInterpolation:
             optim_pose.t = x
 
             new_poses = deepcopy(poses)
-            new_poses.append(DualQuaternion.as_rational(
-                                 optim_pose.matrix2dq()).back_projection())
+            new_poses.append(DualQuaternion(optim_pose.matrix2dq()).back_projection())
 
-            length = RationalCurve(
-                MotionInterpolation.interpolate_quadratic(new_poses)).get_path_length(
-                num_of_points=300
-            )
+            length = RationalCurve.from_coeffs(
+                MotionInterpolation.interpolate_quadratic_numerically(new_poses)
+            ).get_path_length(num_of_points=300)
 
             return length
 
@@ -396,8 +393,8 @@ class MotionInterpolation:
 
         optimal_pose = mid_pose_tr
         optimal_pose.t = res.x
-        optimal_pose_projected = DualQuaternion.as_rational(
-            optimal_pose.matrix2dq()).back_projection()
+        optimal_pose_projected = DualQuaternion(
+            optimal_pose.matrix2dq(), rational=True).back_projection()
         print('Optimal pose:')
         print(optimal_pose_projected)
 
@@ -744,7 +741,7 @@ class MotionInterpolation:
         # check if the points are Sympy Rational
         perform_rational = True if all(p.is_rational for p in points) else False
 
-        points = [p if p[0] == 1 else PointHomogeneous(p.normalize()) for p in points]
+        points = [p if p[0] == 1 else p.normalize() for p in points]
 
         # map to Quaternions, divide by -2 (Study mapping from 3D)
         # and add 0 to the real part
@@ -780,12 +777,12 @@ class MotionInterpolation:
         p2 = a4
 
         # get the control points of Bezier curve from constructed dual quaternions
-        cp0 = PointHomogeneous(np.concatenate((u0.array(), (p0 * u0).array())),
-                               rational=perform_rational)
-        cp1 = PointHomogeneous(np.concatenate((u1.array(), (p1 * u1).array())),
-                               rational=perform_rational)
-        cp2 = PointHomogeneous(np.concatenate((u2.array(), (p2 * u2).array())),
-                               rational=perform_rational)
+        cp0 = PointHomogeneous(np.concatenate((u0.array(), (p0 * u0).array())))#,
+                               # rational=perform_rational)
+        cp1 = PointHomogeneous(np.concatenate((u1.array(), (p1 * u1).array())))#,
+                               # rational=perform_rational)
+        cp2 = PointHomogeneous(np.concatenate((u2.array(), (p2 * u2).array())))#,
+                               # rational=perform_rational)
 
         if return_numeric:
             return RationalBezier.get_numerical_coeffs([cp0, cp1, cp2])
@@ -813,7 +810,7 @@ class MotionInterpolation:
         if len(points) != 7:
             raise ValueError('The number of points must be 7.')
 
-        points = [p if p[0] == 1 else PointHomogeneous(p.normalize()) for p in points]
+        points = [p if p[0] == 1 else p.normalize() for p in points]
 
         # Check if the points are Sympy Rational
         perform_rational = True if all(p.is_rational for p in points) else False
@@ -887,14 +884,14 @@ class MotionInterpolation:
         p3 = a6
 
         # get the control points of Bezier curve from constructed dual quaternions
-        cp0 = PointHomogeneous(np.concatenate((u0.array(), (p0 * u0).array())),
-                               rational=perform_rational)
-        cp1 = PointHomogeneous(np.concatenate((u1.array(), (p1 * u1).array())),
-                               rational=perform_rational)
-        cp2 = PointHomogeneous(np.concatenate((u2.array(), (p2 * u2).array())),
-                               rational=perform_rational)
-        cp3 = PointHomogeneous(np.concatenate((u3.array(), (p3 * u3).array())),
-                               rational=perform_rational)
+        cp0 = PointHomogeneous(np.concatenate((u0.array(), (p0 * u0).array())))#,
+                               # rational=perform_rational)
+        cp1 = PointHomogeneous(np.concatenate((u1.array(), (p1 * u1).array())))#,
+                               # rational=perform_rational)
+        cp2 = PointHomogeneous(np.concatenate((u2.array(), (p2 * u2).array())))#,
+                               # rational=perform_rational)
+        cp3 = PointHomogeneous(np.concatenate((u3.array(), (p3 * u3).array())))#,
+                               # rational=perform_rational)
 
         if return_numeric:
             return RationalBezier.get_numerical_coeffs([cp0, cp1, cp2, cp3])
