@@ -289,8 +289,8 @@ class SnappingMechanism(StaticMechanism):
         :rtype: tuple[NormalizedLine, PointHomogeneous]
         """
         # midpoints between point on axis and its transformed version
-        a_mid = PointHomogeneous((a.array() + a_t.array()) / 2).normalized_in_3d()
-        b_mid = PointHomogeneous((b.array() + b_t.array()) / 2).normalized_in_3d()
+        a_mid = PointHomogeneous((a.array() + a_t.array()) / 2).normalized_euclidean()
+        b_mid = PointHomogeneous((b.array() + b_t.array()) / 2).normalized_euclidean()
 
         # normals of the axes (normal of a plane)
         a_normal = NormalizedLine.from_two_points(a, a_t).direction

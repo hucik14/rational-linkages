@@ -109,6 +109,7 @@ line-length = 100
 target-version = "py310"
 
 [tool.pytest.ini_options]
+addopts = "--cov=rational_linkages --cov-report=term-missing"
 testpaths = ["python/tests"]  # unit test suit
 #testpaths = ["python/rational_linkages"]  # docstring examples
 #testpaths = ["docs/source"]  # docs examples

@@ -697,11 +697,11 @@ class PointOrbit:
             v = numpy.linspace(0, numpy.pi, 10)
 
             x = (self.radius * numpy.outer(numpy.cos(u), numpy.sin(v))
-                 + self.center.normalized_in_3d()[0])
+                 + self.center.normalized_euclidean()[0])
             y = (self.radius * numpy.outer(numpy.sin(u), numpy.sin(v))
-                 + self.center.normalized_in_3d()[1])
+                 + self.center.normalized_euclidean()[1])
             z = (self.radius * numpy.outer(numpy.ones(numpy.size(u)), numpy.cos(v))
-                 + self.center.normalized_in_3d()[2])
+                 + self.center.normalized_euclidean()[2])
         else:
             raise ValueError("Cannot plot ball due to incompatible dimension.")
 
@@ -714,5 +714,5 @@ class PointOrbit:
         :return: center and radius
         :rtype: tuple
         """
-        center = tuple(self.center.normalized_in_3d())
+        center = tuple(self.center.normalized_euclidean())
         return center, self.radius

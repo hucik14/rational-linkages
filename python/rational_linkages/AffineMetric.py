@@ -77,7 +77,7 @@ class AffineMetric:
             dissertation thesis (2004), Page 7, Equation 2.4
 
         """
-        p = point.normalized_in_3d()
+        p = point.normalized_euclidean()
         i = np.eye(3)
 
         m00 = i
@@ -192,8 +192,8 @@ class AffineMetric:
             a_point = a.act(self.points[i])
             b_point = b.act(self.points[i])
 
-            scalar = np.dot(a_point.normalized_in_3d() - b_point.normalized_in_3d(),
-                            a_point.normalized_in_3d() - b_point.normalized_in_3d())
+            scalar = np.dot(a_point.normalized_euclidean() - b_point.normalized_euclidean(),
+                            a_point.normalized_euclidean() - b_point.normalized_euclidean())
             inner_product += scalar
 
         return inner_product

@@ -93,8 +93,8 @@ class TestMotionFactorization(TestCase):
         act_p1 = f1.act(point1, 0.782886)
         act_line = f1.act(line, 0.782886)
 
-        self.assertTrue(np.allclose(act_p0.normalized_in_3d(), np.array([-7.04232596e-04, 0.704319001, 0.0])))
-        self.assertTrue(np.allclose(act_p1.normalized_in_3d(), np.array([-7.04232596e-04, 0.704319001, 1.0])))
+        self.assertTrue(np.allclose(act_p0.normalized_euclidean(), np.array([-7.04232596e-04, 0.704319001, 0.0])))
+        self.assertTrue(np.allclose(act_p1.normalized_euclidean(), np.array([-7.04232596e-04, 0.704319001, 1.0])))
         self.assertTrue(np.allclose(act_line.screw, np.array([0.0,  0.0,  1.0, 0.704319001, 7.04232596e-04, 0.0])))
 
         self.assertTrue(act_line.contains_point(act_p0) and act_line.contains_point(act_p1))
@@ -105,7 +105,7 @@ class TestMotionFactorization(TestCase):
              DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
 
         act_p0_withf2 = f2.act(point0, 0.782886)
-        self.assertTrue(np.allclose(act_p0_withf2.normalized_in_3d(), act_p0.normalized_in_3d()))
+        self.assertTrue(np.allclose(act_p0_withf2.normalized_euclidean(), act_p0.normalized_euclidean()))
 
         # test with other factorizations, results has to be the same
         h1 = DualQuaternion([0, 1, 0, 0, 0, 0, 0, 0])
@@ -119,8 +119,8 @@ class TestMotionFactorization(TestCase):
         f2 = MotionFactorization([k1, k2, k3])
         point = PointHomogeneous([-13, -3, 7, 50])
 
-        self.assertTrue(np.allclose(f1.act(point, 0.55).normalized_in_3d(),
-                                    f2.act(point, 0.55).normalized_in_3d()))
+        self.assertTrue(np.allclose(f1.act(point, 0.55).normalized_euclidean(),
+                                    f2.act(point, 0.55).normalized_euclidean()))
 
     def test_direct_kinematics(self):
         h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])

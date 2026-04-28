@@ -858,7 +858,7 @@ class TestAct:
         pt0 = PointHomogeneous([1, 7, 0, 0])
         pt1 = PointHomogeneous([1, 7, 0, 2])
         line = NormalizedLine.from_two_points(
-            pt0.normalized_in_3d(), pt1.normalized_in_3d()
+            pt0.normalized_euclidean(), pt1.normalized_euclidean()
         )
         result = acting_dq.act(line)
         expected = NormalizedLine([0, 0, 1, 0, 3, 0])

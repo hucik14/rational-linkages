@@ -309,8 +309,8 @@ class PlotterMatplotlib:
         :param PointHomogeneous p1: second point
         :param kwargs: matplotlib options
         """
-        line = np.concatenate((p0.normalized_in_3d(),
-                               p1.normalized_in_3d() - p0.normalized_in_3d()))
+        line = np.concatenate((p0.normalized_euclidean(),
+                               p1.normalized_euclidean() - p0.normalized_euclidean()))
 
         if 'label' not in kwargs:
             kwargs['label'] = "line"
@@ -333,7 +333,7 @@ class PlotterMatplotlib:
         :param list[PointHomogeneous] points: list of points
         :param kwargs: matplotlib options
         """
-        pts = [p.normalized_in_3d() for p in points]
+        pts = [p.normalized_euclidean() for p in points]
 
         x_coords = [pt[0] for pt in pts]
         y_coords = [pt[1] for pt in pts]

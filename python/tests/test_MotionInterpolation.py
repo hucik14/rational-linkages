@@ -125,7 +125,7 @@ class TestMotionInterpolation(TestCase):
         curve = mi.interpolate([p0, p1, p2, p3, p4])
 
         tm_point = DualQuaternion(curve.evaluate(0.5)).dq2point_via_matrix()
-        self.assertTrue(np.allclose(tm_point, p2.normalized_in_3d()))
+        self.assertTrue(np.allclose(tm_point, p2.normalized_euclidean()))
 
         curve = mi.interpolate_points_quadratic([p0, p1, p2, p3, p4d])
         self.assertTrue(np.allclose(RationalCurve(curve).coeffs, expected_coeffs))
@@ -216,7 +216,7 @@ class TestMotionInterpolation(TestCase):
         self.assertTrue(np.allclose(curve.coeffs, expected_coeffs))
 
         tm_point = DualQuaternion(curve.evaluate(0.5)).dq2point_via_matrix()
-        self.assertTrue(np.allclose(tm_point, p3.normalized_in_3d()))
+        self.assertTrue(np.allclose(tm_point, p3.normalized_euclidean()))
 
         from rational_linkages import set_backend
         set_backend("sympy")

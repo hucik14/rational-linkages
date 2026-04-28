@@ -129,11 +129,11 @@ class MiniBall:
             v = np.linspace(0, np.pi, 30)
 
             x = (self.radius * np.outer(np.cos(u), np.sin(v))
-                 + self.center.normalized_in_3d()[0])
+                 + self.center.normalized_euclidean()[0])
             y = (self.radius * np.outer(np.sin(u), np.sin(v))
-                 + self.center.normalized_in_3d()[1])
+                 + self.center.normalized_euclidean()[1])
             z = (self.radius * np.outer(np.ones(np.size(u)), np.cos(v))
-                 + self.center.normalized_in_3d()[2])
+                 + self.center.normalized_euclidean()[2])
         else:
             raise ValueError("Cannot plot ball due to incompatible dimension.")
 

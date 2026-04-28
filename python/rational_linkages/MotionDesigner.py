@@ -429,7 +429,7 @@ if QtWidgets is not None:
 
             # array of control point coordinates (in 3D)
             if method == 'quadratic_from_points' or method == 'cubic_from_points':
-                self.plotted_points = np.array([pt.normalized_in_3d()
+                self.plotted_points = np.array([pt.normalized_euclidean()
                                                 for pt in self.points])
 
                 # interpolated points markers

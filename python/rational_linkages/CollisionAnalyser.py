@@ -113,7 +113,7 @@ class CollisionAnalyser:
         all_orbits = []
         for i in range(len(orbits0)):
             orbits_for_t = [orbits0[i].t_interval, orbits0[i]]
-            dist = numpy.linalg.norm(orbits0[i].center.normalized_in_3d() - orbits1[i].center.normalized_in_3d())
+            dist = numpy.linalg.norm(orbits0[i].center.normalized_euclidean() - orbits1[i].center.normalized_euclidean())
             radius_sum = orbits0[i].radius + orbits1[i].radius
             if dist > radius_sum:
                 add_balls = dist / radius_sum
@@ -302,7 +302,7 @@ class CollisionAnalyser:
             raise RuntimeError("Scipy import failed. Check its installation.")
 
         def flatten_cps(cps):
-            return numpy.array([cp.normalized_in_3d() for cp in cps]).flatten()
+            return numpy.array([cp.normalized_euclidean() for cp in cps]).flatten()
 
         def unflatten_cps(cps_flat):
             return [PointHomogeneous([1, cps_flat[i], cps_flat[i + 1], cps_flat[i + 2]])
@@ -313,7 +313,7 @@ class CollisionAnalyser:
             for j in range(len(bounding_orbits[i])):
                 flattened_orbits.extend(bounding_orbits[i][j][1:])
 
-        orbit_centers = [orbit.center.normalized_in_3d() for orbit in flattened_orbits]
+        orbit_centers = [orbit.center.normalized_euclidean() for orbit in flattened_orbits]
         orbit_radii = [orbit.radius for orbit in flattened_orbits]
 
         init_cps = flatten_cps(init_points)
@@ -325,7 +325,7 @@ class CollisionAnalyser:
             penalty = 0.0
             for cp in cps:
                 for i, orbit in enumerate(flattened_orbits):
-                    dist = numpy.linalg.norm(cp.normalized_in_3d() - orbit_centers[i])
+                    dist = numpy.linalg.norm(cp.normalized_euclidean() - orbit_centers[i])
                     if dist < orbit_radii[i] + margin:
                         penalty += (orbit_radii[i] + margin - dist) ** 2
             # Regularization: keep cps close to initial guess
@@ -389,8 +389,8 @@ class CollisionAnalyser:
             all_orbits_of_a_link = []
             for i in range(len(orbits0)):
                 orbits_for_t = [orbits0[i].t_interval, orbits0[i]]
-                dist = numpy.linalg.norm(orbits0[i].center.normalized_in_3d() - orbits1[
-                    i].center.normalized_in_3d())
+                dist = numpy.linalg.norm(orbits0[i].center.normalized_euclidean() - orbits1[
+                    i].center.normalized_euclidean())
                 radius_sum = orbits0[i].radius + orbits1[i].radius
                 if dist > radius_sum:
                     add_balls = dist / radius_sum
@@ -454,12 +454,12 @@ class CollisionAnalyser:
     @staticmethod
     def quatif_intersection_location(interection_pt, segment_pt0, segment_pt1):
         a = numpy.linalg.norm(
-            segment_pt0.normalized_in_3d() - interection_pt.normalized_in_3d())
+            segment_pt0.normalized_euclidean() - interection_pt.normalized_euclidean())
         b = numpy.linalg.norm(
-            segment_pt1.normalized_in_3d() - interection_pt.normalized_in_3d())
+            segment_pt1.normalized_euclidean() - interection_pt.normalized_euclidean())
 
         segment_lenght = numpy.linalg.norm(
-            segment_pt0.normalized_in_3d() - segment_pt1.normalized_in_3d())
+            segment_pt0.normalized_euclidean() - segment_pt1.normalized_euclidean())
         if a + b > segment_lenght:
             val = a + b - segment_lenght
             quantif_val = CollisionAnalyser.map_to_exponential_decay(val, k=2.0)

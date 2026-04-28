@@ -226,8 +226,8 @@ class PlotterPyqtgraph:
         """
         Plot an arrow (here as a simple line) from p0 to p1.
         """
-        pos0 = np.array(p0.normalized_in_3d())
-        pos1 = np.array(p1.normalized_in_3d())
+        pos0 = np.array(p0.normalized_euclidean())
+        pos1 = np.array(p1.normalized_euclidean())
         pts = np.array([pos0, pos1])
         color = self._get_color(kwargs.get('color', 'magenta'), (1, 1, 1, 1))
         line = gl.GLLinePlotItem(pos=pts,
@@ -251,7 +251,7 @@ class PlotterPyqtgraph:
         """
         Plot a connected line (polyline) through a list of points.
         """
-        pts = np.array([p.normalized_in_3d() for p in points])
+        pts = np.array([p.normalized_euclidean() for p in points])
         color = self._get_color(kwargs.get('color', 'green'), (1, 1, 1, 1))
         line = gl.GLLinePlotItem(pos=pts,
                                  color=color,

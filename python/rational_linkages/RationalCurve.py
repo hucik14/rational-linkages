@@ -516,7 +516,7 @@ class RationalCurve:
                 point = point[:4]
 
             curve_points[i] = PointHomogeneous([point[0], point[-3], point[-2], point[-1]])
-        x, y, z = zip(*[curve_points[i].normalized_in_3d() for i in range(steps)])
+        x, y, z = zip(*[curve_points[i].normalized_euclidean() for i in range(steps)])
         return x, y, z
 
     def get_curve_in_pr12(self) -> "RationalCurve":

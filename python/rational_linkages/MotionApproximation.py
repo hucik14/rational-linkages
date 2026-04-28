@@ -194,7 +194,7 @@ class MotionApproximation:
                 # Get the 3D point from the curve
                 curve_pt = DualQuaternion(
                     curve.evaluate(t_vals[i])).dq2point_via_matrix()
-                target_pt = pt.normalized_in_3d()
+                target_pt = pt.normalized_euclidean()
 
                 sq_dist += np.linalg.norm(curve_pt - target_pt) ** 2
 

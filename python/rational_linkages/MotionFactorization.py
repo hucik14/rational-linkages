@@ -178,7 +178,7 @@ class MotionFactorization(RationalCurve):
         linkage_points = [linkage_points[i][j] for i in range(len(linkage_points))
                           for j in range(len(linkage_points[i]))]
 
-        linkage_points_3d = [np.array(linkage_points[i].normalized_in_3d())
+        linkage_points_3d = [np.array(linkage_points[i].normalized_euclidean())
                              for i in range(len(linkage_points))]
         return linkage_points_3d
 
@@ -206,7 +206,7 @@ class MotionFactorization(RationalCurve):
                 ee_point, end_idx=self.number_of_factors - 1, param=t_numerical
             )
 
-        end_effector_point = point_after_action.normalized_in_3d()
+        end_effector_point = point_after_action.normalized_euclidean()
         return end_effector_point
 
     def direct_kinematics_of_tool_with_link(self, t_numerical: float,
@@ -375,7 +375,7 @@ class MotionFactorization(RationalCurve):
         point0 = self.linkage[idx].points[0]
         point1 = self.linkage[idx].points[1]
 
-        if np.allclose(point0.normalized_in_3d(), point1.normalized_in_3d()):
+        if np.allclose(point0.normalized_euclidean(), point1.normalized_euclidean()):
             # if the points are the same, add a minimal offset
             min_point = PointHomogeneous(point0.array() + np.array([0, 0, 0, 0.0001]))
             joint = NormalizedLine.from_two_points(point0, min_point)
@@ -411,7 +411,7 @@ class MotionFactorization(RationalCurve):
         point0 = self.linkage[0].points[0]
         point1 = other_factorization_point
 
-        if np.allclose(point0.normalized_in_3d(), point1.normalized_in_3d()):
+        if np.allclose(point0.normalized_euclidean(), point1.normalized_euclidean()):
             # if the points are the same, add a minimal offset
             point1 = point0 + PointHomogeneous([0, 0, 0, 0.0001])
 
@@ -431,7 +431,7 @@ class MotionFactorization(RationalCurve):
         point0 = self.linkage[-1].points[1]
         point1 = other_factorization_point
 
-        if np.allclose(point0.normalized_in_3d(), point1.normalized_in_3d()):
+        if np.allclose(point0.normalized_euclidean(), point1.normalized_euclidean()):
             # if the points are the same, add a minimal offset
             point1 = point0 + PointHomogeneous([0, 0, 0, 0.0001])
 

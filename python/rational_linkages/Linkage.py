@@ -82,8 +82,8 @@ class Linkage:
         """
         Gets the parameter of the connection point at the given index.
         """
-        if self.normalized_axis.contains_point(point.normalized_in_3d()):
-            return self.normalized_axis.get_point_param(point.normalized_in_3d())
+        if self.normalized_axis.contains_point(point.normalized_euclidean()):
+            return self.normalized_axis.get_point_param(point.normalized_euclidean())
         else:
             print("Axis: {}".format(self.normalized_axis))
             print("Point: {}".format(point))
@@ -128,8 +128,8 @@ class Linkage:
         :return: True if the connection points are equal, False otherwise
         :rtype: bool
         """
-        return np.allclose(self.points[0].normalized_in_3d(),
-                           self.points[1].normalized_in_3d())
+        return np.allclose(self.points[0].normalized_euclidean(),
+                           self.points[1].normalized_euclidean())
 
 
 class PointsConnection:
@@ -243,13 +243,13 @@ class LineSegment:
         p1 = self.point1.evaluate(t_val).evalf()
 
         # segment length
-        l = np.linalg.norm(p0.normalized_in_3d() - p1.normalized_in_3d())
+        l = np.linalg.norm(p0.normalized_euclidean() - p1.normalized_euclidean())
 
         # distance between the point0 and the collision point
-        d0 = np.linalg.norm(p0.normalized_in_3d() - point.normalized_in_3d())
+        d0 = np.linalg.norm(p0.normalized_euclidean() - point.normalized_euclidean())
 
         # distance between the point1 and the collision point
-        d1 = np.linalg.norm(p1.normalized_in_3d() - point.normalized_in_3d())
+        d1 = np.linalg.norm(p1.normalized_euclidean() - point.normalized_euclidean())
 
         if np.allclose(l, d0 + d1):
             return True
@@ -265,8 +265,8 @@ class LineSegment:
         """
         steps = 30
         t_space = np.tan(np.linspace(-np.pi/2, np.pi/2, steps + 1))
-        p0 = np.array([self.point0.evaluate(t_val).normalized_in_3d() for t_val in t_space])
-        p1 = np.array([self.point1.evaluate(t_val).normalized_in_3d() for t_val in t_space])
+        p0 = np.array([self.point0.evaluate(t_val).normalized_euclidean() for t_val in t_space])
+        p1 = np.array([self.point1.evaluate(t_val).normalized_euclidean() for t_val in t_space])
 
         # Separate the x, y, and z coordinates
         x0, y0, z0 = p0[:, 0], p0[:, 1], p0[:, 2]

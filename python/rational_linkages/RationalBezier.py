@@ -127,7 +127,7 @@ class RationalBezier(RationalCurve):
                       for point in self.control_points]
 
         else:
-            points = [self.control_points[i].normalized_in_3d()
+            points = [self.control_points[i].normalized_euclidean()
                       for i in range(self.degree + 1)]
 
         x_cp, y_cp, z_cp = zip(*points)
@@ -412,7 +412,7 @@ class RationalSoo(RationalCurve):
         # perform superclass coordinates
         x, y, z = super().get_plot_data(interval=interval)
 
-        points = [point.normalized_in_3d() for point in self.control_points]
+        points = [point.normalized_euclidean() for point in self.control_points]
 
         x_cp, y_cp, z_cp = zip(*points)
 

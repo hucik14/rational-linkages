@@ -1177,7 +1177,7 @@ class TestAct:
         pt0 = PointHomogeneous([1, 7, 0, 0])
         pt1 = PointHomogeneous([1, 7, 0, 2])
         line = NormalizedLine.from_two_points(
-            pt0.normalized_in_3d(), pt1.normalized_in_3d()
+            pt0.normalized_euclidean(), pt1.normalized_euclidean()
         )
         result = acting_dq.act(line)
         expected = NormalizedLine([0, 0, 1, 0, 3, 0])
@@ -1187,7 +1187,7 @@ class TestAct:
         pt0 = PointHomogeneous([1, 7, 0, 0])
         pt1 = PointHomogeneous([1, 7, 0, 2])
         line = NormalizedLine.from_two_points(
-            pt0.normalized_in_3d(), pt1.normalized_in_3d()
+            pt0.normalized_euclidean(), pt1.normalized_euclidean()
         )
         result = act([DualQuaternion(), acting_dq], line)
         expected = NormalizedLine([0, 0, 1, 0, 3, 0])
@@ -1198,7 +1198,7 @@ class TestAct:
         pt0 = PointHomogeneous([1, 7, 0, 0])
         pt1 = PointHomogeneous([1, 7, 0, 2])
         line = NormalizedLine.from_two_points(
-            pt0.normalized_in_3d(), pt1.normalized_in_3d()
+            pt0.normalized_euclidean(), pt1.normalized_euclidean()
         )
         result = act([acting_dq, acting_dq.inv()], line)
         assert isinstance(result, NormalizedLine)
@@ -1208,7 +1208,7 @@ class TestAct:
         pt0 = PointHomogeneous([1, 7, 0, 0])
         pt1 = PointHomogeneous([1, 7, 0, 2])
         line = NormalizedLine.from_two_points(
-            pt0.normalized_in_3d(), pt1.normalized_in_3d()
+            pt0.normalized_euclidean(), pt1.normalized_euclidean()
         )
         result = act([acting_dq.inv(), acting_dq], line)
         assert isinstance(result, NormalizedLine)
@@ -1218,14 +1218,14 @@ class TestAct:
         pt0 = PointHomogeneous([1, 7, 0, 0])
         pt1 = PointHomogeneous([1, 7, 0, 2])
         line = NormalizedLine.from_two_points(
-            pt0.normalized_in_3d(), pt1.normalized_in_3d()
+            pt0.normalized_euclidean(), pt1.normalized_euclidean()
         )
         line_after_action = acting_dq.act(line)
 
         expected_pt0 = acting_dq.act(pt0)
         expected_pt1 = acting_dq.act(pt1)
         line_from_acted_points = NormalizedLine.from_two_points(
-            expected_pt0.normalized_in_3d(), expected_pt1.normalized_in_3d()
+            expected_pt0.normalized_euclidean(), expected_pt1.normalized_euclidean()
         )
         assert numpy.allclose(line_after_action.screw, line_from_acted_points.screw)
 

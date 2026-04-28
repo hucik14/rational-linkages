@@ -35,7 +35,7 @@ static objects:
     point = PointHomogeneous([1, 2, -3, 1.5])
 
     # create a normalized line from direction vector and the previously specified point
-    line = NormalizedLine.from_direction_and_point([0, 0, 1], point.normalized_in_3d())
+    line = NormalizedLine.from_direction_and_point([0, 0, 1], point.normalized_euclidean())
 
     # plot the objects
     # 1-line command
