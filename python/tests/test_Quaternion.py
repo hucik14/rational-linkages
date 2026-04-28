@@ -412,7 +412,7 @@ class TestEval:
         q1 = Quaternion([2, 3, 0, -2])
         q2 = Quaternion([t, 0, 0, 0])
         result = q1 * q2
-        result_eval = result.eval({t: -2})
+        result_eval = result.eval({t: -2}).evalf()
         expected_eval = np.array([-4.0, -6.0, 0.0, 4.0])
         assert numpy.allclose(result_eval.array(), expected_eval)
         assert result_eval.q.dtype == numpy.float64

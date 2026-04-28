@@ -223,14 +223,15 @@ class QuaternionSymbolic(Quaternion):
         """
         return self.__class__([v.subs(subs) for v in self.q])
 
+
     def evalf(self):
         """
         Replace rational numbers by numerical ones.
 
         Returns
         -------
-        numpy.ndarray
-            Float NumPy array of previous rational numbers.
+        Quaternion
+            Evaluated numerically.
         """
-        from rational_linkages.utils import evaluate_numerically  # lazy import
-        return evaluate_numerically(self)
+        return Quaternion(
+            numpy.array([val.evalf() for val in self.coordinates], dtype=numpy.float64))

@@ -23,6 +23,8 @@ class TestMotionFactorization(TestCase):
         self.assertEqual(f1.number_of_factors, 2)
 
     def test_repr(self):
+        from rational_linkages import set_backend
+        set_backend("numpy")
         f1 = MotionFactorization(
             [
                 DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
@@ -30,7 +32,7 @@ class TestMotionFactorization(TestCase):
             ]
         )
 
-        self.assertEqual(repr(f1), "MotionFactorization([DualQuaternion([t, 0, 0, -1.00000000000000, 0, 0, 0, 0]), DualQuaternion([t, 0, 0, -2.00000000000000, 0, 0, 1.00000000000000, 0])])")
+        self.assertEqual(repr(f1), "MotionFactorization([DQ([t, 0, 0, -1.00000000000000, 0, 0, 0, 0]), DQ([t, 0, 0, -2.00000000000000, 0, 0, 1.00000000000000, 0])])")
 
     def test_get_polynomials_from_factorization(self):
         f1 = [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),

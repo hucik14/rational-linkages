@@ -83,9 +83,17 @@ class NormalizedPlane:
         -------
         NormalizedPlane or NormalizedPlaneSymbolic
         """
-        if cls is NormalizedPlane and is_symbolic():
-            from .NormalizedPlaneSymbolic import NormalizedPlaneSymbolic  # lazy import
-            return object.__new__(NormalizedPlaneSymbolic)
+        if cls is NormalizedPlane:
+            symbolic = is_symbolic() or (
+                    normal is not None
+                    and any(hasattr(c, 'free_symbols') for c in normal)
+            ) or (
+                    point is not None
+                    and any(hasattr(c, 'free_symbols') for c in point)
+            )
+            if symbolic:
+                from .NormalizedPlaneSymbolic import NormalizedPlaneSymbolic  # lazy import
+                return object.__new__(NormalizedPlaneSymbolic)
         return object.__new__(cls)
 
     # ------------------------------------------------------------------

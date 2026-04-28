@@ -90,13 +90,14 @@ class NormalizedLine:
         -------
         NormalizedLine or NormalizedLineSymbolic
         """
-        from sympy import Basic
-        if cls is NormalizedLine and (
-                is_symbolic()
-                or (unit_screw is not None and any(isinstance(c, Basic) for c in unit_screw))
-        ):
-            from .NormalizedLineSymbolic import NormalizedLineSymbolic
-            return object.__new__(NormalizedLineSymbolic)
+        if cls is NormalizedLine:
+            symbolic = is_symbolic() or (
+                    unit_screw is not None
+                    and any(hasattr(c, 'free_symbols') for c in unit_screw)
+            )
+            if symbolic:
+                from .NormalizedLineSymbolic import NormalizedLineSymbolic
+                return object.__new__(NormalizedLineSymbolic)
         return object.__new__(cls)
 
     # ------------------------------------------------------------------

@@ -1050,13 +1050,13 @@ class TestEval:
 
     def test_eval_returns_numeric_dualquaternion(self):
         t = sympy.Symbol("t")
-        result = DualQuaternion([1, t, 0, 0, 0, 0, 0, 0]).eval({t: 2})
+        result = DualQuaternion([1, t, 0, 0, 0, 0, 0, 0]).eval({t: 2}).evalf()
         assert type(result) is DualQuaternion
         assert not isinstance(result, DualQuaternionSymbolic)
 
     def test_eval_result_is_float64(self):
         t = sympy.Symbol("t")
-        assert DualQuaternion([1, t, 0, 0, 0, 0, 0, 0]).eval({t: 2}).array().dtype == numpy.float64
+        assert DualQuaternion([1, t, 0, 0, 0, 0, 0, 0]).eval({t: 2}).evalf().array().dtype == numpy.float64
 
     def test_eval_empty_subs_unchanged(self):
         dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])

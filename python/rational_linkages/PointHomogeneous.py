@@ -89,13 +89,14 @@ class PointHomogeneous:
         -------
         PointHomogeneous or PointHomogeneousSymbolic
         """
-        from sympy import Basic  # lazy import
-        if cls is PointHomogeneous and (
-                is_symbolic()
-                or (point is not None and any(isinstance(c, Basic) for c in point))
-        ):
-            from .PointHomogeneousSymbolic import PointHomogeneousSymbolic
-            return object.__new__(PointHomogeneousSymbolic)
+        if cls is PointHomogeneous:
+            symbolic = is_symbolic() or (
+                    point is not None
+                    and any(hasattr(c, 'free_symbols') for c in point)
+            )
+            if symbolic:
+                from .PointHomogeneousSymbolic import PointHomogeneousSymbolic
+                return object.__new__(PointHomogeneousSymbolic)
         return object.__new__(cls)
 
     # ------------------------------------------------------------------

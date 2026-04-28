@@ -87,9 +87,14 @@ class Quaternion:
         Quaternion or QuaternionSymbolic
             A numeric or symbolic instance depending on the active backend.
         """
-        if cls is Quaternion and is_symbolic():
-            from .QuaternionSymbolic import QuaternionSymbolic
-            return object.__new__(QuaternionSymbolic)
+        if cls is Quaternion:
+            symbolic = is_symbolic() or (
+                    coeffs is not None
+                    and any(hasattr(c, 'free_symbols') for c in coeffs)
+            )
+            if symbolic:
+                from .QuaternionSymbolic import QuaternionSymbolic
+                return object.__new__(QuaternionSymbolic)
         return object.__new__(cls)
 
     # ------------------------------------------------------------------
@@ -473,3 +478,14 @@ class Quaternion:
         evaluated = [float(v.subs(subs)) if hasattr(v, "subs") else float(v)
                      for v in self.q]
         return Quaternion(evaluated)
+
+    def evalf(self) -> "Quaternion":
+        """
+        Placeholder for QuaternionSymbolic.evalf() method.
+
+        Returns
+        -------
+        Quaternion
+            Evaluated quaternion.
+        """
+        return self

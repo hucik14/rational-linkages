@@ -104,9 +104,14 @@ class DualQuaternion:
         -------
         DualQuaternion or DualQuaternionSymbolic
         """
-        if cls is DualQuaternion and (is_symbolic() or rational):
-            from .DualQuaternionSymbolic import DualQuaternionSymbolic
-            return object.__new__(DualQuaternionSymbolic)
+        if cls is DualQuaternion:
+            symbolic = is_symbolic() or rational or (
+                    coeffs is not None
+                    and any(hasattr(c, 'free_symbols') for c in coeffs)
+            )
+            if symbolic:
+                from .DualQuaternionSymbolic import DualQuaternionSymbolic
+                return object.__new__(DualQuaternionSymbolic)
         return object.__new__(cls)
 
     # ------------------------------------------------------------------
@@ -1157,6 +1162,18 @@ class DualQuaternion:
             for v in self.array()
         ]
         return DualQuaternion(evaluated)
+
+    def evalf(self) -> "DualQuaternion":
+        """
+        Placeholder for DualQuaternionSymbolic.evalf() method.
+
+        Returns
+        -------
+        DualQuaternion
+            Evaluated quaternion.
+        """
+        return self
+
 
     def act(self, affected_object) -> object:
         """
