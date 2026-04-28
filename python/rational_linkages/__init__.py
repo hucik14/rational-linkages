@@ -12,7 +12,6 @@ from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
 from .RationalBezier import BezierSegment, RationalBezier
 from .RationalCurve import RationalCurve
-from .RationalDualQuaternion import RationalDualQuaternion
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
 from .backend import set_backend, get_backend, is_symbolic

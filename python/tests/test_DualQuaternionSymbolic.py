@@ -863,3 +863,33 @@ class TestAct:
         result = acting_dq.act(line)
         expected = NormalizedLine([0, 0, 1, 0, 3, 0])
         assert numpy.allclose(result.screw, expected.screw)
+
+    def test_rational_dual_quaternion(self):
+        rational_numbers = [sympy.Rational(-1 / 4), sympy.Rational(13 / 5),
+                            sympy.Rational(-213 / 5), sympy.Rational(-68 / 15),
+                            0, sympy.Rational(-52 / 3),
+                            sympy.Rational(-28 / 15), sympy.Rational(38 / 5)]
+        rdq = DualQuaternion(rational_numbers)
+
+        assert list(rdq.array()) == rational_numbers
+        assert rdq.is_rational
+        assert isinstance(rdq, DualQuaternion)
+
+    def test_getitem(self):
+        rational_numbers = [sympy.Rational(-1 / 4), sympy.Rational(13 / 5),
+                            sympy.Rational(-213 / 5), sympy.Rational(-68 / 15),
+                            0, sympy.Rational(-52 / 3),
+                            sympy.Rational(-28 / 15), sympy.Rational(38 / 5)]
+        rdq = DualQuaternion(rational_numbers)
+
+        assert rdq[1] == sympy.Rational(13 / 5)
+
+    def test_array(self):
+        rational_numbers = [sympy.Rational(-1 / 4), sympy.Rational(13 / 5),
+                            sympy.Rational(-213 / 5), sympy.Rational(-68 / 15),
+                            0, sympy.Rational(-52 / 3),
+                            sympy.Rational(-28 / 15), sympy.Rational(38 / 5)]
+        rdq = DualQuaternion(rational_numbers)
+
+        for i in range(8):
+            assert rdq[i] == rational_numbers[i]

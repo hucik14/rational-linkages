@@ -6,7 +6,7 @@ import sympy as sp
 from rational_linkages import (
     MotionFactorization,
     RationalCurve,
-    RationalDualQuaternion,
+    DualQuaternion,
 )
 
 from rational_linkages.FactorizationProvider import FactorizationProvider
@@ -39,11 +39,11 @@ class TestFactorizationProvider(TestCase):
                                     [0, 0, 0, 2, 0, 0, -1, 0]))
 
     def test_factorize_for_motion_factorization(self):
-        h1 = RationalDualQuaternion([sp.Rational(0), sp.Rational(0),
+        h1 = DualQuaternion([sp.Rational(0), sp.Rational(0),
                                     sp.Rational(0), sp.Rational(1),
                                     sp.Rational(0), sp.Rational(0),
                                     sp.Rational(0), sp.Rational(0)])
-        h2 = RationalDualQuaternion([sp.Rational(0), sp.Rational(0),
+        h2 = DualQuaternion([sp.Rational(0), sp.Rational(0),
                                     sp.Rational(0), sp.Rational(2),
                                     sp.Rational(0), sp.Rational(0),
                                     sp.Rational(-1), sp.Rational(0)])

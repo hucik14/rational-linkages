@@ -169,14 +169,6 @@ Rational Curve
    :undoc-members:
    :show-inheritance:
 
-Rational Dual Quaternion
-------------------------
-
-.. automodule:: rational_linkages.RationalDualQuaternion
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Rational Mechanism
 ------------------
 
