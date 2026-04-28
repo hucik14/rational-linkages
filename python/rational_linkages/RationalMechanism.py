@@ -29,10 +29,9 @@ class RationalMechanism(RationalCurve):
     :ivar LineSegment segments: list of LineSegment objects representing the physical
         realization of the linkage
 
-
     :examples:
 
-    .. testcode:: [rationalmechanism_example1]
+    .. code-block:: python
 
         # Create a rational mechanism from given example
 
@@ -45,27 +44,23 @@ class RationalMechanism(RationalCurve):
 
         # create an interactive plotter object, with 500 descrete steps
         # for the input rational curves, and arrows scaled to 0.05 length
-        myplt = Plotter(mechanism=m, steps=500, arrows_length=0.05)
+        p = Plotter(mechanism=m, steps=500, arrows_length=0.05)
 
         ##### additional plotting options #####
         # create a pose of the identity
         base = TransfMatrix()
-        myplt.plot(base)
+        p.plot(base)
 
         # create another pose
         p0 = TransfMatrix.from_rpy_xyz([-90, 0, 0], [0.15, 0, 0], unit='deg')
-        myplt.plot(p0)
-        ######################################
+        p.plot(p0)
 
         # show the plot
-        myplt.show()
+        p.show()
 
-    .. testcleanup:: [rationalmechanism_example1]
+    .. clear-namespace
 
-        del RationalMechanism, Plotter, bennett_ark24
-        del m, myplt, p0
     """
-
     def __init__(self, factorizations: list[MotionFactorization],
                  tool: Union[DualQuaternion, str] = None):
         """
@@ -565,7 +560,7 @@ class RationalMechanism(RationalCurve):
         #midpoint2 = new_params[0] + 3 * (new_params[1] - new_params[0]) / 4
 
         return new_params
-    
+
     def collision_check(self,
                         parallel: bool = False,
                         pretty_print: bool = True,
@@ -1293,7 +1288,7 @@ class RationalMechanism(RationalCurve):
 
         :example:
 
-        .. testcode:: [rationalmechanism_example2]
+        .. code-block:: python
 
             from rational_linkages import RationalCurve, RationalMechanism
             import numpy as np
@@ -1332,10 +1327,7 @@ class RationalMechanism(RationalCurve):
             plt.grid()
             plt.show()
 
-        .. testcleanup:: [rationalmechanism_example2]
-
-            del RationalCurve, RationalMechanism, np
-            del plt, coeffs, c, m, time, n_steps, t0, t1, method, pos, vel, acc
+        .. clear-namespace
 
         """
         if unit == 'deg':

@@ -31,7 +31,7 @@ class MotionFactorization(RationalCurve):
 
     :example:
 
-    .. testcode:: [motionfactorization_example1]
+    .. code-block:: python
 
         # Motion factorization of a 2R mechanism
 
@@ -43,9 +43,7 @@ class MotionFactorization(RationalCurve):
             [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
 
-    .. testcleanup:: [motionfactorization_example1]
-
-        del DualQuaternion, MotionFactorization, f1
+    .. clear-namespace
 
     .. footbibliography::
 

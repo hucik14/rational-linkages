@@ -31,7 +31,7 @@ class RationalCurve:
 
     :examples:
 
-    .. testcode:: [rationalcurve_example0]
+    .. code-block:: python
 
         # From symbolic equations
 
@@ -48,16 +48,11 @@ class RationalCurve:
         p.plot(c, interval='closed', with_poses=True)
         p.show()
 
-    .. testcleanup:: [rationalcurve_example0]
+    .. clear-namespace
 
-        del RationalCurve, Plotter, symbols, Poly, t, c, p
-
-
-    .. testcode:: [rationalcurve_example1]
+    .. code-block:: python
 
         # Limancon of Pascal -- from polynomial equations
-
-
         import sympy as sp
         from rational_linkages import RationalCurve
 
@@ -69,26 +64,19 @@ class RationalCurve:
         eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t)
         curve = RationalCurve([eq0, eq1, eq2, eq0])
 
-    .. testcleanup:: [rationalcurve_example1]
+    .. clear-namespace
 
-        del RationalCurve, sp
-        del a, b, t, eq0, eq1, eq2, curve
-
-    .. testcode:: [rationalcurve_example2]
+    .. code-block:: python
 
         # From coefficients
-
         import numpy as np
         from rational_linkages import RationalCurve
 
-
         curve = RationalCurve.from_coeffs(np.array([[1., 0., 2., 0., 1.], [0.5, 0., -2., 0., 1.5], [0., -1., 0., 3., 0.], [1., 0., 2., 0., 1.]]))
 
-    .. testcleanup:: [rationalcurve_example2]
+    .. clear-namespace
 
-        del RationalCurve, np, curve
     """
-
     def __init__(self,
                  polynomials: list[sp.Poly],
                  coeffs: Union[np.array, sp.Matrix] = None,
@@ -470,7 +458,7 @@ class RationalCurve:
         dq = DualQuaternion(self.evaluate(t_param, inverted_part))
         return dq.dq2matrix()
 
-    def factorize(self, use_rationals: bool = False) -> list[MotionFactorization]:
+    def factorize(self, use_rationals: bool = False) -> list["MotionFactorization"]:
         """
         Factorize the curve into motion factorizations
 

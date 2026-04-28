@@ -110,7 +110,8 @@ target-version = "py310"
 
 [tool.pytest.ini_options]
 #testpaths = ["python/tests"]
-testpaths = ["python/tests", "python/rational_linkages"]  # for local docs testing with plotting
+testpaths = ["python/rational_linkages"]  # for local docs testing with plotting
+#testpaths = ["python/tests", "python/rational_linkages"]  # for local docs testing with plotting
 
 [tool.coverage.report]
 omit = [

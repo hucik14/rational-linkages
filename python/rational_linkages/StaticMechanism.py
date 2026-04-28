@@ -29,9 +29,9 @@ class StaticMechanism(RationalMechanism):
         structure of the mechanism.
     :ivar int num_joints: The number of joints in the mechanism.
 
-    :example:
+    :examples:
 
-    .. testcode:: [StaticMechanism_example1]
+    .. code-block::
 
         # Define a 4-bar mechanism from points
         from rational_linkages import NormalizedLine
@@ -51,17 +51,9 @@ class StaticMechanism(RationalMechanism):
 
         m.get_design(unit='deg')
 
-    .. testoutput:: [StaticMechanism_example1]
-        :hide:
-        :options: +ELLIPSIS
+    .. clear-namespace
 
-        ...
-
-    .. testcleanup:: [StaticMechanism_example1]
-
-        del StaticMechanism, NormalizedLine, l0, l1, l2, l3, m
-
-    .. testcode:: [StaticMechanism_example2]
+    .. code-block::
 
         # Define a 6-bar mechanism from algebraic IJK representation
         from rational_linkages.StaticMechanism import StaticMechanism
@@ -79,9 +71,7 @@ class StaticMechanism(RationalMechanism):
 
         m = StaticMechanism.from_ijk_representation(linkage)
 
-    .. testcleanup:: [StaticMechanism_example2]
-
-            del StaticMechanism, linkage, m, epsilon, i, j, k, symbols
+    .. clear-namespace
 
     """
     def __init__(self, screw_axes: list[NormalizedLine]):
@@ -163,7 +153,7 @@ class StaticMechanism(RationalMechanism):
                 warn("The 1st and 5th coefficients of the screw axis should be zero.",
                      UserWarning)
             axes.append(NormalizedLine([coeffs[1], coeffs[2], coeffs[3],
-                                        coeffs[5], coeffs[6], coeffs[7]]))
+                                        coeffs[5], coeffs[6], coeffs[7]]).evalf())
 
         return cls(axes)
 
@@ -216,11 +206,12 @@ class SnappingMechanism(StaticMechanism):
         :return: A SnappingMechanism object
         :rtype: SnappingMechanism
 
-        :example:
+        :examples:
 
-        .. testcode:: [SnappingMechanism_example1]
+        .. code-block::
 
-            from rational_linkages import TransfMatrix, PointHomogeneous, SnappingMechanism, Plotter
+            from rational_linkages import TransfMatrix, PointHomogeneous, Plotter
+            from rational_linkages.StaticMechanism import SnappingMechanism
 
             p0 = TransfMatrix()
             p1 = TransfMatrix.from_rpy_xyz([15, 0, -5], [0.15, -0.25, 0.05], unit='deg')
@@ -239,7 +230,7 @@ class SnappingMechanism(StaticMechanism):
 
             m.get_design(unit='deg', scale=150)
 
-            p = Plotter(mechanism=m, arrows_length=0.1)
+            p = Plotter(arrows_length=0.1, backend='matplotlib')
             p.plot(p0, label='origin')
             p.plot(p1, label='pose')
             p.plot_line_segments_between_points(m.points_discrete_poses[0] + [m.points_discrete_poses[0][0]], color='red')
@@ -251,6 +242,8 @@ class SnappingMechanism(StaticMechanism):
             p.plot(m.screws[3], label='axis3', interval=(-0.1, 0.1))
 
             p.show()
+
+        .. clear-namespace
 
         """
         if len(points) != 4:

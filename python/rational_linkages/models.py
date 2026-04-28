@@ -17,7 +17,7 @@ def bennett_ark24() -> RationalMechanism:
 
     :example:
 
-    .. testcode:: [bennett_ark24_example1]
+    .. code-block:: python
 
         import numpy as np
         from rational_linkages import RationalCurve, RationalMechanism
@@ -34,9 +34,7 @@ def bennett_ark24() -> RationalMechanism:
         c = RationalCurve.from_coeffs(coeffs)
         bennett_ark24 = RationalMechanism(c.factorize())
 
-    .. testcleanup:: [bennett_ark24_example1]
-
-        del RationalCurve, RationalMechanism, coeffs, c, bennett_ark24
+    .. clear-namespace
 
     """
     resource_package = "rational_linkages.data"

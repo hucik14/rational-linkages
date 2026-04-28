@@ -15,7 +15,7 @@ class RationalBezier(RationalCurve):
 
     :examples:
 
-    .. testcode:: [rationalbezier_example1]
+    .. code-block:: python
 
         # Create a rational Bezier curve from control points
 
@@ -32,10 +32,8 @@ class RationalBezier(RationalCurve):
                           PointHomogeneous(np.array([4., 0., 2., 4.]))]
         bezier_curve = RationalBezier(control_points)
 
-    .. testcleanup:: [rationalbezier_example1]
+    .. clear-namespace
 
-        del RationalBezier, PointHomogeneous, np
-        del control_points, bezier_curve
     """
 
     def __init__(self,

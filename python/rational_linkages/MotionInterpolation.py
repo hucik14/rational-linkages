@@ -25,7 +25,7 @@ class MotionInterpolation:
 
     :examples:
 
-    .. testcode:: [motion_interpolation_example1]
+    .. code-block:: python
 
         # 4-pose interpolation
 
@@ -58,14 +58,9 @@ class MotionInterpolation:
         # show the plot
         myplt.show()
 
-    .. testcleanup:: [motion_interpolation_example1]
+    .. clear-namespace
 
-        del DualQuaternion, Plotter, MotionInterpolation
-        del RationalMechanism
-        del p0, p1, p2, p3, c, f, m, myplt, pose
-
-
-    .. testcode:: [motion_interpolation_example2]
+    .. code-block:: python
 
         # 3-pose interpolation
 
@@ -86,10 +81,7 @@ class MotionInterpolation:
 
         plt.show()
 
-    .. testcleanup:: [motion_interpolation_example2]
-
-        del DualQuaternion, Plotter, MotionInterpolation
-        del p0, p1, p2, c, plt, pose
+    .. clear-namespace
 
     """
     def __init__(self):
