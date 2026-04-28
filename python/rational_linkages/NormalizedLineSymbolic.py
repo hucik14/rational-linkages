@@ -359,14 +359,31 @@ class NormalizedLineSymbolic(NormalizedLine):
         """
         return self.__class__([v.subs(subs) for v in self.screw])
 
+    def evaluate(self, param: float):
+        """
+        Evaluates the line by substituting single value of t.
+
+        Parameters
+        ----------
+        param : float
+            Parameter to evaluate.
+
+        Returns
+        -------
+        NormalizedLineSymbolic
+            New line with substitutions applied.
+        """
+        t = sympy.symbols('t')
+        return self.__class__([v.subs({t: param}) for v in self.screw])
+
     def evalf(self):
         """
         Replace rational numbers by numerical ones.
 
         Returns
         -------
-        numpy.ndarray
-            Float NumPy array of previous rational numbers.
+        NormalizedLine
+            Return normalized line with rational numbers replaced by numerical ones.
         """
-        from rational_linkages.utils import evaluate_numerically  # lazy import
-        return evaluate_numerically(self)
+        return NormalizedLine(
+            numpy.array([v.evalf() for v in self.coordinates], dtype=numpy.float64))

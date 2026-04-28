@@ -233,7 +233,24 @@ class PointHomogeneousSymbolic(PointHomogeneous):
         """
         return self.__class__([v.subs(subs) for v in self.coordinates])
 
-    def evalf(self) -> numpy.ndarray:
+    def evaluate(self, param: float):
+        """
+        Evaluates the line by substituting single value of t.
+
+        Parameters
+        ----------
+        param : float
+            Parameter to evaluate.
+
+        Returns
+        -------
+        PointHomogeneousSymbolic
+            New point with substitutions applied.
+        """
+        t = sympy.symbols('t')
+        return self.__class__([v.subs({t: param}) for v in self.coordinates])
+
+    def evalf(self) -> PointHomogeneous:
         """
         Evaluate the point to floating-point numbers.
 
@@ -241,7 +258,8 @@ class PointHomogeneousSymbolic(PointHomogeneous):
         -------
         numpy.ndarray
         """
-        return numpy.array([v.evalf() for v in self.coordinates], dtype=numpy.float64)
+        return PointHomogeneous(numpy.array([v.evalf() for v in self.coordinates],
+                                            dtype=numpy.float64))
 
     def evalf_euclidean(self) -> numpy.ndarray:
         """

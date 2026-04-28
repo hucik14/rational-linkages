@@ -164,3 +164,16 @@ def normalized_line_rationally(point, direction):
     pt = Matrix(point)
     mom = (-1 * dir).cross(pt)
     return Matrix.vstack(dir, mom)
+
+
+def evaluate_numerically(object_to_evaluate):
+    """
+    Evaluate the point to floating-point numbers.
+
+    Returns
+    -------
+    numpy.ndarray
+        The evaluated coordinates as a numpy array of floats.
+    """
+    from numpy import array, float64
+    return array([v.evalf() for v in object_to_evaluate.coordinates], dtype=float64)

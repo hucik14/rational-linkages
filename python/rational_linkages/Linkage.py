@@ -239,8 +239,8 @@ class LineSegment:
         :rtype: bool
         """
         # evaluate the connections points at the parameter t
-        p0 = self.point0.evaluate(t_val)
-        p1 = self.point1.evaluate(t_val)
+        p0 = self.point0.evaluate(t_val).evalf()
+        p1 = self.point1.evaluate(t_val).evalf()
 
         # segment length
         l = np.linalg.norm(p0.normalized_in_3d() - p1.normalized_in_3d())

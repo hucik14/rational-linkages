@@ -90,8 +90,12 @@ class NormalizedLine:
         -------
         NormalizedLine or NormalizedLineSymbolic
         """
-        if cls is NormalizedLine and is_symbolic():
-            from .NormalizedLineSymbolic import NormalizedLineSymbolic  # lazy import
+        from sympy import Basic
+        if cls is NormalizedLine and (
+                is_symbolic()
+                or (unit_screw is not None and any(isinstance(c, Basic) for c in unit_screw))
+        ):
+            from .NormalizedLineSymbolic import NormalizedLineSymbolic
             return object.__new__(NormalizedLineSymbolic)
         return object.__new__(cls)
 
@@ -555,6 +559,44 @@ class NormalizedLine:
             + numpy.cross(plane.normal, self.moment)
         )
         return numpy.concatenate(([p0], p_vec))
+
+    def eval(self, params: dict):
+        """
+        Placeholder for NormalizedLineSymbolic.eval(). Evaluates line with given parameters.
+
+        Parameters
+        ----------
+        params : dict
+            Dictionary of Sympy parameters and values to be evaluated for.
+
+        Returns
+        -------
+        NormalizedLine
+            Self.
+        """
+        return self
+
+    def evaluate(self, param: float):
+        """
+        Placeholder for NormalizedLineSymbolic.eval(). Evaluates line with a given parameter.
+
+        Returns
+        -------
+        NormalizedLine
+            Self.
+        """
+        return self
+
+    def evalf(self):
+        """
+        Placeholder for NormalizedLineSymbolic.evalf(). Returns numerical values.
+
+        Returns
+        -------
+        NormalizedLine
+            Self.
+        """
+        return self
 
     # ------------------------------------------------------------------
     # Conversion / plotting

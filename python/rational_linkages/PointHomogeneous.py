@@ -89,8 +89,12 @@ class PointHomogeneous:
         -------
         PointHomogeneous or PointHomogeneousSymbolic
         """
-        if cls is PointHomogeneous and (is_symbolic() or rational == True):
-            from .PointHomogeneousSymbolic import PointHomogeneousSymbolic  # lazy import
+        from sympy import Basic  # lazy import
+        if cls is PointHomogeneous and (
+                is_symbolic()
+                or (point is not None and any(isinstance(c, Basic) for c in point))
+        ):
+            from .PointHomogeneousSymbolic import PointHomogeneousSymbolic
             return object.__new__(PointHomogeneousSymbolic)
         return object.__new__(cls)
 
@@ -598,19 +602,19 @@ class PointHomogeneous:
         """
         return numpy.array(self.normalized_euclidean(), dtype=numpy.float64)
 
-    def evalf(self) -> numpy.ndarray:
+    def evalf(self):
         """
         Evaluate the coordinates to floating-point numbers.
 
         Only relevant for PointHomogeneousSymbolic. Numeric version returns
-        just self.coordinates.
+        just self.
 
         Returns
         -------
-        numpy.ndarray
-            ``float64`` array of shape ``(3,)``.
+        PointHomogeneous
+            Self.
         """
-        return self.coordinates
+        return self
 
     def evalf_euclidean(self) -> numpy.ndarray:
         """
@@ -625,6 +629,33 @@ class PointHomogeneous:
             ``float64`` array of shape ``(3,)``.
         """
         return self.normalized_euclidean()
+
+    def eval(self, params: dict):
+        """
+        Placeholder for PointHomogeneousSymbolic.eval(). Evaluates line with given parameters.
+
+        Parameters
+        ----------
+        params : dict
+            Dictionary of Sympy parameters and values to be evaluated for.
+
+        Returns
+        -------
+        PointHomogeneous
+            Self.
+        """
+        return self
+
+    def evaluate(self, param: float):
+        """
+        Placeholder for PointHomogeneousSymbolic.eval(). Evaluates line with a given parameter.
+
+        Returns
+        -------
+        PointHomogeneous
+            Self.
+        """
+        return self
 
 
 class PointOrbit:

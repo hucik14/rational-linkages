@@ -1,4 +1,5 @@
 import numpy
+import numpy as np
 import pytest
 import sympy
 
@@ -167,6 +168,26 @@ class TestFromDirectionAndPoint:
         assert isinstance(result, NormalizedLineSymbolic)
         assert sympy.simplify(result.moment[0] + 1) == 0
         assert sympy.simplify(result.moment[1] + 3) == 0
+
+    def test_evalf_after_construction(self):
+        set_backend("sympy")
+        px, py = sympy.symbols("px py", real=True)
+        line = NormalizedLine([0, 0, 1, px, py, 0])
+        result = line.eval({px: 3, py: -1}).evalf()
+        assert isinstance(result, NormalizedLineSymbolic)
+        expected = [0., 0., 1., 3., -1., 0.]
+        assert numpy.allclose(result, expected)
+
+    def test_evalf_after_construction_with_numerical_backend(self):
+        set_backend("sympy")
+        px, py = sympy.symbols("px py", real=True)
+        line = NormalizedLine([0, 0, 1, px, py, 0])
+        set_backend("numpy")
+        result = line.eval({px: 3, py: -1}).evalf()
+        assert isinstance(result, NormalizedLine)
+        expected = [0., 0., 1., 3., -1., 0.]
+        assert numpy.allclose(result, expected)
+
 
 
 # ---------------------------------------------------------------------------

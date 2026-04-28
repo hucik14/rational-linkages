@@ -802,8 +802,8 @@ class RationalMechanism(RationalCurve):
 
         for i, t_val in enumerate(t_params):
             # evaluate the lines at the given parameter
-            l0e = l0.evaluate(t_val)
-            l1e = l1.evaluate(t_val)
+            l0e = l0.evaluate(t_val).evalf()
+            l1e = l1.evaluate(t_val).evalf()
 
             # common perpendicular to the two lines - there is none since they
             # intersect, therefore from the list of two points only 1 is needed
