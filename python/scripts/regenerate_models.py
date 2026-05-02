@@ -75,9 +75,9 @@ collisions_free_6r.save('collisions_free_6r')
 print('collisions_free_6r saved')
 
 ### Plane-fold 6R
-h1 = DualQuaternion.as_rational([0, 1, 0, 0, 0, 0, 0, 0])
-h2 = DualQuaternion.as_rational([0, 0, 3, 0, 0, 0, 0, 1])
-h3 = DualQuaternion.as_rational([0, 1, 1, 0, 0, 0, 0, -2])
+h1 = DualQuaternion([0, 1, 0, 0, 0, 0, 0, 0])
+h2 = DualQuaternion([0, 0, 3, 0, 0, 0, 0, 1])
+h3 = DualQuaternion([0, 1, 1, 0, 0, 0, 0, -2])
 
 f1 = MotionFactorization([h1, h2, h3])
 plane_fold_6r = RationalMechanism(f1.factorize())
@@ -87,9 +87,9 @@ print('plane_fold_6r saved')
 
 ### 6R motion interpolation
 p0 = DualQuaternion()
-p1 = DualQuaternion.as_rational([0, 0, 0, 1, 1, 0, 1, 0])
-p2 = DualQuaternion.as_rational([1, 2, 0, 0, -2, 1, 0, 0])
-p3 = DualQuaternion.as_rational([3, 0, 1, 0, 1, 0, -3, 0])
+p1 = DualQuaternion([0, 0, 0, 1, 1, 0, 1, 0])
+p2 = DualQuaternion([1, 2, 0, 0, -2, 1, 0, 0])
+p3 = DualQuaternion([3, 0, 1, 0, 1, 0, -3, 0])
 
 c = MotionInterpolation.interpolate([p0, p1, p2, p3])
 interp_4poses_6r = RationalMechanism(c.factorize())
