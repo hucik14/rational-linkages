@@ -232,6 +232,7 @@ class MotionDesigner:
     def add_mesh_from_stl(self,
                           path: str,
                           scale: float = 1.0,
+                          transform: TransfMatrix = None,
                           color: tuple = (0.4, 0.4, 0.4, 0.2),
                           name: str | None = None,
                           smooth: bool = False,
@@ -246,7 +247,8 @@ class MotionDesigner:
 
         :param str path: The file path to the STL file.
         :param float scale: Scale factor for mesh vertices.
-        :param tuple color: RGBA color for the mesh (default is light gray with
+        :param TransfMatrix transform: change the origin of the mesh
+        :param tuple color: RGBA color for the mesh (default is light-gray with
             some transparency).
         :param str | None name: Optional name for the mesh.
         :param bool smooth: Whether to use smooth shading (default is False).
@@ -366,6 +368,13 @@ class MotionDesigner:
         new_idx[used] = np.arange(used.shape[0], dtype=int)
         vertices_final = unique_verts[used]
         faces_final = new_idx[faces]
+
+        # transform if needed
+        if transform is not None:
+            tr_arr = transform.array()
+            ones = np.ones((len(vertices_final), 1))
+            homogeneous = np.hstack([ones, vertices_final])  # Nx4
+            vertices_final = (tr_arr @ homogeneous.T).T[:, 1:]  # back to Nx3
 
         # delegate to existing add_mesh
         return self.window.add_mesh(vertices_final,
