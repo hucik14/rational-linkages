@@ -89,27 +89,8 @@ Interactive plotting
 
 In the interactive mode, the mechanisms can be animated.
 
-.. code-block:: python
-
-    # Interactive plotting with a loaded mechanism model
-
-    from rational_linkages import Plotter, PointHomogeneous
-    from rational_linkages.models import bennett_ark24
-
-
-    # load the mechanism
-    m = bennett_ark24()
-
-    # create an interactive plotter object
-    plt = Plotter(mechanism=m, arrows_length=0.05)
-
-    # create a point with homogeneous coordinates w = 1, x = 2, y = -3, z = 1.5
-    point = PointHomogeneous([1, 0.5, -0.75, 0.25])
-
-    plt.plot(point, label='pt')
-    plt.show()
-
-.. clear-namespace
+.. literalinclude:: /examples/d_plotting_loaded_model.py
+    :language: python
 
 Which will result in the following image. The interactive plotter can be used to animate
 the mechanism using the slider widget

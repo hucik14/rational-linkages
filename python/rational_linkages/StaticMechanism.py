@@ -31,47 +31,11 @@ class StaticMechanism(RationalMechanism):
 
     :examples:
 
-    .. code-block::
+    .. literalinclude:: /examples/static_mechanism_4bar.py
+        :language: python
 
-        # Define a 4-bar mechanism from points
-        from rational_linkages import NormalizedLine
-        from rational_linkages.StaticMechanism import StaticMechanism
-
-
-        l0 = NormalizedLine.from_two_points([0.0, 0.0, 0.0],
-                                            [18.474, 30.280, 54.468])
-        l1 = NormalizedLine.from_two_points([74.486, 0.0, 0.0],
-                                            [104.321, 24.725, 52.188])
-        l2 = NormalizedLine.from_two_points([124.616, 57.341, 16.561],
-                                            [142.189, 91.439, 69.035])
-        l3 = NormalizedLine.from_two_points([19.012, 32.278, 0.000],
-                                            [26.852, 69.978, 52.367])
-
-        m = StaticMechanism([l0, l1, l2, l3])
-
-        m.get_design(unit='deg')
-
-    .. clear-namespace
-
-    .. code-block::
-
-        # Define a 6-bar mechanism from algebraic IJK representation
-        from rational_linkages.StaticMechanism import StaticMechanism
-        from sympy import symbols
-
-        epsilon, i, j, k = symbols('epsilon i j k')
-
-
-        linkage = [epsilon*k + i,
-                   epsilon*i + epsilon*k + j,
-                   epsilon*i + epsilon*j + k,
-                   -epsilon*k + i,
-                   epsilon*i - epsilon*k - j,
-                   epsilon*i - epsilon*j - k]
-
-        m = StaticMechanism.from_ijk_representation(linkage)
-
-    .. clear-namespace
+    .. literalinclude:: /examples/static_mechanism_6bar.py
+        :language: python
 
     """
     def __init__(self, screw_axes: list[NormalizedLine]):
@@ -177,75 +141,28 @@ class SnappingMechanism(StaticMechanism):
     The joints  are assembled in a fixed loop-closure configuration. They are defined
     by a list of screw axes that are used to define the motion of the mechanism.
 
-    :param list[NormalizedLine] screw_axes: A list of screw axes that define the
-        kinematic structure of the mechanism.
+    Create a SnappingMechanism for a given pose.
 
-    :ivar list[NormalizedLine] screws: A list of screw axes that define the kinematic
-        structure of the mechanism.
-    :ivar int num_joints: The number of joints in the mechanism.
-    :ivar list[list[PointHomogeneous]] points_discrete_poses: List of lists of points
-        in discrete poses.
+    The mechanism will snap between origin and the pose. See figure below for the
+    axes ordering.
+
+    .. figure:: ../../docs/source/figures/snapping.svg
+
+    :param  Union[TransfMatrix, DualQuaternion] pose: The second pose of
+            the mechanism in which it snaps to (first is identity)
+    :param list[PointHomogeneous] points: The points on the mechanism that
+        specify the axes 2 and 3. Ordering of points is important, since the axes
+        2 defines axis 1 and axes 3 defines axis 0.
+
+    :examples:
+
+    .. literalinclude:: /examples/snapping_mechanism.py
+        :language: python
+
     """
     def __init__(self,
                  pose: Union[TransfMatrix, DualQuaternion],
                  points: list[PointHomogeneous]):
-        """
-        Create a SnappingMechanism for a given pose.
-
-        The mechanism will snap between origin and the pose. See figure below for the
-        axes ordering.
-
-        .. figure:: ../../docs/source/figures/snapping.svg
-
-        :param  Union[TransfMatrix, DualQuaternion] pose: The second pose of
-            the mechanism in which it snaps to (first is identity)
-        :param list[PointHomogeneous] points: The points on the mechanism that
-            specify the axes 2 and 3. Ordering of points is important, since the axes
-            2 defines axis 1 and axes 3 defines axis 0.
-
-        :return: A SnappingMechanism object
-        :rtype: SnappingMechanism
-
-        :examples:
-
-        .. code-block::
-
-            from rational_linkages import TransfMatrix, PointHomogeneous, Plotter
-            from rational_linkages.StaticMechanism import SnappingMechanism
-
-            p0 = TransfMatrix()
-            p1 = TransfMatrix.from_rpy_xyz([15, 0, -5], [0.15, -0.25, 0.05], unit='deg')
-
-            a2 = PointHomogeneous([1, -0.2, 0, 0])
-            a3 = PointHomogeneous([1, 0.2, 0, 0])
-            b2 = PointHomogeneous([1, -0.2, 0, 0.1])
-            b3 = PointHomogeneous([1, 0.2, 0.1, 0.1])
-
-            m = SnappingMechanism(p1, [a2, b2, a3, b3])
-
-            m.factorizations[0].set_joint_connection_points_by_parameters([[0., 0.001],
-                                                                           [0.001, 0.],
-                                                                           [0., 0.001],
-                                                                           [0.001, 0.]])
-
-            m.get_design(unit='deg', scale=150)
-
-            p = Plotter(arrows_length=0.1, backend='matplotlib')
-            p.plot(p0, label='origin')
-            p.plot(p1, label='pose')
-            p.plot_line_segments_between_points(m.points_discrete_poses[0] + [m.points_discrete_poses[0][0]], color='red')
-            p.plot_line_segments_between_points(m.points_discrete_poses[1] + [m.points_discrete_poses[1][0]], color='blue')
-
-            p.plot(m.screws[0], label='axis0', interval=(-0.1, 0.1))
-            p.plot(m.screws[1], label='axis1', interval=(-0.1, 0.1))
-            p.plot(m.screws[2], label='axis2', interval=(-0.1, 0.1))
-            p.plot(m.screws[3], label='axis3', interval=(-0.1, 0.1))
-
-            p.show()
-
-        .. clear-namespace
-
-        """
         if len(points) != 4:
             raise ValueError("The points list should contain exactly four points.")
 
