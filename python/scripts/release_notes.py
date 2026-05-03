@@ -5,7 +5,7 @@ from pathlib import Path
 
 CHANGELOG_FILE = 'CHANGELOG.md'
 SOURCE_BRANCH = 'develop'
-TARGET_BRANCH = 'v2.5.0'  # target to compare to
+TARGET_BRANCH = 'v2.6.0'  # target to compare to
 NEW_VERSION = '3.0.0'
 
 repo_path = Path.home() / 'gitlab' / 'rational-linkages'

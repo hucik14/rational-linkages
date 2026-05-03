@@ -31,6 +31,7 @@ All methods accept various arguments for customization of the output. For exampl
 they accept arguments for size of the joints and links cylinders, and also can
 add the tool link and frame meshes. Be careful with units (e.g. in :meth:`.RationalMechanism.export_single_solid()`)
 it has to be specified if the result and inputs are in millimeters or meters.
+The output visualization of the STEP file can be seen bellow.
 
 .. code-block:: python
 
@@ -52,6 +53,18 @@ it has to be specified if the result and inputs are in millimeters or meters.
 
 .. clear-namespace
 
+.. raw:: html
+
+   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+   <model-viewer src="../_static/mechanism.glb"
+        alt="Visualization of STEP generated mechanism"
+        auto-rotate camera-controls
+        environment-image="neutral"
+        shadow-intensity="1"
+        style="width: 100%; height: 50vh; background-color: #e0e0e0;">
+   </model-viewer>
+
+
 .. _stl_preview-motion_designer:
 
 Visualizing Custom STL in MotionDesigner
@@ -71,7 +84,8 @@ Place the STL file in the same directory as your script and use the following pa
 
 
     md = MotionDesigner(method='quadratic_from_poses',
-                        preview_mechanism=True)
+                        preview_mechanism=True,
+                        arrows_length=0.1)
     path_to_stl = cart_stl()  # replace with path to your STL, for example:
     # path_to_stl = "cart.stl"
 
@@ -83,8 +97,15 @@ Place the STL file in the same directory as your script and use the following pa
 
 .. clear-namespace
 
+.. figure:: figures/cad_scene.png
+    :width: 480 px
+    :align: center
+    :alt: MotionDesigner scene with rendered STL
 
 
+The scene will look similar to the figure above.
 As you can notice, argument ``preview_mechanism`` is set to ``True``. This will visualize
 the mechanism in the MotionDesigner window, so you can check if the size and position of the mechanism is
-adequate in the context of your task. However, the previewing has impact on rendering performance.
+adequate in the context of your task. However, the previewing has impact on rendering performance. Also,
+keep in mind that this design can be changed by dragging the physical connection points along joint axes,
+so the preview is supposed to be only informative.

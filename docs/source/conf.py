@@ -49,14 +49,19 @@ autodoc_mock_imports = ["rational_linkages.utils_rust"]
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",
-    "sphinx.ext.intersphinx",
-    "nbsphinx",
-    "sphinx.ext.viewcode",
-    "sphinx_autodoc_typehints",
-    "sphinxcontrib.bibtex",
-              ]
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.intersphinx',
+    'nbsphinx',
+    'sphinx.ext.viewcode',
+    'sphinx_autodoc_typehints',
+    'sphinxcontrib.bibtex',
+    'sphinx_copybutton',
+]
+
+# for 3D visualization
+html_static_path = ['_static']
+html_allow_raw_html = True
 
 bibtex_bibfiles = ['refs.bib']
 
