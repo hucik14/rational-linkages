@@ -21,7 +21,19 @@ There are three methods for exporting the mechanism as a mesh or solid model. Th
 
 :meth:`.RationalMechanism.export_single_mesh()` returns an STL mesh file of the whole mechanisms. Similarly,
 :meth:`.RationalMechanism.export_single_solid()` returns a STEP file. In both cases, the mechanism bodies
-are merged in a single body.
+are merged in a single body. An interactive visualization of the method
+:meth:`.RationalMechanism.export_single_solid()` STEP file can be seen here:
+
+.. raw:: html
+
+   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+   <model-viewer src="../_static/mechanism.glb"
+        alt="Visualization of STEP generated mechanism"
+        auto-rotate camera-controls
+        environment-image="neutral"
+        shadow-intensity="1"
+        style="width: 100%; height: 50vh;">
+   </model-viewer>
 
 Alternatively, the method :meth:`.RationalMechanism.export_solids()` returns a STEP file that consists of
 assembled solids, i.e. the every link is one part (the joints of two links overlap).
@@ -31,7 +43,6 @@ All methods accept various arguments for customization of the output. For exampl
 they accept arguments for size of the joints and links cylinders, and also can
 add the tool link and frame meshes. Be careful with units (e.g. in :meth:`.RationalMechanism.export_single_solid()`)
 it has to be specified if the result and inputs are in millimeters or meters.
-The output visualization of the STEP file can be seen bellow.
 
 .. code-block:: python
 
@@ -52,17 +63,6 @@ The output visualization of the STEP file can be seen bellow.
                     file_name="mechanism.step")
 
 .. clear-namespace
-
-.. raw:: html
-
-   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-   <model-viewer src="../_static/mechanism.glb"
-        alt="Visualization of STEP generated mechanism"
-        auto-rotate camera-controls
-        environment-image="neutral"
-        shadow-intensity="1"
-        style="width: 100%; height: 50vh; background-color: #e0e0e0;">
-   </model-viewer>
 
 
 .. _stl_preview-motion_designer:
