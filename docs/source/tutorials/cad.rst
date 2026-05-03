@@ -23,8 +23,9 @@ There are three methods for exporting the mechanism as a mesh or solid model. Th
 :meth:`.RationalMechanism.export_single_solid()` returns a STEP file. In both cases, the mechanism bodies
 are merged in a single body.
 
-The method :meth:`.RationalMechanism.export_solids()` returns a STEP file, but it consists of assembled solids.
-The joints of two links overlap. When importing in your CAD, keep in mind to import it as assembly.
+Alternatively, the method :meth:`.RationalMechanism.export_solids()` returns a STEP file that consists of
+assembled solids, i.e. the every link is one part (the joints of two links overlap).
+When importing in your CAD, keep in mind to import it as assembly.
 
 All methods accept various arguments for customization of the output. For example,
 they accept arguments for size of the joints and links cylinders, and also can
@@ -59,11 +60,11 @@ Visualizing Custom STL in MotionDesigner
 Any STL file can be imported as solid body in :ref:`motion_designer`. This can be useful for visualizing
 the mechanism in the context of the task, e.g., your work-cell.
 
-It is important that the STL file coordinates are already in the world frame
-(``p0`` of your mechanism in MotionDesigner). Place the STL file in the same directory as your script
-and use the following pattern:
+It is better if the STL file coordinates are already in the world frame
+(``p0`` of your mechanism in MotionDesigner), however you can use the ``transform`` argument to place it wherever needed.
+Place the STL file in the same directory as your script and use the following pattern:
 
-.. code-block::
+.. code-block:: python
 
     from rational_linkages import MotionDesigner, TransfMatrix
     from rational_linkages.models import cart_stl
