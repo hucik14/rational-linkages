@@ -841,19 +841,16 @@ class TestAct:
         """DQ([0,0,0,1,0,0,2,0]) — half-turn about z translating by 2."""
         return DualQuaternionSymbolic([0, 0, 0, 1, 0, 0, 2, 0])
 
-    @pytest.mark.skip(reason="not symbolic yet")
     def test_act_on_point_on_x_axis(self, acting_dq):
         pt = PointHomogeneous([1, 7, 0, 0])
         result = acting_dq.act(pt)
         assert numpy.allclose(result.array(), [1, -3, 0, 0])
 
-    @pytest.mark.skip(reason="not symbolic yet")
     def test_act_on_point_off_axis(self, acting_dq):
         pt = PointHomogeneous([1, 7, 0, 2])
         result = acting_dq.act(pt)
         assert numpy.allclose(result.array(), [1, -3, 0, 2])
 
-    @pytest.mark.skip(reason="not symbolic yet")
     def test_act_on_line(self, acting_dq):
         pt0 = PointHomogeneous([1, 7, 0, 0])
         pt1 = PointHomogeneous([1, 7, 0, 2])
@@ -865,10 +862,10 @@ class TestAct:
         assert numpy.allclose(result.screw, expected.screw)
 
     def test_rational_dual_quaternion(self):
-        rational_numbers = [sympy.Rational(-1 / 4), sympy.Rational(13 / 5),
-                            sympy.Rational(-213 / 5), sympy.Rational(-68 / 15),
-                            0, sympy.Rational(-52 / 3),
-                            sympy.Rational(-28 / 15), sympy.Rational(38 / 5)]
+        rational_numbers = [sympy.Rational(-1, 4), sympy.Rational(13, 5),
+                            sympy.Rational(-213, 5), sympy.Rational(-68, 15),
+                            0, sympy.Rational(-52, 3),
+                            sympy.Rational(-28, 15), sympy.Rational(38, 5)]
         rdq = DualQuaternion(rational_numbers)
 
         assert list(rdq.array()) == rational_numbers
@@ -876,19 +873,19 @@ class TestAct:
         assert isinstance(rdq, DualQuaternion)
 
     def test_getitem(self):
-        rational_numbers = [sympy.Rational(-1 / 4), sympy.Rational(13 / 5),
-                            sympy.Rational(-213 / 5), sympy.Rational(-68 / 15),
-                            0, sympy.Rational(-52 / 3),
-                            sympy.Rational(-28 / 15), sympy.Rational(38 / 5)]
+        rational_numbers = [sympy.Rational(-1, 4), sympy.Rational(13, 5),
+                            sympy.Rational(-213, 5), sympy.Rational(-68, 15),
+                            0, sympy.Rational(-52, 3),
+                            sympy.Rational(-28, 15), sympy.Rational(38, 5)]
         rdq = DualQuaternion(rational_numbers)
 
-        assert rdq[1] == sympy.Rational(13 / 5)
+        assert rdq[1] == sympy.Rational(13, 5)
 
     def test_array(self):
-        rational_numbers = [sympy.Rational(-1 / 4), sympy.Rational(13 / 5),
-                            sympy.Rational(-213 / 5), sympy.Rational(-68 / 15),
-                            0, sympy.Rational(-52 / 3),
-                            sympy.Rational(-28 / 15), sympy.Rational(38 / 5)]
+        rational_numbers = [sympy.Rational(-1, 4), sympy.Rational(13, 5),
+                            sympy.Rational(-213, 5), sympy.Rational(-68, 15),
+                            0, sympy.Rational(-52, 3),
+                            sympy.Rational(-28, 15), sympy.Rational(38, 5)]
         rdq = DualQuaternion(rational_numbers)
 
         for i in range(8):

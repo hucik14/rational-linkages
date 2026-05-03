@@ -281,9 +281,7 @@ class DualQuaternionSymbolic(DualQuaternion):
         -------
         bool
         """
-        condition = sympy.expand(
-            sum(a * b for a, b in zip(self.p.array(), self.d.array()))
-        )
+        condition = self.study_condition()
         return sympy.simplify(condition) == 0
 
     def study_condition(self):
