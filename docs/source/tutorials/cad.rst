@@ -44,26 +44,8 @@ they accept arguments for size of the joints and links cylinders, and also can
 add the tool link and frame meshes. Be careful with units (e.g. in :meth:`.RationalMechanism.export_single_solid()`)
 it has to be specified if the result and inputs are in millimeters or meters.
 
-.. code-block:: python
-
-    from rational_linkages.models import bennett_ark24
-
-    m = bennett_ark24()
-
-    m.export_single_mesh(scale=1.0,  # mind that this example will produce a tiny model
-                         link_diameter=0.01,
-                         joint_diameter=0.02,
-                         add_tool_frame=True,
-                         file_name='mechanism.stl')
-
-    m.export_solids(units="mm",
-                    link_diameter=10,  # 10 mm if units="mm", otherwise 10 m
-                    joint_diameter=20,  # 20 mm if units="mm"
-                    add_tool_frame=True,
-                    file_name="mechanism.step")
-
-.. clear-namespace
-
+.. literalinclude:: /examples/d_t_cad_export.py
+    :language: python
 
 .. _stl_preview-motion_designer:
 
@@ -77,25 +59,8 @@ It is better if the STL file coordinates are already in the world frame
 (``p0`` of your mechanism in MotionDesigner), however you can use the ``transform`` argument to place it wherever needed.
 Place the STL file in the same directory as your script and use the following pattern:
 
-.. code-block:: python
-
-    from rational_linkages import MotionDesigner, TransfMatrix
-    from rational_linkages.models import cart_stl
-
-
-    md = MotionDesigner(method='quadratic_from_poses',
-                        preview_mechanism=True,
-                        arrows_length=0.1)
-    path_to_stl = cart_stl()  # replace with path to your STL, for example:
-    # path_to_stl = "cart.stl"
-
-    # add transform for the mesh if needed
-    tr = TransfMatrix.from_rpy_xyz([0,0,-90], [0.23, -0.44, -1.2], unit="deg")
-
-    md.add_mesh_from_stl(path_to_stl, scale=1, transform=tr)
-    md.show()
-
-.. clear-namespace
+.. literalinclude:: /examples/d_t_cad_stlvis.py
+    :language: python
 
 .. figure:: figures/cad_scene.png
     :width: 480 px
