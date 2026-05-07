@@ -11,6 +11,7 @@ The basic outline can be run as follows:
 
 .. code-block:: python
 
+    # THIS CODE IS NOT TESTED
     from rational_linkages import (DualQuaternion, MotionFactorization,
                                    RationalMechanism, Plotter)
 
@@ -33,8 +34,6 @@ The basic outline can be run as follows:
         # plot mechanism
         myplt = Plotter(mechanism=m, show_tool=False, steps=200, arrows_length=0.2, joint_sliders_lim=3.0)
         myplt.show()
-
-.. clear-namespace
 
 This will perform full search and tries to find a collision-free design of the given
 mechanism. The result will be found at iteration :code:`4`, for links shifting combination
@@ -59,34 +58,8 @@ arguments also these keyword arguments:
 
 and they can be set as follows:
 
-.. code-block:: python
-
-    from rational_linkages import (DualQuaternion, MotionFactorization,
-                                   RationalMechanism, Plotter)
-
-
-    h1 = DualQuaternion.as_rational([0, 1, 0, 0, 0, 0, 0, 0])
-    h2 = DualQuaternion.as_rational([0, 0, 3, 0, 0, 0, 0, 1])
-    h3 = DualQuaternion.as_rational([0, 1, 1, 0, 0, 0, 0, -2])
-
-    f1 = MotionFactorization([h1, h2, h3])
-
-    # find factorizations
-    factorizations = f1.factorize()
-
-    # create mechanism
-    m = RationalMechanism(factorizations)
-    m.collision_free_optimization(max_iters=10,
-                                  min_joint_segment_length=0.3,
-                                  start_iteration=4,
-                                  combinations_links=[(0, 0, 0, 1, 1, 0)],
-                                  combinations_joints=[(-1, 1, 1, -1, -1, 1, 1, -1, -1, 1, 1, -1)])
-
-    # plot mechanism
-    myplt = Plotter(mechanism=m, show_tool=False, steps=200, arrows_length=0.2, joint_sliders_lim=3.0)
-    myplt.show()
-
-.. clear-namespace
+.. literalinclude:: /examples/d_t_comb_search_found.py
+    :language: python
 
 
 **References:**

@@ -9,19 +9,8 @@ parameterization has to be handled carefully. For more details, see the section 
 paper :footcite:t:`Huczala2025kinematics`. The implementation is in
 :meth:`.RationalMechanism.forward_kinematics()` moethod or it's alias :meth:`.RationalMechanism.direct_kinematics()`.
 
-.. code-block:: python
-
-    from rational_linkages.models import bennett_ark24
-    from rational_linkages import TransfMatrix
-
-    m = bennett_ark24()
-
-    theta = 2.3  # rad
-    pose_as_dq = m.forward_kinematics(theta)
-    pose_as_matrix = TransfMatrix(pose_as_dq.dq2matrix())
-
-.. clear-namespace
-
+.. literalinclude:: /examples/d_t_control_dk.py
+    :language: python
 
 Inverse Kinematics (Numerical)
 ==============================
@@ -37,18 +26,8 @@ motion curve, and the nearest point on the curve will be returned.
 The implemented method has an argument ``robust`` that, when set to ``True``, will use more initial guesses if
 the first guess does not converge.
 
-.. code-block:: python
-
-    from rational_linkages.models import bennett_ark24
-    from rational_linkages import TransfMatrix
-
-    m = bennett_ark24()
-
-    theta = 2.3  # rad
-    pose_as_dq = m.forward_kinematics(theta)
-    theta_in_rad = m.inverse_kinematics(pose_as_dq, robust=True)
-
-.. clear-namespace
+.. literalinclude:: /examples/d_t_control_ik.py
+    :language: python
 
 
 Velocity Motion Planning
