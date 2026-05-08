@@ -1,3 +1,4 @@
+# This code is NOT TESTED on redular pipeline schedule
 from rational_linkages import ExudynAnalysis
 from rational_linkages.models import collisions_free_6r, bennett_ark24
 from exudyn.utilities import *

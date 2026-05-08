@@ -114,9 +114,7 @@ target-version = "py310"
 addopts = "--cov=rational_linkages --cov-report=term-missing"
 testpaths = ["python/tests"]
 #testpaths = ["python/rational_linkages"]  # docstring examples
-#testpaths = ["docs/source/examples"]
-#testpaths = ["docs/source"]  # docs examples
-#testpaths = ["python/tests", "python/rational_linkages", "docs/source"]  # test all
+#testpaths = ["python/tests", "python/rational_linkages"]  # test all
 
 [tool.coverage.report]
 omit = [

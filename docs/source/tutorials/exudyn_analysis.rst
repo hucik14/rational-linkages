@@ -45,7 +45,7 @@ The class :class:`.ExudynAnalysis` gathers the necessary geometric and kinematic
 properties of a linkage, that can be used to create a simulation model in Exudyn.
 Use the following code to create an Exudyn model from a linkage:
 
-.. literalinclude:: /examples/d_exudyn_4r.py
+.. literalinclude:: /examples_not_tested/d_exudyn_4r.py
     :language: python
 
 

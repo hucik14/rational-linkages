@@ -9,31 +9,8 @@ algorithm can be found also in the docs :ref:`combinatorial_search`.
 
 The basic outline can be run as follows:
 
-.. code-block:: python
-
-    # THIS CODE IS NOT TESTED
-    from rational_linkages import (DualQuaternion, MotionFactorization,
-                                   RationalMechanism, Plotter)
-
-
-    if __name__ == '__main__':
-        h1 = DualQuaternion.as_rational([0, 1, 0, 0, 0, 0, 0, 0])
-        h2 = DualQuaternion.as_rational([0, 0, 3, 0, 0, 0, 0, 1])
-        h3 = DualQuaternion.as_rational([0, 1, 1, 0, 0, 0, 0, -2])
-
-        f1 = MotionFactorization([h1, h2, h3])
-
-        # find factorizations
-        factorizations = f1.factorize()
-
-        # create mechanism
-        m = RationalMechanism(factorizations)
-        m.collision_free_optimization(max_iters=10,
-                                      min_joint_segment_length=0.3)
-
-        # plot mechanism
-        myplt = Plotter(mechanism=m, show_tool=False, steps=200, arrows_length=0.2, joint_sliders_lim=3.0)
-        myplt.show()
+.. literalinclude:: /examples_not_tested/d_t_combinatorial_search_full.py
+    :language: python
 
 This will perform full search and tries to find a collision-free design of the given
 mechanism. The result will be found at iteration :code:`4`, for links shifting combination

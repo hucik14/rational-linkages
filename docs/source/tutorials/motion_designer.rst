@@ -16,7 +16,7 @@ supported for designing rational motions. They correspond to the :ref:`interpola
 
 In the code, use it as follows:
 
-.. literalinclude:: /examples/d_t_motion_designer_start.py
+.. literalinclude:: /examples_not_tested/d_t_motion_designer_start.py
     :language: python
 
 Eventually, if you don't want to always choose methodology using GUI, just use:
