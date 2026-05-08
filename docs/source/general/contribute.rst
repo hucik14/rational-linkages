@@ -70,7 +70,7 @@ Example of a docstring:
             b = 2.0
             c = example_function(a, b)
 
-        .. clear-namespace
+        .. clear-namespace::
 
         :note: additional notes
 

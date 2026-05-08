@@ -49,7 +49,7 @@ class MotionDesigner:
         d = MotionDesigner(method='quadratic_from_poses')
         d.show()
 
-    .. clear-namespace
+    .. clear-namespace::
 
 
 
@@ -71,7 +71,7 @@ class MotionDesigner:
         d = MotionDesigner(method='quadratic_from_points', initial_points_or_poses=chosen_points)
         d.show()
 
-    .. clear-namespace
+    .. clear-namespace::
 
     """
     def __init__(self,

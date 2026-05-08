@@ -58,7 +58,7 @@ class RationalMechanism(RationalCurve):
         # show the plot
         p.show()
 
-    .. clear-namespace
+    .. clear-namespace::
 
     """
     def __init__(self, factorizations: list[MotionFactorization],
@@ -1327,7 +1327,7 @@ class RationalMechanism(RationalCurve):
             plt.grid()
             plt.show()
 
-        .. clear-namespace
+        .. clear-namespace::
 
         """
         if unit == 'deg':

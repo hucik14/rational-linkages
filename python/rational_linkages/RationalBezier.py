@@ -32,7 +32,7 @@ class RationalBezier(RationalCurve):
                           PointHomogeneous(np.array([4., 0., 2., 4.]))]
         bezier_curve = RationalBezier(control_points)
 
-    .. clear-namespace
+    .. clear-namespace::
 
     """
 
