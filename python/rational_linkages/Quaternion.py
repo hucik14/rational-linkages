@@ -60,6 +60,8 @@ class Quaternion:
         a, b = symbols("a b", real=True)
         q = Quaternion([a, b, 0, 0])   # transparently returns QuaternionSymbolic
 
+    .. clear-namespace::
+
     """
     __hash__ = None  # mutable, not hashable by default; can be overridden in subclasses
     __array_priority__ = 20.0  # prioritizes Quaternion over numpy array __rmul__
@@ -327,6 +329,8 @@ class Quaternion:
             q_array = q.array()
             print(q_array)  # np.array([1., 2., 3., 4.])
 
+        .. clear-namespace::
+
         """
         return self.q.copy()
 
@@ -349,6 +353,8 @@ class Quaternion:
             q = Quaternion([1, 2, 3, 4])
             q_conj = q.conjugate()
             print(q_conj)  # [1., -2., -3., -4.]
+
+        .. clear-namespace::
 
         """
         return self.__class__([self.q[0], -self.q[1], -self.q[2], -self.q[3]])
@@ -375,6 +381,8 @@ class Quaternion:
             q_quadrance = q.norm()
             print(q_quadrance)
 
+        .. clear-namespace::
+
         """
         return float(numpy.dot(self.q, self.q))
 
@@ -396,6 +404,8 @@ class Quaternion:
             q = Quaternion([1, 2, 3, 4])
             q_len = q.length()
             print(q_len)
+
+        .. clear-namespace::
 
         """
         return float(numpy.sqrt(self.norm()))
@@ -419,6 +429,8 @@ class Quaternion:
             q_inv = q.inv()
             print(q_inv)
 
+        .. clear-namespace::
+
         """
         return self.__class__(self.conjugate().q / self.norm())
 
@@ -441,6 +453,8 @@ class Quaternion:
             q = Quaternion([2, 1, -2, 0])
             q_normalized = q.normalize()
             print(q_normalized)
+
+        .. clear-namespace::
 
         """
         return self / self.length()
@@ -473,6 +487,8 @@ class Quaternion:
             q_numeric = q1.eval({t : 1})
             print(type(q_numeric))   # Quaternion (numeric)
             print(q_numeric)
+
+        .. clear-namespace::
 
         """
         evaluated = [float(v.subs(subs)) if hasattr(v, "subs") else float(v)

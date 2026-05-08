@@ -12,7 +12,7 @@ Usage via ``DualQuaternion.act``
 .. code-block:: python
 
     from rational_linkages import DualQuaternion
-    from rational_linkages.NormalizedLine import NormalizedLine
+    from rational_linkages import NormalizedLine
 
     dq = DualQuaternion([1, 0, 0, 1, 0, 3, 2, -1])
     line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
@@ -23,10 +23,14 @@ Direct usage
 .. code-block:: python
 
     from rational_linkages.dualQuaternionAction import act
-    from rational_linkages.NormalizedLine import NormalizedLine
-    from rational_linkages.PointHomogeneous import PointHomogeneous
+    from rational_linkages import NormalizedLine, DualQuaternion
+
+    dq = DualQuaternion([1, 0, 0, 1, 0, 3, 2, -1])
+    line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
 
     result = act(dq, line)
+
+.. clear-namespace::
 """
 
 from typing import Union
@@ -79,6 +83,8 @@ def act(
         dq = DualQuaternion([1, 0, 0, 1, 0, 3, 2, -1])
         line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
         line_transformed = act(dq, line)
+    .. clear-namespace::
+
     """
     acting_dq = _prepare_acting_object(acting_object)
     affected_type = _classify_affected_object(affected_object)

@@ -49,6 +49,8 @@ class PointHomogeneous:
         custom = PointHomogeneous([2.0, 1.0, -3.0, 4.0])
         origin_2d = PointHomogeneous.at_origin_in_2d()
 
+    .. clear-namespace::
+
     .. code-block:: python
 
         # Symbolic backend
@@ -63,6 +65,9 @@ class PointHomogeneous:
         p = PointHomogeneous([w, x, y, z])   # transparently returns PointHomogeneousSymbolic
 
         rational_linkages.set_backend("numpy")
+
+    .. clear-namespace::
+
     """
 
     # ------------------------------------------------------------------

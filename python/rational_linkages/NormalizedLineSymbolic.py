@@ -48,6 +48,9 @@ class NormalizedLineSymbolic(NormalizedLine):
         print(line.direction)   # [l1, l2, l3]
 
         rational_linkages.set_backend("numpy")
+
+    .. clear-namespace::
+
     """
 
     # ------------------------------------------------------------------
@@ -356,6 +359,9 @@ class NormalizedLineSymbolic(NormalizedLine):
             print(line_eval)
 
             rational_linkages.set_backend("numpy")
+
+        .. clear-namespace::
+
         """
         return self.__class__([v.subs(subs) for v in self.screw])
 

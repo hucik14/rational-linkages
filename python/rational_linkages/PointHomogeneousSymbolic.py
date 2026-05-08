@@ -48,6 +48,9 @@ class PointHomogeneousSymbolic(PointHomogeneous):
         print(p.normalize())        # PointHomogeneousSymbolic([1, x/w, y/w, z/w])
 
         rational_linkages.set_backend("numpy")
+
+    .. clear-namespace::
+
     """
 
     # ------------------------------------------------------------------
@@ -230,6 +233,9 @@ class PointHomogeneousSymbolic(PointHomogeneous):
             print(p_eval)   # PointHomogeneousSymbolic([1, 3, 6, 0])
 
             rational_linkages.set_backend("numpy")
+
+        .. clear-namespace::
+
         """
         return self.__class__([v.subs(subs) for v in self.coordinates])
 

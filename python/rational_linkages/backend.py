@@ -18,6 +18,8 @@ Examples
     a, b = symbols("a b", real=True)
     q = Quaternion([a, b, 0, 0])   # returns QuaternionSymbolic
 
+.. clear-namespace::
+
 """
 
 _BACKEND: str = "numpy"
@@ -50,6 +52,9 @@ def set_backend(name: str) -> None:
 
         rational_linkages.set_backend("sympy")   # enable symbolic computation
         rational_linkages.set_backend("numpy")   # restore numeric default
+
+    .. clear-namespace::
+
     """
     global _BACKEND
     if name not in _VALID_BACKENDS:

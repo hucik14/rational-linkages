@@ -55,6 +55,9 @@ class QuaternionSymbolic(Quaternion):
         print(q1.norm())  # a**2 + b**2 + c**2 + d**2
 
         rational_linkages.set_backend("numpy")   # restore default
+
+    .. clear-namespace::
+
     """
 
     # ------------------------------------------------------------------
@@ -220,6 +223,9 @@ class QuaternionSymbolic(Quaternion):
             subs = {a: 1, b: -2, c: 0, d: 0}
             q1_evaluated = q1.eval(subs)
             print(q1_evaluated)
+
+        .. clear-namespace::
+
         """
         return self.__class__([v.subs(subs) for v in self.q])
 

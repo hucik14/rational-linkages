@@ -51,6 +51,8 @@ class DualQuaternion:
         print(dq)
         print(identity)
 
+    .. clear-namespace::
+
     .. code-block:: python
 
         from rational_linkages import DualQuaternion, Quaternion
@@ -59,6 +61,8 @@ class DualQuaternion:
         q2 = Quaternion([1, 2, 3, 4])
         dq = DualQuaternion.from_two_quaternions(q1, q2)
         print(dq)
+
+    .. clear-namespace::
 
     .. code-block:: python
 
@@ -75,6 +79,8 @@ class DualQuaternion:
         print(dq)
 
         rational_linkages.set_backend("numpy")
+
+    .. clear-namespace::
     """
 
     __hash__ = None
@@ -172,6 +178,9 @@ class DualQuaternion:
             d = Quaternion([0, 1, 0, 0])
             dq = DualQuaternion.from_two_quaternions(p, d)
             print(dq)
+
+        .. clear-namespace::
+
         """
         return cls(numpy.concatenate((primal.array(), dual.array())))
 
@@ -198,6 +207,9 @@ class DualQuaternion:
 
             dq = DualQuaternion.random()
             print(dq)
+
+        .. clear-namespace::
+
         """
         return cls(numpy.random.uniform(-interval, interval, 8))
 
@@ -331,6 +343,9 @@ class DualQuaternion:
             bq = BiQuaternion(1, 0, 0, 0, 0, 2, 3, 4)
             dq = DualQuaternion.from_bq_biquaternion(bq)
             print(dq)
+
+        .. clear-namespace::
+
         """
         from biquaternion_py import BiQuaternion  # lazy import
 
@@ -377,6 +392,9 @@ class DualQuaternion:
             h = 2 * KK + EE * II
             dq = DualQuaternion.from_bq_poly(Poly(t - h, t), indet=t)
             print(dq)
+
+        .. clear-namespace::
+
         """
         from biquaternion_py import Poly  # lazy import
 
@@ -629,6 +647,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
             print(dq.array())
+
+        .. clear-namespace::
+
         """
         return numpy.concatenate((self.p.array(), self.d.array()))
 
@@ -649,6 +670,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
             print(dq.conjugate())
+
+        .. clear-namespace::
+
         """
         return self.__class__.from_two_quaternions(
             self.p.conjugate(), self.d.conjugate()
@@ -671,6 +695,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
             print(dq.eps_conjugate())
+
+        .. clear-namespace::
+
         """
         return self.__class__.from_two_quaternions(self.p, -self.d)
 
@@ -693,6 +720,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([1, 0, 0, 0, 0, 1, 2, 3])
             print(dq.norm())
+
+        .. clear-namespace::
+
         """
         p_arr = self.p.array()
         d_arr = self.d.array()
@@ -723,6 +753,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([2, 0, 0, 0, 0, 2, 4, 6])
             print(dq.normalize())
+
+        .. clear-namespace::
+
         """
         p0 = self.array()[0]
         if numpy.isclose(p0, 0.0):
@@ -750,6 +783,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([1, 0, 0, 0, 0, 1, 0, 0])
             print(dq * dq.inv())
+
+        .. clear-namespace::
+
         """
         p_inv = self.p.inv()
         d_inv = -1 * p_inv * self.d * p_inv
@@ -775,6 +811,9 @@ class DualQuaternion:
             dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
             dq_on_quadric = dq.back_projection()
             print(dq_on_quadric.is_on_study_quadric())
+
+        .. clear-namespace::
+
         """
         if self.is_on_study_quadric():
             return self
@@ -817,6 +856,9 @@ class DualQuaternion:
             dq1 = DualQuaternion([1, 0, 0, 0, 0, 1, 0, 0])
             dq2 = DualQuaternion([1, 0, 0, 0, 0, 0, 1, 0])
             print(dq1.extended_dot(dq2))
+
+        .. clear-namespace::
+
         """
         return float(
             numpy.dot(self.p.array(), other.d.array())
@@ -848,6 +890,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([1, 0, 0, 0, 0, 0, 0, 0])
             print(dq.is_on_study_quadric())
+
+        .. clear-namespace::
+
         """
         threshold = 1e-10 if approximate else 1e-20
         condition = self.study_condition()
@@ -897,6 +942,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([1, 0, 0, 0, 0, 1, 2, 3])
             print(dq.dq2matrix())
+
+        .. clear-namespace::
+
         """
         p0, p1, p2, p3 = self.p.array()
         d0, d1, d2, d3 = self.d.array()
@@ -944,6 +992,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([2, 0, 0, 0, 0, 2, 4, 6])
             print(dq.dq2point())
+
+        .. clear-namespace::
+
         """
         arr = self.array() / self.array()[0]
         return arr[5:8]
@@ -965,6 +1016,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([1, 0, 0, 0, 0, 1, 2, 3])
             print(dq.dq2point_homogeneous())
+
+        .. clear-namespace::
+
         """
         arr = self.array()
         return numpy.array([arr[0], arr[5], arr[6], arr[7]])
@@ -986,6 +1040,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([1, 0, 0, 0, 0, 1, 2, 3])
             print(dq.dq2point_via_matrix())
+
+        .. clear-namespace::
+
         """
         return self.dq2matrix()[1:4, 0]
 
@@ -1021,6 +1078,9 @@ class DualQuaternion:
             dq = DualQuaternion([0, 0, 0, 1, 0, 0, -2, 0])
             direction, moment = dq.dq2line_vectors()
             print(direction, moment)
+
+        .. clear-namespace::
+
         """
         arr = self.array()
         # try to cast symbolic arrays to numeric
@@ -1078,6 +1138,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([0, 0, 0, 1, 0, 0, -2, 0])
             print(dq.dq2screw())
+
+        .. clear-namespace::
+
         """
         direction, moment = self.dq2line_vectors()
         return numpy.concatenate((direction, moment))
@@ -1099,6 +1162,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([0, 0, 0, 1, 0, 0, -2, 0])
             print(dq.dq2point_via_line())
+
+        .. clear-namespace::
+
         """
         direction, moment = self.dq2line_vectors()
         return numpy.cross(direction, moment)
@@ -1122,6 +1188,9 @@ class DualQuaternion:
 
             dq = DualQuaternion([1, 0, 0, 0, 0, 1, 2, 3])
             print(dq.as_12d_vector())
+
+        .. clear-namespace::
+
         """
         mat = self.dq2matrix()
         return numpy.hstack((mat[1:4, 0], mat[1:4, 1], mat[1:4, 2], mat[1:4, 3]))
@@ -1154,8 +1223,11 @@ class DualQuaternion:
             dq = DualQuaternion([1, t, 0, 0, 0, t, 0, 0])
             result = dq.eval({t: 2})
             print(result)
-
+ 
             rational_linkages.set_backend("numpy")
+
+        .. clear-namespace::
+
         """
         evaluated = [
             float(v.subs(subs)) if hasattr(v, "subs") else float(v)
@@ -1205,6 +1277,9 @@ class DualQuaternion:
             dq = DualQuaternion([1, 0, 0, 1, 0, 3, 2, -1])
             line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
             line_transformed = dq.act(line)
+
+        .. clear-namespace::
+
         """
         from .dualQuaternionAction import act as _act
 
