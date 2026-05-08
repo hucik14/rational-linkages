@@ -15,40 +15,8 @@ Static plotting
 By default, the plots are not interactive. This is suitable for simple plots with
 static objects:
 
-.. code-block:: python
-
-    # Plotting static objects
-
-    from rational_linkages import Plotter, DualQuaternion, PointHomogeneous, NormalizedLine, TransfMatrix
-
-
-    # create plotter object, arg steps says how many discrete steps will be used for
-    # plotting curves
-    plt = Plotter(backend='matplotlib')
-
-    # create two DualQuaternion objects
-    identity = DualQuaternion()
-    pose1 = DualQuaternion([0, 0, 1, 0, 0, -0.5, 1, 0])
-    pose2 = TransfMatrix.from_rpy_xyz([0, -90, 0], [0, 0, 0.5], unit='deg')
-
-    # create a point with homogeneous coordinates w = 1, x = 2, y = -3, z = 1.5
-    point = PointHomogeneous([1, 2, -3, 1.5])
-
-    # create a normalized line from direction vector and the previously specified point
-    line = NormalizedLine.from_direction_and_point([0, 0, 1], point.normalized_euclidean())
-
-    # plot the objects
-    # 1-line command
-    plt.plot(identity, label='base')
-    plt.plot(point, label='pt')
-    plt.plot(line, label='l1')
-    # or for cycle
-    for i, obj in enumerate([pose1, pose2]):
-        plt.plot(obj, label='p{}'.format(i + 1))
-
-    plt.show()
-
-.. clear-namespace
+.. literalinclude:: /examples/d_plotting_static.py
+    :language: python
 
 Which will result in the following image:
 
@@ -59,21 +27,8 @@ Which will result in the following image:
 
 Additionally, it is also possible to plot motion curve of a mechanism.
 
-.. code-block:: python
-
-    # Plotting motion curve of a mechanism
-
-    from rational_linkages import Plotter
-    from rational_linkages.models import bennett_ark24
-
-
-    m = bennett_ark24()
-
-    p = Plotter(backend="matplotlib", arrows_length=0.03)
-    p.plot(m.curve(), interval='closed', with_poses=True)
-    p.show()
-
-.. clear-namespace
+.. literalinclude:: /examples/d_plotting_motion_curve.py
+    :language: python
 
 
 Which will result in the following image:
@@ -120,20 +75,8 @@ limits. In such cases, it is possible to use key word arguments ``arrows_length`
 The ``joint_sliders_lim`` specifies the limits of the range sliders, and the ``arrows_length``
 to adjust the size of the length of the frames/poses that are plotted.
 
-.. code-block:: python
-
-    # Interactive plotting with a loaded mechanism model, adjusted scaling
-
-    from rational_linkages import Plotter
-    from rational_linkages.models import bennett_ark24 as bennett
-
-
-    m = bennett()
-
-    plt = Plotter(mechanism=m, arrows_length=0.05, joint_sliders_lim=0.5)
-    plt.show()
-
-.. clear-namespace
+.. literalinclude:: /examples/d_plotting_interactive_scaling.py
+    :language: python
 
 .. _alternative_tools:
 
@@ -158,62 +101,16 @@ However, the tool of a mechanism frame can be handled in three ways:
 
 The following examples show the three options.
 
-.. code-block:: python
-
-    # Tool frame on motion curve
-
-    from rational_linkages import (RationalMechanism, DualQuaternion,
-                                   Plotter, MotionFactorization)
-
-
-    # Define factorizations
-    f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
-                              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
-
-    f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
-                              DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
-
-    # Create mechanism
-    m = RationalMechanism([f1, f2])
-
-    # Create plotter
-    plt = Plotter(mechanism=m, backend='matplotlib', arrows_length=0.2)
-    plt.show()
-
-.. clear-namespace
+.. literalinclude:: /examples/d_plot_tool1.py
+    :language: python
 
 .. figure:: figures/plot_tool1.png
     :width: 500 px
     :align: center
     :alt: Tool frame on motion curve
 
-.. code-block:: python
-
-    # Tool frame in the middle of the last link
-
-    from rational_linkages import (RationalMechanism, DualQuaternion,
-                                   Plotter, MotionFactorization)
-
-
-    # Define factorizations
-    f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
-                              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
-
-    f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
-                              DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
-
-    # Create mechanism
-    m = RationalMechanism([f1, f2], tool='mid_of_last_link')
-
-    # Create plotter
-    plt = Plotter(mechanism=m, backend='matplotlib', arrows_length=0.2)
-
-    # Plot the default motion curve
-    plt.plot(m.get_motion_curve(), label='motion curve', interval='closed',
-           color='red', linewidth='0.7', linestyle=':')
-    plt.show()
-
-.. clear-namespace
+.. literalinclude:: /examples/d_plot_tool2.py
+    :language: python
 
 
 .. figure:: figures/plot_tool2.png
@@ -221,37 +118,8 @@ The following examples show the three options.
     :align: center
     :alt: Tool frame in the middle of the last link
 
-.. code-block:: python
-
-    # Tool frame specified as DualQuaternion
-
-    from rational_linkages import (RationalMechanism, DualQuaternion, TransfMatrix,
-                                   Plotter, MotionFactorization)
-
-
-    # Define factorizations
-    f1 = MotionFactorization([DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
-                              DualQuaternion([0, 0, 0, 2, 0, 0, -1, 0])])
-
-    f2 = MotionFactorization([DualQuaternion([0, 0, 0, 2, 0, 0, -1 / 3, 0]),
-                              DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
-
-    # Create tool frame from transformation matrix
-    tool_matrix = TransfMatrix.from_rpy_xyz([90, 0, 45], [-0.2, 0.5, 0], unit='deg')
-    tool_dq = DualQuaternion(tool_matrix.matrix2dq())
-
-    # Create mechanism
-    m = RationalMechanism([f1, f2], tool=tool_dq)
-
-    # Create plotter
-    plt = Plotter(mechanism=m, backend='matplotlib', arrows_length=0.2)
-
-    # Plot the default motion curve
-    plt.plot(m.get_motion_curve(), label='motion curve', interval='closed',
-           color='red', linewidth='0.7', linestyle=':')
-    plt.show()
-
-.. clear-namespace
+.. literalinclude:: /examples/d_plot_tool3.py
+    :language: python
 
 .. figure:: figures/plot_tool3.png
     :width: 500 px

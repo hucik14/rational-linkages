@@ -16,25 +16,14 @@ supported for designing rational motions. They correspond to the :ref:`interpola
 
 In the code, use it as follows:
 
-.. code-block:: python
-
-    from rational_linkages import MotionDesigner
-
-    MotionDesigner.start()
-
-.. clear-namespace
+.. literalinclude:: /examples/d_t_motion_designer_start.py
+    :language: python
 
 Eventually, if you don't want to always choose methodology using GUI, just use:
 
 
-.. code-block:: python
-
-    from rational_linkages import MotionDesigner
-
-    designer = MotionDesigner(method='quadratic_from_poses')
-    designer.show()
-
-.. clear-namespace
+.. literalinclude:: /examples/d_t_motion_designer_create.py
+    :language: python
 
 
 This will produce an interactive window where you can alter the given poses or points using the sliders

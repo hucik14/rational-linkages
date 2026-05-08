@@ -37,10 +37,8 @@ quaternion :math:`\mathbf{q}_d = (p_4, p_5, p_6, p_7)`.
 In the package, the class :class:`.DualQuaternion` is used to represent dual
 quaternions. A simple example of creating an identity dual quaternion is:
 
-.. code-block:: python
-
-    from rational_linkages import DualQuaternion
-    p = DualQuaternion()
+.. literalinclude:: /examples/d_bm_dualquaternions_simple.py
+    :language: python
 
 which will create a dual quaternion :math:`\mathbf{p} = (1, 0, 0, 0, 0, 0, 0, 0)`.
 

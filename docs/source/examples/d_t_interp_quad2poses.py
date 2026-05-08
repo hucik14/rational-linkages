@@ -1,0 +1,20 @@
+# Quadratic interpolation of 2 poses with an optimized 3rd pose
+
+from rational_linkages import (Plotter, MotionInterpolation,
+                               TransfMatrix, RationalMechanism)
+
+
+p0 = TransfMatrix()  # identity
+p1 = TransfMatrix.from_rpy_xyz([0, 0, 90], [0.15, -0.2, 0.2], unit='deg')
+
+interpolated_curve = MotionInterpolation.interpolate([p0, p1])
+m = RationalMechanism(interpolated_curve.factorize())
+
+p = Plotter(mechanism=m, steps=500, arrows_length=0.05)
+p.plot(p0)
+p.plot(p1)
+
+p.plot(interpolated_curve, interval='closed')
+
+p.show()
+
