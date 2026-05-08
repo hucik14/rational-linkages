@@ -21,9 +21,15 @@ class MotionInterpolation:
     There are two methods for interpolation of poses by rational motion curve, please
     see the following examples for more details.
 
-    :see also: :ref:`interpolation_background`, :ref:`interpolation_examples`
+    See Also
+    --------
+    :ref:`interpolation_background`
+        Background on interpolation methods.
+    :ref:`interpolation_examples`
+        Examples of interpolation.
 
-    :examples:
+    Examples
+    --------
 
     .. code-block:: python
 
@@ -85,8 +91,10 @@ class MotionInterpolation:
 
     """
     def __init__(self):
-        """
-        Creates a new instance of the rational motion interpolation class.
+        """Create a MotionInterpolation helper instance.
+
+        The class is stateless and provides interpolation helpers as
+        static methods; this constructor is present for API symmetry.
         """
         pass
 
@@ -94,20 +102,23 @@ class MotionInterpolation:
     def interpolate(poses_or_points: list[Union[DualQuaternion, TransfMatrix, PointHomogeneous]],
                     lambda_val: Union[float, int] = 0,
                     motion_family: int = 0) -> RationalCurve:
-        """
-        Interpolates the given 2, 3, 4 poses or 5 points by a rational motion in SE(3).
+        """Interpolate 2–4 poses or 5/7 points with a rational motion curve.
 
-        :param list[Union[DualQuaternion, TransfMatrix, PointHomogeneous]]
-            poses_or_points: The poses or points to interpolate.
+        Parameters
+        ----------
+        poses_or_points
+            Sequence of input poses or points. Supported types are
+            :class:`DualQuaternion`, :class:`TransfMatrix` and
+            :class:`PointHomogeneous`. Supported counts are 2, 3, 4, 5 or 7.
+        lambda_val, optional
+            Lambda parameter used for cubic interpolation with four poses.
+        motion_family, optional
+            Motion family selector (0 or 1) for the cubic 4-pose case.
 
-        :param Union[float, int] lambda_val: The lambda parameter for the interpolation.
-            Only used for cubic interpolation using 4 poses.
-
-        :param int motion_family: The family of the motion curve. 0 - default, 1 - other
-            solution. Only used for cubic interpolation using 4 poses.
-
-        :return: The rational motion curve.
-        :rtype: RationalCurve
+        Returns
+        -------
+        RationalCurve
+            Rational motion curve representing the interpolant.
         """
         # check number of poses
         if not ((2 <= len(poses_or_points) <= 5) or len(poses_or_points) == 7):
@@ -173,13 +184,17 @@ class MotionInterpolation:
 
     @staticmethod
     def interpolate_quadratic(poses: list[DualQuaternion]) -> list[sp.Poly]:
-        """
-        Interpolates the given 3 rational poses by a quadratic curve in SE(3).
+        """Interpolate three rational poses by a quadratic motion curve.
 
-        :param list[DualQuaternion] poses: The rational poses to interpolate.
+        Parameters
+        ----------
+        poses
+            Sequence of three :class:`DualQuaternion` poses.
 
-        :return: The rational motion curve.
-        :rtype: list[sp.Poly]
+        Returns
+        -------
+        list[sp.Poly]
+            Symbolic polynomial equations (SymPy) describing the motion curve.
         """
         alpha = sp.Symbol('alpha')
         omega = sp.Symbol('omega')
@@ -230,13 +245,17 @@ class MotionInterpolation:
 
     @staticmethod
     def interpolate_quadratic_numerically(poses: list[DualQuaternion]) -> np.ndarray:
-        """
-        Interpolates the given 3 poses by a quadratic curve in SE(3).
+        """Numeric quadratic interpolation for three poses.
 
-        :param list[DualQuaternion] poses: the rational poses to interpolate.
+        Parameters
+        ----------
+        poses
+            Sequence of three :class:`DualQuaternion` poses.
 
-        :return: numerical coefficients of the motion curve
-        :rtype: np.ndarray
+        Returns
+        -------
+        numpy.ndarray
+            Numeric coefficient array for the quadratic motion curve.
         """
         p0 = poses[0].array()
         p1 = poses[1].array()
@@ -266,16 +285,20 @@ class MotionInterpolation:
 
     @staticmethod
     def interpolate_quadratic_2_poses(poses: list[DualQuaternion]) -> list[sp.Poly]:
-        """
-        Interpolates the given 2 rational poses by a quadratic curve in SE(3).
+        """Quadratic interpolation when only two poses are provided.
 
-        Adds the 3rd pose that is either identity or a random pose that returns
-        solution.
+        The routine augments the input by a third helper pose (identity or
+        randomized/optimized) to form a solvable quadratic interpolation.
 
-        :param list[DualQuaternion] poses: The rational poses to interpolate.
+        Parameters
+        ----------
+        poses
+            Sequence of two :class:`DualQuaternion` poses.
 
-        :return: Polynomials of rational motion curve.
-        :rtype: list[sp.Poly]
+        Returns
+        -------
+        list[sp.Poly]
+            Symbolic polynomial representation of the interpolated curve.
         """
         try:
             return MotionInterpolation.interpolate_quadratic_2_poses_optimized(poses)
@@ -287,16 +310,17 @@ class MotionInterpolation:
     @staticmethod
     def interpolate_quadratic_2_poses_random(poses: list[DualQuaternion]
                                              ) -> list[sp.Poly]:
-        """
-        Interpolates the given 2 rational poses by a quadratic curve in SE(3).
+        """Randomized search for a third pose used in quadratic interpolation.
 
-        Adds the 10 times 3rd pose that is random and returns the one with shortest
-        path-length.
+        Parameters
+        ----------
+        poses
+            Sequence of two :class:`DualQuaternion` poses.
 
-        :param list[DualQuaternion] poses: The rational poses to interpolate.
-
-        :return: Polynomials of rational motion curve.
-        :rtype: list[sp.Poly]
+        Returns
+        -------
+        list[sp.Poly]
+            Chosen symbolic polynomial set for the interpolation.
         """
         # Calculate the mid point between the two poses
         p0 = PointHomogeneous(poses[0].array())
@@ -347,17 +371,19 @@ class MotionInterpolation:
     def interpolate_quadratic_2_poses_optimized(poses: list[DualQuaternion],
                                                 max_iter: int = 0,
                                                 ) -> list[sp.Poly]:
-        """
-        Interpolates the given 2 rational poses by a quadratic curve in SE(3).
+        """Optimized search for a helper third pose for quadratic interpolation.
 
-        Adds the 3rd pose that is optimized for the shortest path-length.
+        Parameters
+        ----------
+        poses
+            Sequence of two :class:`DualQuaternion` poses.
+        max_iter, optional
+            Maximum number of optimization iterations (0 = run until tolerance).
 
-        :param list[DualQuaternion] poses: The rational poses to interpolate
-        :param int max_iter: The maximum number of iterations for the optimization,
-            if 0, the optimization will run until the tolerance is reached.
-
-        :return: Polynomials of rational motion curve.
-        :rtype: list[sp.Poly]
+        Returns
+        -------
+        list[sp.Poly]
+            Symbolic polynomial representation for the interpolated curve.
         """
         from scipy.optimize import minimize  # lazy import
 
@@ -398,26 +424,34 @@ class MotionInterpolation:
     def interpolate_cubic(poses: list[DualQuaternion],
                           lambda_val: Union[float, int] = 0,
                           motion_family: int = 0) -> list[sp.Poly]:
-        """
-        Interpolates the given 4 rational poses by a cubic curve in SE(3).
+        """Interpolate four rational poses with a cubic motion curve.
 
-        The 4 poses span a projective 3-space, which is intersected with Study quadric.
-        This intersection gives another quadric containing all 4 poses, and it also
-        contains cubic curves if it contains lines. The algorithm later searches
-        for one of the cubic curves that interpolates the 4 poses.
+        The method computes a cubic curve lying on the intersection of the
+        projective span of the poses and the Study quadric.
 
-        :see also: :ref:`interpolation_background`
+        Parameters
+        ----------
+        poses
+            Sequence of four :class:`DualQuaternion` poses.
+        lambda_val, optional
+            Lambda parameter selecting a family solution.
+        motion_family, optional
+            Motion family selector (0 or 1).
 
-        :param list[DualQuaternion] poses: The rational poses to interpolate.
-        :param Union[float, int] lambda_val: The lambda parameter for the interpolation.
-        :param int motion_family: The family of the motion curve. 0 - default, 1 - other
-            solution
+        Returns
+        -------
+        list[sp.Poly]
+            Symbolic polynomial equations for the cubic motion curve.
 
+        Raises
+        ------
+        ValueError
+            If no valid interpolation solution exists.
 
-        :return: The rational motion curve.
-        :rtype: list[sp.Poly]
-
-        :raises ValueError: If the interpolation has no solution, 'k' does not exist.
+        See Also
+        --------
+        :ref:`interpolation_background`
+            Background on interpolation methods
         """
         # obtain additional dual quaternions k1, k2
         poses = deepcopy(poses)
@@ -483,23 +517,31 @@ class MotionInterpolation:
     def interpolate_cubic_numerically(poses: list[DualQuaternion],
                                       k_idx: int = 0,
                                       lambda_val: Union[float, int] = 0) -> np.ndarray:
-        """
-        Interpolates the given 4 rational poses by a cubic curve in SE(3).
+        """Numeric cubic interpolation for four poses.
 
-        The 4 poses span a projective 3-space, which is intersected with Study quadric.
-        This intersection gives another quadric containing all 4 poses, and it also
-        contains cubic curves if it contains lines. The algorithm later searches
-        for one of the cubic curves that interpolates the 4 poses.
+        Parameters
+        ----------
+        poses
+            Sequence of four :class:`DualQuaternion` poses.
+        k_idx, optional
+            Index selecting which auxiliary k-dual-quaternion to use.
+        lambda_val, optional
+            Lambda parameter for the cubic family.
 
-        :see also: :ref:`interpolation_background`
+        Returns
+        -------
+        numpy.ndarray
+            Numeric coefficient array for the cubic motion curve.
 
-        :param list[DualQuaternion] poses: The rational poses to interpolate.
-        :param Union[float, int] lambda_val: The lambda parameter for the interpolation.
+        Raises
+        ------
+        ValueError
+            If the interpolation problem has no valid solution.
 
-        :return: the numerical coefficients of the motion curve
-        :rtype: np.ndarray
-
-        :raises ValueError: If the interpolation has no solution, 'k' does not exist.
+        See Also
+        --------
+        :ref:`interpolation_background`
+            Background on interpolation methods.
         """
 
         poses = deepcopy(poses)
@@ -577,13 +619,17 @@ class MotionInterpolation:
 
     @staticmethod
     def _obtain_k_dq(poses: list[DualQuaternion]) -> list[DualQuaternion]:
-        """
-        Obtain additional dual quaternions k1, k2 for interpolation of 4 poses.
+        """Compute auxiliary dual quaternions k1 and k2 for cubic interpolation.
 
-        :param list[DualQuaternion] poses: The rational poses to interpolate.
+        Parameters
+        ----------
+        poses
+            Sequence of four :class:`DualQuaternion` poses.
 
-        :return: Two additional dual quaternions for interpolation.
-        :rtype: list[DualQuaternion]
+        Returns
+        -------
+        list[DualQuaternion]
+            Two auxiliary dual quaternions used in the cubic construction.
         """
         x = sp.symbols("xx:3")
 
@@ -609,14 +655,19 @@ class MotionInterpolation:
     @staticmethod
     def _solve_for_t(poses: list[DualQuaternion],
                      k: DualQuaternion) -> list:
-        """
-        Solve for t[i] - the parameter of the rational motion curve for i-th pose.
+        """Solve for the curve parameters t[i] corresponding to each pose.
 
-        :param list[DualQuaternion] poses: The rational poses to interpolate.
-        :param list[DualQuaternion] k: The additional dual quaternions for interpolation.
+        Parameters
+        ----------
+        poses
+            List of :class:`DualQuaternion` poses (indices 1..3 are used).
+        k
+            Auxiliary :class:`DualQuaternion` used in the solving system.
 
-        :return: The solutions for t[i].
-        :rtype: list
+        Returns
+        -------
+        list
+            Solutions for the parameters t[i].
         """
         t = sp.symbols("t:3")
 
@@ -644,16 +695,23 @@ class MotionInterpolation:
 
     @staticmethod
     def _lagrange_polynomial(degree, index, x, t):
-        """
-        Calculate the Lagrange polynomial for interpolation.
+        """Return the Lagrange basis polynomial for given nodes.
 
-        :param int degree: The degree of the Lagrange polynomial.
-        :param int index: The index of the Lagrange polynomial.
-        :param symbol x: The interpolation point (indeterminate).
-        :param list[symbol] t: The interpolation nodes.
+        Parameters
+        ----------
+        degree
+            Degree of the polynomial.
+        index
+            Index of the basis polynomial.
+        x
+            Indeterminate symbol.
+        t
+            Sequence of node symbols.
 
-        :return: The Lagrange polynomial.
-        :rtype: sp.Expr
+        Returns
+        -------
+        sp.Expr
+            The Lagrange basis polynomial expression.
         """
         lagrange_poly = 1
         for i in range(degree + 1):
@@ -663,13 +721,17 @@ class MotionInterpolation:
 
     @staticmethod
     def _lagrange_poly_interpolation(poses: list[sp.Matrix]):
-        """
-        Calculate the interpolation polynomial using Lagrange interpolation.
+        """Compute Lagrange polynomial interpolation for symbolic poses.
 
-        :param list[sp.Matrix] poses: The poses to interpolate.
+        Parameters
+        ----------
+        poses
+            List of SymPy Matrix poses representing parametric points.
 
-        :return: The interpolation polynomial.
-        :rtype: sp.Matrix
+        Returns
+        -------
+        sp.Matrix
+            Matrix of symbolic polynomial expressions forming the interpolant.
         """
         # indeterminate x
         x = sp.symbols('x')
@@ -687,8 +749,21 @@ class MotionInterpolation:
 
     @staticmethod
     def lagrange_interpolation_numerically(poses, x, t):
-        """
-        Perform Lagrange interpolation for 8-dimensional poses.
+        """Numerical Lagrange interpolation for 8-dimensional pose arrays.
+
+        Parameters
+        ----------
+        poses
+            Array-like of 8-dimensional pose vectors.
+        x
+            Evaluation location (scalar or symbolic compatible value).
+        t
+            Interpolation nodes.
+
+        Returns
+        -------
+        numpy.ndarray
+            Interpolated 8-dimensional vector.
         """
         def lagrange_polynomial(i, x, t):
             p = 1.0
