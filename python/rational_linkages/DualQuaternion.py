@@ -1271,8 +1271,8 @@ class DualQuaternion:
         --------
         .. code-block:: python
 
-            from rational_linkages import DualQuaternion
-            from rational_linkages.NormalizedLine import NormalizedLine
+            from rational_linkages import DualQuaternion, NormalizedLine
+            from rational_linkages.dualQuaternionAction import act
 
             dq = DualQuaternion([1, 0, 0, 1, 0, 3, 2, -1])
             line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
