@@ -44,6 +44,8 @@ class NormalizedLine:
         line = NormalizedLine([1, 0, 0, 0, -2, 1])
         default = NormalizedLine()   # Z-axis through origin
 
+    .. clear-namespace::
+
     .. code-block:: python
 
         from rational_linkages import NormalizedLine, PointHomogeneous
@@ -51,6 +53,8 @@ class NormalizedLine:
         p0 = PointHomogeneous([1, 1, 1, 1])
         p1 = PointHomogeneous([1, 3, 1, 1])
         line = NormalizedLine.from_two_points(p0, p1)
+
+    .. clear-namespace::
 
     .. code-block:: python
 
@@ -66,6 +70,8 @@ class NormalizedLine:
         line = NormalizedLine([l1, l2, l3, m1, m2, m3])
 
         rational_linkages.set_backend("numpy")
+
+    .. clear-namespace::
     """
 
     # ------------------------------------------------------------------
