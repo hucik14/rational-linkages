@@ -43,6 +43,8 @@ class NormalizedPlane:
 
         plane = NormalizedPlane([0, 0, 1], [0, 0, 5])   # z = 5
 
+    .. clear-namespace::
+
     .. code-block:: python
 
         # Symbolic backend
@@ -57,6 +59,8 @@ class NormalizedPlane:
         plane = NormalizedPlane([a, b, c], [d, 0, 0])
 
         rational_linkages.set_backend("numpy")
+
+    .. clear-namespace::
     """
 
     # ------------------------------------------------------------------

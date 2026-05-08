@@ -49,6 +49,8 @@ class NormalizedPlaneSymbolic(NormalizedPlane):
         print(plane.oriented_distance)
 
         rational_linkages.set_backend("numpy")
+
+    .. clear-namespace::
     """
 
     # ------------------------------------------------------------------
@@ -240,6 +242,8 @@ class NormalizedPlaneSymbolic(NormalizedPlane):
             print(plane_eval)
 
             rational_linkages.set_backend("numpy")
+
+        .. clear-namespace::
         """
         normal_eval = [v.subs(subs) for v in self.normal]
         point_eval = [v.subs(subs) for v in self.point]

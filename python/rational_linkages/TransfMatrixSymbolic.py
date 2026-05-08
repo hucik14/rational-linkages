@@ -43,6 +43,8 @@ class TransfMatrixSymbolic(TransfMatrix):
         print(mat.t)   # Matrix([tx, ty, tz])
 
         rational_linkages.set_backend("numpy")
+
+    .. clear-namespace::
     """
 
     # ------------------------------------------------------------------
@@ -633,6 +635,8 @@ class TransfMatrixSymbolic(TransfMatrix):
             print(mat.eval({tx: 5}).t)
 
             rational_linkages.set_backend("numpy")
+
+        .. clear-namespace::
         """
         return self.__class__(
             sympy.Matrix(
