@@ -48,8 +48,26 @@ class PlotterPyqtgraph:
         """
         Initialize the Pyqtgraph plotter.
 
-        This version creates a GLViewWidget, sets a turntable‐like camera,
-        adds a grid and coordinate axes.
+        This version creates a GLViewWidget, sets a turntable-like camera, adds a grid and coordinate axes.
+
+        Parameters
+        ----------
+        base : TransfMatrix or DualQuaternion, optional
+            Base transformation for plotting. Must be a TransfMatrix or DualQuaternion instance.
+        steps : int, optional
+            Number of steps for plotting.
+        interval : tuple, optional
+            Interval for plotting.
+        arrows_length : float, optional
+            Length of quiver arrows for poses and frames.
+        white_background : bool, optional
+            If True, use a white background for the plot.
+        show_grid : bool, optional
+            If True, show a grid in the plot.
+        grid_size : float, optional
+            Size of the grid.
+        parent_app : QApplication, optional
+            Parent Qt application instance.
         """
         # Create a Qt application if one is not already running.
         if parent_app is not None:
@@ -120,7 +138,20 @@ class PlotterPyqtgraph:
     def _get_color(color, default):
         """
         Convert common color names to RGBA tuples.
-        If color is already a tuple (or list) it is returned unchanged.
+
+        If color is already a tuple (or list), it is returned unchanged.
+
+        Parameters
+        ----------
+        color : str or tuple or list
+            Color name or RGBA tuple/list.
+        default : tuple
+            Default RGBA tuple to use if color name is not recognized.
+
+        Returns
+        -------
+        tuple
+            RGBA tuple.
         """
         if isinstance(color, str):
             color_map = {
@@ -139,8 +170,16 @@ class PlotterPyqtgraph:
 
     def plot(self, objects_to_plot, **kwargs):
         """
-        Plot one or several objects. If a list is provided, then (optionally)
-        a list of labels may be provided.
+        Plot one or several objects.
+
+        If a list is provided, then (optionally) a list of labels may be provided.
+
+        Parameters
+        ----------
+        objects_to_plot : NormalizedLine, PointHomogeneous, RationalMechanism, MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve, RationalBezier, MiniBall, or list
+            The object(s) to plot.
+        **kwargs
+            Additional plotting options. If 'label' is provided as a list, each object will be labeled accordingly.
         """
         if isinstance(objects_to_plot, list):
             label_list = kwargs.pop('label', None)
@@ -155,6 +194,13 @@ class PlotterPyqtgraph:
     def _plot(self, object_to_plot, **kwargs):
         """
         Dispatch to the proper plotting method based on the object type.
+
+        Parameters
+        ----------
+        object_to_plot : object
+            The object to plot.
+        **kwargs
+            Additional plotting options.
         """
         type_to_plot = self.analyze_object(object_to_plot)
         if type_to_plot == "is_line":
@@ -189,6 +235,16 @@ class PlotterPyqtgraph:
     def analyze_object(self, object_to_plot):
         """
         Analyze the object type so that the proper plotting method is called.
+
+        Parameters
+        ----------
+        object_to_plot : object
+            The object to analyze.
+
+        Returns
+        -------
+        str
+            A string indicating the type of object for plotting.
         """
         if isinstance(object_to_plot, RationalMechanism):
             return "is_rational_mechanism"
@@ -225,6 +281,15 @@ class PlotterPyqtgraph:
                                      **kwargs):
         """
         Plot an arrow (here as a simple line) from p0 to p1.
+
+        Parameters
+        ----------
+        p0 : PointHomogeneous
+            Start point of the arrow.
+        p1 : PointHomogeneous
+            End point of the arrow.
+        **kwargs
+            Additional plotting options.
         """
         pos0 = np.array(p0.normalized_euclidean())
         pos1 = np.array(p1.normalized_euclidean())
@@ -250,6 +315,13 @@ class PlotterPyqtgraph:
                                           **kwargs):
         """
         Plot a connected line (polyline) through a list of points.
+
+        Parameters
+        ----------
+        points : list of PointHomogeneous
+            List of points through which the polyline is drawn.
+        **kwargs
+            Additional plotting options.
         """
         pts = np.array([p.normalized_euclidean() for p in points])
         color = self._get_color(kwargs.get('color', 'green'), (1, 1, 1, 1))
@@ -266,11 +338,18 @@ class PlotterPyqtgraph:
                     ylim: tuple = (-1, 1),
                     **kwargs):
         """
-        Plot a plane as a semi‑transparent mesh.
+        Plot a plane as a semi-transparent mesh.
 
-        :param NormalizedPlane plane: The plane to plot.
-        :param tuple xlim: The x‐axis limits.
-        :param tuple ylim: The y‐axis limits.
+        Parameters
+        ----------
+        plane : NormalizedPlane
+            The plane to plot.
+        xlim : tuple, optional
+            The x-axis limits.
+        ylim : tuple, optional
+            The y-axis limits.
+        **kwargs
+            Additional plotting options.
         """
         grid_points = plane.data_to_plot(xlim, ylim)
 
@@ -289,6 +368,18 @@ class PlotterPyqtgraph:
     def _create_mesh_from_grid(grid_points: tuple):
         """
         Create vertices and faces for a mesh given grid data.
+
+        Parameters
+        ----------
+        grid_points : tuple of numpy.ndarray
+            Tuple of (x, y, z) grid arrays.
+
+        Returns
+        -------
+        vertices : numpy.ndarray
+            Array of mesh vertices.
+        faces : numpy.ndarray
+            Array of mesh faces (triangles).
         """
         x, y, z = grid_points
         m, n = x.shape
@@ -445,18 +536,28 @@ class PlotterPyqtgraph:
                                         antialias=True)
             self.widget.addItem(cp_line)
 
-    def _plot_gauss_legendre(self,
-                             curve: RationalSoo,
-                             plot_control_points: bool = True,
-                             **kwargs):
+    def _plot_gauss_legendre(self, curve: RationalSoo, plot_control_points: bool = True, **kwargs):
         """
         Plot a Gauss-Legendre rational curve along with its control points.
-        
+
         Similar to plot Bezier, but specifically for Gauss-Legendre curves.
-        
-        :param RationalSoo curve: The Gauss-Legendre curve to plot.
-        :param bool plot_control_points: Whether to plot the control points.
-        :param kwargs: Additional keyword arguments for customization.
+
+        Parameters
+        ----------
+        curve : RationalSoo
+            The Gauss-Legendre curve to plot.
+        plot_control_points : bool, optional
+            Whether to plot the control points (default is True).
+        **kwargs
+            Additional keyword arguments for customization. Common options include:
+            - color : tuple or str, optional
+                Color for the curve (default is yellow).
+            - interval : tuple, optional
+                Parameter interval for plotting (default is (-1, 1)).
+
+        Returns
+        -------
+        None
         """
         interval = kwargs.pop('interval', (-1, 1))
         x, y, z, x_cp, y_cp, z_cp = curve.get_plot_data(interval, self.steps)
@@ -576,8 +677,16 @@ class PlotterPyqtgraph:
 
         If save_images is True, it will save images of each frame.
 
-        :param bool save_images: If True, save images of each frame.
-        :param int num_frames: Number of frames to generate.
+        Parameters
+        ----------
+        save_images : bool, optional
+            If True, save images of each frame (default is True).
+        number_of_frames : int, optional
+            Number of frames to generate (default is 20).
+
+        Returns
+        -------
+        None
         """
         if save_images:
             azimuth_step = 360 / number_of_frames
@@ -613,13 +722,31 @@ class PlotterPyqtgraph:
         rotate()
 
     def show(self):
-        """Start the Qt event loop."""
+        """
+        Start the Qt event loop and display the plot window.
+
+        This method shows the main plotting widget and starts the Qt event loop,
+        blocking until the window is closed.
+
+        Returns
+        -------
+        None
+        """
         self.widget.show()
         self.app.exec()
 
     def closeEvent(self, event):
         """
-        Called when the window is closed. Ensure that the Qt application exits.
+        Handle the window close event and ensure the Qt application exits.
+
+        Parameters
+        ----------
+        event : QCloseEvent
+            The close event triggered by the window manager.
+
+        Returns
+        -------
+        None
         """
         self.app.quit()
         event.accept()
@@ -627,7 +754,31 @@ class PlotterPyqtgraph:
 
 if gl is not None:
     class CustomGLViewWidget(gl.GLViewWidget):
+        """
+        Custom GLViewWidget for 3D visualization with label overlay support.
+
+        Parameters
+        ----------
+        white_background : bool, optional
+            If True, use a white background for the widget.
+        *args
+            Additional positional arguments for GLViewWidget.
+        **kwargs
+            Additional keyword arguments for GLViewWidget.
+        """
         def __init__(self, white_background=False, *args, **kwargs):
+            """
+            Initialize the CustomGLViewWidget.
+
+            Parameters
+            ----------
+            white_background : bool, optional
+                If True, use a white background for the widget.
+            *args
+                Additional positional arguments for GLViewWidget.
+            **kwargs
+                Additional keyword arguments for GLViewWidget.
+            """
             super().__init__(*args, **kwargs)
             self.labels = []
             self.white_background = white_background
@@ -640,29 +791,67 @@ if gl is not None:
             self.text_overlay.show()
 
         def resizeEvent(self, event):
+            """
+            Handle widget resize event and resize the text overlay accordingly.
+
+            Parameters
+            ----------
+            event : QResizeEvent
+                The resize event.
+            """
             super().resizeEvent(event)
             if hasattr(self, 'text_overlay'):
                 self.text_overlay.resize(self.size())
 
         def add_label(self, point, text):
-            """Adds a label for a 3D point."""
+            """
+            Add a label for a 3D point.
+
+            Parameters
+            ----------
+            point : array-like or object
+                The 3D point to label.
+            text : str
+                The label text.
+            """
             self.labels.append({'point': point, 'text': text})
             self.update()
 
         def paintEvent(self, event):
+            """
+            Handle the paint event for the widget and schedule label overlay update.
+
+            Parameters
+            ----------
+            event : QPaintEvent
+                The paint event.
+            """
             # Only handle standard OpenGL rendering here - no mixing with QPainter
             super().paintEvent(event)
-
             # Schedule label painting as a separate operation
             QtCore.QTimer.singleShot(0, self.update_text_overlay)
 
         def update_text_overlay(self):
-            """Update the text overlay with current labels"""
+            """
+            Update the text overlay with current labels.
+            """
             # Create a new painter for the overlay widget
             self.text_overlay.update()
 
         def _obtain_label_vec(self, pt):
-            """Obtain the label vector."""
+            """
+            Obtain the label vector for a 3D point.
+
+            Parameters
+            ----------
+            pt : object
+                The point object (various supported types).
+
+            Returns
+            -------
+            QVector4D
+                The homogeneous 4D vector for the label position.
+            """
             # Convert the 3D point to homogeneous coordinates
             if isinstance(pt, np.ndarray):
                 point_vec = pt
@@ -676,28 +865,32 @@ if gl is not None:
                 point_vec = [pt.tr.t[0], pt.tr.t[1], pt.tr.t[2]]
             else:  # is pyqtgraph marker (scatter)
                 point_vec = [pt.pos[0][0], pt.pos[0][1], pt.pos[0][2]]
-
             return QtGui.QVector4D(point_vec[0], point_vec[1], point_vec[2], 1.0)
 
         # This method renders text on the overlay
         def paintOverlay(self, event):
+            """
+            Render text labels on the overlay widget.
+
+            Parameters
+            ----------
+            event : QPaintEvent
+                The paint event.
+            """
             painter = QtGui.QPainter(self.text_overlay)
             painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
             if self.white_background:
                 painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.black))
             else:
                 painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.white))
-
             # Get the Model-View-Projection matrix
             projection_matrix = self.projectionMatrix()
             view_matrix = self.viewMatrix()
             mvp = projection_matrix * view_matrix
-
             # Draw all labels
             for entry in self.labels:
                 point = entry['point']
                 text = entry['text']
-
                 projected = mvp.map(self._obtain_label_vec(point))
                 if projected.w() != 0:
                     ndc_x = projected.x() / projected.w()
@@ -707,14 +900,36 @@ if gl is not None:
                         x = int((ndc_x * 0.5 + 0.5) * self.width())
                         y = int((1 - (ndc_y * 0.5 + 0.5)) * self.height())
                         painter.drawText(x, y, text)
-
             painter.end()
 
         def showEvent(self, event):
+            """
+            Handle the show event and install the event filter for the text overlay.
+
+            Parameters
+            ----------
+            event : QShowEvent
+                The show event.
+            """
             super().showEvent(event)
             self.text_overlay.installEventFilter(self)
 
         def eventFilter(self, obj, event):
+            """
+            Event filter for handling paint events on the text overlay.
+
+            Parameters
+            ----------
+            obj : QObject
+                The object being filtered.
+            event : QEvent
+                The event to filter.
+
+            Returns
+            -------
+            bool
+                True if the event was handled, False otherwise.
+            """
             if obj is self.text_overlay and event.type() == QtCore.QEvent.Type.Paint:
                 self.paintOverlay(event)
                 return True
@@ -725,18 +940,38 @@ else:
 
 if gl is not None:
     class FramePlotHelper:
+        """
+        Helper class to create a coordinate frame using three GLLinePlotItems.
+
+        Parameters
+        ----------
+        transform : TransfMatrix, optional
+            The initial transformation matrix.
+        width : float, optional
+            The width of the lines.
+        length : float, optional
+            The length of the axes.
+        antialias : bool, optional
+            Whether to use antialiasing.
+        """
         def __init__(self,
                      transform: TransfMatrix = TransfMatrix(),
                      width: float = 2.,
                      length: float = 1.,
                      antialias: bool = True):
             """
-            Create a coordinate frame using three GLLinePlotItems.
+            Initialize the FramePlotHelper.
 
-            :param TransfMatrix transform: The initial transformation matrix.
-            :param float width: The width of the lines.
-            :param float length: The length of the axes.
-            :param bool antialias: Whether to use antialiasing
+            Parameters
+            ----------
+            transform : TransfMatrix, optional
+                The initial transformation matrix.
+            width : float, optional
+                The width of the lines.
+            length : float, optional
+                The length of the axes.
+            antialias : bool, optional
+                Whether to use antialiasing.
             """
             # Create GLLinePlotItems for the three axes.
             # The initial positions are placeholders; they will be set properly in setData().
@@ -765,7 +1000,10 @@ if gl is not None:
             """
             Update the coordinate frame using a new 4x4 transformation matrix.
 
-            :param TransfMatrix transform: The new transformation matrix.
+            Parameters
+            ----------
+            transform : TransfMatrix
+                The new transformation matrix.
             """
             self.tr = transform
 
@@ -778,7 +1016,10 @@ if gl is not None:
             """
             Add all three axes to a GLViewWidget.
 
-            :param gl.GLViewWidget view: The view to add the axes to.
+            Parameters
+            ----------
+            view : gl.GLViewWidget
+                The view to add the axes to.
             """
             view.addItem(self.x_axis)
             view.addItem(self.y_axis)
@@ -791,7 +1032,28 @@ if QtWidgets is not None:
         """
         A QWidget that contains a PlotterPyqtgraph 3D view and interactive controls.
 
-        Containts (sliders and text boxes) for plotting and manipulating a mechanism.
+        Contains sliders and text boxes for plotting and manipulating a mechanism.
+
+        Parameters
+        ----------
+        mechanism : RationalMechanism
+            The mechanism to plot and manipulate.
+        base : TransfMatrix or DualQuaternion, optional
+            The base frame for plotting.
+        show_tool : bool, optional
+            Whether to show the tool (end-effector) frame.
+        steps : int, optional
+            Number of discrete steps for the curve path.
+        joint_sliders_lim : float, optional
+            Limit for the joint sliders.
+        arrows_length : float, optional
+            Length of the arrows of plotted frames.
+        white_background : bool, optional
+            If True, use a white background for the plot.
+        parent : QWidget, optional
+            Parent widget.
+        parent_app : QApplication, optional
+            Parent Qt application instance.
         """
         def __init__(self,
                      mechanism: RationalMechanism,
@@ -803,6 +1065,30 @@ if QtWidgets is not None:
                      white_background: bool = False,
                      parent=None,
                      parent_app=None):
+            """
+            Initialize the InteractivePlotterWidget.
+
+            Parameters
+            ----------
+            mechanism : RationalMechanism
+                The mechanism to plot and manipulate.
+            base : TransfMatrix or DualQuaternion, optional
+                The base frame for plotting.
+            show_tool : bool, optional
+                Whether to show the tool (end-effector) frame.
+            steps : int, optional
+                Number of discrete steps for the curve path.
+            joint_sliders_lim : float, optional
+                Limit for the joint sliders.
+            arrows_length : float, optional
+                Length of the arrows of plotted frames.
+            white_background : bool, optional
+                If True, use a white background for the plot.
+            parent : QWidget, optional
+                Parent widget.
+            parent_app : QApplication, optional
+                Parent Qt application instance.
+            """
             super().__init__(parent)
             self.setMinimumSize(800, 600)
 
@@ -978,6 +1264,25 @@ if QtWidgets is not None:
         # --- Helper to create a “float slider” (using integer scaling) ---
         def create_float_slider(self, min_val, max_val, init_val,
                                 orientation=QtCore.Qt.Orientation.Horizontal):
+            """
+            Create a float slider using integer scaling.
+
+            Parameters
+            ----------
+            min_val : float
+                Minimum value for the slider.
+            max_val : float
+                Maximum value for the slider.
+            init_val : float
+                Initial value for the slider.
+            orientation : QtCore.Qt.Orientation, optional
+                Orientation of the slider (horizontal or vertical).
+
+            Returns
+            -------
+            QSlider
+                The created slider.
+            """
             slider = QtWidgets.QSlider(orientation)
             slider.setMinimum(int(min_val * 100))
             slider.setMaximum(int(max_val * 100))
@@ -989,7 +1294,18 @@ if QtWidgets is not None:
         def _init_joint_sliders(self, idx, slider_limit):
             """
             Create a pair of vertical sliders for joint connection parameters.
-            (The slider values are scaled by 100.)
+
+            Parameters
+            ----------
+            idx : int
+                Index of the joint.
+            slider_limit : float
+                Limit for the slider values (scaled by 100).
+
+            Returns
+            -------
+            tuple of QSlider
+                The created pair of sliders.
             """
             slider0 = self.create_float_slider(-slider_limit,
                                                slider_limit,
@@ -1030,6 +1346,11 @@ if QtWidgets is not None:
         def on_move_slider_changed(self, value):
             """
             Called when the driving joint angle slider is moved.
+
+            Parameters
+            ----------
+            value : int
+                The slider value (scaled by 100).
             """
             angle = value / 100.0  # Convert back to a float value.
             self.plot_slider_update(angle)
@@ -1103,7 +1424,13 @@ if QtWidgets is not None:
         def on_joint_slider_changed(self, value):
             """
             Called when any joint slider is changed.
+
             Updates the joint connection parameters and refreshes the plot.
+
+            Parameters
+            ----------
+            value : int
+                The slider value (scaled by 100).
             """
             num_of_factors = self.mechanism.factorizations[0].number_of_factors
             # Update first factorization's linkage parameters.
@@ -1123,6 +1450,13 @@ if QtWidgets is not None:
         def plot_slider_update(self, angle, t_param=None):
             """
             Update the mechanism plot based on the current joint angle or t parameter.
+
+            Parameters
+            ----------
+            angle : float
+                The joint angle value.
+            t_param : float, optional
+                The t parameter for the driving joint, if provided.
             """
             if t_param is not None:
                 t = t_param
@@ -1191,6 +1525,23 @@ class InteractivePlotter:
     Main application class for the interactive plotting of mechanisms.
 
     Encapsulates the QApplication and the InteractivePlotter widget.
+
+    Parameters
+    ----------
+    mechanism : RationalMechanism
+        The mechanism to be plotted.
+    base : TransfMatrix or DualQuaternion, optional
+        The base frame for plotting.
+    show_tool : bool, optional
+        Whether to show the tool (end-effector) frame.
+    steps : int, optional
+        Number of discrete steps for the curve path.
+    joint_sliders_lim : float, optional
+        Limit for the joint sliders.
+    arrows_length : float, optional
+        Length of the arrows of plotted frames.
+    white_background : bool, optional
+        If True, use a white background for the plot.
     """
     def __init__(self,
                  mechanism: RationalMechanism,
@@ -1201,14 +1552,24 @@ class InteractivePlotter:
                  arrows_length=1.0,
                  white_background: bool = False):
         """
-        Initialize the application.
+        Initialize the InteractivePlotter application.
 
-        :param RationalMechanism mechanism: The mechanism to be plotted
-        :param base: The base frame.
-        :param bool show_tool: whether to show the tool (end-effector) frame
-        :param int steps: the number of discrete steps for the curve path
-        :param float joint_sliders_lim: the limit for the joint sliders
-        :param float arrows_length: the length of the arrows of plotted frames
+        Parameters
+        ----------
+        mechanism : RationalMechanism
+            The mechanism to be plotted.
+        base : TransfMatrix or DualQuaternion, optional
+            The base frame for plotting.
+        show_tool : bool, optional
+            Whether to show the tool (end-effector) frame.
+        steps : int, optional
+            Number of discrete steps for the curve path.
+        joint_sliders_lim : float, optional
+            Limit for the joint sliders.
+        arrows_length : float, optional
+            Length of the arrows of plotted frames.
+        white_background : bool, optional
+            If True, use a white background for the plot.
         """
         self.app = QApplication.instance()
         if self.app is None:
@@ -1229,8 +1590,12 @@ class InteractivePlotter:
         """
         Plot the given objects in the motion designer widget.
 
-        :param args: The objects to plot.
-        :param kwargs: Additional keyword arguments for the plotter.
+        Parameters
+        ----------
+        *args
+            The objects to plot.
+        **kwargs
+            Additional keyword arguments for the plotter.
         """
         # self.window.show()
         # self.app.processEvents()
@@ -1244,9 +1609,14 @@ class InteractivePlotter:
         """
         Plot an axis between two points in the motion designer widget.
 
-        :param PointHomogeneous p0: foot point of the axis.
-        :param PointHomogeneous p1: tip of the axis.
-        :param kwargs: Additional keyword arguments for the plotter.
+        Parameters
+        ----------
+        p0 : PointHomogeneous
+            Foot point of the axis.
+        p1 : PointHomogeneous
+            Tip of the axis.
+        **kwargs
+            Additional keyword arguments for the plotter.
         """
         self.window.plotter.plot_axis_between_two_points(p0, p1, **kwargs)
 
@@ -1254,19 +1624,42 @@ class InteractivePlotter:
         """
         Plot line segments between two points in the motion designer widget.
 
-        :param list points: The list of points of polyline segments to plot.
-        :param kwargs: Additional keyword arguments for the plotter.
+        Parameters
+        ----------
+        points : list
+            The list of points of polyline segments to plot.
+        **kwargs
+            Additional keyword arguments for the plotter.
         """
         self.window.plotter.plot_line_segments_between_points(points, **kwargs)
 
     def show(self):
         """
-        Run the application, showing the motion designer widget.
+        Run the application and display the motion designer widget.
+
+        This method shows the main interactive plotting window and starts the Qt event loop,
+        blocking until the window is closed.
+
+        Returns
+        -------
+        None
         """
         self.window.show()
         self.app.exec()
 
     def closeEvent(self, event):
+        """
+        Handle the close event for the application and ensure all windows are closed.
+
+        Parameters
+        ----------
+        event : QCloseEvent
+            The close event triggered by the window manager.
+
+        Returns
+        -------
+        None
+        """
         self.app.closeAllWindows()
         self.app.quit()
         event.accept()

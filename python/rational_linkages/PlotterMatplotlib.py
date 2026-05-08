@@ -46,21 +46,37 @@ class PlotterMatplotlib:
                  arrows_length: float = 1.0,
                  joint_sliders_lim: float = 1.0):
         """
-        Initialize the plotter
+        Initialize the PlotterMatplotlib instance.
 
-        :param bool interactive: activate interactive mode
-        :param bool jupyter_notebook: activate jupyter notebook mode
-        :param bool show_legend: show the legend
-        :param bool show_controls: show or hide the controls for interactive plotting
-        :param bool paper_visual: make the visual output suitable for a scientific paper
-        :param float ticks_step: step for ticks on axes, if None, automatic ticks will
-            be used
-        :param int steps: number of steps for plotting
-        :param arrows_length: length of quiver arrows for poses and frames
-        :param float joint_sliders_lim: limit for joint sliders, will be +/- value
-        :param float tuple interval: interval for plotting, in case of a curve can be
-            specified as interval = 'closed' for full parametrization
-        :with_poses: plot the poses along the curve
+        Parameters
+        ----------
+        interactive : bool, optional
+            Activate interactive mode.
+        base : TransfMatrix or DualQuaternion, optional
+            Base transformation for plotting. Must be a TransfMatrix or DualQuaternion instance.
+        jupyter_notebook : bool, optional
+            Activate Jupyter notebook mode.
+        show_legend : bool, optional
+            Show the legend in the plot.
+        show_controls : bool, optional
+            Show or hide the controls for interactive plotting.
+        paper_visual : bool, optional
+            Make the visual output suitable for a scientific paper.
+        ticks_step : float, optional
+            Step for ticks on axes. If None, automatic ticks will be used.
+        interval : tuple, optional
+            Interval for plotting. For curves, can be specified as 'closed' for full parametrization.
+        steps : int, optional
+            Number of steps for plotting.
+        arrows_length : float, optional
+            Length of quiver arrows for poses and frames.
+        joint_sliders_lim : float, optional
+            Limit for joint sliders; will be +/- this value.
+
+        Notes
+        -----
+        Use the `with_poses` keyword argument in plotting methods to plot the poses
+        along the curve.
         """
 
         # use interactive backend for interactive plotting
@@ -174,15 +190,22 @@ class PlotterMatplotlib:
 
     def plot(self, objects_to_plot, **kwargs):
         """
-        Plot the object
+        Plot one or more objects.
 
-        :param objects_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve,
-            RationalBezier, MiniBall, or list of those
-        :param kwargs: plotting options following matplotlib standards and syntax; optional kwargs:
-            - with_poses=True: rational curve with poses
-            - interval='closed': rational curve will be closed in the interval (tangent half-angle substitution)
-            - show_tool=True: mechanism with tool frame
+        Parameters
+        ----------
+        objects_to_plot : NormalizedLine, PointHomogeneous, RationalMechanism, MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve, RationalBezier, MiniBall, or list
+            The object(s) to plot.
+        **kwargs
+            Additional plotting options following matplotlib standards and syntax.
+            Optional keyword arguments:
+                with_poses : bool, optional
+                    If True, plot poses along a rational curve.
+                interval : str or tuple, optional
+                    If 'closed', rational curve will be closed in the interval (tangent half-angle substitution).
+                show_tool : bool, optional
+                    If True, plot the mechanism with tool frame.
+
         """
         # if list of objects, plot each object separately
         if isinstance(objects_to_plot, list):
@@ -200,12 +223,14 @@ class PlotterMatplotlib:
 
     def _plot(self, object_to_plot, **kwargs):
         """
-        Plot the object
+        Plot a single object.
 
-        :param object_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve, MiniBall,
-            or RationalBezier
-        :param kwargs: plotting options following matplotlib standards and syntax
+        Parameters
+        ----------
+        object_to_plot : NormalizedLine, PointHomogeneous, RationalMechanism, MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve, MiniBall, or RationalBezier
+            The object to plot.
+        **kwargs
+            Additional plotting options following matplotlib standards and syntax.
         """
         type_to_plot = self.analyze_object(object_to_plot)
 
@@ -237,14 +262,17 @@ class PlotterMatplotlib:
 
     def analyze_object(self, object_to_plot):
         """
-        Analyze the object to plot
+        Analyze the object to determine its type for plotting.
 
-        :param object_to_plot: NormalizedLine, PointHomogeneous, RationalMechanism,
-            MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve
-            or RationalBezier
+        Parameters
+        ----------
+        object_to_plot : NormalizedLine, PointHomogeneous, RationalMechanism, MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve, RationalBezier
+            The object to analyze.
 
-        :return: str - 'is_line', 'is_point', 'is_motion_factorization', 'is_dq' or
-            'is_rational_mechanism'
+        Returns
+        -------
+        str
+            One of: 'is_line', 'is_point', 'is_motion_factorization', 'is_dq', 'is_rational_mechanism', etc.
         """
         if isinstance(object_to_plot, RationalMechanism) and not self.interactive:
             return "is_rational_mechanism"
@@ -279,10 +307,17 @@ class PlotterMatplotlib:
     @staticmethod
     def _plotting_decorator(func):
         """
-        Decorator for plotting functions
+        Decorator for plotting functions.
 
-        :param func: plotting function
-        :return: decorated plotting function
+        Parameters
+        ----------
+        func : callable
+            The plotting function to decorate.
+
+        Returns
+        -------
+        callable
+            The decorated plotting function.
         """
         @wraps(func)
         def _wrapper(self, *args, **kwargs):
@@ -303,11 +338,16 @@ class PlotterMatplotlib:
                                      p1: PointHomogeneous,
                                      **kwargs):
         """
-        Plot a line between two points
+        Plot a line between two points.
 
-        :param PointHomogeneous p0: first point
-        :param PointHomogeneous p1: second point
-        :param kwargs: matplotlib options
+        Parameters
+        ----------
+        p0 : PointHomogeneous
+            First point.
+        p1 : PointHomogeneous
+            Second point.
+        **kwargs
+            Matplotlib options.
         """
         line = np.concatenate((p0.normalized_euclidean(),
                                p1.normalized_euclidean() - p0.normalized_euclidean()))
@@ -328,10 +368,14 @@ class PlotterMatplotlib:
                                           points: list[PointHomogeneous],
                                           **kwargs):
         """
-        Plot a line segment between two points
+        Plot line segments between a list of points.
 
-        :param list[PointHomogeneous] points: list of points
-        :param kwargs: matplotlib options
+        Parameters
+        ----------
+        points : list of PointHomogeneous
+            List of points.
+        **kwargs
+            Matplotlib options.
         """
         pts = [p.normalized_euclidean() for p in points]
 
@@ -352,13 +396,20 @@ class PlotterMatplotlib:
                    ylim: tuple[float, float] = (-1, 1),
                    **kwargs):
         """
-        Plots a plane in 3D given a normal vector and a point on the plane.
+        Plot a plane in 3D given a normal vector and a point on the plane.
 
-        :param np.ndarray normal: normal vector of the plane
-        :param np.ndarray point: point on the plane
-        :param tuple[float, float] xlim: x-axis limits
-        :param tuple[float, float] ylim: y-axis limits
-        :param kwargs: matplotlib options
+        Parameters
+        ----------
+        normal : numpy.ndarray
+            Normal vector of the plane.
+        point : numpy.ndarray
+            Point on the plane.
+        xlim : tuple of float, optional
+            X-axis limits.
+        ylim : tuple of float, optional
+            Y-axis limits.
+        **kwargs
+            Matplotlib options.
         """
         normal = np.asarray(normal)
         point = np.asarray(point)
@@ -387,10 +438,14 @@ class PlotterMatplotlib:
     @_plotting_decorator
     def _plot_line(self, line: NormalizedLine, **kwargs):
         """
-        Plot a line
+        Plot a line.
 
-        :param line: NormalizedLine
-        :param kwargs: matplotlib options
+        Parameters
+        ----------
+        line : NormalizedLine
+            The line to plot.
+        **kwargs
+            Matplotlib options.
         """
         if 'interval' in kwargs:
             interval = kwargs['interval']
@@ -411,10 +466,14 @@ class PlotterMatplotlib:
     @_plotting_decorator
     def _plot_point(self, point: PointHomogeneous, **kwargs):
         """
-        Plot a point
+        Plot a point.
 
-        :param point: PointHomogeneous
-        :param kwargs: matplotlib options
+        Parameters
+        ----------
+        point : PointHomogeneous
+            The point to plot.
+        **kwargs
+            Matplotlib options.
         """
         point = point.get_plot_data()
 
@@ -428,10 +487,14 @@ class PlotterMatplotlib:
     @_plotting_decorator
     def _plot_dual_quaternion(self, dq: DualQuaternion, **kwargs):
         """
-        Plot a dual quaternion as a transformation
+        Plot a dual quaternion as a transformation.
 
-        :param dq: DualQuaternion
-        :param kwargs: not used
+        Parameters
+        ----------
+        dq : DualQuaternion
+            The dual quaternion to plot.
+        **kwargs
+            Not used.
         """
         matrix = TransfMatrix(dq.dq2matrix())
         self._plot_transf_matrix(matrix, **kwargs)
@@ -439,10 +502,14 @@ class PlotterMatplotlib:
     @_plotting_decorator
     def _plot_transf_matrix(self, matrix: TransfMatrix, **kwargs):
         """
-        Plot a transformation matrix
+        Plot a transformation matrix.
 
-        :param transf_matrix: TransfMatrix
-        :param kwargs: not used
+        Parameters
+        ----------
+        matrix : TransfMatrix
+            The transformation matrix to plot.
+        **kwargs
+            Not used.
         """
         x_vec, y_vec, z_vec = matrix.get_plot_data()
 
@@ -458,10 +525,14 @@ class PlotterMatplotlib:
     @_plotting_decorator
     def _plot_rational_curve(self, curve: RationalCurve, **kwargs):
         """
-        Plot a rational curve
+        Plot a rational curve.
 
-        :param RationalCurve curve: RationalCurve
-        :param kwargs: interval and matplotlib options
+        Parameters
+        ----------
+        curve : RationalCurve
+            The rational curve to plot.
+        **kwargs
+            Interval and matplotlib options.
         """
         if 'interval' in kwargs:
             interval = kwargs['interval']
@@ -495,11 +566,16 @@ class PlotterMatplotlib:
                               plot_control_points: bool = True,
                               **kwargs):
         """
-        Plot a rational Bezier curve
+        Plot a rational Bezier curve.
 
-        :param bezier: RationalBezier
-        :param plot_control_points: plot control points
-        :param kwargs: interval and matplotlib options
+        Parameters
+        ----------
+        bezier : RationalBezier
+            The rational Bezier curve to plot.
+        plot_control_points : bool, optional
+            If True, plot control points.
+        **kwargs
+            Interval and matplotlib options.
         """
         if 'interval' in kwargs:
             interval = kwargs['interval']
@@ -520,10 +596,14 @@ class PlotterMatplotlib:
     @_plotting_decorator
     def _plot_motion_factorization(self, factorization: MotionFactorization, **kwargs):
         """
-        Plot a motion factorization
+        Plot a motion factorization.
 
-        :param factorization: MotionFactorization
-        :param kwargs: t-curve parameter of driving joint axis and matplotlib options
+        Parameters
+        ----------
+        factorization : MotionFactorization
+            The motion factorization to plot.
+        **kwargs
+            t-curve parameter of driving joint axis and matplotlib options.
         """
         if 't' in kwargs:
             t = kwargs['t']
@@ -542,10 +622,14 @@ class PlotterMatplotlib:
     @_plotting_decorator
     def _plot_rational_mechanism(self, mechanism: RationalMechanism, **kwargs):
         """
-        Plot a mechanism
+        Plot a mechanism.
 
-        :param mechanism: RationalMechanism
-        :param kwargs: t-curve parameter of driving joint axis and matplotlib options
+        Parameters
+        ----------
+        mechanism : RationalMechanism
+            The mechanism to plot.
+        **kwargs
+            t-curve parameter of driving joint axis and matplotlib options.
         """
         self.plotted['mechanism'] = mechanism
 
@@ -574,6 +658,16 @@ class PlotterMatplotlib:
 
     @_plotting_decorator
     def _plot_tool_path(self, mechanism: RationalMechanism, **kwargs):
+        """
+        Plot the end effector path for a mechanism.
+
+        Parameters
+        ----------
+        mechanism : RationalMechanism
+            The mechanism whose tool path is to be plotted.
+        **kwargs
+            Matplotlib options.
+        """
         # plot end effector path
         t_lin = np.linspace(0, 2 * np.pi, self.steps)
         t = [mechanism.factorizations[0].joint_angle_to_t_param(t_lin[i])
@@ -597,7 +691,14 @@ class PlotterMatplotlib:
     @_plotting_decorator
     def _plot_miniball(self, ball: MiniBall, **kwargs):
         """
-        Plot a ball
+        Plot a ball (miniball).
+
+        Parameters
+        ----------
+        ball : MiniBall
+            The miniball to plot.
+        **kwargs
+            Matplotlib options.
         """
         if 'label' not in kwargs:
             kwargs['label'] = "Miniball of Bezier curve"
@@ -611,7 +712,14 @@ class PlotterMatplotlib:
     @_plotting_decorator
     def _plot_point_orbit(self, orbit: PointOrbit, **kwargs):
         """
-        Plot a sphere of given point orbit
+        Plot a sphere of a given point orbit.
+
+        Parameters
+        ----------
+        orbit : PointOrbit
+            The point orbit to plot.
+        **kwargs
+            Matplotlib options.
         """
         if 'alpha' not in kwargs:
             kwargs['alpha'] = 0.15
@@ -623,7 +731,14 @@ class PlotterMatplotlib:
     @_plotting_decorator
     def _plot_line_segment(self, segment: LineSegment, **kwargs):
         """
-        Plot a line segment
+        Plot a line segment.
+
+        Parameters
+        ----------
+        segment : LineSegment
+            The line segment to plot.
+        **kwargs
+            Matplotlib options.
         """
         x, y, z = segment.get_plot_data()
 
@@ -638,11 +753,16 @@ class PlotterMatplotlib:
                           show_tool: bool = True,
                           **kwargs):
         """
-        Plot a mechanism in interactive mode
+        Plot a mechanism in interactive mode.
 
-        :param RationalMechanism mechanism: RationalMechanism
-        :param bool show_tool: show tool linkage and frame
-        :param kwargs: matplotlib options
+        Parameters
+        ----------
+        mechanism : RationalMechanism
+            The mechanism to plot.
+        show_tool : bool, optional
+            If True, show tool linkage and frame.
+        **kwargs
+            Matplotlib options.
         """
         self.plotted['mechanism'] = mechanism
         self.show_tool = show_tool
@@ -746,14 +866,21 @@ class PlotterMatplotlib:
     @staticmethod
     def _init_slider(idx: int = None, j_sliders=None, slider_limit: float = 1.0):
         """
-        Initialize the slider for interactive plotting
+        Initialize the slider for interactive plotting.
 
-        :param int idx: index of the slider, first one is added automatically as joint
-            angle slider
-        :param list j_sliders: list of joint sliders
-        :param float slider_limit: limit for joint sliders, will be +/- value
+        Parameters
+        ----------
+        idx : int, optional
+            Index of the slider. The first one is added automatically as the joint angle slider.
+        j_sliders : list, optional
+            List of joint sliders.
+        slider_limit : float, optional
+            Limit for joint sliders; will be +/- this value.
 
-        :return: matplotlib slider
+        Returns
+        -------
+        Slider or tuple of Slider
+            Matplotlib slider(s).
         """
         if idx is None:  # driving joint angle slider
             slider = Slider(
@@ -789,7 +916,14 @@ class PlotterMatplotlib:
             return slider0, slider1
 
     def plot_connecting_points_update(self, val: tuple):
-        """Event handler for the joint connection points sliders"""
+        """
+        Event handler for the joint connection points sliders.
+
+        Parameters
+        ----------
+        val : tuple
+            The value(s) from the joint sliders.
+        """
         num_of_factors = self.plotted['mechanism'].factorizations[0].number_of_factors
 
         for i in range(num_of_factors):
@@ -804,7 +938,16 @@ class PlotterMatplotlib:
         self.plot_slider_update(self.move_slider.val)
 
     def plot_slider_update(self, val: float, t_param: float = None):
-        """Event handler for the joint angle slider"""
+        """
+        Event handler for the joint angle slider.
+
+        Parameters
+        ----------
+        val : float
+            The value from the joint angle slider.
+        t_param : float, optional
+            The t parameter for the driving joint, if provided.
+        """
         if t_param is not None:
             t = t_param
         else:
@@ -891,16 +1034,19 @@ class PlotterMatplotlib:
 
     def show(self):
         """
-        Show the plot
+        Show the plot.
         """
         self.update_limits(self.ax)
         plt.show()
 
     def update_limits(self, ax):
         """
-        Update the limits of the plot
+        Update the limits of the plot.
 
-        :param ax: matplotlib axes
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes
+            Matplotlib axes to update limits for.
         """
         # Inner function to update the minimum and maximum values
         def update_min_max(data):
@@ -948,11 +1094,16 @@ class PlotterMatplotlib:
 
         PNG is the default file type, PDF is also supported.
 
-        :param int number_of_frames: number of time steps
-        :param str file_type: file type to save the frames (pdf, png)
-        :param str filename_prefix: prefix for the output filenames
-        :param str output_dir: directory where the frames should be saved
-
+        Parameters
+        ----------
+        number_of_frames : int, optional
+            Number of time steps (frames).
+        file_type : str, optional
+            File type to save the frames ('pdf', 'png').
+        filename_prefix : str, optional
+            Prefix for the output filenames.
+        output_dir : str, optional
+            Directory where the frames should be saved.
         """
         # check if the file_type is supported
         if file_type not in plt.gcf().canvas.get_supported_filetypes():
@@ -978,10 +1129,14 @@ class PlotterMatplotlib:
 
     def animate_angles(self, list_of_angles: list, sleep_time: float = 1.0):
         """
-        Animate the mechanism passing through a list of joint angles
+        Animate the mechanism passing through a list of joint angles.
 
-        :param list list_of_angles: list of joint angles
-        :param float sleep_time: time to wait between each frame
+        Parameters
+        ----------
+        list_of_angles : list
+            List of joint angles.
+        sleep_time : float, optional
+            Time to wait between each frame (in seconds).
         """
         from time import sleep  # lazy import
 
@@ -993,10 +1148,14 @@ class PlotterMatplotlib:
 
     def save_image(self, filename: str, file_type: str = "png"):
         """
-        Save the current canvas to a file
+        Save the current canvas to a file.
 
-        :param str filename: name of the file
-        :param str file_type: file type to save the frames (pdf, png)
+        Parameters
+        ----------
+        filename : str
+            Name of the file (without extension).
+        file_type : str, optional
+            File type to save the frames ('pdf', 'png').
         """
         # check if the file_type is supported
         if file_type not in plt.gcf().canvas.get_supported_filetypes():
@@ -1007,7 +1166,11 @@ class PlotterMatplotlib:
 
     def trigger_controls_visibility(self):
         """
-        Hide the controls for interactive plotting
+        Toggle the visibility of controls for interactive plotting.
+
+        Returns
+        -------
+        None
         """
         self.show_controls = not self.show_controls
 
