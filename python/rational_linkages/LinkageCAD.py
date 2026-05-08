@@ -6,27 +6,34 @@ import numpy as np
 
 
 class LinkageCAD:
-    """
-    Generate CAD models of linkage designs.
+    """Generate CAD models for linkage designs.
+
+    This helper provides routines to export the mechanism geometry as a mesh
+    (STL) or as CAD solids (STEP) using optional backends such as ``trimesh``
+    and ``build123d``.
     """
 
     def __init__(self, design_points, tool=None):
-        """
-        Initialize the CAD helper for a linkage design.
+        """Create a LinkageCAD for a set of design points.
 
-        :param design_points: Sequence of design points describing the linkage.
-        :param tool: Optional tool definition associated with the linkage.
+        Parameters
+        ----------
+        design_points
+            Sequence of design points describing the linkage (list or array-like).
+        tool, optional
+            Optional tool definition associated with the linkage.
         """
         self.design_points = np.asarray(design_points, dtype=float)
         self.tool = tool
 
     @property
     def num_joints(self) -> int:
-        """
-        Return the number of joints in the linkage.
+        """Return the number of joints in the linkage.
 
-        :return: Number of joints.
-        :rtype: int
+        Returns
+        -------
+        int
+            Number of joints inferred from the design points.
         """
         return (len(self.design_points) - 1) // 2
 
@@ -36,13 +43,18 @@ class LinkageCAD:
             joint_diameter: float = 0.02,
             add_tool_frame: bool = True,
             file_name: str = "mechanism_mesh.stl") -> None:
-        """
-        Export a single STL mesh of the mechanism at home configuration.
+        """Export a single STL mesh of the mechanism at the home configuration.
 
-        :param float link_diameter: Diameter of the cylindrical links (in meters).
-        :param float joint_diameter: Diameter of the cylindrical joints (in meters).
-        :param bool add_tool_frame: Whether to include a simple tool frame geometry.
-        :param str file_name: Output STL file name.
+        Parameters
+        ----------
+        link_diameter, optional
+            Diameter of the cylindrical links (in meters).
+        joint_diameter, optional
+            Diameter of the cylindrical joints (in meters).
+        add_tool_frame, optional
+            Whether to include a simple tool-frame geometry.
+        file_name, optional
+            Output STL file name.
         """
         try:
             import trimesh  # lazy import
@@ -79,14 +91,20 @@ class LinkageCAD:
             joint_diameter: float = 20,
             add_tool_frame: bool = True,
             file_name: str = "mechanism.step",) -> None:
-        """
-        Export a single CAD solid (STEP) of the mechanism at home configuration.
+        """Export a single CAD solid (STEP) of the mechanism.
 
-        :param str units: Units for the design (e.g., "mm" or "m").
-        :param float link_diameter: Diameter of the cylindrical links (default 10; i.e. mm).
-        :param float joint_diameter: Diameter of the cylindrical joints (default 20; i.e. mm).
-        :param bool add_tool_frame: Whether to include a simple tool frame geometry.
-        :param str file_name: Output STEP file name.
+        Parameters
+        ----------
+        units, optional
+            Units for the design (e.g., ``"mm"`` or ``"m"``).
+        link_diameter, optional
+            Diameter of the cylindrical links (default 10; units match ``units``).
+        joint_diameter, optional
+            Diameter of the cylindrical joints (default 20; units match ``units``).
+        add_tool_frame, optional
+            Whether to include a simple tool-frame geometry.
+        file_name, optional
+            Output STEP file name.
         """
         try:
             import build123d  # lazy import
@@ -125,14 +143,20 @@ class LinkageCAD:
                       joint_diameter: float = 20,
                       add_tool_frame: bool = True,
                       file_name: str = "mechanism_parts.step",) -> None:
-        """
-        Export mechanism assembly with individual CAD solids (STEP).
+        """Export the mechanism as individual CAD solids (STEP).
 
-        :param str units: Units for the design (e.g., "mm" or "m").
-        :param float link_diameter: Diameter of the cylindrical links (default 10; i.e. mm).
-        :param float joint_diameter: Diameter of the cylindrical joints (default 20; i.e. mm).
-        :param bool add_tool_frame: Whether to include a simple tool frame geometry.
-        :param str file_name: Output STEP file name.
+        Parameters
+        ----------
+        units, optional
+            Units for the design (e.g., ``"mm"`` or ``"m"``).
+        link_diameter, optional
+            Diameter for link cylinders (default 10).
+        joint_diameter, optional
+            Diameter for joint cylinders (default 20).
+        add_tool_frame, optional
+            Whether to include the tool-frame geometry.
+        file_name, optional
+            Output STEP file name for the assembled parts.
         """
         try:
             import build123d  # lazy import
@@ -177,18 +201,23 @@ class LinkageCAD:
     def _build_link_solids(self,
                            solids: list,
                            tool=None,) -> list:
-        """
-        Build fused solids for all mechanism links.
+        """Create fused solids representing each mechanism link.
 
-        Each link is composed of three consecutive mechanism cylinders in the
-        repeating pattern:
-            [2*i-2, 2*i-1, 2*i]  (with cyclic indexing)
+        Each link is formed by fusing three consecutive cylinder solids. The
+        repeating pattern uses cyclic indexing over the list of mechanism
+        solids.
 
-        :param list solids: Mechanism solids without tool-frame parts.
-        :param tool: Optional fused tool solid attached to the middle link.
+        Parameters
+        ----------
+        solids
+            Mechanism solids (build123d solids) excluding tool-frame parts.
+        tool, optional
+            Optional fused tool solid to attach to the middle link.
 
-        :return: List of fused link solids.
-        :rtype: list
+        Returns
+        -------
+        list
+            A list of fused link solids.
         """
         n_links = self.num_joints
         n_segments = len(solids)
@@ -218,12 +247,17 @@ class LinkageCAD:
 
     @staticmethod
     def _fuse_solids(solids: list):
-        """
-        Fuse a list of solids into a single solid.
+        """Fuse a sequence of solids into a single solid.
 
-        :param list solids: Solids to be fused.
+        Parameters
+        ----------
+        solids
+            Iterable of solids (objects exposing a ``fuse`` method).
 
-        :return: Single fused solid.
+        Returns
+        -------
+        object
+            The fused solid composed from the provided parts.
         """
         if not solids:
             raise ValueError("No solids provided for fusion.")
@@ -235,13 +269,18 @@ class LinkageCAD:
         return fused
 
     def _scaled_points(self, units: str = "m") -> np.ndarray:
-        """
-        Return design points scaled to the requested units.
+        """Return design points scaled to the requested units.
 
-        :param str units: Units for the returned points, either "m" or "mm".
+        Parameters
+        ----------
+        units, optional
+            Units for the returned points; supported values are ``"m"`` and
+            ``"mm"``.
 
-        :return: Scaled design points.
-        :rtype: np.ndarray
+        Returns
+        -------
+        np.ndarray
+            Scaled design points as a floating-point array.
         """
         if units == "m":
             scale = 1.0
@@ -259,16 +298,24 @@ class LinkageCAD:
             joint_radius: float,
             add_tool_frame: bool,
     ) -> Iterator[tuple[np.ndarray, np.ndarray, float]]:
-        """
-        Yield all cylindrical segments of the mechanism and optional tool frame.
+        """Yield all cylindrical segments for the mechanism and tool frame.
 
-        :param np.ndarray points: Scaled design points.
-        :param float link_radius: Radius of the link cylinders.
-        :param float joint_radius: Radius of the joint cylinders.
-        :param bool add_tool_frame: Whether to include the tool frame segments.
+        Parameters
+        ----------
+        points
+            Scaled design points as an (N,3) array.
+        link_radius
+            Radius for link cylinders.
+        joint_radius
+            Radius for joint cylinders.
+        add_tool_frame
+            Whether to include tool-frame segments.
 
-        :return: Iterator over segment tuples (p0, p1, radius).
-        :rtype: Iterator[tuple[np.ndarray, np.ndarray, float]]
+        Yields
+        ------
+        tuple
+            Tuples of the form (p0, p1, radius) describing each cylindrical
+            segment.
         """
         yield from self._iter_mechanism_segments(points, link_radius, joint_radius)
 
@@ -281,15 +328,21 @@ class LinkageCAD:
             link_radius: float,
             joint_radius: float,
     ) -> Iterator[tuple[np.ndarray, np.ndarray, float]]:
-        """
-        Yield cylindrical segments for the mechanism links and joints.
+        """Yield cylindrical segments representing links and joint cylinders.
 
-        :param np.ndarray points: Scaled design points.
-        :param float link_radius: Radius of the link cylinders.
-        :param float joint_radius: Radius of the joint cylinders.
+        Parameters
+        ----------
+        points
+            Scaled design points as an (N,3) array.
+        link_radius
+            Radius for link cylinders.
+        joint_radius
+            Radius for joint cylinders.
 
-        :return: Iterator over segment tuples (p0, p1, radius).
-        :rtype: Iterator[tuple[np.ndarray, np.ndarray, float]]
+        Yields
+        ------
+        tuple
+            (p0, p1, radius) for each mechanism segment.
         """
         for i in range(self.num_joints):
             yield points[2 * i], points[2 * i + 1], joint_radius
@@ -300,14 +353,19 @@ class LinkageCAD:
             points: np.ndarray,
             link_radius: float,
     ) -> Iterator[tuple[np.ndarray, np.ndarray, float]]:
-        """
-        Yield cylindrical segments for the optional tool frame geometry.
+        """Yield cylindrical segments for the optional tool-frame geometry.
 
-        :param np.ndarray points: Scaled design points.
-        :param float link_radius: Radius of the link cylinders.
+        Parameters
+        ----------
+        points
+            Scaled design points as an (N,3) array.
+        link_radius
+            Radius for link cylinders.
 
-        :return: Iterator over segment tuples (p0, p1, radius).
-        :rtype: Iterator[tuple[np.ndarray, np.ndarray, float]]
+        Yields
+        ------
+        tuple
+            (p0, p1, radius) tuples describing tool-frame cylinders.
         """
         tool_origin = np.zeros(3)
         tool_axes = np.eye(3)
@@ -331,16 +389,21 @@ class LinkageCAD:
                                       p1: np.ndarray,
                                       tol: float = 1e-9,
                                       ) -> tuple[np.ndarray | None, float]:
-        """
-        Compute the unit direction vector and segment length between two points.
+        """Compute a unit direction vector and length between two points.
 
-        :param np.ndarray p0: First point.
-        :param np.ndarray p1: Second point.
-        :param float tol: Tolerance below which the segment is treated as degenerate.
+        Parameters
+        ----------
+        p0, p1
+            Endpoint coordinates (array-like).
+        tol, optional
+            Tolerance below which the segment is considered degenerate.
 
-        :return: Tuple of unit direction vector and length. If the segment is too short,
-            return None and 0.0.
-        :rtype: tuple[np.ndarray | None, float]
+        Returns
+        -------
+        tuple
+            ``(direction, length)`` where ``direction`` is a unit vector or
+            ``None`` when the segment is degenerate, and ``length`` is the
+            Euclidean distance between the points.
         """
         p0 = np.asarray(p0, dtype=float)
         p1 = np.asarray(p1, dtype=float)
@@ -355,14 +418,19 @@ class LinkageCAD:
 
     @staticmethod
     def _trimesh_cylinder(p0, p1, radius):
-        """
-        Create a trimesh cylinder between two points.
+        """Create a trimesh cylinder mesh between two points.
 
-        :param p0: First point.
-        :param p1: Second point.
-        :param float radius: Cylinder radius.
+        Parameters
+        ----------
+        p0, p1
+            Endpoint coordinates of the cylinder axis.
+        radius
+            Cylinder radius.
 
-        :return: Cylinder mesh, or None for a degenerate segment.
+        Returns
+        -------
+        trimesh.Trimesh or None
+            The created cylinder mesh, or ``None`` if the segment is degenerate.
         """
         try:
             import trimesh  # lazy import
@@ -383,15 +451,21 @@ class LinkageCAD:
 
     @staticmethod
     def _build123d_cylinder(p0, p1, radius, build123d):
-        """
-        Create a build123d cylinder between two points.
+        """Create a build123d cylinder solid between two points.
 
-        :param p0: First point.
-        :param p1: Second point.
-        :param float radius: Cylinder radius.
-        :param build123d: Imported build123d module.
+        Parameters
+        ----------
+        p0, p1
+            Endpoint coordinates of the cylinder axis.
+        radius
+            Cylinder radius.
+        build123d
+            The imported ``build123d`` module used for solid construction.
 
-        :return: Cylinder solid, or None for a degenerate segment.
+        Returns
+        -------
+        build123d.Solid or None
+            A cylinder solid or ``None`` if the segment is degenerate.
         """
         direction, length = LinkageCAD._segment_direction_and_length(p0, p1)
         if direction is None:

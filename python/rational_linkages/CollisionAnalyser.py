@@ -12,7 +12,25 @@ from .RationalMechanism import RationalMechanism
 
 
 class CollisionAnalyser:
+    """Analyze collisions for a rational mechanism.
+
+    The analyser computes motion representations, point orbits and bounding
+    balls for segments of a mechanism and provides utilities to check and
+    quantify collisions between segments and miniballs.
+
+    Parameters
+    ----------
+    mechanism
+        The mechanism to analyze.
+    """
     def __init__(self, mechanism: RationalMechanism):
+        """Create a CollisionAnalyser for a mechanism.
+
+        Parameters
+        ----------
+        mechanism
+            The mechanism for which collision analysis is performed.
+        """
         self.mechanism = mechanism
         self.mechanism_points = mechanism.points_at_parameter(0,
                                                               inverted_part=True,
@@ -28,14 +46,37 @@ class CollisionAnalyser:
         self.bezier_splits = self.get_bezier_splits(20)
 
     def get_bezier_splits(self, min_splits: int = 0) -> list:
-        """
-        Split the relative motions of the mechanism into bezier curves.
+        """Split the relative motions into Bezier segments.
+
+        Each relative motion curve of the mechanism is split into a list of
+        Bezier segments using the underlying curve's ``split_in_beziers``
+        method.
+
+        Parameters
+        ----------
+        min_splits
+            Minimum number of subdivisions requested for each motion (default
+            is 0).
+
+        Returns
+        -------
+        list
+            A list (one per motion) of lists of Bezier split objects.
         """
         return [motion.split_in_beziers(min_splits) for motion in self.motions]
 
     def get_motions(self):
-        """
-        Get the relative motions of the mechanism represented as rational curves.
+        """Assemble relative motions as rational curves.
+
+        The mechanism stores factorizations as sequences of dual quaternion
+        factors. This method composes those factors to obtain the relative
+        motions and converts each motion into a :class:`RationalCurve`.
+
+        Returns
+        -------
+        list
+            List of :class:`RationalCurve` objects representing the relative
+            motions of the mechanism.
         """
         sequence = DualQuaternion()
         branch0 = [sequence := sequence * factor for factor in
@@ -57,15 +98,41 @@ class CollisionAnalyser:
         return motions
 
     def get_points_orbits(self):
-        """
-        Get the orbits of the mechanism points.
+        """Return the orbits for all mechanism points.
+
+        Each mechanism point provides a parameterized orbit; this method
+        wraps those results into :class:`PointOrbit` instances using the
+        analyser's metric.
+
+        Returns
+        -------
+        list[PointOrbit]
+            A list of :class:`PointOrbit` objects, one per mechanism point.
         """
         return [PointOrbit(*point.get_point_orbit(metric=self.metric))
                 for point in self.mechanism_points]
 
     def get_segment_orbit(self, segment_id: str):
-        """
-        Get the orbit of a segment.
+        """Compute the orbit covering for a named segment.
+
+        The method determines the two endpoint points for the requested
+        segment and returns a list describing the covering of those endpoints'
+        orbits with miniballs. For straight links the relative-motion
+        Bezier-splits are used; for base-like segments ('b') a heuristic
+        miniball is constructed.
+
+        Parameters
+        ----------
+        segment_id
+            Identifier of the segment whose orbit is required.
+
+        Returns
+        -------
+        list
+            A list of per-split entries. Each entry is itself a list where the
+            first element is the time-interval metadata and the remaining
+            elements are :class:`PointOrbit` miniballs that cover the segment
+            endpoints over that interval.
         """
         segment = self.segments[segment_id]
 
@@ -134,8 +201,28 @@ class CollisionAnalyser:
         return all_orbits
 
     def check_two_segments(self, segment0: str, segment1: str, t_interval=None):
-        """
-        Check if two segments collide.
+        """Check whether two segments (by id) collide.
+
+        This method computes or reuses cached miniball coverings for the two
+        segments and then checks pairwise miniball intersections. If
+        ``t_interval`` is provided it restricts the check to the corresponding
+        Bezier split that contains the numeric time value.
+
+        Parameters
+        ----------
+        segment0, segment1
+            Segment identifiers to check for collision.
+        t_interval, optional
+            If provided, restrict checking to a particular parameter interval
+            representation. The function expects an interval-format matching
+            the miniball t_interval metadata; if ``None`` the whole motion is
+            checked.
+
+        Returns
+        -------
+        bool
+            True if any pair of miniballs collide (indicating a collision for
+            the segments), False otherwise.
         """
         if not segment0 in self.segment_orbits:
             self.segment_orbits[segment0] = self.get_segment_orbit(segment0)
@@ -200,16 +287,42 @@ class CollisionAnalyser:
 
     @staticmethod
     def check_two_miniballs(ball0, ball1):
-        """
-        Check if two miniballs collide.
+        """Determine whether two miniballs intersect.
+
+        Parameters
+        ----------
+        ball0, ball1
+            Objects providing ``center`` (with a ``coordinates`` attribute)
+            and ``radius_squared`` attributes. The function computes the
+            squared Euclidean distance between centers and compares to the sum
+            of squared radii.
+
+        Returns
+        -------
+        bool
+            True if the squared center distance is strictly less than the sum
+            of the two ``radius_squared`` values, False otherwise.
         """
         diff = ball0.center.coordinates - ball1.center.coordinates
         center_dist_squared = numpy.dot(diff, diff)
         return center_dist_squared < ball0.radius_squared + ball1.radius_squared
 
     def get_split_and_point_indices(self, segment):
-        """
-        Compute split index and point indices for a segment.
+        """Compute split index and the corresponding point indices.
+
+        The mapping depends on the segment type and its factorization index.
+
+        Parameters
+        ----------
+        segment
+            The segment object whose indices should be derived.
+
+        Returns
+        -------
+        tuple
+            ``(split_idx, p0_idx, p1_idx)`` where ``split_idx`` is the index of
+            the relative motion split and ``p0_idx``/``p1_idx`` are indices
+            into the ``mechanism_points`` list for the segment endpoints.
         """
         if segment.type == 'l':
             if segment.factorization_idx == 0:
@@ -235,8 +348,35 @@ class CollisionAnalyser:
                              segment_id: str,
                              min_splits: int = 20,
                              curve_degree: int = 3):
-        """
-        Optimize the curved link to avoid collisions.
+        """Optimize a link by replacing it with a curved Bezier (RationalSoo).
+
+        The routine builds a set of bounding miniballs from neighboring
+        segments, creates an initial control polygon connecting the two
+        endpoint joints and runs a constrained optimization to move internal
+        control points away from collisions while keeping them near their
+        initial positions.
+
+        Parameters
+        ----------
+        segment_id
+            Identifier of the link to replace with a curved version. Joints
+            (identifiers starting with 'j') are not supported and will raise
+            an exception.
+        min_splits, optional
+            Minimum number of Bezier splits to use when constructing
+            bounding balls (default 20).
+        curve_degree, optional
+            Degree of the replacement rational Bezier (default 3).
+
+        Returns
+        -------
+        RationalSoo
+            A rational Bezier representing the optimized curved link.
+
+        Raises
+        ------
+        ValueError
+            If a joint identifier is provided instead of a link id.
         """
         if segment_id.startswith('j'):
             raise ValueError('Joints cannot be optimized as curved lines, only links.')
@@ -293,8 +433,32 @@ class CollisionAnalyser:
     @staticmethod
     def optimize_control_points(init_points: list[PointHomogeneous],
                                 bounding_orbits: list[list[PointOrbit]]):
-        """
-        Optimize the link control points to avoid collisions with the bounding orbits.
+        """Optimize internal control points to avoid collisions with orbits.
+
+        A numerical optimization is performed (using ``scipy.optimize``)
+        to adjust the coordinates of the internal control points so that the
+        resulting curve stays outside of the supplied miniball coverings.
+        A small regularization term keeps the solution close to the initial
+        guess.
+
+        Parameters
+        ----------
+        init_points
+            Initial internal control points (excluding the fixed endpoints).
+        bounding_orbits
+            A nested list of :class:`PointOrbit` miniballs describing forbidden
+            regions for the curve.
+
+        Returns
+        -------
+        list[PointHomogeneous]
+            New optimized control points including the same homogeneous form
+            as the inputs.
+
+        Raises
+        ------
+        RuntimeError
+            If SciPy is not available or the optimizer fails to converge.
         """
         try:
             from scipy.optimize import minimize  # lazy import
@@ -345,12 +509,33 @@ class CollisionAnalyser:
                                      segment_id_number: int,
                                      reduced_indices: list[int],
                                      min_splits: int = 20):
-        """
-        Obtain global covering balls for a segment to optimize it as a curved link.
+        """Create miniball coverings for a selection of neighboring segments.
 
-        :param segment_id_number: The index of the segment to optimize.
-        :param reduced_indices: Indices of segments to consider for bounding balls.
-        :param min_splits: Minimum number of splits for the bezier curves.
+        For each segment index in ``reduced_indices`` a relative motion curve is
+        constructed and split into Bezier pieces; for each Bezier split the
+        orbit of the two defining points is covered by miniballs. The result
+        can be used to define forbidden regions for an optimization of a
+        curved replacement link.
+
+        Parameters
+        ----------
+        segment_id_number
+            Index of the segment being optimized (used to compute relative
+            motions).
+        reduced_indices
+            Indices of other segments to include when computing bounding
+            balls.
+        min_splits, optional
+            Minimum number of Bezier splits to request when splitting the
+            relative motion curves (default 20).
+
+        Returns
+        -------
+        list
+            Nested list of miniball coverings. The outer list corresponds to
+            each considered segment; each inner entry is a list of per-split
+            lists with time-interval metadata followed by :class:`PointOrbit`
+            miniballs.
         """
 
         t = symbols('t')
@@ -417,8 +602,26 @@ class CollisionAnalyser:
     def quantify_collision(segment0: LineSegment,
                            segment1: LineSegment,
                            t_val):
-        """
-        Quantify the collision between two line segments.
+        """Provide a scalar measure for proximity or intersection of segments.
+
+        The function evaluates both segments at parameter ``t_val`` and
+        computes the common perpendicular between the two supporting lines.
+        If the distance is (near) zero an intersection-location based
+        quantification is returned; otherwise the distance and the locations
+        on both segments are combined into a scalar score in (0, inf).
+
+        Parameters
+        ----------
+        segment0, segment1
+            The two line segments to quantify collision for.
+        t_val
+            The parameter value at which to evaluate both segment endpoints.
+
+        Returns
+        -------
+        float
+            A non-negative scalar where larger values indicate stronger
+            proximity/collision. The exact scaling is implementation-defined.
         """
         p00 = segment0.point0.evaluate(t_val)
         p01 = segment0.point1.evaluate(t_val)
@@ -453,6 +656,27 @@ class CollisionAnalyser:
 
     @staticmethod
     def quatif_intersection_location(interection_pt, segment_pt0, segment_pt1):
+        """Quantify where an intersection point lies relative to a segment.
+
+        The function computes distances from the intersection point to the
+        two segment endpoints and maps these distances to a scalar that
+        indicates whether the intersection is outside the segment (mapped
+        with an exponential decay) or inside the segment (mapped to a range
+        near 1..2 using a linear mapping).
+
+        Parameters
+        ----------
+        interection_pt
+            The intersection point to evaluate.
+        segment_pt0, segment_pt1
+            Endpoints of the segment being tested.
+
+        Returns
+        -------
+        float
+            A scalar quantification of the intersection location. Larger
+            values indicate stronger proximity or intersection severity.
+        """
         a = numpy.linalg.norm(
             segment_pt0.normalized_euclidean() - interection_pt.normalized_euclidean())
         b = numpy.linalg.norm(
@@ -471,17 +695,25 @@ class CollisionAnalyser:
 
     @staticmethod
     def map_to_exponential_decay(x, k=1.0):
-        """
-        Maps a value x using an exponential decay function to the range [0, 1].
+        """Map a non-negative scalar using exponential decay to (0, 1].
 
-        Maps a value x from the range [0, inf) to the interval [0, 1] using an
-        exponential decay function.
+        Parameters
+        ----------
+        x
+            Non-negative input value to map.
+        k, optional
+            Positive decay rate controlling the steepness of the mapping
+            (default 1.0).
 
-        :param float x: The input value in the range [0, inf).
-        :param float k: The decay rate (must be positive). Default is 1.0.
+        Returns
+        -------
+        float
+            Value in (0, 1] given by exp(-k * x).
 
-        :return: The mapped value in the range [0, 1].
-        :rtype: float
+        Raises
+        ------
+        ValueError
+            If ``x`` is negative or ``k`` is not positive.
         """
         if x < 0:
             raise ValueError("x must be non-negative")
@@ -494,17 +726,27 @@ class CollisionAnalyser:
 
     @staticmethod
     def map_to_range_inside(x, x_max, weight=1.0):
-        """
-        Maps a value x from the range [0, x_max] to a value y in the range [1, 2].
+        """Linearly map a value in [0, x_max] to the interval [1, 1+weight].
 
-        Function preserves the ratio of the input value relative to the maximum value.
+        Parameters
+        ----------
+        x
+            Input value in the closed interval [0, x_max].
+        x_max
+            Positive maximum value for ``x``.
+        weight, optional
+            Scale of the mapping; the output range becomes [1, 1+weight]
+            (default 1.0).
 
-        :param float x: The input value in the range [0, x_max].
-        :param float x_max: The maximum value of the input range.
-        :param float weight: The weight to scale the output value. Default is 1.0.
+        Returns
+        -------
+        float
+            Linearly scaled value in [1, 1+weight].
 
-        :return: The mapped value in the range [1, 2].
-        :rtype: float
+        Raises
+        ------
+        ValueError
+            If ``x`` is outside [0, x_max] or ``x_max`` is not positive.
         """
         if x < 0 or x > x_max:
             raise ValueError("x must be in the range [0, x_max]")

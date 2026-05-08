@@ -19,18 +19,18 @@ class NormalizedLineSymbolic(NormalizedLine):
 
     Parameters
     ----------
-    unit_screw :
+    unit_screw
         6-vector of Plücker coordinates ``[l1, l2, l3, m1, m2, m3]`` as
         SymPy expressions or plain numbers. If ``None``, the Z-axis through
         the origin is constructed.
 
     Attributes
     ----------
-    direction : numpy.ndarray
+    direction
         Object-dtype array of SymPy expressions ``[l1, l2, l3]``.
-    moment : numpy.ndarray
+    moment
         Object-dtype array of SymPy expressions ``[m1, m2, m3]``.
-    screw : numpy.ndarray
+    screw
         Object-dtype 6-vector ``[direction | moment]``.
 
     Examples
@@ -70,11 +70,11 @@ class NormalizedLineSymbolic(NormalizedLine):
 
         Parameters
         ----------
-        direction :
+        direction
             3-vector of SymPy expressions or plain numbers representing the line's
             direction. Should be unit-length for correct behavior, but this is not
             enforced.
-        point :
+        point
             3-vector of SymPy expressions or plain numbers representing a point
             on the line.
 
@@ -99,11 +99,11 @@ class NormalizedLineSymbolic(NormalizedLine):
 
         Parameters
         ----------
-        direction :
+        direction
             3-vector of SymPy expressions or plain numbers representing the line's
             direction. Should be unit-length for correct behavior, but this is not
             enforced.
-        moment :
+        moment
             3-vector of SymPy expressions or plain numbers representing the line's
             moment.
 
@@ -125,10 +125,10 @@ class NormalizedLineSymbolic(NormalizedLine):
 
         Parameters
         ----------
-        pt0 :
+        pt0
             A :class:`~rational_linkages.PointHomogeneous` or a 3-vector of SymPy expressions
             or numbers representing a point on the line.
-        pt1 :
+        pt1
             A :class:`~rational_linkages.PointHomogeneous` or a 3-vector of SymPy expressions
             or numbers representing a different point on the line.
 
@@ -174,12 +174,12 @@ class NormalizedLineSymbolic(NormalizedLine):
 
         Parameters
         ----------
-        unit_screw :
+        unit_screw
             6-vector of SymPy expressions, or ``None`` for the Z-axis.
 
         Returns
         -------
-        tuple[numpy.ndarray, numpy.ndarray]
+        tuple
             ``(direction, moment)`` each an object-dtype 3-vector.
 
         Warns
@@ -244,7 +244,7 @@ class NormalizedLineSymbolic(NormalizedLine):
 
         Parameters
         ----------
-        other :
+        other
             Line to compare against.
 
         Returns
@@ -267,8 +267,7 @@ class NormalizedLineSymbolic(NormalizedLine):
 
         Returns
         -------
-        numpy.ndarray
-            Object-dtype 6-vector of SymPy expressions.
+        Object-dtype 6-vector of SymPy expressions.
         """
         return numpy.array(self.screw, dtype=object)
 
@@ -280,8 +279,7 @@ class NormalizedLineSymbolic(NormalizedLine):
 
         Returns
         -------
-        numpy.ndarray
-            Object-dtype 8-vector of SymPy expressions.
+        Object-dtype 8-vector of SymPy expressions.
         """
         return numpy.array([
             sympy.Integer(0),
@@ -303,7 +301,7 @@ class NormalizedLineSymbolic(NormalizedLine):
 
         Parameters
         ----------
-        point :
+        point
             A :class:`~rational_linkages.PointHomogeneous` or a 3-vector of SymPy
             expressions / numbers.
 
@@ -335,7 +333,7 @@ class NormalizedLineSymbolic(NormalizedLine):
 
         Parameters
         ----------
-        subs : dict
+        subs
             Mapping of SymPy symbols to values.
 
         Returns
@@ -371,7 +369,7 @@ class NormalizedLineSymbolic(NormalizedLine):
 
         Parameters
         ----------
-        param : float
+        param
             Parameter to evaluate.
 
         Returns

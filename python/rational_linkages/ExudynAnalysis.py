@@ -6,18 +6,20 @@ from .RationalMechanism import RationalMechanism
 
 
 class ExudynAnalysis:
-    """
-    Class for dynamics analysis using Exudyn package.
+    """Utilities to prepare parameters for Exudyn dynamics simulations.
 
-    The Exudyn packages is not listed in this project's requirements, please install
-    it manually. More information can be found in :ref:`documentation <exudyn_info>`
-    or the Exudyn homepage: https://github.com/jgerstmayr/EXUDYN
+    The Exudyn package is optional for this project and is not listed in the
+    project's requirements. Install it manually if you want to run the
+    simulation-related code. See the documentation :ref:`exudyn_info` or the
+    Exudyn project page: https://github.com/jgerstmayr/EXUDYN
     """
     def __init__(self, gravity: Union[np.ndarray, list[float]] = np.array([0, 0, -9.81])):
-        """
-        Initialize ExudynAnalysis object.
+        """Create an ExudynAnalysis helper.
 
-        :param Union[np.ndarray, list[float]] gravity: XYZ gravity vector
+        Parameters
+        ----------
+        gravity, optional
+            Gravity vector in XYZ order. Defaults to [0, 0, -9.81].
         """
         self.gravity = gravity
 
@@ -26,26 +28,37 @@ class ExudynAnalysis:
                           is_rational: bool = True,
                           link_radius: float = 0.1,
                           scale: float = 1.0) -> tuple:
-        """
-        Get parameters for Exudyn simulation.
+        """Prepare parameter tuples required to build an Exudyn model.
 
-        This method is used to get parameters for Exudyn - a multibody dynamics
-        simulation package. The parameters are used to create a multibody system
-        and simulate the mechanism's dynamics.
+        The returned values can be used to create rigid bodies, define joint
+        axes and populate body geometry in an Exudyn multibody system. The
+        tuple contains the following elements:
 
-        The parameters are: links_pts (positions of links connection points),
-        links_lengths, body_dim (dimensions of rigid bodies), links_masses_pts
-        (positions of links' center of gravity), joint_axes (joints unit axes),
-        relative_links_pts (links connection points relative to its center of gravity).
+        - ``links_pts``: positions of the link connection points (list of point pairs)
+        - ``links_lengths``: scalar lengths for each link
+        - ``body_dim``: per-link body dimensions used to size primitive geometries
+        - ``links_masses_pts``: center-of-gravity positions for each link
+        - ``joint_axes``: unit axes for the joints
+        - ``relative_links_pts``: connection points relative to each link's COG
 
-        :param RationalMechanism mechanism: RationalMechanism object
-        :param bool is_rational: if True, the mechanism is a rational mechanism
-        :param float link_radius: width of links
-        :param float scale: scale length factor for links dimensions
+        Parameters
+        ----------
+        mechanism
+            The mechanism to convert into Exudyn parameters.
+        is_rational, optional
+            If True, use the mechanism's rational representation; otherwise a
+            static representation is used.
+        link_radius, optional
+            Radius (thickness) to use for link bodies when creating body
+            dimensions.
+        scale, optional
+            Length scaling factor applied to all link points.
 
-        :return: links_pts, links_lengths, body_dim, links_masses_pts, joint_axes,
-            relative_links_pts
-        :rtype: tuple
+        Returns
+        -------
+        tuple
+            A tuple with (links_pts, links_lengths, body_dim, links_masses_pts,
+            joint_axes, relative_links_pts).
         """
 
         if is_rational:
@@ -79,13 +92,18 @@ class ExudynAnalysis:
 
     @staticmethod
     def _links_points(mechanism: RationalMechanism) -> list:
-        """
-        Get links connection points in default configuration.
+        """Return link connection point pairs for the mechanism's default pose.
 
-        :param mechanism: RationalMechanism object
+        Parameters
+        ----------
+        mechanism
+            The mechanism from which to extract link points.
 
-        :return: list of points on links
-        :rtype: list
+        Returns
+        -------
+        list
+            A list of tuples (p0, p1) containing the two endpoint points for
+            each link in the default configuration.
         """
         # get points sequence
         nearly_zero = np.finfo(float).eps
@@ -101,52 +119,68 @@ class ExudynAnalysis:
 
     @staticmethod
     def _relative_links_points(links_points: list, centers_of_gravity: list) -> list:
-        """
-        Get links connection points in default configuration, relative to its center
-        of gravity.
+        """Compute link endpoint coordinates relative to each link's center.
 
-        :param list links_points: list of point pairs tuples
-        :param list centers_of_gravity: list of links' center of gravity positions
+        Parameters
+        ----------
+        links_points
+            Iterable of endpoint pairs for each link.
+        centers_of_gravity
+            Iterable of center-of-gravity points corresponding to each link.
 
-        :return: list of points on links
-        :rtype: list
+        Returns
+        -------
+        list
+            A list of tuples (p0_rel, p1_rel) with coordinates relative to the COG.
         """
         return [(pts[0] - cog, pts[1] - cog)
                 for pts, cog in zip(links_points, centers_of_gravity)]
 
     @staticmethod
     def _links_lengths(links_points: list) -> list:
-        """
-        Get links lengths.
+        """Compute Euclidean lengths for each link.
 
-        :param list links_points: list of point pairs tuples
+        Parameters
+        ----------
+        links_points
+            Iterable of endpoint pairs for each link.
 
-        :return: list of links lengths
-        :rtype: list
+        Returns
+        -------
+        list
+            A list with the scalar lengths of each link.
         """
         return [np.linalg.norm(pts[1] - pts[0]) for pts in links_points]
 
     @staticmethod
     def _links_center_of_gravity(links_points: list) -> list:
-        """
-        Get positions of links' center of gravity.
+        """Return center-of-gravity positions for each link (midpoints).
 
-        :param list links_points: list of point pairs tuples
+        Parameters
+        ----------
+        links_points
+            Iterable of endpoint pairs for each link.
 
-        :return: list of links' center of gravity positions
-        :rtype: list
+        Returns
+        -------
+        list
+            Midpoint position for each link.
         """
         return [(pts[0] + pts[1]) / 2 for pts in links_points]
 
     @staticmethod
     def _joints_axes(mechanism: RationalMechanism) -> list:
-        """
-        Get joints unit axes.
+        """Extract unit direction vectors for each joint axis.
 
-        :param RationalMechanism mechanism: RationalMechanism object
+        Parameters
+        ----------
+        mechanism
+            The mechanism providing dual-quaternion axes information.
 
-        :return: list of joints axes
-        :rtype: list
+        Returns
+        -------
+        list
+            A list of direction vectors (unit axes) for the mechanism joints.
         """
         axes = []
         for axis in mechanism.factorizations[0].dq_axes:
@@ -162,13 +196,17 @@ class ExudynAnalysis:
 
     @staticmethod
     def _links_points_static(mechanism: RationalMechanism) -> list:
-        """
-        Get links connection points in default configuration for static mechanism.
+        """Return link connection points for a static (non-rational) mechanism.
 
-        :param mechanism: RationalMechanism object
+        Parameters
+        ----------
+        mechanism
+            The mechanism for which static design points are requested.
 
-        :return: list of points on links
-        :rtype: list
+        Returns
+        -------
+        list
+            A list of link endpoint points for the static design.
         """
         # get points sequence
         _, _, points = mechanism.get_design(unit='deg', scale=150, pretty_print=False)

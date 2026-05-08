@@ -14,22 +14,23 @@ from .PointHomogeneous import PointHomogeneous
 
 
 class Linkage:
-    """
-    Class for storing the connection points on a joint.
+    """Store and manage connection points for a joint axis.
 
-    The connection points are stored as a list of PointHomogeneous objects. The
-    default parameter of the connection points is 0 (nearest points on the axes to the
-    origin).
-
-    :ivar NormalizedLine normalized_axis: The axis of the joint
-    :ivar PointsConnection points: The connection points
-    :ivar list default_connection_point: The default connection point
+    A Linkage holds two connection points (or a single point duplicated) on a
+    joint axis and exposes utilities to query and set those points by their
+    parametric position on the axis.
     """
     def __init__(self, axis: DualQuaternion, connection_points: list[PointHomogeneous]):
-        """
-        :param DualQuaternion axis: The axis of the joint
-        :param PointHomogeneous connection_points: The default connection point (
-            common perpendicular)
+        """Create a Linkage for an axis with one or two connection points.
+
+        Parameters
+        ----------
+        axis
+            The axis (as a :class:`DualQuaternion`) describing the joint line.
+        connection_points
+            One or two :class:`PointHomogeneous` objects representing the
+            default connection points (if only one is given it will be
+            duplicated to form a pair).
         """
         self.normalized_axis = NormalizedLine(axis.dq2screw())
 
@@ -51,20 +52,24 @@ class Linkage:
 
     @property
     def points_params(self) -> list[float, float]:
-        """
-        Returns the parameter of the connection points.
+        """Return the current parametric positions of the two connection points.
 
-        :return: The parameter of the connection points
-        :rtype: list[float, float]
+        Returns
+        -------
+        list
+            A two-element list containing the parameter values for point 0 and
+            point 1, respectively.
         """
         return self._params
 
     @points_params.setter
     def points_params(self, value: list[float, float]):
-        """
-        Sets the parameter of the connection points.
+        """Set the parametric positions of the connection points.
 
-        :param list[float, float] value: The parameter of the connection points
+        Parameters
+        ----------
+        value
+            Two-element sequence with the parameters for point 0 and point 1.
         """
         self._params = value
 
@@ -79,8 +84,18 @@ class Linkage:
         return f"{self.points}"
 
     def _get_point_param_on_line(self, point: PointHomogeneous) -> np.ndarray:
-        """
-        Gets the parameter of the connection point at the given index.
+        """Return the parametric coordinate of a point on the joint axis.
+
+        Parameters
+        ----------
+        point
+            A :class:`PointHomogeneous` known to lie on the axis.
+
+        Returns
+        -------
+        ndarray
+            The parameter value on the axis corresponding to the provided
+            point.
         """
         if self.normalized_axis.contains_point(point.normalized_euclidean()):
             return self.normalized_axis.get_point_param(point.normalized_euclidean())
@@ -90,23 +105,30 @@ class Linkage:
             raise ValueError("Point is not on the axis")
 
     def _get_point_using_param(self, param: float) -> PointHomogeneous:
-        """
-        Sets the connection point at the given parameter.
+        """Return the connection point corresponding to a parameter on the axis.
 
-        :param float param: The parameter
+        Parameters
+        ----------
+        param
+            Parametric coordinate on the joint axis.
 
-        :return: The connection point
-        :rtype: PointHomogeneous
+        Returns
+        -------
+        PointHomogeneous
+            The 3D point on the axis at the given parameter.
         """
         return PointHomogeneous.from_3d_point(self.normalized_axis.point_on_line(param))
 
     def set_point_by_param(self, idx: int, param: Union[float, np.ndarray]):
-        """
-        Sets the connection point at the given parameter.
+        """Set one of the two connection points by its axis parameter.
 
-        :param int idx: Index of the connection parameter on the joint, 0 or 1.
-        :param Union[float, np.ndarray] param: line-parameter defining the point on the
-            line (joint axis)
+        Parameters
+        ----------
+        idx
+            Index of the connection point to set (0 or 1).
+        param
+            Parametric coordinate or array-like value identifying the point on
+            the axis.
         """
         if idx == 0:
             if param == self.points_params[1]:
@@ -122,27 +144,30 @@ class Linkage:
             raise IndexError("Index out of range")
 
     def _check_equal_points(self) -> bool:
-        """
-        Checks if the connection points are equal.
+        """Return True when both connection points coincide (within tolerance).
 
-        :return: True if the connection points are equal, False otherwise
-        :rtype: bool
+        Returns
+        -------
+        bool
+            True if the two connection points are numerically equal.
         """
         return np.allclose(self.points[0].normalized_euclidean(),
                            self.points[1].normalized_euclidean())
 
 
 class PointsConnection:
-    """
-    Class for storing the connection points on a joint.
+    """Container exposing the two connection points of a joint.
 
-    :ivar PointHomogeneous _connection_point0: The first connection point
-    :ivar PointHomogeneous _connection_point1: The second connection point
+    This small helper provides sequence-like access to the two underlying
+    :class:`PointHomogeneous` instances.
     """
     def __init__(self, connection_point: list[PointHomogeneous]):
-        """
-        :param PointHomogeneous connection_point: The default connection point (common
-            perpendicular)
+        """Create a PointsConnection wrapper.
+
+        Parameters
+        ----------
+        connection_point
+            Sequence with two :class:`PointHomogeneous` objects.
         """
         self._connection_point0 = connection_point[0]
         self._connection_point1 = connection_point[1]
@@ -174,17 +199,11 @@ class PointsConnection:
 
 
 class LineSegment:
-    """
-    Class for storing the physical realization of a linkage as their motion equations.
+    """Represent a physical line segment produced by two moving points.
 
-    :ivar NormalizedLine equation: The equation of the line segment under the motion
-    :ivar PointHomogeneous point0: The equation of the first point of the line segment
-    :ivar PointHomogeneous point1: The equation of the second point of the line segment
-    :ivar str type: The type of the line segment (b - base, j - joint, l - link,
-        t - tool)
-    :ivar int factorization_idx: The index of the factorization the line segment
-        belongs to
-    :ivar int idx: The index of the line segment in the factorization
+    A LineSegment stores parametric point expressions (typically
+    :class:`PointHomogeneous` instances with parameter t) for its endpoints and
+    bookkeeping metadata such as type and factorization indices.
     """
     # Class-level registry to store all instances
     _registry = {}
@@ -211,17 +230,33 @@ class LineSegment:
 
     @classmethod
     def get_by_id(cls, segment_id):
-        """Get a line segment by its ID"""
+        """Return a previously created LineSegment by its identifier.
+
+        Parameters
+        ----------
+        segment_id
+            The identifier string of the segment (for example ``'l_01'``).
+        """
         return cls._registry.get(segment_id)
 
     @classmethod
     def get_all(cls):
-        """Get all registered line segments"""
+        """Return the registry of all created line segments.
+
+        Returns
+        -------
+        dict
+            Mapping from segment id to :class:`LineSegment` instance.
+        """
         return cls._registry
 
     @classmethod
     def reset_counter(cls):
-        """Reset the counter for the next run"""
+        """Reset the internal creation counter and clear the registry.
+
+        Use this when constructing multiple mechanisms in the same process to
+        avoid id collisions.
+        """
         cls._id_counter = 0
         cls._registry.clear()
 
@@ -229,14 +264,23 @@ class LineSegment:
         return self.id
 
     def is_point_in_segment(self, point: PointHomogeneous, t_val: float) -> bool:
-        """
-        Checks if the colliding point is in the line segment.
+        """Check whether a 3D point lies on the segment at parameter ``t_val``.
 
-        :param PointHomogeneous point: The point
-        :param float t_val: The parameter of collision point
+        The endpoints of the segment are evaluated at ``t_val`` and the point
+        is considered part of the segment when the sum of distances from the
+        endpoints equals the segment length within numerical tolerance.
 
-        :return: True if the point is in the line segment, False otherwise
-        :rtype: bool
+        Parameters
+        ----------
+        point
+            A :class:`PointHomogeneous` representing the query point.
+        t_val
+            Parameter value at which the segment endpoints are evaluated.
+
+        Returns
+        -------
+        bool
+            True if the point lies on the segment, False otherwise.
         """
         # evaluate the connections points at the parameter t
         p0 = self.point0.evaluate(t_val).evalf()
@@ -257,11 +301,17 @@ class LineSegment:
             return False
 
     def get_plot_data(self) -> tuple:
-        """
-        Returns the plot data of the line segment.
+        """Return arrays suitable for plotting the moving line segment.
 
-        :return: The plot data
-        :rtype: tuple
+        The function samples the segment endpoints over a finite parameter
+        interval and returns three 2xN arrays containing the X, Y and Z
+        coordinates for both endpoints. These arrays can be plotted as a mesh
+        to display the moving segment.
+
+        Returns
+        -------
+        tuple
+            ``(x, y, z)`` arrays where each array has shape (2, N).
         """
         steps = 30
         t_space = np.tan(np.linspace(-np.pi/2, np.pi/2, steps + 1))

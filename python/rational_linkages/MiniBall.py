@@ -9,12 +9,20 @@ class MiniBall:
                  points: list[PointHomogeneous],
                  metric: "AffineMetric" = None,
                  method: str = 'welzl'):
-        """
-        Initialize the MiniBall class
+        """Initialize the miniball covering for a point set.
 
-        :param list[PointHomogeneous] points: array of points in the space
-        :param AffineMetric metric: alternative metric to be used for the ball
-        :param str method: method to be used for finding the smallest ball
+        Parameters
+        ----------
+        points
+            Sequence of :class:`PointHomogeneous` instances to be enclosed.
+        metric, optional
+            Optional :class:`AffineMetric` instance specifying a non-Euclidean
+            distance. If ``None`` (or the string ``'euclidean'``), the
+            Euclidean metric is used.
+        method, optional
+            Algorithm to compute the ball. Supported values include
+            ``'welzl'`` (incremental miniball) and ``'minimize'`` (numerical
+            optimization).
         """
         self.points = points
 
@@ -38,8 +46,18 @@ class MiniBall:
         self.center, self.radius_squared = self.get_ball(method='welzl')
 
     def get_ball(self, method: str = 'minimize'):
-        """
-        Find the smallest ball containing all given points in Euclidean metric
+        """Compute the smallest enclosing ball for the current points.
+
+        Parameters
+        ----------
+        method, optional
+            Algorithm to use; see ``__init__`` for supported options.
+
+        Returns
+        -------
+        (PointHomogeneous, float)
+            Tuple with the ball center (as :class:`PointHomogeneous`) and the
+            squared radius.
         """
         if method == 'minimize':
             result = self.get_ball_minimize()
@@ -54,8 +72,16 @@ class MiniBall:
         return PointHomogeneous(center), radius_squared
 
     def get_ball_minimize(self):
-        """
-        Find the smallest ball containing all given points using optimization
+        """Compute the smallest enclosing ball by numerical optimization.
+
+        Uses :mod:`scipy.optimize.minimize` to find a center and radius that
+        satisfy inequality constraints for all input points under the chosen
+        metric.
+
+        Returns
+        -------
+        OptimizeResult
+            The SciPy optimization result object produced by ``minimize``.
         """
         try:
             from scipy.optimize import minimize  # lazy import
@@ -71,10 +97,10 @@ class MiniBall:
         # Prepare constraint equations based on the metric
         if self.metric_type == "hofer":
             def constraint_equations(x):
-                """
-                For Hofer metric, constraint equations must satisfy the ball by:
-                r - radius of the sphere, x - one of given points,
-                c - center of the sphere
+                """Inequality constraints for the Hofer metric.
+
+                The returned array should be non-negative when ``x`` defines a
+                valid enclosing ball: each entry equals r^2 - d(point, center).
                 """
                 constraints = np.zeros(self.number_of_points)
 
@@ -85,11 +111,10 @@ class MiniBall:
                 return constraints
         else:
             def constraint_equations(x):
-                """
-                For Euclidean metric, constraint equations must satisfy the ball by:
-                r^2 - (x - c)^2 >= 0
-                r - radius of the sphere, x - one of given points,
-                c - center of the sphere
+                """Inequality constraints for the Euclidean metric.
+
+                Each returned value corresponds to r^2 - ||point - center||^2
+                and must be non-negative for a valid ball.
                 """
                 constraints = np.zeros(self.number_of_points)
                 for i in range(self.number_of_points):
@@ -115,13 +140,20 @@ class MiniBall:
         return result
 
     def get_plot_data(self) -> tuple:
-        """
-        Get data for plotting in 3D space
+        """Return arrays for plotting the ball surface in 3D.
 
-        :return: x, y, z coordinates of the ball surface
-        :rtype: tuple
+        The method supports embedding the homogeneous point representation in
+        3D space for the specific internal dimensions used by the project.
 
-        :raises ValueError: if the dimension is not 4 or 13
+        Returns
+        -------
+        tuple
+            Arrays ``(x, y, z)`` suitable for surface plotting.
+
+        Raises
+        ------
+        ValueError
+            If the underlying point dimension is not supported for plotting.
         """
         if self.dimension == 4 or self.dimension == 13:
             # Create the 3D sphere representing the circle
@@ -140,14 +172,20 @@ class MiniBall:
         return x, y, z
 
     def get_circumsphere(self, points: np.ndarray, metric: AffineMetric = None):
-        """
-        Computes the circumsphere of a set of points
+        """Compute the circumsphere (unique sphere passing through given points).
 
-        :param np.ndarray points: array of points in the space
-        :param AffineMetric metric: alternative metric to be used for the ball
+        Parameters
+        ----------
+        points
+            An array of points (shape (k, D)) used to compute the circumsphere.
+        metric, optional
+            Optional :class:`AffineMetric` to measure distances; if ``None``
+            Euclidean distances are used.
 
-        :return: center and the squared radius of the circumsphere
-        :rtype: (np.ndarray, float)
+        Returns
+        -------
+        (np.ndarray, float)
+            Tuple with the circumsphere center and its squared radius.
         """
         # calculate vectors from the first point to all other points (redefine origin)
         u = points[1:] - points[0]
@@ -180,18 +218,26 @@ class MiniBall:
                           metric: AffineMetric = None,
                           epsilon: float = 1e-7,
                           rng=np.random.default_rng()):
-        """
-        Computes the smallest bounding ball of a set of points
+        """Compute the smallest enclosing ball using an iterative (Welzl-like)
+        algorithm implemented with an explicit traversal.
 
-        :param np.ndarray points: array of points in the space
-        :param AffineMetric metric: alternative metric to be used for the ball
-        :param float epsilon: tolerance used when testing if a set of point belongs to
-            the same sphere, default is 1e-7
-        :param numpy.random.Generator rng: pseudo-random number generator used internally,
-            default is the default one provided by numpy
+        Parameters
+        ----------
+        points
+            Array of input points with shape (N, D).
+        metric, optional
+            Optional :class:`AffineMetric` specifying the distance measure.
+        epsilon, optional
+            Numerical tolerance used to test if points lie on a candidate
+            sphere.
+        rng, optional
+            NumPy random Generator used to select random pivots during the
+            traversal.
 
-        :return: center and the squared radius of the circumsphere
-        :rtype: (np.ndarray, float)
+        Returns
+        -------
+        (np.ndarray, float)
+            The computed center and squared radius of the enclosing ball.
         """
 
         def circle_contains(ball, point):

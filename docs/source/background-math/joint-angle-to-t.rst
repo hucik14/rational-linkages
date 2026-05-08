@@ -3,6 +3,9 @@
 Joint Angle to Curve Parameter
 ==============================
 
+The detailed description can be found in the paper "Direct Kinematics, Inverse Kinematics,
+and Motion Planning of 1-DoF Rational Linkages" by Huczala, Mair, and Postulka :footcite:`Huczala2025kinematics`.
+
 The packages uses rational motion parametrization, i.e. every curve :math:`C(t)` is
 defined by a list of linear factors (parametric equations) in Dual Quaternion space :math:`\mathbb{DH}`
 of the form:
@@ -54,3 +57,9 @@ parameter as an argument and returns the joint angle
 
 .. math::
    \theta = 2\mathrm{arctan}\Bigg(\frac{\sqrt{q_1^2 + q_2^2 + q_3^2}}{t - q_0}\Bigg)
+
+
+**References:**
+
+.. footbibliography::
+
