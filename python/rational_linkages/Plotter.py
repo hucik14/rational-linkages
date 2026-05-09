@@ -11,7 +11,8 @@ class Plotter:
     Parameters
     ----------
     mechanism
-        Optional :class:`RationalMechanism` instance used by an interactive
+        Optional :class:`~rational_linkages.RationalMechanism.RationalMechanism`
+        instance used by an interactive
         plotter. If provided and ``jupyter_notebook`` is False an
         interactive widget is created.
     base
@@ -61,11 +62,14 @@ class Plotter:
             Label for plotted object(s). For a list of objects, pass a list of
             labels of matching length.
         ``interval`` : tuple or ``'closed'``
-            Parameter interval used for :class:`RationalCurve` and
-            :class:`RationalBezier`. If set to ``'closed'``, the curve will
+            Parameter interval used for
+            :class:`~rational_linkages.RationalCurve.RationalCurve`
+            and
+            :class:`~rational_linkages.RationalBezier.RationalBezier`.
+            If set to ``'closed'``, the curve will
             be plotted using tangent function in full scale, including t -> inf.
         ``with_poses`` : bool
-            Show poses for :class:`RationalCurve`.
+            Show poses for :class:`~rational_linkages.RationalCurve.RationalCurve`.
         ``t`` : float
             Mechanism/factorization configuration parameter.
 
