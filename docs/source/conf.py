@@ -76,7 +76,7 @@ html_allow_raw_html = True
 
 bibtex_bibfiles = ['refs.bib']
 
-nitpicky = False
+nitpicky = True
 nitpick_ignore = [
     ('py:class', 'np.ndarray'),
     ('py:class', 'numpy.ndarray'),
@@ -89,7 +89,7 @@ nitpick_ignore = [
     ('py:class', 'sp.Rational'),
     ('py:class', 'bq.Poly'),
     ('py:class', 'gl.GLViewWidget'),
-    ('py:class', 'PyQt5.QtWidgets.QWidget'),
+    ('py:class', 'PyQt6.QtWidgets.QWidget'),
 ]
 
 # NumPy docstring style
