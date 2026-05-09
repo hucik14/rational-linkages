@@ -9,6 +9,9 @@ from .PointHomogeneous import PointHomogeneous
 from .RationalCurve import RationalCurve
 
 
+AffineMetric = "AffineMetric"
+
+
 class RationalBezier(RationalCurve):
     """
     Class representing rational Bezier curves in n-dimensional space.
@@ -199,7 +202,7 @@ class BezierSegment:
     def __init__(self,
                  control_points: list[PointHomogeneous],
                  t_param: tuple[bool, list[float]] = (False, [0, 1]),
-                 metric: "AffineMetric" = None):
+                 metric: AffineMetric = None):
         self.control_points = control_points
         self.t_param_of_motion_curve = t_param
         self._metric = metric
@@ -253,8 +256,8 @@ class BezierSegment:
             return self._metric
 
     @metric.setter
-    def metric(self, metric: "AffineMetric"):
-        from .AffineMetric import AffineMetric  # lazy import
+    def metric(self, metric: AffineMetric):
+        from rational_linkages.AffineMetric import AffineMetric  # lazy import
 
         if isinstance(metric, AffineMetric):
             self._metric = metric

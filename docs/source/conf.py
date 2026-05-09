@@ -1,10 +1,17 @@
 import os
 import sys
 import toml
+from docutils.parsers.rst import Directive, directives
 
 
-# Set an environment variable for skipping doctest
-# os.environ['SKIP_DOCTEST'] = 'True'
+class DummyDirective(Directive):
+    """To handle sphinx unknown directive"""
+    has_content = True
+    def run(self):
+        return []
+
+# register '.. clear-namespace::' directive from Sybil to Sphinx
+directives.register_directive('clear-namespace', DummyDirective)
 
 docs_source_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(docs_source_dir, '..', '..'))
@@ -54,9 +61,13 @@ extensions = [
     'sphinx.ext.intersphinx',
     'nbsphinx',
     'sphinx.ext.viewcode',
-    'sphinx_autodoc_typehints',
+    # 'sphinx_autodoc_typehints',
     'sphinxcontrib.bibtex',
     'sphinx_copybutton',
+]
+
+suppress_warnings = [
+    'autodoc.mocked_object',
 ]
 
 # for 3D visualization
@@ -65,7 +76,7 @@ html_allow_raw_html = True
 
 bibtex_bibfiles = ['refs.bib']
 
-nitpicky = True
+nitpicky = False
 nitpick_ignore = [
     ('py:class', 'np.ndarray'),
     ('py:class', 'numpy.ndarray'),
@@ -75,6 +86,7 @@ nitpick_ignore = [
     ('py:class', 'sp.Symbol'),
     ('py:class', 'sp.Poly'),
     ('py:class', 'sp.Matrix'),
+    ('py:class', 'sp.Rational'),
     ('py:class', 'bq.Poly'),
     ('py:class', 'gl.GLViewWidget'),
     ('py:class', 'PyQt5.QtWidgets.QWidget'),
@@ -89,16 +101,39 @@ napoleon_use_rtype = False  # handled by sphinx-autodoc-typehints
 autodoc_typehints = "description"
 autodoc_member_order = "bysource"
 
-intersphinx_mapping = {'python': ('http://docs.python.org/3', None),
-                       'numpy': ('http://docs.scipy.org/doc/numpy', None),
-                       'scipy': ('http://docs.scipy.org/doc/scipy/reference', None),
-                       'matplotlib': ('http://matplotlib.org/stable', None),
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
+                       'numpy': ('https://docs.scipy.org/doc/numpy', None),
+                       'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
+                       'matplotlib': ('https://matplotlib.org/stable', None),
                        'sympy': ('https://docs.sympy.org/latest/', None),
                        'biquaternion_py': ('https://biquaternion-py.readthedocs.io/en/latest/', None),
                        'PyQt6': ('https://www.riverbankcomputing.com/static/Docs/PyQt6/', None),
                        'pyqt6': ('https://doc.qt.io/qtforpython-6/', None),
                        'pyqtgraph': ('https://pyqtgraph.readthedocs.io/en/latest/', None),
                        }
+
+
+autodoc_type_aliases = {
+    'CollisionFreeOptimization': 'rational_linkages.CollisionFreeOptimization.CollisionFreeOptimization',
+    'DualQuaternion': 'rational_linkages.DualQuaternion.DualQuaternion',
+    'ExudynAnalysis': 'rational_linkages.ExudynAnalysis.ExudynAnalysis',
+    'LineSegment': 'rational_linkages.Linkage.LineSegment',
+    'Linkage': 'rational_linkages.Linkage.Linkage',
+    'PointsConnection': 'rational_linkages.Linkage.PointsConnection',
+    'MotionDesigner': 'rational_linkages.MotionDesigner.MotionDesigner',
+    'MotionFactorization': 'rational_linkages.MotionFactorization.MotionFactorization',
+    'MotionInterpolation': 'rational_linkages.MotionInterpolation.MotionInterpolation',
+    'NormalizedLine': 'rational_linkages.NormalizedLine.NormalizedLine',
+    'NormalizedPlane': 'rational_linkages.NormalizedPlane.NormalizedPlane',
+    'Plotter': 'rational_linkages.Plotter.Plotter',
+    'PointHomogeneous': 'rational_linkages.PointHomogeneous.PointHomogeneous',
+    'Quaternion': 'rational_linkages.Quaternion.Quaternion',
+    'BezierSegment': 'rational_linkages.RationalBezier.BezierSegment',
+    'RationalBezier': 'rational_linkages.RationalBezier.RationalBezier',
+    'RationalCurve': 'rational_linkages.RationalCurve.RationalCurve',
+    'RationalMechanism': 'rational_linkages.RationalMechanism.RationalMechanism',
+    'TransfMatrix': 'rational_linkages.TransfMatrix.TransfMatrix',
+}
 
 html_theme = 'sphinx_rtd_theme'
 

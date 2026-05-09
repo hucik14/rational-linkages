@@ -36,6 +36,7 @@ class Quaternion:
 
     Examples
     --------
+
     .. code-block:: python
 
         from rational_linkages import Quaternion
@@ -45,6 +46,8 @@ class Quaternion:
         q = Quaternion([1.0, 2.0, 3.0, 4.0])
         print(identity)
         print(q)
+
+    .. clear-namespace::
 
     .. code-block:: python
 
@@ -323,6 +326,7 @@ class Quaternion:
         --------
 
         .. code-block:: python
+
             from rational_linkages import Quaternion
 
             q = Quaternion([1, 2, 3, 4])
@@ -348,6 +352,7 @@ class Quaternion:
         --------
 
         .. code-block:: python
+
             from rational_linkages import Quaternion
 
             q = Quaternion([1, 2, 3, 4])
@@ -375,6 +380,7 @@ class Quaternion:
         --------
 
         .. code-block:: python
+
             from rational_linkages import Quaternion
 
             q = Quaternion([1, 2, 3, 4])
@@ -399,6 +405,7 @@ class Quaternion:
         --------
 
         .. code-block:: python
+
             from rational_linkages import Quaternion
 
             q = Quaternion([1, 2, 3, 4])
@@ -423,6 +430,7 @@ class Quaternion:
         --------
 
         .. code-block:: python
+
             from rational_linkages import Quaternion
 
             q = Quaternion([1, 2, 3, 4])
@@ -434,7 +442,7 @@ class Quaternion:
         """
         return self.__class__(self.conjugate().q / self.norm())
 
-    def normalize(self):
+    def normalize(self) -> "Quaternion":
         """
         Normalize the quaternion to unit length.
 
@@ -447,6 +455,7 @@ class Quaternion:
         --------
 
         .. code-block:: python
+
             from rational_linkages import Quaternion
 
 
@@ -478,6 +487,7 @@ class Quaternion:
         Examples
         --------
         .. code-block:: python
+
             from rational_linkages import Quaternion
             from sympy import symbols
 

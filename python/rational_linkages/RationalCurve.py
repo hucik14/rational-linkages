@@ -9,6 +9,7 @@ from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
 
 MotionFactorization = "MotionFactorization"
+AffineMetric = "AffineMetric"
 
 
 class RationalCurve:
@@ -88,7 +89,7 @@ class RationalCurve:
     def __init__(self,
                  polynomials: list[sp.Poly],
                  coeffs: Union[np.ndarray, sp.Matrix] = None,
-                 metric: "AffineMetric" = None):
+                 metric: AffineMetric = None):
         """
         Initialize a RationalCurve object with the provided coefficients.
 
@@ -141,7 +142,7 @@ class RationalCurve:
             return self._metric
 
     @metric.setter
-    def metric(self, metric: "AffineMetric"):
+    def metric(self, metric: AffineMetric):
         """
         Set the metric for the mechanism.
 
@@ -155,7 +156,7 @@ class RationalCurve:
         TypeError
             If the metric is not of type AffineMetric, 'euclidean', or None.
         """
-        from .AffineMetric import AffineMetric  # lazy import
+        from rational_linkages.AffineMetric import AffineMetric  # lazy import
 
         if isinstance(metric, AffineMetric):
             self._metric = metric

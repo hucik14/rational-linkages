@@ -196,16 +196,17 @@ class PlotterMatplotlib:
         ----------
         objects_to_plot : NormalizedLine, PointHomogeneous, RationalMechanism, MotionFactorization, DualQuaternion, TransfMatrix, RationalCurve, RationalBezier, MiniBall, or list
             The object(s) to plot.
+
+        Other Parameters
+        ----------------
+        with_poses : bool, optional
+            If True, plot poses along a rational curve.
+        interval : str or tuple, optional
+            If 'closed', rational curve will be closed in the interval (tangent half-angle substitution).
+        show_tool : bool, optional
+            If True, plot the mechanism with tool frame.
         **kwargs
             Additional plotting options following matplotlib standards and syntax.
-            Optional keyword arguments:
-                with_poses : bool, optional
-                    If True, plot poses along a rational curve.
-                interval : str or tuple, optional
-                    If 'closed', rational curve will be closed in the interval (tangent half-angle substitution).
-                show_tool : bool, optional
-                    If True, plot the mechanism with tool frame.
-
         """
         # if list of objects, plot each object separately
         if isinstance(objects_to_plot, list):
