@@ -61,7 +61,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'nbsphinx',
     'sphinx.ext.viewcode',
-    # 'sphinx_autodoc_typehints',
+    'sphinx_autodoc_typehints',
     'sphinxcontrib.bibtex',
     'sphinx_copybutton',
 ]
@@ -96,6 +96,7 @@ nitpick_ignore = [
 napoleon_numpy_docstring = True
 napoleon_google_docstring = False
 napoleon_use_rtype = False  # handled by sphinx-autodoc-typehints
+napoleon_use_ivar = True  # avoid duplicate attribute objects with autodoc properties
 
 # Types go into parameter descriptions, not repeated in the signature
 autodoc_typehints = "description"

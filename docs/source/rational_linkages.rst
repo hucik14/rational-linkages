@@ -1,6 +1,14 @@
 Rational Linkages
 =================
 
+Backend Utilities
+-----------------
+
+.. automodule:: rational_linkages.backend
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 AffineMetric
 ------------
 
@@ -21,6 +29,14 @@ Dual Quaternion
 ---------------
 
 .. automodule:: rational_linkages.DualQuaternion
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Dual Quaternion Symbolic
+------------------------
+
+.. automodule:: rational_linkages.DualQuaternionSymbolic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -46,6 +62,7 @@ Factorization Provider
 
 .. automodule:: rational_linkages.FactorizationProvider
    :members:
+   :exclude-members: Rational, Symbol
    :undoc-members:
    :show-inheritance:
 
@@ -86,6 +103,7 @@ Motion Factorization
 
 .. automodule:: rational_linkages.MotionFactorization
    :members:
+   :exclude-members: Poly, Symbol
    :undoc-members:
    :show-inheritance:
 
@@ -105,10 +123,26 @@ Normalized Line
    :undoc-members:
    :show-inheritance:
 
+Normalized Line Symbolic
+------------------------
+
+.. automodule:: rational_linkages.NormalizedLineSymbolic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Normalized Plane
 ----------------
 
 .. automodule:: rational_linkages.NormalizedPlane
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Normalized Plane Symbolic
+-------------------------
+
+.. automodule:: rational_linkages.NormalizedPlaneSymbolic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -145,10 +179,26 @@ Point Homogeneous
    :undoc-members:
    :show-inheritance:
 
+Point Homogeneous Symbolic
+--------------------------
+
+.. automodule:: rational_linkages.PointHomogeneousSymbolic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Quaternion
 ----------
 
 .. automodule:: rational_linkages.Quaternion
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Quaternion Symbolic
+-------------------
+
+.. automodule:: rational_linkages.QuaternionSymbolic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -185,10 +235,18 @@ Static Mechanism
    :undoc-members:
    :show-inheritance:
 
-Transf Matrix
--------------
+Transformation Matrix
+---------------------
 
 .. automodule:: rational_linkages.TransfMatrix
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Transformation Matrix Symbolic
+------------------------------
+
+.. automodule:: rational_linkages.TransfMatrixSymbolic
    :members:
    :undoc-members:
    :show-inheritance:
