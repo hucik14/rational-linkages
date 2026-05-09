@@ -6,21 +6,51 @@ from .RationalMechanism import RationalMechanism
 
 class SingularityAnalysis:
     """
-    Singularity analysis algorithm of collision-free linkages by :footcite:t:`Li2020`.
+    Perform singularity analysis for collision-free linkages.
+
+    This class implements the singularity analysis algorithm as described in
+    :footcite:t:`Li2020`.
+
+    .. footbibliography::
+
     """
     def __init__(self):
+        """
+        Initialize the SingularityAnalysis class.
+        """
         pass
 
     def check_singularity(self, mechanism: RationalMechanism):
         """
-        Check for singularity in the mechanism.
+        Check for singularity in the given mechanism.
 
-        :param RationalMechanism mechanism: The mechanism to check for singularity
+        Parameters
+        ----------
+        mechanism : RationalMechanism
+            The mechanism to check for singularity.
+
+        Returns
+        -------
+        sympy.Basic
+            The sum of squared determinants of the Jacobian submatrices.
         """
         # check for singularity
         jacobian = self.get_jacobian(mechanism.segments)
 
         def get_submatrices(matrix):
+            """
+            Generate all submatrices by removing one row and one column.
+
+            Parameters
+            ----------
+            matrix : sympy.Matrix
+                The input matrix.
+
+            Returns
+            -------
+            list of sympy.Matrix
+                A list of submatrices.
+            """
             submatrices = []
             for row_to_remove in range(matrix.rows):
                 for col_to_remove in range(matrix.cols):
@@ -30,6 +60,19 @@ class SingularityAnalysis:
             return submatrices
 
         def sum_of_squared_determinants(matrix):
+            """
+            Compute the sum of squared determinants of all submatrices.
+
+            Parameters
+            ----------
+            matrix : sympy.Matrix
+                The input matrix.
+
+            Returns
+            -------
+            sympy.Basic
+                The sum of squared determinants.
+            """
             submatrices = get_submatrices(matrix)
             return sum(submatrix.det() ** 2 for submatrix in submatrices)
 
@@ -39,9 +82,17 @@ class SingularityAnalysis:
 
     def get_jacobian(self, segments: list[LineSegment]):
         """
-        Get the algebraic Jacobian matrix of the mechanism.
+        Compute the algebraic Jacobian matrix of the mechanism.
 
-        :param list[LineSegment] segments: The line segments of the mechanism.
+        Parameters
+        ----------
+        segments : list of LineSegment
+            The line segments of the mechanism.
+
+        Returns
+        -------
+        sympy.Matrix
+            The algebraic Jacobian matrix.
         """
         algebraic_plucker_coords = [joint.equation
                                     for joint in segments if joint.type == 'j']

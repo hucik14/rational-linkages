@@ -14,29 +14,34 @@ from .utils import dq_algebraic2vector
 
 class StaticMechanism(RationalMechanism):
     """
-    A class to represent a non-rational mechanism with a fixed number of joints
+    Represent a non-rational mechanism with a fixed number of joints.
 
-    This class is highly specialized and not intended for general use of Rational
-    Linkages package. It can be used e.g. for obtaining the design (DH parameters, etc.)
-    of a mechanism that has no rational parametrization.
-    The joints  are assembled in a fixed loop-closure configuration. They are defined
-    by a list of screw axes that are used to define the motion of the mechanism.
+    This class is highly specialized and not intended for general use of the
+    Rational Linkages package. It can be used, for example, to obtain the design
+    (e.g., DH parameters) of a mechanism that has no rational parametrization.
 
-    :param list[NormalizedLine] screw_axes: A list of screw axes that define the
-        kinematic structure of the mechanism.
+    The joints are assembled in a fixed loop-closure configuration and are defined
+    by a list of screw axes that specify the motion of the mechanism.
 
-    :ivar list[NormalizedLine] screws: A list of screw axes that define the kinematic
-        structure of the mechanism.
-    :ivar int num_joints: The number of joints in the mechanism.
+    Parameters
+    ----------
+    screw_axes : list of NormalizedLine
+        A list of screw axes that define the kinematic structure of the mechanism.
 
-    :examples:
+    Attributes
+    ----------
+    screws : list of NormalizedLine
+        A list of screw axes that define the kinematic structure of the mechanism.
+    num_joints : int
+        The number of joints in the mechanism.
 
+    Examples
+    --------
     .. literalinclude:: /examples/static_mechanism_4bar.py
         :language: python
 
     .. literalinclude:: /examples/static_mechanism_6bar.py
         :language: python
-
     """
     def __init__(self, screw_axes: list[NormalizedLine]):
         fake_factorization = [MotionFactorization([DualQuaternion()])]
@@ -54,18 +59,30 @@ class StaticMechanism(RationalMechanism):
         """
         Create a StaticMechanism from the DH parameters.
 
-        :param list theta: The joint angles
-        :param list d: The joint offsets
-        :param list a: The link lengths
-        :param list alpha: The link twists
-        :param str unit: The unit of the angles ('rad' or 'deg')
+        Parameters
+        ----------
+        theta : list
+            The joint angles.
+        d : list
+            The joint offsets.
+        a : list
+            The link lengths.
+        alpha : list
+            The link twists.
+        unit : str, optional
+            The unit of the angles ('rad' or 'deg'). Default is 'rad'.
 
-        :warning: If the DH parameters do no close the linkages by default, the created
-            mechanism will not be a closed loop - double check the last link design
+        Returns
+        -------
+        StaticMechanism
+            A StaticMechanism object.
+
+        Warns
+        -----
+        UserWarning
+            If the DH parameters do not close the linkages by default, the created
+            mechanism will not be a closed loop. Double-check the last link design
             parameters.
-
-        :return: A StaticMechanism object
-        :rtype: StaticMechanism
         """
         if unit == 'deg':
             theta = np.deg2rad(theta)
@@ -99,14 +116,19 @@ class StaticMechanism(RationalMechanism):
     @classmethod
     def from_ijk_representation(cls, ugly_axes: list):
         """
-        Create a StaticMechanism from list of algebraic equations.
+        Create a StaticMechanism from a list of algebraic equations.
 
-        The axis should have dual quaternion form containing i, j, k, epsilon.
+        The axes should have dual quaternion form containing i, j, k, and epsilon.
 
-        :param list ugly_axes: The screw axes of the mechanism.
+        Parameters
+        ----------
+        ugly_axes : list
+            The screw axes of the mechanism.
 
-        :return: A StaticMechanism object
-        :rtype: StaticMechanism
+        Returns
+        -------
+        StaticMechanism
+            A StaticMechanism object.
         """
         axes = []
         for axis in ugly_axes:
@@ -121,44 +143,45 @@ class StaticMechanism(RationalMechanism):
 
         return cls(axes)
 
-
     def get_screw_axes(self) -> list[NormalizedLine]:
         """
-        Method override
+        Get the screw axes of the mechanism.
 
-        Get the screw axes of the mechanism. Overrides the method from the parent class.
+        Overrides the method from the parent class.
+
+        Returns
+        -------
+        list of NormalizedLine
+            The screw axes of the mechanism.
         """
         return self.screws
 
 
 class SnappingMechanism(StaticMechanism):
     """
-    Non-rational mechanism with a fixed number of discrete poses (snap points)
+    Represent a non-rational mechanism with a fixed number of discrete poses (snap points).
 
-    This class is highly specialized and not intended for general use of Rational
-    Linkages package. It can be used e.g. for obtaining the design (DH parameters, etc.)
-    of a mechanism that has no rational parametrization.
-    The joints  are assembled in a fixed loop-closure configuration. They are defined
-    by a list of screw axes that are used to define the motion of the mechanism.
+    This class is highly specialized and not intended for general use of the
+    Rational Linkages package. It can be used, for example, to obtain the design
+    (e.g., DH parameters) of a mechanism that has no rational parametrization.
 
-    Create a SnappingMechanism for a given pose.
-
-    The mechanism will snap between origin and the pose. See figure below for the
-    axes ordering.
+    The joints are assembled in a fixed loop-closure configuration and are defined
+    by a list of screw axes that specify the motion of the mechanism.
 
     .. figure:: ../../docs/source/figures/snapping.svg
 
-    :param  Union[TransfMatrix, DualQuaternion] pose: The second pose of
-            the mechanism in which it snaps to (first is identity)
-    :param list[PointHomogeneous] points: The points on the mechanism that
-        specify the axes 2 and 3. Ordering of points is important, since the axes
-        2 defines axis 1 and axes 3 defines axis 0.
+    Parameters
+    ----------
+    pose : Union[TransfMatrix, DualQuaternion]
+        The second pose of the mechanism to which it snaps (the first pose is identity).
+    points : list of PointHomogeneous
+        The points on the mechanism that specify axes 2 and 3. The ordering of points
+        is important, as axis 2 defines axis 1, and axis 3 defines axis 0.
 
-    :examples:
-
+    Examples
+    --------
     .. literalinclude:: /examples/snapping_mechanism.py
         :language: python
-
     """
     def __init__(self,
                  pose: Union[TransfMatrix, DualQuaternion],
@@ -197,13 +220,21 @@ class SnappingMechanism(StaticMechanism):
         """
         Get the snapping axis between two points.
 
-        :param PointHomogeneous a: The first point on the axis
-        :param PointHomogeneous a_t: The transformed first point on the axis
-        :param PointHomogeneous b: The second point on the axis
-        :param PointHomogeneous b_t: The transformed second point on the axis
+        Parameters
+        ----------
+        a : PointHomogeneous
+            The first point on the axis.
+        a_t : PointHomogeneous
+            The transformed first point on the axis.
+        b : PointHomogeneous
+            The second point on the axis.
+        b_t : PointHomogeneous
+            The transformed second point on the axis.
 
-        :return: A tuple containing the snapping axis and the point on the axis
-        :rtype: tuple[NormalizedLine, PointHomogeneous]
+        Returns
+        -------
+        tuple of (NormalizedLine, PointHomogeneous)
+            A tuple containing the snapping axis and the point on the axis.
         """
         # midpoints between point on axis and its transformed version
         a_mid = PointHomogeneous((a.array() + a_t.array()) / 2).normalized_euclidean()
@@ -223,7 +254,3 @@ class SnappingMechanism(StaticMechanism):
 
         return (NormalizedLine.from_direction_and_point(axis_dir, pt),
                 PointHomogeneous.from_3d_point(pt))
-
-
-
-

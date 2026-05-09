@@ -20,17 +20,23 @@ class RationalMechanism(RationalCurve):
     """
     Class representing rational mechanisms in dual quaternion space.
 
-    :ivar list factorizations: list of MotionFactorization objects
-    :ivar int num_joints: number of joints in the mechanism
-    :ivar bool is_linkage: True if the mechanism is a linkage, False if it is 1 branch
-        of a linkage
-    :ivar DualQuaternion tool_frame: end effector of the mechanism
-    :ivar AffineMetric metric: object representing the metric of the mechanism
-    :ivar LineSegment segments: list of LineSegment objects representing the physical
-        realization of the linkage
+    Attributes
+    ----------
+    factorizations : list of MotionFactorization
+        List of MotionFactorization objects.
+    num_joints : int
+        Number of joints in the mechanism.
+    is_linkage : bool
+        True if the mechanism is a linkage, False if it is one branch of a linkage.
+    tool_frame : DualQuaternion
+        End effector of the mechanism.
+    metric : AffineMetric
+        Object representing the metric of the mechanism.
+    segments : list of LineSegment
+        List of LineSegment objects representing the physical realization of the linkage.
 
-    :examples:
-
+    Examples
+    --------
     .. code-block:: python
 
         # Create a rational mechanism from given example
@@ -42,7 +48,7 @@ class RationalMechanism(RationalCurve):
         # load the model of the Bennett's linkage
         m = bennett_ark24()
 
-        # create an interactive plotter object, with 500 descrete steps
+        # create an interactive plotter object, with 500 discrete steps
         # for the input rational curves, and arrows scaled to 0.05 length
         p = Plotter(mechanism=m, steps=500, arrows_length=0.05)
 
@@ -64,7 +70,14 @@ class RationalMechanism(RationalCurve):
     def __init__(self, factorizations: list[MotionFactorization],
                  tool: Union[DualQuaternion, str] = None):
         """
-        Initializes a RationalMechanism object
+        Initialize a RationalMechanism object.
+
+        Parameters
+        ----------
+        factorizations : list of MotionFactorization
+            List of MotionFactorization objects.
+        tool : DualQuaternion or str, optional
+            Tool frame of the mechanism. Default is None.
         """
         super().__init__(factorizations[0].set_of_polynomials)
         self.factorizations = factorizations
@@ -87,8 +100,15 @@ class RationalMechanism(RationalCurve):
 
         Line segments are the physical realization of the linkage.
 
-        :return: list of LineSegment objects
-        :rtype: list[LineSegment]
+        Returns
+        -------
+        list of LineSegment
+            List of LineSegment objects.
+
+        Raises
+        ------
+        ValueError
+            If segments are accessed for non-linkages.
         """
         if self._segments is None and self.is_linkage:
             self._segments = self._get_line_segments_of_linkage()
@@ -103,6 +123,11 @@ class RationalMechanism(RationalCurve):
         Define a metric in R12 for the mechanism.
 
         This metric is used for collision detection.
+
+        Returns
+        -------
+        AffineMetric
+            Metric object for the mechanism.
         """
         if self._metric is None:
             from .AffineMetric import AffineMetric  # lazy import
@@ -117,6 +142,11 @@ class RationalMechanism(RationalCurve):
     def linear_motions_cycle(self):
         """
         A cycle of linear motions of the mechanism.
+
+        Returns
+        -------
+        list of DualQuaternion
+            Cycle of linear motions.
         """
         if self._linear_motions_cycle is None:
             # init linear motions
@@ -136,12 +166,20 @@ class RationalMechanism(RationalCurve):
         """
         Load a linkage object from a file.
 
-        :param str filename: name of the file to load the linkage object from
+        Parameters
+        ----------
+        filename : str
+            Name of the file to load the linkage object from.
 
-        :return: linkage object
-        :rtype: RationalMechanism
+        Returns
+        -------
+        RationalMechanism
+            Loaded linkage object.
 
-        :raises FileNotFoundError: if the file was not possible to load
+        Raises
+        ------
+        FileNotFoundError
+            If the file was not found or could not be loaded.
         """
         # check if the filename has the .pkl extension
         if filename[-4:] != '.pkl':
@@ -160,7 +198,10 @@ class RationalMechanism(RationalCurve):
         """
         Save the linkage object to a file.
 
-        :param str filename: name of the file to save the linkage object to
+        Parameters
+        ----------
+        filename : str, optional
+            Name of the file to save the linkage object to. Default is 'saved_mechanism.pkl'.
         """
         if filename is None:
             filename = 'saved_mechanism.pkl'
@@ -179,8 +220,20 @@ class RationalMechanism(RationalCurve):
         """
         Determine the tool frame of the mechanism.
 
-        :return: tool frame of the mechanism
-        :rtype: DualQuaternion
+        Parameters
+        ----------
+        tool : DualQuaternion, None, or str
+            Tool frame specification.
+
+        Returns
+        -------
+        DualQuaternion
+            Tool frame of the mechanism.
+
+        Raises
+        ------
+        ValueError
+            If the tool parameter is invalid.
         """
         if tool is None:
             return DualQuaternion(self.evaluate(0, inverted_part=True))
@@ -220,36 +273,33 @@ class RationalMechanism(RationalCurve):
                    return_point_homogeneous: bool = False,
                    update_design: bool = False,
                    pretty_print: bool = True,
-                   onshape_print: bool = False,
-                   ) -> tuple[np.ndarray, np.ndarray, list]:
+                   onshape_print: bool = False) -> tuple[np.ndarray, np.ndarray, list]:
         """
         Get the design parameters of the linkage for the CAD model.
 
-        The parameters are in the order: d, a, alpha, connection0,
-        connection1, for every link.
+        Parameters
+        ----------
+        unit : str, optional
+            Desired unit of the angle parameters, can be 'deg' or 'rad'. Default is 'rad'.
+        scale : float, optional
+            Scale of the length parameters of the linkage. Default is 1.0.
+        joint_length : float, optional
+            Length of the joint segment in meters. Default is 0.02.
+        washer_length : float, optional
+            Length of the washer in meters. Default is 0.001.
+        return_point_homogeneous : bool, optional
+            If True, return the design points as PointHomogeneous objects. Default is False.
+        update_design : bool, optional
+            If True, update the design of the mechanism. Default is False.
+        pretty_print : bool, optional
+            If True, print the parameters in a readable form. Default is True.
+        onshape_print : bool, optional
+            If True, print the parameters in a form that can be directly copied to Onshape. Default is False.
 
-        :param str unit: desired unit of the angle parameters, can be 'deg' or 'rad'
-        :param float scale: scale of the length parameters of the linkage
-        :param float joint_length: length of the joint segment in mm; default is 0.02 m
-            (20 mm) which corresponds to the CAD model that connects two 20 mm joint
-            parts and has 0.001 m (1 mm) thick washer between. Total length of the
-            joint is 41 mm. It is used to calculate a midpoint distance between
-            the two links that connect.
-        :param float washer_length: length of the washer in mm; default is 1 mm
-        :param bool return_point_homogeneous: if True, return the design points as
-            PointHomogeneous objects, otherwise return them as 3D numpy arrays
-        :param bool update_design: if True, update the design of the mechanism
-            (including joint segments)
-        :param bool pretty_print: if True, print the parameters in a readable form,
-            otherwise return a numpy array
-        :param bool onshape_print: if True, print the parameters in a form that can be
-            directly copied to Onshape
-
-        :return: design parameters of the linkage (dh, design_params, design_points)
-            dh - Denavit-Hartenberg parameters of the linkage, design_params - point
-            parameters on the joint axes in respect to the screw, design_points - points
-            on the joint axes
-        :rtype: tuple (np.ndarray, np.ndarray, list)
+        Returns
+        -------
+        tuple of (np.ndarray, np.ndarray, list)
+            Design parameters of the linkage.
         """
         screws = deepcopy(self.get_screw_axes())
         screws.append(screws[0])
@@ -336,8 +386,10 @@ class RationalMechanism(RationalCurve):
         """
         Get the connection parameters of the linkage.
 
-        :return: connection points of the linkage
-        :rtype: np.ndarray
+        Returns
+        -------
+        np.ndarray
+            Connection points of the linkage.
         """
         connection_params = np.zeros((self.num_joints, 2))
         for i in range(len(self.factorizations[0].linkage)):
@@ -362,16 +414,23 @@ class RationalMechanism(RationalCurve):
 
         See more in the paper by :footcite:t:`Huczala2022iccma`.
 
-        :param str unit: desired unit of the angle parameters, can be 'deg', 'rad', or
-            'tanhalf' for tangent half-angle representation
-        :param float scale: scale of the length parameters of the linkage
-        :param bool include_base: if True, identity frame will be placed at the
-            beginning of the list of frames
-
-        :return: theta, d, a, alpha array of Denavit-Hartenberg parameters
-        :rtype: np.ndarray
-
         .. footbibliography::
+
+        Parameters
+        ----------
+        unit : str, optional
+            Desired unit of the angle parameters, can be 'deg', 'rad', or
+            'tanhalf' for tangent half-angle representation. Default is 'rad'.
+        scale : float, optional
+            Scale of the length parameters of the linkage. Default is 1.0.
+        include_base : bool, optional
+            If True, identity frame will be placed at the beginning of the list of frames.
+            Default is False.
+
+        Returns
+        -------
+        np.ndarray
+            Theta, d, a, alpha array of Denavit-Hartenberg parameters.
 
         """
         frames = deepcopy(self.get_frames(include_base=include_base))
@@ -401,11 +460,16 @@ class RationalMechanism(RationalCurve):
         base frame, and the last frame is an updated frame of the first joint that
         follows the DH convention in respect to the last joint's frame.
 
-        :param bool include_base: if True, identity frame will be placed at the
-            beginning of the list of frames
+        Parameters
+        ----------
+        include_base : bool, optional
+            If True, identity frame will be placed at the beginning of the list of frames.
+            Default is False.
 
-        :return: list of TransfMatrix objects
-        :rtype: list[TransfMatrix]
+        Returns
+        -------
+        list of TransfMatrix
+            List of TransfMatrix objects.
         """
         from .TransfMatrix import TransfMatrix  # lazy import
 
@@ -472,8 +536,10 @@ class RationalMechanism(RationalCurve):
         """
         Get the frames of the linkage in the global coordinate system.
 
-        :return: list of TransfMatrix objects
-        :rtype: list[TransfMatrix]
+        Returns
+        -------
+        list of TransfMatrix
+            List of TransfMatrix objects.
         """
         local_frames = self.get_frames(include_base=True)[1:]
         global_frames = [TransfMatrix()]
@@ -490,8 +556,10 @@ class RationalMechanism(RationalCurve):
         The lines are in home configuration. They consist of two factorizations, and
         the second factorization axes must be reversed.
 
-        :return: list of NormalizedLine objects
-        :rtype: list[NormalizedLine]
+        Returns
+        -------
+        list of NormalizedLine
+            List of NormalizedLine objects.
         """
         screws = []
         for axis in self.factorizations[0].dq_axes:
@@ -509,13 +577,17 @@ class RationalMechanism(RationalCurve):
         """
         Map the connection parameters to the given joint length.
 
-        :param np.ndarray connection_params: list of connection points parameters of the
-            linkage
-        :param float midpoints_distance: distance between the midpoints of the two links
-            that connect at a joint
+        Parameters
+        ----------
+        connection_params : np.ndarray
+            List of connection points parameters of the linkage.
+        midpoints_distance : float
+            Distance between the midpoints of the two links that connect at a joint.
 
-        :return: mapped connection points parameters
-        :rtype: np.ndarray
+        Returns
+        -------
+        np.ndarray
+            Mapped connection points parameters.
         """
         c_params = np.asarray(connection_params)
 
@@ -533,14 +605,17 @@ class RationalMechanism(RationalCurve):
         """
         Map the joint segment to the scale of the linkage.
 
-        :param np.ndarray points_params: list of connection points parameters of the
-            joint segment
+        Parameters
+        ----------
+        points_params : np.ndarray
+            List of connection points parameters of the joint segment.
+        midpoints_distance : float
+            Distance between the midpoints of the two links that connect at a joint.
 
-        :param float midpoints_distance: distance between the midpoints of the two links
-            that connect at a joint
-
-        :return: mapped joint segment
-        :rtype: np.ndarray
+        Returns
+        -------
+        np.ndarray
+            Mapped joint segment.
         """
 
         def map_interval(input_interval, max_length):
@@ -573,16 +648,21 @@ class RationalMechanism(RationalCurve):
         faster for 4-bar linkages and 6-bar lingakes with a "simpler" motion curve,
         but slower for 6-bar linkages with "complex" motions.
 
-        :param bool parallel: if True, perform collision check in parallel using
-            multiprocessing
-        :param bool pretty_print: if True, print the results in a readable form
-        :param bool only_links: if True, only link-link collisions are checked,
-            expecting that distances between joint connection points are minimal
-        :param bool terminate_on_first: if True, terminate the collision check when
-            the first collision is found
+        Parameters
+        ----------
+        parallel : bool, optional
+            If True, perform collision check in parallel using multiprocessing. Default is False.
+        pretty_print : bool, optional
+            If True, print the results in a readable form. Default is True.
+        only_links : bool, optional
+            If True, only link-link collisions are checked. Default is False.
+        terminate_on_first : bool, optional
+            If True, terminate the collision check when the first collision is found. Default is False.
 
-        :return: list of collision check colliding parameter values
-        :rtype: list[float]
+        Returns
+        -------
+        list of float
+            List of collision check colliding parameter values.
         """
         start_time = time()
         print("Collision check started...")
@@ -650,10 +730,15 @@ class RationalMechanism(RationalCurve):
         Slower for 4-bar linkages and 6-bar lingakes with a "simpler" motion curve,
         faster for 6-bar linkages with "complex" motions.
 
-        :param list iters: list of tuples of indices of the line segments to be checked
+        Parameters
+        ----------
+        iters : list of tuple[int, int]
+            List of tuples of indices of the line segments to be checked.
 
-        :return: list of collision check results
-        :rtype: list[str]
+        Returns
+        -------
+        list of collision check results
+            List of collision check results.
         """
         print("--- running in parallel ---")
         import concurrent.futures
@@ -671,12 +756,17 @@ class RationalMechanism(RationalCurve):
         Default option. Faster for 4-bar linkages and 6-bar lingakes with a "simpler"
         motion curve, slower for 6-bar linkages with "complex" motions.
 
-        :param list iters: list of tuples of indices of the line segments to be checked
-        :param bool terminate_on_first: if True, terminate the collision check when
-            the first collision is found
+        Parameters
+        ----------
+        iters : list of tuple[int, int]
+            List of tuples of indices of the line segments to be checked.
+        terminate_on_first : bool, optional
+            If True, terminate the collision check when the first collision is found. Default is False.
 
-        :return: list of collision check results
-        :rtype: list[str]
+        Returns
+        -------
+        list of collision check results
+            List of collision check results.
         """
         results = []
         for val in iters:
@@ -690,10 +780,15 @@ class RationalMechanism(RationalCurve):
         """
         Perform collision check for a given pair of line segments and evaluate it.
 
-        :param tuple iters: tuple of indices of the line segments to be checked
+        Parameters
+        ----------
+        iters : tuple[int, int]
+            Tuple of indices of the line segments to be checked.
 
-        :return: collision check result
-        :rtype: list[float]
+        Returns
+        -------
+        list of float
+            Collision check result.
         """
         i = iters[0]
         j = iters[1]
@@ -728,11 +823,17 @@ class RationalMechanism(RationalCurve):
         """
         Return the lines that are colliding in the linkage.
 
-        :param NormalizedLine l0: equation of the first line
-        :param NormalizedLine l1: equation of the second line
+        Parameters
+        ----------
+        l0 : NormalizedLine
+            Equation of the first line.
+        l1 : NormalizedLine
+            Equation of the second line.
 
-        :return: tuple (list of t values, list of intersection points)
-        :rtype: tuple[list[float], list[PointHomogeneous]]
+        Returns
+        -------
+        tuple of (list of t values, list of intersection points)
+            Tuple containing a list of t values and a list of intersection points.
         """
         t = sp.Symbol("t")
 
@@ -786,12 +887,19 @@ class RationalMechanism(RationalCurve):
         """
         Return the intersection points of two lines.
 
-        :param NormalizedLine l0: equation of the first line
-        :param NormalizedLine l1: equation of the second line
-        :param list[float] t_params: list of parameter values - points of intersection
+        Parameters
+        ----------
+        l0 : NormalizedLine
+            Equation of the first line.
+        l1 : NormalizedLine
+            Equation of the second line.
+        t_params : list[float]
+            List of parameter values - points of intersection.
 
-        :return: list of intersection points
-        :rtype: list[PointHomogeneous]
+        Returns
+        -------
+        list of PointHomogeneous
+            List of intersection points.
         """
         intersection_points = [PointHomogeneous()] * len(t_params)
 
@@ -815,8 +923,10 @@ class RationalMechanism(RationalCurve):
         their motion equations using default connection points of the factorizations
         (default meaning the static points in the home configuration).
 
-        :return: list of LineSegment objects
-        :rtype: list[LineSegment]
+        Returns
+        -------
+        list of LineSegment
+            List of LineSegment objects.
         """
         t = sp.Symbol("t")
 
@@ -870,8 +980,10 @@ class RationalMechanism(RationalCurve):
         their motion equations using default connection points of the factorizations
         (default meaning the static points in the home configuration).
 
-        :return: list of LineSegment objects
-        :rtype: list[LineSegment]
+        Returns
+        -------
+        list of LineSegment
+            List of LineSegment objects.
         """
         t = sp.Symbol("t")
 
@@ -940,14 +1052,21 @@ class RationalMechanism(RationalCurve):
         """
         Return the rational motion curve of the linkage as RationalCurve object.
 
-        :return: motion curve of the linkage
-        :rtype: RationalCurve
+        Returns
+        -------
+        RationalCurve
+            Motion curve of the linkage.
         """
         return self.curve()
 
     def singularity_check(self):
         """
         Perform singularity check of the mechanism.
+
+        Returns
+        -------
+        list
+            List of singularities.
         """
         from .SingularityAnalysis import SingularityAnalysis  # lazy import
 
@@ -958,11 +1077,16 @@ class RationalMechanism(RationalCurve):
         """
         Obtain the smallest polyline links for the mechanism.
 
-        :param bool update_design: if True, update also the design of the mechanism
+        Parameters
+        ----------
+        update_design : bool, optional
+            If True, update also the design of the mechanism. Default is False.
 
-        :return: list of points of the smallest polyline, list of points parameters,
-            result of the optimization
-        :rtype: list, list, float
+        Returns
+        -------
+        tuple of (list, list, float)
+            List of points of the smallest polyline, list of points parameters,
+            result of the optimization.
         """
         from .CollisionFreeOptimization import CollisionFreeOptimization  # lazy import
 
@@ -990,16 +1114,24 @@ class RationalMechanism(RationalCurve):
         """
         Perform collision-free optimization of the mechanism.
 
-        :param str method: method of optimization, can be 'combinatorial_search' by
-            :footcite:t:`Li2020`
-        :param float step_length: length of the step, i.e. the shift distance value, see
-            :ref:`combinatorial_search` for more detail
-        :param float min_joint_segment_length: minimum length of the joint segment
-        :param int max_iters: maximum number of iterations
-        :param kwargs: additional keyword arguments
+        Parameters
+        ----------
+        method : str, optional
+            Method of optimization, can be 'combinatorial_search' by
+            :footcite:t:`Li2020`. Default is None.
+        step_length : float, optional
+            Length of the step, i.e. the shift distance value. Default is 25.
+        min_joint_segment_length : float, optional
+            Minimum length of the joint segment. Default is 0.001.
+        max_iters : int, optional
+            Maximum number of iterations. Default is 10.
+        kwargs : additional keyword arguments
+            Additional keyword arguments for the optimization method.
 
-        :return: list of collision-free points parameters
-        :rtype: list
+        Returns
+        -------
+        list
+            List of collision-free points parameters.
         """
         from .CollisionFreeOptimization import CollisionFreeOptimization
         optimizer = CollisionFreeOptimization(self)
@@ -1026,14 +1158,21 @@ class RationalMechanism(RationalCurve):
         """
         Get the points of the mechanism at the given parameter.
 
-        :param float t_param: parameter value
-        :param bool inverted_part: if True, return the evaluated points for the inverted
-            part of the mechanism
-        :param bool only_links: if True, instead of two points per joint segment,
-            return only the first one
+        Parameters
+        ----------
+        t_param : float
+            Parameter value.
+        inverted_part : bool, optional
+            If True, return the evaluated points for the inverted part of the mechanism.
+            Default is False.
+        only_links : bool, optional
+            If True, instead of two points per joint segment, return only the first one.
+            Default is False.
 
-        :return: list of connection points of the mechanism
-        :rtype: list[PointHomogeneous]
+        Returns
+        -------
+        list of PointHomogeneous
+            List of connection points of the mechanism.
         """
         branch0 = self.factorizations[0].direct_kinematics(t_param,
                                                            inverted_part=inverted_part)
@@ -1053,11 +1192,17 @@ class RationalMechanism(RationalCurve):
         """
         Calculate forward (direct) kinematics of the mechanism. Radians are default.
 
-        :param float joint_angle: angle of the joint
-        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+        Parameters
+        ----------
+        joint_angle : float
+            Angle of the joint.
+        unit : str, optional
+            Unit of the joint angle, can be 'rad' or 'deg'. Default is 'rad'.
 
-        :return: tool frame of the mechanism
-        :rtype: DualQuaternion
+        Returns
+        -------
+        DualQuaternion
+            Tool frame of the mechanism.
         """
         if unit == 'deg':
             joint_angle = np.deg2rad(joint_angle)
@@ -1076,11 +1221,17 @@ class RationalMechanism(RationalCurve):
 
         Calls the forward_kinematics method.
 
-        :param float joint_angle: angle of the joint
-        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
+        Parameters
+        ----------
+        joint_angle : float
+            Angle of the joint.
+        unit : str, optional
+            Unit of the joint angle, can be 'rad' or 'deg'. Default is 'rad'.
 
-        :return: tool frame of the mechanism
-        :rtype: DualQuaternion
+        Returns
+        -------
+        DualQuaternion
+            Tool frame of the mechanism.
         """
         return self.forward_kinematics(joint_angle, unit)
 
@@ -1093,17 +1244,25 @@ class RationalMechanism(RationalCurve):
         """
         Calculate inverse kinematics for given pose. Returns the joint angle in radians.
 
-        :param Union[DualQuaternion, TransfMatrix] pose: pose of the mechanism
-        :param str unit: unit of the joint angle, can be 'rad', 'deg', or 't' as
+        Parameters
+        ----------
+        pose : Union[DualQuaternion, TransfMatrix]
+            Pose of the mechanism.
+        unit : str, optional
+            Unit of the joint angle, can be 'rad', 'deg', or 't' as
             t is the parameter of the motion curve. Default is 'rad'.
-        :param str method: numerically for 'gauss-newton' or 'algebraic'; 'algebraic'
+        method : str, optional
+            Numerically for 'gauss-newton' or 'algebraic'; 'algebraic'
             requires the input pose to be "achievable" by the mechanism, i.e. the pose
-            must be on Study quadric and the mechanism must be able to reach it
-        :param bool robust: if True, use the Gauss-Newton method with
-            many initial guesses and more iteration steps
+            must be on Study quadric and the mechanism must be able to reach it.
+        robust : bool, optional
+            If True, use the Gauss-Newton method with
+            many initial guesses and more iteration steps. Default is False.
 
-        :return: joint angle in radians or degrees
-        :rtype: float
+        Returns
+        -------
+        float
+            Joint angle in radians or degrees.
         """
         if isinstance(pose, TransfMatrix):
             pose = DualQuaternion(pose.matrix2dq())
@@ -1134,13 +1293,22 @@ class RationalMechanism(RationalCurve):
         """
         Calculate inverse kinematics using Gauss-Newton method.
 
-        :param DualQuaternion goal_pose: pose of the mechanism
-        :param bool robust_search: if True, use many initial guesses
+        Parameters
+        ----------
+        goal_pose : DualQuaternion
+            Pose of the mechanism.
+        robust_search : bool, optional
+            If True, use many initial guesses. Default is False.
 
-        :return: parameter value
-        :rtype: float
+        Returns
+        -------
+        float
+            Parameter value.
 
-        :warns: if the method does not converge
+        Warns
+        -----
+        ConvergenceWarning
+            If the method does not converge.
         """
         def run_gauss_newton(pose, robust):
             t = sp.Symbol("t")
@@ -1270,23 +1438,34 @@ class RationalMechanism(RationalCurve):
 
         .. footbibliography::
 
-        :param float joint_angle_start: start parameter value
-        :param float joint_angle_end: end parameter value
-        :param float velocity_start: start velocity
-        :param float velocity_end: end velocity
-        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
-        :param float time_sec: time of the trajectory [seconds]
-        :param int num_points: number of discrete points in the trajectory
-        :param str method: method of trajectory generation, can be 'quintic' or 'cubic'
-        :param bool generate_csv: if True, generate a CSV file with the trajectory
+        Parameters
+        ----------
+        joint_angle_start : float
+            Start parameter value.
+        joint_angle_end : float
+            End parameter value.
+        velocity_start : float, optional
+            Start velocity. Default is 0.0.
+        velocity_end : float, optional
+            End velocity. Default is 0.0.
+        unit : str, optional
+            Unit of the joint angle, can be 'rad' or 'deg'. Default is 'rad'.
+        time_sec : float, optional
+            Time of the trajectory in seconds. Default is 1.0.
+        num_points : int, optional
+            Number of discrete points in the trajectory. Default is 100.
+        method : str, optional
+            Method of trajectory generation, can be 'quintic' or 'cubic'. Default is 'quintic'.
+        generate_csv : bool, optional
+            If True, generate a CSV file with the trajectory. Default is False.
 
-        :return: tuple of joint position (angle), velocity, and acceleration
-        :rtype: tuple
+        Returns
+        -------
+        tuple
+            Tuple of joint position (angle), velocity, and acceleration.
 
-        :raises: ValueError: if unit is not 'rad' or 'deg'
-        :raises: ValueError: if method is not 'quintic' or 'cubic'
-
-        :example:
+        Examples
+        --------
 
         .. code-block:: python
 
@@ -1398,16 +1577,27 @@ class RationalMechanism(RationalCurve):
         joint-space trajectory so that the tool travels with approximately constant
         velocity. The arc-length reparameterization is used in the background.
 
-        :param float joint_angle_start: start parameter value
-        :param float joint_angle_end: end parameter value
-        :param float time_sec: time of the trajectory [seconds]
-        :param PointHomogeneous point_of_interest: point that will be moved smoothly
-        :param str unit: unit of the joint angle, can be 'rad' or 'deg'
-        :param int num_points: number of discrete points in the trajectory
-        :param bool generate_csv: if True, generate a CSV file with the trajectory
+        Parameters
+        ----------
+        joint_angle_start : float
+            Start parameter value.
+        joint_angle_end : float
+            End parameter value.
+        time_sec : float
+            Time of the trajectory in seconds.
+        point_of_interest : PointHomogeneous, optional
+            Point that will be moved smoothly. Default is None.
+        unit : str, optional
+            Unit of the joint angle, can be 'rad' or 'deg'. Default is 'rad'.
+        num_points : int, optional
+            Number of discrete points in the trajectory. Default is 100.
+        generate_csv : bool, optional
+            If True, generate a CSV file with the trajectory. Default is False.
 
-        :return: tuple of joint position (angle), velocity, and acceleration
-        :rtype: tuple
+        Returns
+        -------
+        tuple
+            Tuple of joint position (angle), velocity, and acceleration.
         """
         if unit == 'deg':
             joint_angle_start = np.deg2rad(joint_angle_start)
@@ -1455,8 +1645,12 @@ class RationalMechanism(RationalCurve):
         """
         Generate a CSV file with the trajectory.
 
-        :param traj: trajectory
-        :param time_gap: time gap
+        Parameters
+        ----------
+        traj
+            Trajectory.
+        time_gap
+            Time gap.
         """
         time_space = np.arange(0, len(traj) * time_gap, time_gap)
         pos = traj
@@ -1500,6 +1694,17 @@ class RationalMechanism(RationalCurve):
         returns the relative motion. If it does not, the method calculates the relative
         motion and adds it to the self.relative_motions attribute.
 
+        Parameters
+        ----------
+        static : int
+            Index of the static link or joint.
+        moving : int
+            Index of the moving link or joint.
+
+        Returns
+        -------
+        DualQuaternion
+            Relative motion between the two links or joints.
         """
         if static == moving:
             raise ValueError("static and moving cannot be the same")
@@ -1519,11 +1724,17 @@ class RationalMechanism(RationalCurve):
         If going “forward” (increasing index modulo n) is shorter than
         going “backward”, you get the forward slice; otherwise the backward slice.
 
-        :param int start: start index
-        :param int end: end index
+        Parameters
+        ----------
+        start : int
+            Start index.
+        end : int
+            End index.
 
-        :return: list of indices of the shortest path
-        :rtype: list[int]
+        Returns
+        -------
+        list[int]
+            List of indices of the shortest path.
         """
         path = list(range(2*self.num_joints))
         n = len(path)
@@ -1547,10 +1758,15 @@ class RationalMechanism(RationalCurve):
         """
         Return the design points of the mechanism, scaled and closed as a loop.
 
-        :param float scale: scaling factor for the points
+        Parameters
+        ----------
+        scale : float, optional
+            Scaling factor for the points. Default is 1.0.
 
-        :return: points array
-        :rtype: np.ndarray
+        Returns
+        -------
+        np.ndarray
+            Points array.
         """
         _, _, pts = self.get_design(pretty_print=False, update_design=True)
         pts = np.vstack(pts) * scale
@@ -1566,12 +1782,18 @@ class RationalMechanism(RationalCurve):
         """
         Export a single STL mesh of the mechanism at home configuration.
 
-        :param float scale: scaling factor of the mechanism
-        :param float link_diameter: radius of the link cylinders
-        :param float joint_diameter: radius of the joint cylinders
-        :param bool add_tool_frame: if True, add a tool link with frame representing
-            the tool frame
-        :param str file_name: name of the output STL file
+        Parameters
+        ----------
+        scale : float, optional
+            Scaling factor of the mechanism. Default is 1.0.
+        link_diameter : float, optional
+            Radius of the link cylinders. Default is 0.01.
+        joint_diameter : float, optional
+            Radius of the joint cylinders. Default is 0.02.
+        add_tool_frame : bool, optional
+            If True, add a tool link with frame representing the tool frame. Default is True.
+        file_name : str, optional
+            Name of the output STL file. Default is 'mechanism.stl'.
         """
         from rational_linkages.LinkageCAD import LinkageCAD  # lazy import
         design_pts = self.get_design_points(scale=scale)
@@ -1593,12 +1815,20 @@ class RationalMechanism(RationalCurve):
         """
         Export a single CAD solid (STEP) of the mechanism at home configuration.
 
-        :param str units: unit of the scale, can be 'm' or 'mm'
-        :param float scale: scaling factor
-        :param float link_diameter: diameter of link cylinders, default is 10 units
-        :param float joint_diameter: diameter of joint cylinders, default is 20 units
-        :param float add_tool_frame: add tool frame geometry
-        :param float file_name: output file name (.step recommended)
+        Parameters
+        ----------
+        units : str, optional
+            Unit of the scale, can be 'm' or 'mm'. Default is 'mm'.
+        scale : float, optional
+            Scaling factor. Default is 1.0.
+        link_diameter : float, optional
+            Diameter of link cylinders. Default is 10.
+        joint_diameter : float, optional
+            Diameter of joint cylinders. Default is 20.
+        add_tool_frame : bool, optional
+            If True, add tool frame geometry. Default is True.
+        file_name : str, optional
+            Output file name (.step recommended). Default is "mechanism.step".
         """
         from rational_linkages.LinkageCAD import LinkageCAD  # lazy import
 
@@ -1622,11 +1852,18 @@ class RationalMechanism(RationalCurve):
         """
         Export mechanism assembly with individual CAD solids (STEP).
 
-        :param str units: Units for the design (e.g., "mm" or "m").
-        :param float link_diameter: Diameter of the cylindrical links (default 10; i.e. mm).
-        :param float joint_diameter: Diameter of the cylindrical joints (default 20; i.e. mm).
-        :param bool add_tool_frame: Whether to include a simple tool frame geometry.
-        :param str file_name: Output STEP file name.
+        Parameters
+        ----------
+        units : str, optional
+            Units for the design (e.g., "mm" or "m"). Default is "mm".
+        link_diameter : float, optional
+            Diameter of the cylindrical links (default 10; i.e. mm). Default is 10.
+        joint_diameter : float, optional
+            Diameter of the cylindrical joints (default 20; i.e. mm). Default is 20.
+        add_tool_frame : bool, optional
+            Whether to include a simple tool frame geometry. Default is True.
+        file_name : str, optional
+            Output STEP file name. Default is "mechanism_parts.step".
         """
         from rational_linkages.LinkageCAD import LinkageCAD  # lazy import
 
