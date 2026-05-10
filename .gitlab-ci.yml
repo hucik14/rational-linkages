@@ -45,7 +45,7 @@ test_python311:
   script:
     - *common_script
     - pip install -e .[opt]
-    - pip install pytest
+    - pip install pytest sybil
     - python -m pytest python/tests
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
   rules:
@@ -59,7 +59,7 @@ test_coverage:
   script:
     - *common_script
     - pip install -e .[opt]
-    - pip install pytest
+    - pip install pytest sybil
     - python -m pytest
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
   rules:
@@ -76,7 +76,7 @@ python_versions:
     - *common_script
     - if [ "$IMAGE" = "python:3.10-bullseye" ]; then pip install 'PyQt6<6.10'; fi
     - pip install -e .
-    - pip install pytest scipy
+    - pip install pytest sybil scipy
     - python -m pytest python/tests
   parallel:
     matrix:
