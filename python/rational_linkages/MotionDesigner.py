@@ -1,7 +1,7 @@
 import sys
 import struct
 import os
-import numpy as np
+import numpy
 
 from typing import Union
 from warnings import warn
@@ -346,22 +346,22 @@ class MotionDesigner:
         if len(faces) == 0 or len(verts) == 0:
             raise RuntimeError("No triangles parsed from STL")
 
-        verts = np.array(verts, dtype=float)
-        faces = np.array(faces, dtype=int)
+        verts = numpy.array(verts, dtype=float)
+        faces = numpy.array(faces, dtype=int)
         if (max_faces is None) and (faces.shape[0]) > 200000:
             warn("Too many faces may lead to very slow rendering. Consider reducing it using max_faces=200000 parameter.")
             print('number of faces: {}'.format(faces.shape[0]))
 
         # optional subsample triangles for performance
         if (max_faces is not None) and (faces.shape[0] > max_faces):
-            idx = np.linspace(0, faces.shape[0] - 1, max_faces, dtype=int)
+            idx = numpy.linspace(0, faces.shape[0] - 1, max_faces, dtype=int)
             faces = faces[idx]
 
         # weld duplicate vertices within weld_tol
-        decimals = max(0, int(-np.log10(weld_tol))) if weld_tol > 0 else 8
+        decimals = max(0, int(-numpy.log10(weld_tol))) if weld_tol > 0 else 8
         key_map = {}
         unique_verts = []
-        remap = np.empty(len(verts), dtype=int)
+        remap = numpy.empty(len(verts), dtype=int)
         for i, v in enumerate(verts):
             key = (round(float(v[0]), decimals),
                    round(float(v[1]), decimals),
@@ -374,21 +374,21 @@ class MotionDesigner:
                 unique_verts.append((v[0], v[1], v[2]))
                 remap[i] = idx_new
 
-        unique_verts = np.array(unique_verts, dtype=float)
+        unique_verts = numpy.array(unique_verts, dtype=float)
         faces = remap[faces]
 
         # remove unused vertices and remap indices (compact the vertex array)
-        used = np.unique(faces.reshape(-1))
-        new_idx = -np.ones(unique_verts.shape[0], dtype=int)
-        new_idx[used] = np.arange(used.shape[0], dtype=int)
+        used = numpy.unique(faces.reshape(-1))
+        new_idx = -numpy.ones(unique_verts.shape[0], dtype=int)
+        new_idx[used] = numpy.arange(used.shape[0], dtype=int)
         vertices_final = unique_verts[used]
         faces_final = new_idx[faces]
 
         # transform if needed
         if transform is not None:
             tr_arr = transform.array()
-            ones = np.ones((len(vertices_final), 1))
-            homogeneous = np.hstack([ones, vertices_final])  # Nx4
+            ones = numpy.ones((len(vertices_final), 1))
+            homogeneous = numpy.hstack([ones, vertices_final])  # Nx4
             vertices_final = (tr_arr @ homogeneous.T).T[:, 1:]  # back to Nx3
 
         # delegate to existing add_mesh
@@ -475,7 +475,7 @@ if QtWidgets is not None:
 
             # array of control point coordinates (in 3D)
             if method == 'quadratic_from_points' or method == 'cubic_from_points':
-                self.plotted_points = np.array([pt.normalized_euclidean()
+                self.plotted_points = numpy.array([pt.normalized_euclidean()
                                                 for pt in self.points])
 
                 # interpolated points markers
@@ -579,8 +579,8 @@ if QtWidgets is not None:
                 for slider, textbox in [(self.slider_roll, self.textbox_roll),
                                         (self.slider_pitch, self.textbox_pitch),
                                         (self.slider_yaw, self.textbox_yaw)]:
-                    slider.setMinimum(int(-np.pi * 100))
-                    slider.setMaximum(int(np.pi * 100))
+                    slider.setMinimum(int(-numpy.pi * 100))
+                    slider.setMaximum(int(numpy.pi * 100))
                     slider.setSingleStep(1)
                     slider.valueChanged.connect(self.on_slider_value_changed)
 
@@ -841,7 +841,7 @@ if QtWidgets is not None:
             else:
                 # update the selected control point
                 self.points[index] = PointHomogeneous.from_3d_point([new_x, new_y, new_z])
-                self.plotted_points[index] = np.array([new_x, new_y, new_z])
+                self.plotted_points[index] = numpy.array([new_x, new_y, new_z])
                 # update the visual markers
                 self.markers.setData(pos=self.plotted_points)
 
@@ -928,18 +928,18 @@ if QtWidgets is not None:
                                                                k_idx=self.motion_family_idx)
 
             # create numpy polynomial objects
-            curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]
+            curve = [numpy.polynomial.Polynomial(c[::-1]) for c in coeffs]
 
             # parameter values using a tangent substitution
-            t_space = np.tan(np.linspace(-np.pi / 2, np.pi / 2, self.plotter.steps + 1))
+            t_space = numpy.tan(numpy.linspace(-numpy.pi / 2, numpy.pi / 2, self.plotter.steps + 1))
             curve_points = []
             for t in t_space:
                 dq = DualQuaternion([poly(t) for poly in curve])  # evaluate fot each t
                 pt = dq.dq2point_via_matrix()
                 curve_points.append(pt)
-            curve_points = np.array(curve_points)
+            curve_points = numpy.array(curve_points)
 
-            t_space_frames = np.tan(np.linspace(-np.pi / 2, np.pi / 2, 51))
+            t_space_frames = numpy.tan(numpy.linspace(-numpy.pi / 2, numpy.pi / 2, 51))
             curve_frames = []
             for t in t_space_frames:
                 dq = DualQuaternion([poly(t) for poly in curve])
@@ -980,7 +980,7 @@ if QtWidgets is not None:
             me = RationalMechanism(cr.factorize())
             me.smallest_polyline(update_design=True)
 
-            t_val = 1 / np.finfo(np.float64).eps   # infinite t
+            t_val = 1 / numpy.finfo(numpy.float64).eps   # infinite t
             links = (me.factorizations[0].direct_kinematics(t_val) +
                      me.factorizations[1].direct_kinematics(t_val)[::-1])
             links.insert(0, links[-1])
@@ -989,7 +989,7 @@ if QtWidgets is not None:
                 self.lines = []
 
                 # base link
-                line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                line_item = gl.GLLinePlotItem(pos=numpy.zeros((2, 3)),
                                               color=(1, 0.5, 0, 0.5),
                                               glOptions=self.render_mode,
                                               width=5,
@@ -999,7 +999,7 @@ if QtWidgets is not None:
 
                 # other links
                 for i in range(1, self.num_lines):
-                    line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                    line_item = gl.GLLinePlotItem(pos=numpy.zeros((2, 3)),
                                                   color=(1, 1, 0, 0.5),
                                                   glOptions=self.render_mode,
                                                   width=5,
@@ -1010,7 +1010,7 @@ if QtWidgets is not None:
                 for i, line in enumerate(self.lines):
                     pt1 = links[i]
                     pt2 = links[i + 1]
-                    pts = np.array([pt1, pt2])
+                    pts = numpy.array([pt1, pt2])
                     line.setData(pos=pts)
 
         def closeEvent(self, event):
@@ -1026,8 +1026,8 @@ if QtWidgets is not None:
             self.plotter.app.quit()
 
         def add_mesh(self,
-                     vertices: np.ndarray,
-                     faces: np.ndarray,
+                     vertices: numpy.ndarray,
+                     faces: numpy.ndarray,
                      color: tuple = (0.7, 0.7, 0.7, 0.3),
                      name: str | None = None,
                      smooth: bool = False) -> object:

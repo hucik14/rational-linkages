@@ -1,6 +1,6 @@
 from typing import Union
 
-import numpy as np
+import numpy
 
 from sympy import Symbol, Poly
 
@@ -171,7 +171,7 @@ class MotionFactorization(RationalCurve):
         return act(acting_sequence, affected_object)
 
     def direct_kinematics(self, t_numerical: float, inverted_part: bool = False
-                          ) -> list[np.array]:
+                          ) -> list[numpy.array]:
         """Compute direct kinematics: evaluate linkage point positions.
 
         Parameters
@@ -183,7 +183,7 @@ class MotionFactorization(RationalCurve):
 
         Returns
         -------
-        list[np.ndarray]
+        list[numpy.ndarray]
             List of 3D points (numpy arrays) describing the mechanism configuration.
         """
         linkage_points = []
@@ -193,7 +193,7 @@ class MotionFactorization(RationalCurve):
         for i in range(self.number_of_factors - 1):
             if inverted_part:
                 if t_numerical == 0:  # avoid division by zero
-                    t_numerical = np.finfo(float).eps
+                    t_numerical = numpy.finfo(float).eps
 
                 pts_acted = [self.act(linkage_points[i + 1][j],
                                       end_idx=i, param=1/t_numerical) for j in range(2)]
@@ -205,12 +205,12 @@ class MotionFactorization(RationalCurve):
         linkage_points = [linkage_points[i][j] for i in range(len(linkage_points))
                           for j in range(len(linkage_points[i]))]
 
-        linkage_points_3d = [np.array(linkage_points[i].normalized_euclidean())
+        linkage_points_3d = [numpy.array(linkage_points[i].normalized_euclidean())
                              for i in range(len(linkage_points))]
         return linkage_points_3d
 
-    def direct_kinematics_of_tool(self, t_numerical: float, end_effector: np.ndarray,
-                                  inverted_part=False) -> np.ndarray:
+    def direct_kinematics_of_tool(self, t_numerical: float, end_effector: numpy.ndarray,
+                                  inverted_part=False) -> numpy.ndarray:
         """Evaluate the tool (end-effector) position under the factorization.
 
         Parameters
@@ -224,7 +224,7 @@ class MotionFactorization(RationalCurve):
 
         Returns
         -------
-        np.ndarray
+        numpy.ndarray
             3D coordinates of the end-effector after applying the motion.
         """
         ee_point = PointHomogeneous.from_3d_point(end_effector)
@@ -242,7 +242,7 @@ class MotionFactorization(RationalCurve):
         return end_effector_point
 
     def direct_kinematics_of_tool_with_link(self, t_numerical: float,
-                                            end_effector: np.ndarray,
+                                            end_effector: numpy.ndarray,
                                             inverted_part=False) -> list:
         """Return both end-effector and last-link position for a given parameter.
 
@@ -257,7 +257,7 @@ class MotionFactorization(RationalCurve):
 
         Returns
         -------
-        list[np.ndarray]
+        list[numpy.ndarray]
             [end_effector_point, last_link_point].
         """
         ee_point = self.direct_kinematics_of_tool(t_numerical, end_effector,
@@ -267,7 +267,7 @@ class MotionFactorization(RationalCurve):
 
         return [ee_point, link_point]
 
-    def joint_angle_to_t_param(self, joint_angle: Union[np.ndarray, float] = 0,
+    def joint_angle_to_t_param(self, joint_angle: Union[numpy.ndarray, float] = 0,
                                unit: str = 'rad') -> float:
         """Map a joint rotation angle to the motion-curve parameter t.
 
@@ -296,21 +296,21 @@ class MotionFactorization(RationalCurve):
 
         """
         if unit == 'deg':
-            joint_angle = np.deg2rad(joint_angle)
+            joint_angle = numpy.deg2rad(joint_angle)
         elif unit != 'rad':
             raise ValueError("unit must be 'rad' or 'deg'")
 
         # normalize angle to [0, 2*pi]
         if joint_angle >= 0:
-            normalized_angle = joint_angle % (2 * np.pi)
+            normalized_angle = joint_angle % (2 * numpy.pi)
         else:
-            normalized_angle = (joint_angle % (2 * np.pi)) - np.pi
+            normalized_angle = (joint_angle % (2 * numpy.pi)) - numpy.pi
 
         # avoid division by zero
         if normalized_angle == 0.0:
-            normalized_angle = np.finfo(float).eps
+            normalized_angle = numpy.finfo(float).eps
 
-        t = (np.linalg.norm(self.dq_axes[0].p[1:]) / np.tan(normalized_angle/2)
+        t = (numpy.linalg.norm(self.dq_axes[0].p[1:]) / numpy.tan(normalized_angle/2)
              + self.dq_axes[0].p[0])
 
         return t
@@ -335,14 +335,14 @@ class MotionFactorization(RationalCurve):
         t_param_joint0 = t_param - self.dq_axes[0].p[0]
 
         if t_param_joint0 == 0.0:
-            t_param_joint0 = np.finfo(float).eps
+            t_param_joint0 = numpy.finfo(float).eps
 
-        angle = 2 * np.arctan(np.float64(
-            np.linalg.norm(self.dq_axes[0].p[1:]) / t_param_joint0))
+        angle = 2 * numpy.arctan(numpy.float64(
+            numpy.linalg.norm(self.dq_axes[0].p[1:]) / t_param_joint0))
 
         # normalize angle to [0, 2*pi]
         if angle < 0:
-            angle += 2 * np.pi
+            angle += 2 * numpy.pi
 
         return angle
 
@@ -435,9 +435,9 @@ class MotionFactorization(RationalCurve):
         point0 = self.linkage[idx].points[0]
         point1 = self.linkage[idx].points[1]
 
-        if np.allclose(point0.normalized_euclidean(), point1.normalized_euclidean()):
+        if numpy.allclose(point0.normalized_euclidean(), point1.normalized_euclidean()):
             # if the points are the same, add a minimal offset
-            min_point = PointHomogeneous(point0.array() + np.array([0, 0, 0, 0.0001]))
+            min_point = PointHomogeneous(point0.array() + numpy.array([0, 0, 0, 0.0001]))
             joint = NormalizedLine.from_two_points(point0, min_point)
         else:
             joint = NormalizedLine.from_two_points(point0, point1)
@@ -478,7 +478,7 @@ class MotionFactorization(RationalCurve):
         point0 = self.linkage[0].points[0]
         point1 = other_factorization_point
 
-        if np.allclose(point0.normalized_euclidean(), point1.normalized_euclidean()):
+        if numpy.allclose(point0.normalized_euclidean(), point1.normalized_euclidean()):
             # if the points are the same, add a minimal offset
             point1 = point0 + PointHomogeneous([0, 0, 0, 0.0001])
 
@@ -501,7 +501,7 @@ class MotionFactorization(RationalCurve):
         point0 = self.linkage[-1].points[1]
         point1 = other_factorization_point
 
-        if np.allclose(point0.normalized_euclidean(), point1.normalized_euclidean()):
+        if numpy.allclose(point0.normalized_euclidean(), point1.normalized_euclidean()):
             # if the points are the same, add a minimal offset
             point1 = point0 + PointHomogeneous([0, 0, 0, 0.0001])
 

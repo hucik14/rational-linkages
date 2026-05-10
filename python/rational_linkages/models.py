@@ -23,10 +23,10 @@ def bennett_ark24() -> RationalMechanism:
     --------
     .. code-block:: python
 
-        import numpy as np
+        import numpy
         from rational_linkages import RationalCurve, RationalMechanism
 
-        coeffs = np.array([[0, 0, 0],
+        coeffs = numpy.array([[0, 0, 0],
                    [4440, 39870, 22134],
                    [16428, 9927, -42966],
                    [-37296, -73843, -115878],

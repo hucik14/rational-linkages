@@ -1,6 +1,6 @@
 from typing import Union
 
-import numpy as np
+import numpy
 
 from .AffineMetric import AffineMetric
 from .DualQuaternion import DualQuaternion
@@ -26,7 +26,7 @@ class MotionApproximation:
     @staticmethod
     def approximate(init_curve,
                     poses_or_points: list[Union[DualQuaternion, PointHomogeneous]],
-                    t_vals: Union[list[float], np.ndarray]
+                    t_vals: Union[list[float], numpy.ndarray]
                     ) -> tuple[RationalCurve, dict]:
         """Approximate a motion curve that passes through given poses or points.
 
@@ -51,7 +51,7 @@ class MotionApproximation:
         if init_curve.degree != 3:
             raise ValueError("So far, only cubic curves are supported")
 
-        t_array = np.asarray(t_vals)
+        t_array = numpy.asarray(t_vals)
 
         if isinstance(poses_or_points[0], DualQuaternion):
             approx_curve, opt_result \
@@ -83,7 +83,7 @@ class MotionApproximation:
         RationalCurve
             Constructed rational cubic curve.
         """
-        coeffs = np.zeros((8, 4))  # Preallocate an array of shape (8, 4)
+        coeffs = numpy.zeros((8, 4))  # Preallocate an array of shape (8, 4)
         coeffs[0, 0] = 1
         coeffs[:, 1:] = flattended_coeffs.reshape(8, 3)
 
@@ -135,7 +135,7 @@ class MotionApproximation:
         num_added_poses = len(poses) - 4
 
         initial_guess = init_curve.coeffs[:,1:4].flatten()
-        initial_guess = np.concatenate((initial_guess, t_vals[-num_added_poses:]), axis=None)
+        initial_guess = numpy.concatenate((initial_guess, t_vals[-num_added_poses:]), axis=None)
 
         def objective_function(params):
             """
@@ -160,7 +160,7 @@ class MotionApproximation:
             sq_err = curve.study_quadric_check()
 
             if len(sq_err) != 8:  # expand if necessary to avoid index errors
-                sq_err = np.concatenate((sq_err, np.zeros(8 - len(sq_err))), axis=None)
+                sq_err = numpy.concatenate((sq_err, numpy.zeros(8 - len(sq_err))), axis=None)
 
             return sq_err
 
@@ -212,13 +212,13 @@ class MotionApproximation:
             ``(result_curve, result)`` where ``result_curve`` is the
             optimized :class:`.RationalCurve` and ``result`` is the optimizer result.
         """
-        t_vals_init = np.array([0, 1/6, 1/3, 1/2, 2/3, 5/6, 1])
-        t_vals = np.concatenate((t_vals_init, t_vals), axis=None)
+        t_vals_init = numpy.array([0, 1/6, 1/3, 1/2, 2/3, 5/6, 1])
+        t_vals = numpy.concatenate((t_vals_init, t_vals), axis=None)
 
         num_added_points = len(points) - 7
 
         initial_guess = init_curve.coeffs.flatten()
-        initial_guess = np.concatenate((initial_guess, t_vals[-num_added_points:]), axis=None)
+        initial_guess = numpy.concatenate((initial_guess, t_vals[-num_added_points:]), axis=None)
 
         def objective_function(params):
             """
@@ -238,7 +238,7 @@ class MotionApproximation:
                     curve.evaluate(t_vals[i])).dq2point_via_matrix()
                 target_pt = pt.normalized_euclidean()
 
-                sq_dist += np.linalg.norm(curve_pt - target_pt) ** 2
+                sq_dist += numpy.linalg.norm(curve_pt - target_pt) ** 2
 
             return sq_dist
 
@@ -247,7 +247,7 @@ class MotionApproximation:
             sq_err = curve.study_quadric_check()
 
             if len(sq_err) != 8:  # expand if necessary to avoid index errors
-                sq_err = np.concatenate((sq_err, np.zeros(8 - len(sq_err))), axis=None)
+                sq_err = numpy.concatenate((sq_err, numpy.zeros(8 - len(sq_err))), axis=None)
 
             return sq_err
 
@@ -303,7 +303,7 @@ class MotionApproximation:
             sq_err = curve.study_quadric_check()
 
             # sum of squares of the errors
-            return np.sum(sq_err**2)
+            return numpy.sum(sq_err**2)
 
         def callback(params):
             current_distance = objective_func(params)

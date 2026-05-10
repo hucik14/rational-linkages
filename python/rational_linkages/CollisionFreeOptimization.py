@@ -1,6 +1,6 @@
 from itertools import product
 
-import numpy as np
+import numpy
 
 from .NormalizedLine import NormalizedLine
 from .RationalMechanism import RationalMechanism
@@ -57,18 +57,18 @@ class CollisionFreeOptimization:
             p = [line.point_on_line(x[i]) for i, line in enumerate(lines)]
 
             total_distance = sum(
-                np.linalg.norm(p[i] - p[i + 1])
+                numpy.linalg.norm(p[i] - p[i + 1])
                 for i in range(self.mechanism.num_joints - 1))
             # Add distance between last and first point
-            total_distance += np.linalg.norm(p[-1] - p[0])
+            total_distance += numpy.linalg.norm(p[-1] - p[0])
             return total_distance
 
-        x_init = np.zeros(self.mechanism.num_joints)
+        x_init = numpy.zeros(self.mechanism.num_joints)
         result = minimize(objective_function, x_init)
 
         # double the parameters for the two joint connection points
         points_params = result.x
-        points_params = [np.array([param, param]) for param in points_params]
+        points_params = [numpy.array([param, param]) for param in points_params]
 
         points = [line.point_on_line(float(points_params[i][0]))
                   for i, line in enumerate(lines)]
@@ -236,7 +236,7 @@ class CombinatorialSearch:
         for i, sequence in enumerate(combs):
             print("--- iteration: {}, shift_value: {}, sequence {} of {}: {}"
                   .format(iteration, shift_val, i + 1, len(combs), sequence))
-            points_params = shift_val * np.asarray(sequence)
+            points_params = shift_val * numpy.asarray(sequence)
             points_params = [[param] for param in points_params]
 
             # update the design of the mechanism
@@ -285,7 +285,7 @@ class CombinatorialSearch:
         for i, sequence in enumerate(combs):
             print("--- joint search. Shift_value: {}, sequence {} of {}: {}"
                   .format(shift_val, i + 1, len(combs), sequence))
-            shift_seq = shift_val * np.asarray(sequence)
+            shift_seq = shift_val * numpy.asarray(sequence)
 
             points_params = [[params[0] + shift_seq[ii * 2],
                               params[1] + shift_seq[ii * 2 + 1]]

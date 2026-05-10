@@ -2,8 +2,8 @@ from copy import deepcopy
 from typing import Union
 from warnings import warn
 
-import numpy as np
-import sympy as sp
+import numpy
+import sympy
 
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointHomogeneous
@@ -124,13 +124,13 @@ class MotionInterpolation:
         if not ((2 <= len(poses_or_points) <= 5) or len(poses_or_points) == 7):
             raise ValueError('Only 2-4 poses or 5 or 7 points can be interpolated.')
 
-        p0_array = np.asarray(poses_or_points[0].array(), dtype='float64')
+        p0_array = numpy.asarray(poses_or_points[0].array(), dtype='float64')
 
         # check if the first pose is the identity matrix
         if ((isinstance(poses_or_points[0], TransfMatrix)
-            and not np.allclose(p0_array, TransfMatrix().matrix))
+            and not numpy.allclose(p0_array, TransfMatrix().matrix))
                 or (isinstance(poses_or_points[0], DualQuaternion)
-                    and not np.allclose(p0_array, DualQuaternion().array()))):
+                    and not numpy.allclose(p0_array, DualQuaternion().array()))):
 
             if len(poses_or_points) == 4:
                 raise ValueError('The first pose must be the identity matrix')
@@ -157,7 +157,7 @@ class MotionInterpolation:
                 raise TypeError('The given poses must be either TransfMatrix,'
                                  ' DualQuaternion, or PointHomogeneous.')
 
-        lambda_val = sp.Rational(lambda_val)
+        lambda_val = sympy.Rational(lambda_val)
 
         # normalize the DQ poses on Study quadric
         if len(rational_poses) != 5 and len(rational_poses) != 7:
@@ -183,7 +183,7 @@ class MotionInterpolation:
             return RationalCurve(curve_eqs)
 
     @staticmethod
-    def interpolate_quadratic(poses: list[DualQuaternion]) -> list[sp.Poly]:
+    def interpolate_quadratic(poses: list[DualQuaternion]) -> list[sympy.Poly]:
         """Interpolate three rational poses by a quadratic motion curve.
 
         Parameters
@@ -193,12 +193,12 @@ class MotionInterpolation:
 
         Returns
         -------
-        list[sp.Poly]
+        list[sympy.Poly]
             Symbolic polynomial equations (SymPy) describing the motion curve.
         """
-        alpha = sp.Symbol('alpha')
-        omega = sp.Symbol('omega')
-        t = sp.Symbol('t')
+        alpha = sympy.Symbol('alpha')
+        omega = sympy.Symbol('omega')
+        t = sympy.Symbol('t')
 
         p0 = poses[0].array()
         p1 = poses[1].array()
@@ -211,15 +211,15 @@ class MotionInterpolation:
         study_norm = symbolic_curve.norm()
 
         # simplify the norm
-        study_norm = study_norm[4] / (t * (t - sp.Rational(1)))
-        study_norm = sp.simplify(study_norm)
+        study_norm = study_norm[4] / (t * (t - sympy.Rational(1)))
+        study_norm = sympy.simplify(study_norm)
 
         # obtain the equations for alpha and omega
         eq0 = study_norm.subs(t, 0)
         eq1 = study_norm.subs(t, 1)
 
         # solve the equations symbolically
-        sols = sp.solve([eq0, eq1], [alpha, omega], dict=True)
+        sols = sympy.solve([eq0, eq1], [alpha, omega], dict=True)
 
         # get non zero solution
         nonzero_sol = None
@@ -239,12 +239,12 @@ class MotionInterpolation:
         c_interp = al * p2 + (p1 - al * p2 - om * p0) * t + om * p0 * t**2
 
         # list of polynomials
-        poly = [sp.Poly(el, t) for el in c_interp]
+        poly = [sympy.Poly(el, t) for el in c_interp]
 
         return poly
 
     @staticmethod
-    def interpolate_quadratic_numerically(poses: list[DualQuaternion]) -> np.ndarray:
+    def interpolate_quadratic_numerically(poses: list[DualQuaternion]) -> numpy.ndarray:
         """Numeric quadratic interpolation for three poses.
 
         Parameters
@@ -267,24 +267,24 @@ class MotionInterpolation:
         p2_r, p2_d = p2[:4], p2[4:]
 
         # compute the common denominator
-        denom = np.dot(p2_r, p0_d) + np.dot(p0_r, p2_d)
-        if np.abs(denom) < 1e-12:
+        denom = numpy.dot(p2_r, p0_d) + numpy.dot(p0_r, p2_d)
+        if numpy.abs(denom) < 1e-12:
             raise ValueError("Interpolation failed: denominator nearly zero. The poses p0 and p2 are dependent.")
 
         # parameters from the Study condition
-        omega = (np.dot(p2_r, p1_d) + np.dot(p1_r, p2_d)) / denom
-        alpha = (np.dot(p1_r, p0_d) + np.dot(p0_r, p1_d)) / denom
+        omega = (numpy.dot(p2_r, p1_d) + numpy.dot(p1_r, p2_d)) / denom
+        alpha = (numpy.dot(p1_r, p0_d) + numpy.dot(p0_r, p1_d)) / denom
 
         c0 = alpha * p2
         c1 = p1 - alpha * p2 - omega * p0
         c2 = omega * p0
 
         # return array of coefficients
-        return np.stack([c2, c1, c0], axis=1)
+        return numpy.stack([c2, c1, c0], axis=1)
 
 
     @staticmethod
-    def interpolate_quadratic_2_poses(poses: list[DualQuaternion]) -> list[sp.Poly]:
+    def interpolate_quadratic_2_poses(poses: list[DualQuaternion]) -> list[sympy.Poly]:
         """Quadratic interpolation when only two poses are provided.
 
         The routine augments the input by a third helper pose (identity or
@@ -297,7 +297,7 @@ class MotionInterpolation:
 
         Returns
         -------
-        list[sp.Poly]
+        list[sympy.Poly]
             Symbolic polynomial representation of the interpolated curve.
         """
         try:
@@ -309,7 +309,7 @@ class MotionInterpolation:
 
     @staticmethod
     def interpolate_quadratic_2_poses_random(poses: list[DualQuaternion]
-                                             ) -> list[sp.Poly]:
+                                             ) -> list[sympy.Poly]:
         """Randomized search for a third pose used in quadratic interpolation.
 
         Parameters
@@ -319,7 +319,7 @@ class MotionInterpolation:
 
         Returns
         -------
-        list[sp.Poly]
+        list[sympy.Poly]
             Chosen symbolic polynomial set for the interpolation.
         """
         # Calculate the mid point between the two poses
@@ -370,7 +370,7 @@ class MotionInterpolation:
     @staticmethod
     def interpolate_quadratic_2_poses_optimized(poses: list[DualQuaternion],
                                                 max_iter: int = 0,
-                                                ) -> list[sp.Poly]:
+                                                ) -> list[sympy.Poly]:
         """Optimized search for a helper third pose for quadratic interpolation.
 
         Parameters
@@ -382,7 +382,7 @@ class MotionInterpolation:
 
         Returns
         -------
-        list[sp.Poly]
+        list[sympy.Poly]
             Symbolic polynomial representation for the interpolated curve.
         """
         from scipy.optimize import minimize  # lazy import
@@ -423,7 +423,7 @@ class MotionInterpolation:
     @staticmethod
     def interpolate_cubic(poses: list[DualQuaternion],
                           lambda_val: Union[float, int] = 0,
-                          motion_family: int = 0) -> list[sp.Poly]:
+                          motion_family: int = 0) -> list[sympy.Poly]:
         """Interpolate four rational poses with a cubic motion curve.
 
         The method computes a cubic curve lying on the intersection of the
@@ -440,7 +440,7 @@ class MotionInterpolation:
 
         Returns
         -------
-        list[sp.Poly]
+        list[sympy.Poly]
             Symbolic polynomial equations for the cubic motion curve.
 
         Raises
@@ -465,36 +465,36 @@ class MotionInterpolation:
 
         # Lagrange's interpolation part
         # lambdas for interpolation - scalar multiples of the poses
-        lams = sp.symbols("lams1:5")
+        lams = sympy.symbols("lams1:5")
 
-        parametric_points = [sp.Matrix(poses[0].array()),
-                             sp.Matrix(lams[0] * poses[1].array()),
-                             sp.Matrix(lams[1] * poses[2].array()),
-                             sp.Matrix(lams[2] * poses[3].array())]
+        parametric_points = [sympy.Matrix(poses[0].array()),
+                             sympy.Matrix(lams[0] * poses[1].array()),
+                             sympy.Matrix(lams[1] * poses[2].array()),
+                             sympy.Matrix(lams[2] * poses[3].array())]
 
         # obtain the Lagrange interpolation for poses p0, p1, p2, p3
         interp = MotionInterpolation._lagrange_poly_interpolation(parametric_points)
 
-        t = sp.symbols("t:4")
-        x = sp.symbols("x")
+        t = sympy.symbols("t:4")
+        x = sympy.symbols("x")
 
         # to avoid calculation with infinity, substitute t[i] with 1/t[i]
         temp = [element.subs(t[0], 0) for element in interp]
         temp2 = [element.subs(x, 1 / x) for element in temp]
-        temp3 = [sp.together(element * x ** 3) for element in temp2]
-        temp4 = [sp.together(element.subs({t[1]: 1 / t_sols[0],
+        temp3 = [sympy.together(element * x ** 3) for element in temp2]
+        temp4 = [sympy.together(element.subs({t[1]: 1 / t_sols[0],
                                            t[2]: 1 / t_sols[1],
                                            t[3]: 1 / t_sols[2]}))
                  for element in temp3]
 
         # obtain additional parametric pose p4
-        lam = sp.symbols("lam")
+        lam = sympy.symbols("lam")
         poses.append(DualQuaternion([lam, 0, 0, 0, 0, 0, 0, 0]) - k[motion_family])
 
         eqs_lambda = [element.subs(x, lam) - lams[-1] * poses[-1].array()[i]
                       for i, element in enumerate(temp4)]
 
-        sols_lambda = sp.solve(eqs_lambda, lams, domain='RR')
+        sols_lambda = sympy.solve(eqs_lambda, lams, domain='RR')
 
         # obtain the family of solutions
         poly = [element.subs(sols_lambda) for element in temp4]
@@ -502,21 +502,21 @@ class MotionInterpolation:
         # choose one solution by setting lambda, default lam=0
         poly = [element.subs(lam, lambda_val) for element in poly]
 
-        t = sp.Symbol("t")
+        t = sympy.Symbol("t")
         poly = [element.subs(x, t) for element in poly]
 
         try:
-            curve = [sp.Poly(element, t) for element in poly]
+            curve = [sympy.Poly(element, t) for element in poly]
         except Exception:
             print('Rational evaluation failed, performing numerical evaluation...')
-            curve = [sp.Poly(element.evalf(), t) for element in poly]
+            curve = [sympy.Poly(element.evalf(), t) for element in poly]
 
         return curve
 
     @staticmethod
     def interpolate_cubic_numerically(poses: list[DualQuaternion],
                                       k_idx: int = 0,
-                                      lambda_val: Union[float, int] = 0) -> np.ndarray:
+                                      lambda_val: Union[float, int] = 0) -> numpy.ndarray:
         """Numeric cubic interpolation for four poses.
 
         Parameters
@@ -564,7 +564,7 @@ class MotionInterpolation:
 
         # # solve for t[i] - the parameter of the rational motion curve for i-th pose
         # t_sols = MotionInterpolation._solve_for_t_numerically(poses, k)
-        study_cond_mat = np.array([[0, 0, 0, 0, 1, 0, 0, 0],
+        study_cond_mat = numpy.array([[0, 0, 0, 0, 1, 0, 0, 0],
                                    [0, 0, 0, 0, 0, 1, 0, 0],
                                    [0, 0, 0, 0, 0, 0, 1, 0],
                                    [0, 0, 0, 0, 0, 0, 0, 1],
@@ -576,24 +576,24 @@ class MotionInterpolation:
         k0_array = k[k_idx].array()
         study_cond = [study_cond_mat @ poses[i].array() for i in range(1, 4)]
         # Pre-compute results for the divisors
-        denominators = np.array([p0 @ study_cond[i]
+        denominators = numpy.array([p0 @ study_cond[i]
                                  for i in range(0, 3)])
         # Pre-compute results for the numerators
-        numerators = np.array([k0_array @ study_cond[i]
+        numerators = numpy.array([k0_array @ study_cond[i]
                                for i in range(0, 3)])
         # Perform division for all three parameters at once
-        safe_denominators = np.where(denominators == 0, 1e-16, denominators)
+        safe_denominators = numpy.where(denominators == 0, 1e-16, denominators)
         t_sols = numerators / safe_denominators
 
         # Lagrange's interpolation part
         # lambdas for interpolation - scalar multiples of the poses
-        lams = sp.symbols("lams1:5")
-        x = sp.symbols("x")
+        lams = sympy.symbols("lams1:5")
+        x = sympy.symbols("x")
 
-        parametric_points = [np.array(poses[0].array()),
-                             np.array(lams[0] * poses[1].array()),
-                             np.array(lams[1] * poses[2].array()),
-                             np.array(lams[2] * poses[3].array())]
+        parametric_points = [numpy.array(poses[0].array()),
+                             numpy.array(lams[0] * poses[1].array()),
+                             numpy.array(lams[1] * poses[2].array()),
+                             numpy.array(lams[2] * poses[3].array())]
         # obtain the Lagrange interpolation for poses p0, p1, p2, p3
         interp = MotionInterpolation.lagrange_interpolation_numerically(
             parametric_points,
@@ -608,14 +608,14 @@ class MotionInterpolation:
 
         try:
             # solve the equations
-            sols_lambda = sp.nsolve(eqs_lambda, lams, [1., 1., -1., -1.], dict=True)
+            sols_lambda = sympy.nsolve(eqs_lambda, lams, [1., 1., -1., -1.], dict=True)
         except Exception:
             raise ValueError('Interpolation has no solution. Alter the input poses.')
 
         coeffs = [[expr.coeff(x, i) for i in range(3, -1, -1)] for expr in
-                  (sp.expand(element.subs(sols_lambda[0])) for element in temp_evaluated)]
+                  (sympy.expand(element.subs(sols_lambda[0])) for element in temp_evaluated)]
 
-        return np.array(coeffs, dtype='float64')
+        return numpy.array(coeffs, dtype='float64')
 
     @staticmethod
     def _obtain_k_dq(poses: list[DualQuaternion]) -> list[DualQuaternion]:
@@ -631,16 +631,16 @@ class MotionInterpolation:
         list[DualQuaternion]
             Two auxiliary dual quaternions used in the cubic construction.
         """
-        x = sp.symbols("xx:3")
+        x = sympy.symbols("xx:3")
 
         k = DualQuaternion(poses[0].array() + x[0] * poses[1].array()
                            + x[1] * poses[2].array() + x[2] * poses[3].array())
 
         eqs = [k[0], k[4], k.norm().array()[4]]
 
-        sol = sp.solve(eqs, x, domain='RR')
+        sol = sympy.solve(eqs, x, domain='RR')
 
-        k_as_expr = [sp.Expr(el) for el in k]
+        k_as_expr = [sympy.Expr(el) for el in k]
 
         k1 = [el.subs({x[0]: sol[0][0], x[1]: sol[0][1], x[2]: sol[0][2]})
               for el in k_as_expr]
@@ -669,9 +669,9 @@ class MotionInterpolation:
         list
             Solutions for the parameters t[i].
         """
-        t = sp.symbols("t:3")
+        t = sympy.symbols("t:3")
 
-        study_cond_mat = sp.Matrix([[0, 0, 0, 0, 1, 0, 0, 0],
+        study_cond_mat = sympy.Matrix([[0, 0, 0, 0, 1, 0, 0, 0],
                                     [0, 0, 0, 0, 0, 1, 0, 0],
                                     [0, 0, 0, 0, 0, 0, 1, 0],
                                     [0, 0, 0, 0, 0, 0, 0, 1],
@@ -682,14 +682,14 @@ class MotionInterpolation:
 
         t_dq = [DualQuaternion([t[i], 0, 0, 0, 0, 0, 0, 0]) for i in range(3)]
 
-        eqs = [sp.Matrix((t_dq[0] - k).array()).transpose() @ study_cond_mat
-               @ sp.Matrix(poses[1].array()),
-               sp.Matrix((t_dq[1] - k).array()).transpose() @ study_cond_mat
-               @ sp.Matrix(poses[2].array()),
-               sp.Matrix((t_dq[2] - k).array()).transpose() @ study_cond_mat
-               @ sp.Matrix(poses[3].array())]
+        eqs = [sympy.Matrix((t_dq[0] - k).array()).transpose() @ study_cond_mat
+               @ sympy.Matrix(poses[1].array()),
+               sympy.Matrix((t_dq[1] - k).array()).transpose() @ study_cond_mat
+               @ sympy.Matrix(poses[2].array()),
+               sympy.Matrix((t_dq[2] - k).array()).transpose() @ study_cond_mat
+               @ sympy.Matrix(poses[3].array())]
 
-        sols_t = sp.solve(eqs, t)
+        sols_t = sympy.solve(eqs, t)
         # covert to list and return
         return [val for i, (key, val) in enumerate(sols_t.items())]
 
@@ -710,7 +710,7 @@ class MotionInterpolation:
 
         Returns
         -------
-        sp.Expr
+        sympy.Expr
             The Lagrange basis polynomial expression.
         """
         lagrange_poly = 1
@@ -720,7 +720,7 @@ class MotionInterpolation:
         return lagrange_poly
 
     @staticmethod
-    def _lagrange_poly_interpolation(poses: list[sp.Matrix]):
+    def _lagrange_poly_interpolation(poses: list[sympy.Matrix]):
         """Compute Lagrange polynomial interpolation for symbolic poses.
 
         Parameters
@@ -730,17 +730,17 @@ class MotionInterpolation:
 
         Returns
         -------
-        sp.Matrix
+        sympy.Matrix
             Matrix of symbolic polynomial expressions forming the interpolant.
         """
         # indeterminate x
-        x = sp.symbols('x')
+        x = sympy.symbols('x')
 
         # interpolation nodes
-        t = sp.symbols("t:4")
+        t = sympy.symbols("t:4")
 
         degree = len(poses) - 1
-        result = sp.Matrix([0, 0, 0, 0, 0, 0, 0, 0])
+        result = sympy.Matrix([0, 0, 0, 0, 0, 0, 0, 0])
 
         for i in range(degree + 1):
             result += poses[i] * MotionInterpolation._lagrange_polynomial(degree,
@@ -772,14 +772,14 @@ class MotionInterpolation:
                     p *= (x - t[j]) / (t[i] - t[j])
             return p
 
-        poses = np.asarray(poses)
+        poses = numpy.asarray(poses)
         n = len(t)
         # Ensure that the number of poses matches the number of nodes
         if poses.shape[0] != n:
             raise ValueError(
                 "The number of poses must equal the number of interpolation nodes.")
 
-        result = np.zeros(8)
+        result = numpy.zeros(8)
         for i in range(n):
             li = lagrange_polynomial(i, x, t)
             result = result + poses[i] * li
@@ -788,7 +788,7 @@ class MotionInterpolation:
     @staticmethod
     def interpolate_points_quadratic(points: list[PointHomogeneous],
                                      return_numeric: bool = False) -> (
-            Union[list[sp.Poly], np.ndarray]):
+            Union[list[sympy.Poly], numpy.ndarray]):
         """
         Interpolates the given 5 points by a quadratic curve in SE(3).
 
@@ -797,7 +797,7 @@ class MotionInterpolation:
             polynomials, otherwise as sympy polynomials.
 
         :return: The rational motion curve.
-        :rtype: Union[list[sp.Poly], np.ndarray]
+        :rtype: Union[list[sympy.Poly], numpy.ndarray]
         """
         if not all(isinstance(p, PointHomogeneous) for p in points):
             raise TypeError('The given points must be PointHomogeneous.')
@@ -827,7 +827,7 @@ class MotionInterpolation:
         d32 = a3 - a2
         d14 = a1 - a4
 
-        if np.allclose(float((d43.inv() * d32 * d21.inv() * d14)[0]), -3.0):
+        if numpy.allclose(float((d43.inv() * d32 * d21.inv() * d14)[0]), -3.0):
             raise ValueError("Not possible to interpolate")
 
         w0 = Quaternion()
@@ -844,11 +844,11 @@ class MotionInterpolation:
         p2 = a4
 
         # get the control points of Bezier curve from constructed dual quaternions
-        cp0 = PointHomogeneous(np.concatenate((u0.array(), (p0 * u0).array())))#,
+        cp0 = PointHomogeneous(numpy.concatenate((u0.array(), (p0 * u0).array())))#,
                                # rational=perform_rational)
-        cp1 = PointHomogeneous(np.concatenate((u1.array(), (p1 * u1).array())))#,
+        cp1 = PointHomogeneous(numpy.concatenate((u1.array(), (p1 * u1).array())))#,
                                # rational=perform_rational)
-        cp2 = PointHomogeneous(np.concatenate((u2.array(), (p2 * u2).array())))#,
+        cp2 = PointHomogeneous(numpy.concatenate((u2.array(), (p2 * u2).array())))#,
                                # rational=perform_rational)
 
         if return_numeric:
@@ -859,17 +859,17 @@ class MotionInterpolation:
     @staticmethod
     def interpolate_points_cubic(points: list[PointHomogeneous],
                                  return_numeric: bool = False) -> (
-            Union[list[sp.Poly], np.ndarray]):
+            Union[list[sympy.Poly], numpy.ndarray]):
         """
         Interpolates the given 7 points by a cubic curve in SE(3).
 
-        :param list[Union[sp.Poly, np.polynomial.Polynomial]] points: The points
+        :param list[Union[sympy.Poly, numpy.polynomial.Polynomial]] points: The points
             to interpolate.
         :param bool return_numeric: If True, the result will be returned as numpy
             polynomials, otherwise as sympy polynomials.
 
         :return: The rational motion curve.
-        :rtype: list[Union[sp.Poly, np.polynomial.Polynomial]]
+        :rtype: list[Union[sympy.Poly, numpy.polynomial.Polynomial]]
         """
         if not all(isinstance(p, PointHomogeneous) for p in points):
             raise TypeError('The given points must be PointHomogeneous.')
@@ -933,7 +933,7 @@ class MotionInterpolation:
 
         w0 = Quaternion()
         if perform_rational:
-            w0 = Quaternion([sp.Rational(coord) for coord in w0.array()])
+            w0 = Quaternion([sympy.Rational(coord) for coord in w0.array()])
 
         w4 = r24.inv() * r28
         w6 = r36.inv() * r38
@@ -951,13 +951,13 @@ class MotionInterpolation:
         p3 = a6
 
         # get the control points of Bezier curve from constructed dual quaternions
-        cp0 = PointHomogeneous(np.concatenate((u0.array(), (p0 * u0).array())))#,
+        cp0 = PointHomogeneous(numpy.concatenate((u0.array(), (p0 * u0).array())))#,
                                # rational=perform_rational)
-        cp1 = PointHomogeneous(np.concatenate((u1.array(), (p1 * u1).array())))#,
+        cp1 = PointHomogeneous(numpy.concatenate((u1.array(), (p1 * u1).array())))#,
                                # rational=perform_rational)
-        cp2 = PointHomogeneous(np.concatenate((u2.array(), (p2 * u2).array())))#,
+        cp2 = PointHomogeneous(numpy.concatenate((u2.array(), (p2 * u2).array())))#,
                                # rational=perform_rational)
-        cp3 = PointHomogeneous(np.concatenate((u3.array(), (p3 * u3).array())))#,
+        cp3 = PointHomogeneous(numpy.concatenate((u3.array(), (p3 * u3).array())))#,
                                # rational=perform_rational)
 
         if return_numeric:

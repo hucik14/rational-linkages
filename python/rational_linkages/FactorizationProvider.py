@@ -2,7 +2,7 @@ from typing import Union
 from warnings import warn
 
 import biquaternion_py
-import numpy as np
+import numpy
 
 from sympy import Symbol, Rational
 
@@ -194,7 +194,7 @@ class FactorizationProvider:
         if self.domain == 'QQ':
             return DualQuaternion(axis_h.array())
         else:
-            axis_h = np.asarray(axis_h.array(), dtype='float64')
+            axis_h = numpy.asarray(axis_h.array(), dtype='float64')
             return DualQuaternion(axis_h)
 
 

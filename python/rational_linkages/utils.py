@@ -153,18 +153,18 @@ def tr_from_dh_rationally(t_theta, di, ai, t_alpha):
 
     Parameters
     ----------
-    t_theta : sp.Rational
+    t_theta : sympy.Rational
         DH parameter theta in tangent half-angle form.
-    di : sp.Rational
+    di : sympy.Rational
         DH parameter d, the offset along Z axis.
-    ai : sp.Rational
+    ai : sympy.Rational
         DH parameter a, the length along X axis.
-    t_alpha : sp.Rational
+    t_alpha : sympy.Rational
         DH parameter alpha in tangent half-angle form.
 
     Returns
     -------
-    sp.Matrix
+    sympy.Matrix
         4x4 transformation matrix.
     """
     from sympy import Matrix, eye, Expr  # lazy import
@@ -193,14 +193,14 @@ def normalized_line_rationally(point, direction):
 
     Parameters
     ----------
-    point : sp.Rational
+    point : sympy.Rational
         Point in space.
-    direction : sp.Rational
+    direction : sympy.Rational
         Direction vector.
 
     Returns
     -------
-    sp.Matrix
+    sympy.Matrix
         6-vector representing the Plücker line.
     """
     from sympy import Matrix, Expr  # lazy import

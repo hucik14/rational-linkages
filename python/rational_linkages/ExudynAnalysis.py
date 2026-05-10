@@ -1,6 +1,6 @@
 from typing import Union
 
-import numpy as np
+import numpy
 
 from .RationalMechanism import RationalMechanism
 
@@ -13,7 +13,7 @@ class ExudynAnalysis:
     simulation-related code. See the documentation :ref:`exudyn_info` or the
     Exudyn project page: https://github.com/jgerstmayr/EXUDYN
     """
-    def __init__(self, gravity: Union[np.ndarray, list[float]] = np.array([0, 0, -9.81])):
+    def __init__(self, gravity: Union[numpy.ndarray, list[float]] = numpy.array([0, 0, -9.81])):
         """Create an ExudynAnalysis helper.
 
         Parameters
@@ -106,7 +106,7 @@ class ExudynAnalysis:
             each link in the default configuration.
         """
         # get points sequence
-        nearly_zero = np.finfo(float).eps
+        nearly_zero = numpy.finfo(float).eps
         points = (mechanism.factorizations[0].direct_kinematics(
                   nearly_zero, inverted_part=True)
                   + mechanism.factorizations[1].direct_kinematics(
@@ -150,7 +150,7 @@ class ExudynAnalysis:
         list
             A list with the scalar lengths of each link.
         """
-        return [np.linalg.norm(pts[1] - pts[0]) for pts in links_points]
+        return [numpy.linalg.norm(pts[1] - pts[0]) for pts in links_points]
 
     @staticmethod
     def _links_center_of_gravity(links_points: list) -> list:

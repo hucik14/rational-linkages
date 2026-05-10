@@ -1,5 +1,5 @@
 import sys
-import numpy as np
+import numpy
 
 from warnings import warn
 
@@ -109,13 +109,13 @@ class PlotterPyqtgraph:
         # add a grid
         if show_grid:
             grid = gl.GLGridItem()
-            if not np.isfinite(grid_size) or grid_size <= 0:
+            if not numpy.isfinite(grid_size) or grid_size <= 0:
                 warn("Non‑positive or non‑finite grid_size; using default grid size = 10")
                 grid_size = 10
                 grid_spacing = 1.
             else:
-                exponent = int(np.floor(np.log10(grid_size))) - 1
-                grid_spacing = float(np.power(10.0, exponent))
+                exponent = int(numpy.floor(numpy.log10(grid_size))) - 1
+                grid_spacing = float(numpy.power(10.0, exponent))
             grid.setSize(x=grid_size, y=grid_size)
             grid.setSpacing(x=grid_spacing, y=grid_spacing)
             if self.white_background:
@@ -125,7 +125,7 @@ class PlotterPyqtgraph:
             self.widget.addItem(grid)
 
         # store parameters
-        self.t_space = np.linspace(interval[0], interval[1], steps)
+        self.t_space = numpy.linspace(interval[0], interval[1], steps)
         self.steps = steps
         self.arrows_length = arrows_length
 
@@ -291,9 +291,9 @@ class PlotterPyqtgraph:
         **kwargs
             Additional plotting options.
         """
-        pos0 = np.array(p0.normalized_euclidean())
-        pos1 = np.array(p1.normalized_euclidean())
-        pts = np.array([pos0, pos1])
+        pos0 = numpy.array(p0.normalized_euclidean())
+        pos1 = numpy.array(p1.normalized_euclidean())
+        pts = numpy.array([pos0, pos1])
         color = self._get_color(kwargs.get('color', 'magenta'), (1, 1, 1, 1))
         line = gl.GLLinePlotItem(pos=pts,
                                  color=color,
@@ -301,7 +301,7 @@ class PlotterPyqtgraph:
                                  width=2,
                                  antialias=True)
         self.widget.addItem(line)
-        scatter = gl.GLScatterPlotItem(pos=np.array([pos1]),
+        scatter = gl.GLScatterPlotItem(pos=numpy.array([pos1]),
                                        color=color,
                                        glOptions=self.render_mode,
                                        size=5)
@@ -323,7 +323,7 @@ class PlotterPyqtgraph:
         **kwargs
             Additional plotting options.
         """
-        pts = np.array([p.normalized_euclidean() for p in points])
+        pts = numpy.array([p.normalized_euclidean() for p in points])
         color = self._get_color(kwargs.get('color', 'green'), (1, 1, 1, 1))
         line = gl.GLLinePlotItem(pos=pts,
                                  color=color,
@@ -383,14 +383,14 @@ class PlotterPyqtgraph:
         """
         x, y, z = grid_points
         m, n = x.shape
-        vertices = np.column_stack((x.flatten(), y.flatten(), z.flatten()))
+        vertices = numpy.column_stack((x.flatten(), y.flatten(), z.flatten()))
         faces = []
         for i in range(m - 1):
             for j in range(n - 1):
                 idx = i * n + j
                 faces.append([idx, idx + 1, idx + n])
                 faces.append([idx + 1, idx + n + 1, idx + n])
-        faces = np.array(faces)
+        faces = numpy.array(faces)
         return vertices, faces
 
     def _plot_line(self, line: NormalizedLine, **kwargs):
@@ -402,10 +402,10 @@ class PlotterPyqtgraph:
         interval = kwargs.pop('interval', (-1, 1))
         data = line.get_plot_data(interval)
 
-        start_pt = np.array(data[:3])
-        direction = np.array(data[3:])
+        start_pt = numpy.array(data[:3])
+        direction = numpy.array(data[3:])
         end_pt = start_pt + direction
-        pts = np.array([start_pt, end_pt])
+        pts = numpy.array([start_pt, end_pt])
 
         color = self._get_color(kwargs.get('color', 'magenta'), (1, 1, 1, 1))
 
@@ -416,7 +416,7 @@ class PlotterPyqtgraph:
                                       antialias=True)
         self.widget.addItem(line_item)
 
-        tip_point = gl.GLScatterPlotItem(pos=np.array([end_pt]),
+        tip_point = gl.GLScatterPlotItem(pos=numpy.array([end_pt]),
                                          color=color,
                                          glOptions=self.render_mode,
                                          size=5)
@@ -432,9 +432,9 @@ class PlotterPyqtgraph:
         """
         size = kwargs.pop('size', 4)
 
-        pos = np.array(point.get_plot_data())
+        pos = numpy.array(point.get_plot_data())
         color = self._get_color(kwargs.get('color', 'red'), (1, 0, 0, 1))
-        scatter = gl.GLScatterPlotItem(pos=np.array([pos]),
+        scatter = gl.GLScatterPlotItem(pos=numpy.array([pos]),
                                        color=color,
                                        glOptions=self.render_mode,
                                        size=size)
@@ -454,10 +454,10 @@ class PlotterPyqtgraph:
         """
         Plot a transformation matrix as three arrows (x, y, and z axes).
         """
-        origin = np.array(matrix.t)
-        x_axis = np.array([origin, origin + self.arrows_length * np.array(matrix.n)])
-        y_axis = np.array([origin, origin + self.arrows_length * np.array(matrix.o)])
-        z_axis = np.array([origin, origin + self.arrows_length * np.array(matrix.a)])
+        origin = numpy.array(matrix.t)
+        x_axis = numpy.array([origin, origin + self.arrows_length * numpy.array(matrix.n)])
+        y_axis = numpy.array([origin, origin + self.arrows_length * numpy.array(matrix.o)])
+        z_axis = numpy.array([origin, origin + self.arrows_length * numpy.array(matrix.a)])
 
         x_line = gl.GLLinePlotItem(pos=x_axis,
                                    color=(1, 0, 0, 1),
@@ -489,14 +489,14 @@ class PlotterPyqtgraph:
         interval = kwargs.pop('interval', (0, 1))
         if kwargs.pop('with_poses', False):
             if interval == 'closed':
-                t_space = np.tan(np.linspace(-np.pi / 2, np.pi / 2, 51))
+                t_space = numpy.tan(numpy.linspace(-numpy.pi / 2, numpy.pi / 2, 51))
             else:
-                t_space = np.linspace(interval[0], interval[1], 50)
+                t_space = numpy.linspace(interval[0], interval[1], 50)
             for t in t_space:
                 pose_dq = DualQuaternion(curve.evaluate(t))
                 self._plot_dual_quaternion(pose_dq)
         x, y, z = curve.get_plot_data(interval, self.steps)
-        pts = np.column_stack((x, y, z))
+        pts = numpy.column_stack((x, y, z))
         color = self._get_color(kwargs.get('color', 'orange'), (1, 1, 0, 1))
         line_item = gl.GLLinePlotItem(pos=pts,
                                       color=color,
@@ -514,7 +514,7 @@ class PlotterPyqtgraph:
         """
         interval = kwargs.pop('interval', (0, 1))
         x, y, z, x_cp, y_cp, z_cp = bezier.get_plot_data(interval, self.steps)
-        pts = np.column_stack((x, y, z))
+        pts = numpy.column_stack((x, y, z))
         color = self._get_color(kwargs.get('color', 'yellow'), (1, 0, 1, 1))
         line_item = gl.GLLinePlotItem(pos=pts,
                                       color=color,
@@ -523,7 +523,7 @@ class PlotterPyqtgraph:
                                       antialias=True)
         self.widget.addItem(line_item)
         if plot_control_points:
-            cp = np.column_stack((x_cp, y_cp, z_cp))
+            cp = numpy.column_stack((x_cp, y_cp, z_cp))
             scatter = gl.GLScatterPlotItem(pos=cp,
                                            color=(1, 0, 0, 1),
                                            glOptions=self.render_mode,
@@ -562,7 +562,7 @@ class PlotterPyqtgraph:
         interval = kwargs.pop('interval', (-1, 1))
         x, y, z, x_cp, y_cp, z_cp = curve.get_plot_data(interval, self.steps)
 
-        pts = np.column_stack((x, y, z))
+        pts = numpy.column_stack((x, y, z))
         color = self._get_color(kwargs.get('color', 'yellow'), (1, 0, 1, 1))
         line_item = gl.GLLinePlotItem(pos=pts,
                                       color=color,
@@ -571,7 +571,7 @@ class PlotterPyqtgraph:
                                       antialias=True)
         self.widget.addItem(line_item)
         if plot_control_points:
-            cp = np.column_stack((x_cp, y_cp, z_cp))
+            cp = numpy.column_stack((x_cp, y_cp, z_cp))
             scatter = gl.GLScatterPlotItem(pos=cp,
                                            color=(1, 0, 0, 1),
                                            glOptions=self.render_mode,
@@ -590,7 +590,7 @@ class PlotterPyqtgraph:
         """
         t = kwargs.pop('t', 0)
         points = factorization.direct_kinematics(t)
-        pts = np.array(points)
+        pts = numpy.array(points)
         color = self._get_color(kwargs.get('color', 'orange'), (1, 0.5, 0, 1))
         line_item = gl.GLLinePlotItem(pos=pts,
                                       color=color,
@@ -610,9 +610,9 @@ class PlotterPyqtgraph:
             t, mechanism.tool_frame.dq2point_via_matrix())
         pts1 = mechanism.factorizations[1].direct_kinematics_of_tool_with_link(
             t, mechanism.tool_frame.dq2point_via_matrix())[::-1]
-        ee_points = np.concatenate((pts0, pts1))
+        ee_points = numpy.concatenate((pts0, pts1))
         color = self._get_color(kwargs.get('color', 'cyan'), (0, 1, 1, 1))
-        line_item = gl.GLLinePlotItem(pos=np.array(ee_points),
+        line_item = gl.GLLinePlotItem(pos=numpy.array(ee_points),
                                       color=color,
                                       glOptions=self.render_mode,
                                       width=2,
@@ -624,13 +624,13 @@ class PlotterPyqtgraph:
         """
         Plot the path of the tool.
         """
-        t_lin = np.linspace(0, 2 * np.pi, self.steps)
+        t_lin = numpy.linspace(0, 2 * numpy.pi, self.steps)
         t_vals = [mechanism.factorizations[0].joint_angle_to_t_param(t_lin[i])
                   for i in range(self.steps)]
         ee_points = [mechanism.factorizations[0].direct_kinematics_of_tool(
             t_vals[i], mechanism.tool_frame.dq2point_via_matrix())
             for i in range(self.steps)]
-        pts = np.array(ee_points)
+        pts = numpy.array(ee_points)
         line_item = gl.GLLinePlotItem(pos=pts,
                                       color=(1, 0, 1, 1),
                                       glOptions=self.render_mode,
@@ -853,7 +853,7 @@ if gl is not None:
                 The homogeneous 4D vector for the label position.
             """
             # Convert the 3D point to homogeneous coordinates
-            if isinstance(pt, np.ndarray):
+            if isinstance(pt, numpy.ndarray):
                 point_vec = pt
             elif isinstance(pt, PointHomogeneous):
                 point_vec = [pt.coordinates_normalized[1],
@@ -975,17 +975,17 @@ if gl is not None:
             """
             # Create GLLinePlotItems for the three axes.
             # The initial positions are placeholders; they will be set properly in setData().
-            self.x_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+            self.x_axis = gl.GLLinePlotItem(pos=numpy.zeros((2, 3)),
                                             color=(1, 0, 0, 0.5),
                                             glOptions='translucent',
                                             width=width,
                                             antialias=antialias)
-            self.y_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+            self.y_axis = gl.GLLinePlotItem(pos=numpy.zeros((2, 3)),
                                             color=(0, 1, 0, 0.5),
                                             glOptions='translucent',
                                             width=width,
                                             antialias=antialias)
-            self.z_axis = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+            self.z_axis = gl.GLLinePlotItem(pos=numpy.zeros((2, 3)),
                                             color=(0, 0, 1, 0.5),
                                             glOptions='translucent',
                                             width=width,
@@ -1008,9 +1008,9 @@ if gl is not None:
             self.tr = transform
 
             # Update the positions for each axis.
-            self.x_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.n]))
-            self.y_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.o]))
-            self.z_axis.setData(pos=np.array([transform.t, transform.t + self.length * transform.a]))
+            self.x_axis.setData(pos=numpy.array([transform.t, transform.t + self.length * transform.n]))
+            self.y_axis.setData(pos=numpy.array([transform.t, transform.t + self.length * transform.o]))
+            self.z_axis.setData(pos=numpy.array([transform.t, transform.t + self.length * transform.a]))
 
         def addToView(self, view: gl.GLViewWidget):
             """
@@ -1140,7 +1140,7 @@ if QtWidgets is not None:
 
             # --- Driving joint angle slider ---
             control_layout.addWidget(QtWidgets.QLabel("Joint angle [rad]:"))
-            self.move_slider = self.create_float_slider(0.0, 2 * np.pi, 0.0,
+            self.move_slider = self.create_float_slider(0.0, 2 * numpy.pi, 0.0,
                                                         orientation=QtCore.Qt.Orientation.Horizontal)
             control_layout.addWidget(self.move_slider)
 
@@ -1205,7 +1205,7 @@ if QtWidgets is not None:
             num_lines = self.mechanism.num_joints * 2
 
             # base link in orange
-            line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+            line_item = gl.GLLinePlotItem(pos=numpy.zeros((2, 3)),
                                           color=(1, 0.5, 0, 1),
                                           glOptions=self.render_mode,
                                           width=5,
@@ -1216,13 +1216,13 @@ if QtWidgets is not None:
             for i in range(1, num_lines):
                 # if i is even, make the link color green, and joints red
                 if i % 2 == 0:
-                    line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                    line_item = gl.GLLinePlotItem(pos=numpy.zeros((2, 3)),
                                                   color=(1, 1, 0, 1), # yellow (links)
                                                   glOptions=self.render_mode,
                                                   width=5,
                                                   antialias=True)
                 else:
-                    line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                    line_item = gl.GLLinePlotItem(pos=numpy.zeros((2, 3)),
                                                   color=(1, 0, 1, 1), # magenta (joints)
                                                   glOptions=self.render_mode,
                                                   width=5,
@@ -1232,7 +1232,7 @@ if QtWidgets is not None:
 
             # --- If desired, initialize tool plot and tool frame ---
             if self.show_tool:
-                self.tool_link = gl.GLLinePlotItem(pos=np.zeros((3, 3)),
+                self.tool_link = gl.GLLinePlotItem(pos=numpy.zeros((3, 3)),
                                                    color=(1, 1, 0, 0.5),  # 50% yellow
                                                    glOptions=self.render_mode,
                                                    width=5,
@@ -1321,7 +1321,7 @@ if QtWidgets is not None:
             """
             Plot the tool path (as a continuous line) using a set of computed points.
             """
-            t_lin = np.linspace(0, 2 * np.pi, self.steps)
+            t_lin = numpy.linspace(0, 2 * numpy.pi, self.steps)
             t_vals = [self.mechanism.factorizations[0].joint_angle_to_t_param(t)
                       for t in t_lin]
             ee_points = [self.mechanism.factorizations[0].direct_kinematics_of_tool(
@@ -1330,11 +1330,11 @@ if QtWidgets is not None:
 
             if self.base_arr is not None:
                 # transform the end-effector points by the base transformation
-                ee_points = [self.base_arr @ np.insert(p, 0, 1) for p in ee_points]
+                ee_points = [self.base_arr @ numpy.insert(p, 0, 1) for p in ee_points]
                 # normalize
                 ee_points = [p[1:4]/p[0] for p in ee_points]
 
-            pts = np.array(ee_points)
+            pts = numpy.array(ee_points)
             tool_path = gl.GLLinePlotItem(pos=pts,
                                           color=(0.5, 0.5, 0.5, 1),
                                           glOptions=self.render_mode,
@@ -1363,9 +1363,9 @@ if QtWidgets is not None:
                 val = float(self.text_box_angle.text())
                 # Normalize angle to [0, 2*pi]
                 if val >= 0:
-                    val = val % (2 * np.pi)
+                    val = val % (2 * numpy.pi)
                 else:
-                    val = (val % (2 * np.pi)) - np.pi
+                    val = (val % (2 * numpy.pi)) - numpy.pi
                 self.move_slider.setValue(int(val * 100))
             except ValueError:
                 pass
@@ -1470,7 +1470,7 @@ if QtWidgets is not None:
 
             if self.base is not None:
                 # Transform the links by the base transformation.
-                links = [self.base_arr @ np.insert(p, 0, 1) for p in links]
+                links = [self.base_arr @ numpy.insert(p, 0, 1) for p in links]
                 # Normalize the homogeneous coordinates.
                 links = [p[1:4] / p[0] for p in links]
 
@@ -1478,7 +1478,7 @@ if QtWidgets is not None:
             for i, line in enumerate(self.lines):
                 pt1 = links[i]
                 pt2 = links[i+1]
-                pts = np.array([pt1, pt2])
+                pts = numpy.array([pt1, pt2])
                 line.setData(pos=pts)
 
             if self.show_tool:
@@ -1497,12 +1497,12 @@ if QtWidgets is not None:
 
                 if self.base is not None:
                     # Transform the tool triangle by the base transformation.
-                    tool_triangle = [self.base_arr @ np.insert(p, 0, 1)
+                    tool_triangle = [self.base_arr @ numpy.insert(p, 0, 1)
                                      for p in tool_triangle]
                     # Normalize the homogeneous coordinates.
                     tool_triangle = [p[1:4] / p[0] for p in tool_triangle]
 
-                self.tool_link.setData(pos=np.array(tool_triangle))
+                self.tool_link.setData(pos=numpy.array(tool_triangle))
 
                 # Update tool frame (pose) arrows.
                 pose_dq = DualQuaternion(self.mechanism.evaluate(t))

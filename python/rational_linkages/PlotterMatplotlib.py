@@ -4,7 +4,7 @@ from os import makedirs
 from os.path import isdir, join
 from warnings import warn
 
-import numpy as np
+import numpy
 
 from .DualQuaternion import DualQuaternion
 from .Linkage import LineSegment
@@ -175,7 +175,7 @@ class PlotterMatplotlib:
                 wspace=0.2
             )
 
-        self.t_space = np.linspace(interval[0], interval[1], steps)
+        self.t_space = numpy.linspace(interval[0], interval[1], steps)
         self.steps = steps
         self.legend = show_legend
         self.interactive = interactive
@@ -350,7 +350,7 @@ class PlotterMatplotlib:
         **kwargs
             Matplotlib options.
         """
-        line = np.concatenate((p0.normalized_euclidean(),
+        line = numpy.concatenate((p0.normalized_euclidean(),
                                p1.normalized_euclidean() - p0.normalized_euclidean()))
 
         if 'label' not in kwargs:
@@ -391,8 +391,8 @@ class PlotterMatplotlib:
 
     @_plotting_decorator
     def plot_plane(self,
-                   normal: np.ndarray,
-                   point: np.ndarray,
+                   normal: numpy.ndarray,
+                   point: numpy.ndarray,
                    xlim: tuple[float, float] = (-1, 1),
                    ylim: tuple[float, float] = (-1, 1),
                    **kwargs):
@@ -412,19 +412,19 @@ class PlotterMatplotlib:
         **kwargs
             Matplotlib options.
         """
-        normal = np.asarray(normal)
-        point = np.asarray(point)
+        normal = numpy.asarray(normal)
+        point = numpy.asarray(point)
 
         # Extract the normal vector components
         a, b, c = normal
 
         # Calculate d in the plane equation ax + by + cz = d
-        d = np.dot(normal, point)
+        d = numpy.dot(normal, point)
 
         # Create a grid of x and y values
-        x = np.linspace(*xlim, 20)
-        y = np.linspace(*ylim, 20)
-        x, y = np.meshgrid(x, y)
+        x = numpy.linspace(*xlim, 20)
+        y = numpy.linspace(*ylim, 20)
+        x, y = numpy.meshgrid(x, y)
 
         # Solve for z in the plane equation
         z = (d - a * x - b * y) / c
@@ -546,9 +546,9 @@ class PlotterMatplotlib:
 
             if interval == 'closed':
                 # tangent half-angle substitution for closed curves
-                t_space = np.tan(np.linspace(-np.pi / 2, np.pi / 2, 51))
+                t_space = numpy.tan(numpy.linspace(-numpy.pi / 2, numpy.pi / 2, 51))
             else:
-                t_space = np.linspace(interval[0], interval[1], 50)
+                t_space = numpy.linspace(interval[0], interval[1], 50)
 
             for t in t_space:
                 pose_dq = DualQuaternion(curve.evaluate(t))
@@ -649,7 +649,7 @@ class PlotterMatplotlib:
                 t, mechanism.tool_frame.dq2point_via_matrix())
             pts1 = mechanism.factorizations[1].direct_kinematics_of_tool_with_link(
                 t, mechanism.tool_frame.dq2point_via_matrix())[::-1]
-            ee_points = np.concatenate((pts0, pts1))
+            ee_points = numpy.concatenate((pts0, pts1))
 
         if 'label' not in kwargs:
             kwargs['label'] = "end effector"
@@ -670,7 +670,7 @@ class PlotterMatplotlib:
             Matplotlib options.
         """
         # plot end effector path
-        t_lin = np.linspace(0, 2 * np.pi, self.steps)
+        t_lin = numpy.linspace(0, 2 * numpy.pi, self.steps)
         t = [mechanism.factorizations[0].joint_angle_to_t_param(t_lin[i])
              for i in range(self.steps)]
 
@@ -679,7 +679,7 @@ class PlotterMatplotlib:
 
         if self.base_arr is not None:
             # transform points to base frame
-            ee_points = [self.base_arr @ np.insert(p, 0, 1)
+            ee_points = [self.base_arr @ numpy.insert(p, 0, 1)
                          for p in ee_points]
             # normalize
             ee_points = [p[1:4]/p[0] for p in ee_points]
@@ -835,9 +835,9 @@ class PlotterMatplotlib:
 
             # normalize angle to [0, 2*pi]
             if val >= 0:
-                val = val % (2 * np.pi)
+                val = val % (2 * numpy.pi)
             else:
-                val = (val % (2 * np.pi)) - np.pi
+                val = (val % (2 * numpy.pi)) - numpy.pi
             self.move_slider.set_val(val)
 
         def submit_parameter(text):
@@ -888,7 +888,7 @@ class PlotterMatplotlib:
                 ax=plt.axes([0.3, 0.01, 0.5, 0.05]),
                 label="Joint angle [rad]: ",
                 valmin=0.0,
-                valmax=np.pi * 2,
+                valmax=numpy.pi * 2,
                 valinit=0.0,
                 valstep=0.01,
             )
@@ -962,7 +962,7 @@ class PlotterMatplotlib:
 
         if self.base_arr is not None:
             # transform points to base frame
-            links = [self.base_arr @ np.insert(p, 0, 1) for p in links]
+            links = [self.base_arr @ numpy.insert(p, 0, 1) for p in links]
             # normalize
             links = [p[1:4]/p[0] for p in links]
 
@@ -997,7 +997,7 @@ class PlotterMatplotlib:
 
             if self.base_arr is not None:
                 # transform points to base frame
-                tool_triangle = [self.base_arr @ np.insert(p, 0, 1)
+                tool_triangle = [self.base_arr @ numpy.insert(p, 0, 1)
                                  for p in tool_triangle]
                 # normalize
                 tool_triangle = [p[1:4]/p[0] for p in tool_triangle]
@@ -1052,32 +1052,32 @@ class PlotterMatplotlib:
         # Inner function to update the minimum and maximum values
         def update_min_max(data):
             # Update min and max for x and y axes
-            self.min_x, self.max_x = (min(self.min_x, np.min(data[:, 0])),
-                                      max(self.max_x, np.max(data[:, 0])))
-            self.min_y, self.max_y = (min(self.min_y, np.min(data[:, 1])),
-                                      max(self.max_y, np.max(data[:, 1])))
+            self.min_x, self.max_x = (min(self.min_x, numpy.min(data[:, 0])),
+                                      max(self.max_x, numpy.max(data[:, 0])))
+            self.min_y, self.max_y = (min(self.min_y, numpy.min(data[:, 1])),
+                                      max(self.max_y, numpy.max(data[:, 1])))
             # Update min and max for z-axis if present
             if data.shape[1] > 2:
-                self.min_z, self.max_z = (min(self.min_z, np.min(data[:, 2])),
-                                          max(self.max_z, np.max(data[:, 2])))
+                self.min_z, self.max_z = (min(self.min_z, numpy.min(data[:, 2])),
+                                          max(self.max_z, numpy.max(data[:, 2])))
 
         # Iterate over all artists in the Axes3D object
         for artist in ax.get_children():
             # Handle 3D scatter plots
             if isinstance(artist, matplotlib.collections.PathCollection):
-                update_min_max(np.array(artist._offsets3d).T)
+                update_min_max(numpy.array(artist._offsets3d).T)
             # Handle 3D line plots
             elif hasattr(artist, '_verts3d'):
-                update_min_max(np.array(artist._verts3d).T)
+                update_min_max(numpy.array(artist._verts3d).T)
             # Handle 3D quiver plots
             elif hasattr(artist, '_segments3d'):
                 for segment in artist._segments3d:
-                    update_min_max(np.array(segment))
+                    update_min_max(numpy.array(segment))
             # Handle other collection types (like PolyCollection for polygons)
             elif isinstance(artist, matplotlib.collections.Collection):
                 for path in artist.get_paths():
                     for polygon in path.to_polygons():
-                        update_min_max(np.array(polygon))
+                        update_min_max(numpy.array(polygon))
 
         # Set the updated limits to the axes
         ax.set_xlim3d(float(self.min_x), float(self.max_x))
@@ -1114,7 +1114,7 @@ class PlotterMatplotlib:
         if not isdir(output_dir):
             makedirs(output_dir)
 
-        t_angle = np.linspace(0, 2 * np.pi, number_of_frames)
+        t_angle = numpy.linspace(0, 2 * numpy.pi, number_of_frames)
 
         # perform the animation once to scale the plot for equal axes limits
         for i, val in enumerate(t_angle):

@@ -6,7 +6,7 @@ Classes in the Module:
 """
 from typing import Union
 
-import numpy as np
+import numpy
 
 from .DualQuaternion import DualQuaternion
 from .NormalizedLine import NormalizedLine
@@ -83,7 +83,7 @@ class Linkage:
     def __repr__(self):
         return f"{self.points}"
 
-    def _get_point_param_on_line(self, point: PointHomogeneous) -> np.ndarray:
+    def _get_point_param_on_line(self, point: PointHomogeneous) -> numpy.ndarray:
         """Return the parametric coordinate of a point on the joint axis.
 
         Parameters
@@ -119,7 +119,7 @@ class Linkage:
         """
         return PointHomogeneous.from_3d_point(self.normalized_axis.point_on_line(param))
 
-    def set_point_by_param(self, idx: int, param: Union[float, np.ndarray]):
+    def set_point_by_param(self, idx: int, param: Union[float, numpy.ndarray]):
         """Set one of the two connection points by its axis parameter.
 
         Parameters
@@ -151,7 +151,7 @@ class Linkage:
         bool
             True if the two connection points are numerically equal.
         """
-        return np.allclose(self.points[0].normalized_euclidean(),
+        return numpy.allclose(self.points[0].normalized_euclidean(),
                            self.points[1].normalized_euclidean())
 
 
@@ -287,15 +287,15 @@ class LineSegment:
         p1 = self.point1.evaluate(t_val).evalf()
 
         # segment length
-        l = np.linalg.norm(p0.normalized_euclidean() - p1.normalized_euclidean())
+        l = numpy.linalg.norm(p0.normalized_euclidean() - p1.normalized_euclidean())
 
         # distance between the point0 and the collision point
-        d0 = np.linalg.norm(p0.normalized_euclidean() - point.normalized_euclidean())
+        d0 = numpy.linalg.norm(p0.normalized_euclidean() - point.normalized_euclidean())
 
         # distance between the point1 and the collision point
-        d1 = np.linalg.norm(p1.normalized_euclidean() - point.normalized_euclidean())
+        d1 = numpy.linalg.norm(p1.normalized_euclidean() - point.normalized_euclidean())
 
-        if np.allclose(l, d0 + d1):
+        if numpy.allclose(l, d0 + d1):
             return True
         else:
             return False
@@ -314,18 +314,18 @@ class LineSegment:
             ``(x, y, z)`` arrays where each array has shape (2, N).
         """
         steps = 30
-        t_space = np.tan(np.linspace(-np.pi/2, np.pi/2, steps + 1))
-        p0 = np.array([self.point0.evaluate(t_val).normalized_euclidean() for t_val in t_space])
-        p1 = np.array([self.point1.evaluate(t_val).normalized_euclidean() for t_val in t_space])
+        t_space = numpy.tan(numpy.linspace(-numpy.pi/2, numpy.pi/2, steps + 1))
+        p0 = numpy.array([self.point0.evaluate(t_val).normalized_euclidean() for t_val in t_space])
+        p1 = numpy.array([self.point1.evaluate(t_val).normalized_euclidean() for t_val in t_space])
 
         # Separate the x, y, and z coordinates
         x0, y0, z0 = p0[:, 0], p0[:, 1], p0[:, 2]
         x1, y1, z1 = p1[:, 0], p1[:, 1], p1[:, 2]
 
         # Create a meshgrid for the moving line segment
-        x = np.array([x0, x1])
-        y = np.array([y0, y1])
-        z = np.array([z0, z1])
+        x = numpy.array([x0, x1])
+        y = numpy.array([y0, y1])
+        z = numpy.array([z0, z1])
 
         return x, y, z
 

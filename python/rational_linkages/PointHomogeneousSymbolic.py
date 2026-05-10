@@ -24,7 +24,7 @@ class PointHomogeneousSymbolic(PointHomogeneous):
 
     Attributes
     ----------
-    coordinates : np.ndarray
+    coordinates : numpy.ndarray
         Object-dtype array of SymPy expressions ``[w, x, y, ...]``.
     is_at_infinity : bool
         ``True`` when the homogeneous coordinate simplifies to zero.
@@ -85,7 +85,7 @@ class PointHomogeneousSymbolic(PointHomogeneous):
 
         Returns
         -------
-        np.ndarray
+        numpy.ndarray
             Object-dtype array of SymPy expressions.
         """
         if point is None:

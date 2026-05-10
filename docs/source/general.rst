@@ -6,6 +6,5 @@ General Information
    :caption: Contents:
 
    general/installation
-   general/overview
    general/changelog
    general/contribute

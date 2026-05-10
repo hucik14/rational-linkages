@@ -79,25 +79,18 @@ bibtex_bibfiles = ['refs.bib']
 nitpicky = True
 nitpick_ignore = [
     ('py:class', 'optional'),
-    
-    ('py:class', 'np.ndarray'),
     ('py:class', 'numpy.ndarray'),
     ('py:class', 'numpy.array'),
-    ('py:class', 'np.array'),
 ]
 
 nitpick_ignore_regex = [
     (r'py:func', r'sympy\..*'),
     (r'py:class', r'sympy\..*'),
-    (r'py:func', r'sp\..*'),
-    (r'py:class', r'sp\..*'),
     (r'py:func', r'scipy\..*'),
     (r'py:class', r'scipy\..*'),
-
     (r'py:class', r'PyQt6\..*'),
     (r'py:class', r'QtCore\..*'),
     (r'py:class', r'Q\w+'),
-
     (r'py:data', r'typing\..*'),
 ]
 
@@ -111,16 +104,17 @@ napoleon_use_ivar = True  # avoid duplicate attribute objects with autodoc prope
 autodoc_typehints = "description"
 autodoc_member_order = "bysource"
 
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
-                       'numpy': ('https://docs.scipy.org/doc/numpy', None),
-                       'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
-                       'matplotlib': ('https://matplotlib.org/stable', None),
-                       'sympy': ('https://docs.sympy.org/latest/', None),
-                       'biquaternion_py': ('https://biquaternion-py.readthedocs.io/en/latest/', None),
-                       'PyQt6': ('https://www.riverbankcomputing.com/static/Docs/PyQt6/', None),
-                       'pyqt6': ('https://doc.qt.io/qtforpython-6/', None),
-                       'pyqtgraph': ('https://pyqtgraph.readthedocs.io/en/latest/', None),
-                       }
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'numpy': ('https://numpy.org/doc/stable', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy', None),
+    'matplotlib': ('https://matplotlib.org/stable', None),
+    'sympy': ('https://docs.sympy.org/latest/', None),
+    'biquaternion_py': ('https://biquaternion-py.readthedocs.io/en/latest/', None),
+    'PyQt6': ('https://www.riverbankcomputing.com/static/Docs/PyQt6/', None),
+    'pyqt6': ('https://doc.qt.io/qtforpython-6/', None),
+    'pyqtgraph': ('https://pyqtgraph.readthedocs.io/en/latest/', None),
+}
 
 
 autodoc_type_aliases = {

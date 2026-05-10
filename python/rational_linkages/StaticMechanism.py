@@ -1,7 +1,7 @@
 from typing import Union
 from warnings import warn
 
-import numpy as np
+import numpy
 
 from .DualQuaternion import DualQuaternion
 from .MotionFactorization import MotionFactorization
@@ -85,8 +85,8 @@ class StaticMechanism(RationalMechanism):
             parameters.
         """
         if unit == 'deg':
-            theta = np.deg2rad(theta)
-            alpha = np.deg2rad(alpha)
+            theta = numpy.deg2rad(theta)
+            alpha = numpy.deg2rad(alpha)
         elif unit != 'rad':
             raise ValueError("The unit parameter should be 'rad' or 'deg'.")
 
@@ -245,12 +245,12 @@ class SnappingMechanism(StaticMechanism):
         b_normal = NormalizedLine.from_two_points(b, b_t).direction
 
         # intersection of two planes (axis of snapping)
-        axis_dir = np.cross(a_normal, b_normal)
+        axis_dir = numpy.cross(a_normal, b_normal)
 
         # solve for point on axis
-        mat = np.stack([a_normal, b_normal, axis_dir], axis=0)
-        vec = np.array([np.dot(a_normal, a_mid), np.dot(b_normal, b_mid), 0])
-        pt = np.linalg.lstsq(mat, vec, rcond=None)[0]
+        mat = numpy.stack([a_normal, b_normal, axis_dir], axis=0)
+        vec = numpy.array([numpy.dot(a_normal, a_mid), numpy.dot(b_normal, b_mid), 0])
+        pt = numpy.linalg.lstsq(mat, vec, rcond=None)[0]
 
         return (NormalizedLine.from_direction_and_point(axis_dir, pt),
                 PointHomogeneous.from_3d_point(pt))

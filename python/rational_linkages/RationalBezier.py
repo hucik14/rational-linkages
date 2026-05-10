@@ -1,7 +1,7 @@
 from copy import deepcopy
 
-import numpy as np
-import sympy as sp
+import numpy
+import sympy
 
 from .DualQuaternion import DualQuaternion
 from .MiniBall import MiniBall
@@ -25,13 +25,13 @@ class RationalBezier(RationalCurve):
         # part of Limancon of Pascal
 
         from rational_linkages import RationalBezier, PointHomogeneous
-        import numpy as np
+        import numpy
 
-        control_points = [PointHomogeneous(np.array([4.,  0., -2.,  4.])),
-                          PointHomogeneous(np.array([0.,  1., -2.,  0.])),
-                          PointHomogeneous(np.array([1.33333333, 2.66666667, 0., 1.33333333])),
-                          PointHomogeneous(np.array([0., 1., 2., 0.])),
-                          PointHomogeneous(np.array([4., 0., 2., 4.]))]
+        control_points = [PointHomogeneous(numpy.array([4.,  0., -2.,  4.])),
+                          PointHomogeneous(numpy.array([0.,  1., -2.,  0.])),
+                          PointHomogeneous(numpy.array([1.33333333, 2.66666667, 0., 1.33333333])),
+                          PointHomogeneous(numpy.array([0., 1., 2., 0.])),
+                          PointHomogeneous(numpy.array([4., 0., 2., 4.]))]
         bezier_curve = RationalBezier(control_points)
 
     .. clear-namespace::
@@ -69,7 +69,7 @@ class RationalBezier(RationalCurve):
 
     def get_polynomials_from_control_points(self,
                                             control_points: list[PointHomogeneous]
-                                            ) -> (list[sp.Poly]):
+                                            ) -> (list[sympy.Poly]):
         """
         Calculate the coefficients of the parametric equations of the curve from the control points.
 
@@ -83,7 +83,7 @@ class RationalBezier(RationalCurve):
         list of sympy.Poly
             Coefficients of the parametric equations of the curve.
         """
-        t = sp.Symbol("t")
+        t = sympy.Symbol("t")
         degree = len(control_points) - 1
         dimension = control_points[0].coordinates.size - 1
 
@@ -95,12 +95,12 @@ class RationalBezier(RationalCurve):
 
         # Convert the Bezier curve to a set of polynomials
         bezier_polynomials = [
-            sp.Poly(bezier_curve[i], t) for i in range(dimension + 1)]
+            sympy.Poly(bezier_curve[i], t) for i in range(dimension + 1)]
         return bezier_polynomials
 
     @staticmethod
     def get_numerical_coeffs(control_points: list[PointHomogeneous]
-                             ) -> np.ndarray:
+                             ) -> numpy.ndarray:
         """
         Get the numerical coefficients of the Bezier curve.
 
@@ -116,10 +116,10 @@ class RationalBezier(RationalCurve):
         """
         from scipy.special import comb  # lazy import
 
-        control_pts = np.array([point.array() for point in control_points])
+        control_pts = numpy.array([point.array() for point in control_points])
         degree = len(control_points) - 1
 
-        mat = np.zeros((degree + 1, degree + 1))
+        mat = numpy.zeros((degree + 1, degree + 1))
 
         for j in range(degree + 1):
             for k in range(j + 1):
@@ -367,7 +367,7 @@ class RationalSoo(RationalCurve):
 
     def get_poly_from_control_points(self,
                                      control_points: list[PointHomogeneous]
-                                     ) -> (list[sp.Poly]):
+                                     ) -> (list[sympy.Poly]):
         """
         Calculate the coefficients of the parametric equations of the curve from the control points.
 
@@ -381,18 +381,18 @@ class RationalSoo(RationalCurve):
         list of sympy.Poly
             Coefficients of the parametric equations of the curve.
         """
-        t = sp.Symbol("t")
+        t = sympy.Symbol("t")
 
         deg = len(control_points) - 1
         dim = control_points[0].coordinates.size
 
-        taus, weights = np.polynomial.legendre.leggauss(deg)
+        taus, weights = numpy.polynomial.legendre.leggauss(deg)
         lagrange_basis = self.lagrange_basis(taus, t, weights)
 
         integrated_basis = []
         for base in lagrange_basis:
             # integrate from -1 to t
-            integrated_basis.append(sp.integrate(base, (t, -1, t)) - 0.5)
+            integrated_basis.append(sympy.integrate(base, (t, -1, t)) - 0.5)
         integrated_basis.insert(0, 0.5)
         integrated_basis.append(-0.5)
 
@@ -404,7 +404,7 @@ class RationalSoo(RationalCurve):
         for i in range(len(control_points)):
             gl_curve += gauss_legendre_basis[i] * control_points[i].array()
 
-        return [sp.Poly(gl_curve[i], t, greedy=False) for i in range(dim)]
+        return [sympy.Poly(gl_curve[i], t, greedy=False) for i in range(dim)]
 
     @classmethod
     def from_two_points(cls,

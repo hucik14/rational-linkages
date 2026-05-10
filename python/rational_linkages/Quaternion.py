@@ -26,7 +26,7 @@ class Quaternion:
 
     Attributes
     ----------
-    q : np.ndarray
+    q : numpy.ndarray
         4-vector of quaternion coefficients ``[w, x, y, z]``.
 
     Raises
@@ -319,7 +319,7 @@ class Quaternion:
 
         Returns
         -------
-        np.ndarray
+        numpy.ndarray
             4-vector ``[w, x, y, z]``.
 
         Examples
@@ -331,7 +331,7 @@ class Quaternion:
 
             q = Quaternion([1, 2, 3, 4])
             q_array = q.array()
-            print(q_array)  # np.array([1., 2., 3., 4.])
+            print(q_array)  # numpy.array([1., 2., 3., 4.])
 
         .. clear-namespace::
 

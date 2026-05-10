@@ -1,4 +1,4 @@
-import numpy as np
+import numpy
 
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointHomogeneous
@@ -40,15 +40,15 @@ class AffineMetric:
         self.pose_distance_matrix = self.create_affine_metric()
 
         # By Schroecker, Weber
-        self.inertia_matrix = np.sum([p[0] ** 2 * np.outer(p[1:], p[1:])
+        self.inertia_matrix = numpy.sum([p[0] ** 2 * numpy.outer(p[1:], p[1:])
                                       for p in self.points], axis=0)
-        self.inertia_eigen_vals = np.linalg.eigvals(self.inertia_matrix)
-        self.total_mass = np.sum([p[0] for p in self.points])
+        self.inertia_eigen_vals = numpy.linalg.eigvals(self.inertia_matrix)
+        self.total_mass = numpy.sum([p[0] for p in self.points])
 
     def __repr__(self):
         return f"{self.pose_distance_matrix}"
 
-    def create_affine_metric(self) -> np.ndarray:
+    def create_affine_metric(self) -> numpy.ndarray:
         """Compute the aggregate affine metric matrix for the motion.
 
         The metric is computed by summing the per-point metric contributions of
@@ -61,13 +61,13 @@ class AffineMetric:
         metric_matrix
             The affine metric matrix in R^{12x12}.
         """
-        metric_matrix = np.zeros((12, 12))
+        metric_matrix = numpy.zeros((12, 12))
         for i in range(self.number_of_points):
             metric_matrix += self.get_point_metric_matrix(self.points[i])
         return metric_matrix
 
     @staticmethod
-    def get_point_metric_matrix(point: PointHomogeneous) -> np.ndarray:
+    def get_point_metric_matrix(point: PointHomogeneous) -> numpy.ndarray:
         """Return the 12x12 metric matrix contribution of a single point.
 
         Parameters
@@ -86,7 +86,7 @@ class AffineMetric:
         equation 2.4.
         """
         p = point.normalized_euclidean()
-        i = np.eye(3)
+        i = numpy.eye(3)
 
         m00 = i
         m01 = p[0] * i
@@ -102,7 +102,7 @@ class AffineMetric:
 
         m33 = p[2] ** 2 * i
 
-        metric_matrix = np.block([[m00, m01, m02, m03],
+        metric_matrix = numpy.block([[m00, m01, m02, m03],
                                   [m01, m11, m12, m13],
                                   [m02, m12, m22, m23],
                                   [m03, m13, m23, m33]])
@@ -147,9 +147,9 @@ class AffineMetric:
         a12 = a.as_12d_vector()
         b12 = b.as_12d_vector()
         ab = a12 - b12
-        return np.sqrt(ab @ self.pose_distance_matrix @ ab)
+        return numpy.sqrt(ab @ self.pose_distance_matrix @ ab)
 
-    def squared_distance_pr12_points(self, a: np.ndarray, b: np.ndarray) -> float:
+    def squared_distance_pr12_points(self, a: numpy.ndarray, b: numpy.ndarray) -> float:
         """Compute squared distance between two points given in projective R12.
 
         Parameters
@@ -184,7 +184,7 @@ class AffineMetric:
             The Euclidean distance computed as the square root of the inner
             product between the two displacements.
         """
-        return np.sqrt(self.inner_product(a, b))
+        return numpy.sqrt(self.inner_product(a, b))
 
     def squared_distance(self, a: DualQuaternion, b: DualQuaternion) -> float:
         """Return the squared distance between two affine displacements.
@@ -228,7 +228,7 @@ class AffineMetric:
             a_point = a.act(self.points[i])
             b_point = b.act(self.points[i])
 
-            scalar = np.dot(a_point.normalized_euclidean() - b_point.normalized_euclidean(),
+            scalar = numpy.dot(a_point.normalized_euclidean() - b_point.normalized_euclidean(),
                             a_point.normalized_euclidean() - b_point.normalized_euclidean())
             inner_product += scalar
 

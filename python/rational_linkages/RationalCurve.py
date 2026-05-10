@@ -1,8 +1,8 @@
 from copy import deepcopy
 from typing import Union
 
-import numpy as np
-import sympy as sp
+import numpy
+import sympy
 
 from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointHomogeneous
@@ -62,15 +62,15 @@ class RationalCurve:
     .. code-block:: python
 
         # Limancon of Pascal -- from polynomial equations
-        import sympy as sp
+        import sympy
         from rational_linkages import RationalCurve
 
         a = 1
         b = 0.5
-        t = sp.Symbol('t')
-        eq0 = sp.Poly((1+t**2)**2, t)
-        eq1 = sp.Poly(b*(1-t**2)*(1+t**2) + a*(1-t**2)**2, t)
-        eq2 = sp.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t)
+        t = sympy.Symbol('t')
+        eq0 = sympy.Poly((1+t**2)**2, t)
+        eq1 = sympy.Poly(b*(1-t**2)*(1+t**2) + a*(1-t**2)**2, t)
+        eq2 = sympy.Poly(2*b*t*(1+t**2) + 2*a*t*(1-t**2), t)
         curve = RationalCurve([eq0, eq1, eq2, eq0])
 
     .. clear-namespace
@@ -78,17 +78,17 @@ class RationalCurve:
     .. code-block:: python
 
         # From coefficients
-        import numpy as np
+        import numpy
         from rational_linkages import RationalCurve
 
-        curve = RationalCurve.from_coeffs(np.array([[1., 0., 2., 0., 1.], [0.5, 0., -2., 0., 1.5], [0., -1., 0., 3., 0.], [1., 0., 2., 0., 1.]]))
+        curve = RationalCurve.from_coeffs(numpy.array([[1., 0., 2., 0., 1.], [0.5, 0., -2., 0., 1.5], [0., -1., 0., 3., 0.], [1., 0., 2., 0., 1.]]))
 
     .. clear-namespace
 
     """
     def __init__(self,
-                 polynomials: list[sp.Poly],
-                 coeffs: Union[np.ndarray, sp.Matrix] = None,
+                 polynomials: list[sympy.Poly],
+                 coeffs: Union[numpy.ndarray, sympy.Matrix] = None,
                  metric: AffineMetric = None):
         """
         Initialize a RationalCurve object with the provided coefficients.
@@ -227,7 +227,7 @@ class RationalCurve:
         return self._coeffs
 
     @classmethod
-    def from_coeffs(cls, coeffs: Union[np.ndarray, sp.Matrix]) -> "RationalCurve":
+    def from_coeffs(cls, coeffs: Union[numpy.ndarray, sympy.Matrix]) -> "RationalCurve":
         """
         Construct a RationalCurve from coefficients.
 
@@ -274,18 +274,18 @@ class RationalCurve:
             raise ValueError("The rotation and translation parts have to be "
                              "quaternionic polynomials")
 
-        t = sp.Symbol('t')
+        t = sympy.Symbol('t')
 
-        polynomials = np.concatenate((rot.array(), (-1/2) * (transl * rot).array()))
+        polynomials = numpy.concatenate((rot.array(), (-1/2) * (transl * rot).array()))
 
         # if one of the elements is not a sympy object, convert it
-        polynomials = [sp.Poly(poly, t) for poly in polynomials]
+        polynomials = [sympy.Poly(poly, t) for poly in polynomials]
 
         return cls(polynomials)
 
     @staticmethod
-    def get_symbolic_expressions(coeffs: Union[np.ndarray, sp.Matrix]
-                                 ) -> tuple[list, list[sp.Poly]]:
+    def get_symbolic_expressions(coeffs: Union[numpy.ndarray, sympy.Matrix]
+                                 ) -> tuple[list, list[sympy.Poly]]:
         """
         Add a symbolic variable to the matrix of coefficients that describes the curve.
 
@@ -306,11 +306,11 @@ class RationalCurve:
         """
         symbolic_expressions = []
         polynomials = []
-        t = sp.Symbol("t")
+        t = sympy.Symbol("t")
 
-        if isinstance(coeffs, np.ndarray):
+        if isinstance(coeffs, numpy.ndarray):
             dim = len(coeffs)
-        elif isinstance(coeffs, sp.Matrix):
+        elif isinstance(coeffs, sympy.Matrix):
             dim = coeffs.rows
         else:
             raise ValueError("The coefficients must be a numpy array or sympy matrix")
@@ -323,11 +323,11 @@ class RationalCurve:
                 coefficient * t**j for j, coefficient in enumerate(row_coefficients)
             ]
             symbolic_expressions.append(sum(symbolic_row_coeffs))
-            polynomials.append(sp.Poly(symbolic_expressions[i], t))
+            polynomials.append(sympy.Poly(symbolic_expressions[i], t))
 
         return symbolic_expressions, polynomials
 
-    def get_coeffs(self) -> np.ndarray:
+    def get_coeffs(self) -> numpy.ndarray:
         """
         Get the coefficients of the symbolic polynomial equations.
 
@@ -337,19 +337,19 @@ class RationalCurve:
             Coefficient matrix of the curve.
         """
         # Obtain the coefficients
-        coeffs = np.zeros((self.dimension + 1, self.degree + 1))
+        coeffs = numpy.zeros((self.dimension + 1, self.degree + 1))
         for i in range(self.dimension + 1):
             # to fill all coeffs, check if the degree of the equation is the same
             # as the curve
             if len(self.set_of_polynomials[i].all_coeffs()) == self.degree + 1:
-                coeffs[i, :] = np.array(self.set_of_polynomials[i].all_coeffs())
+                coeffs[i, :] = numpy.array(self.set_of_polynomials[i].all_coeffs())
             else:  # if the degree of the equation is lower than the curve, check
                 # the difference
                 if not (self.set_of_polynomials[i].all_coeffs() == [0.0]
                         or self.set_of_polynomials[i].all_coeffs() == [0]):
                     # if the equation is not zero, fill the coeffs
                     degree_of_eq = self.set_of_polynomials[i].degree()
-                    coeffs[i, self.degree - degree_of_eq :] = np.array(
+                    coeffs[i, self.degree - degree_of_eq :] = numpy.array(
                         self.set_of_polynomials[i].all_coeffs()
                     )
         return coeffs
@@ -381,12 +381,12 @@ class RationalCurve:
         list of PointHomogeneous
             List of Bezier control points.
         """
-        t = sp.Symbol("t")
+        t = sympy.Symbol("t")
 
         # Get the symbolic variables in the form of x00, x01, ... based on degree
         # of curve and dimension of space
         points = [
-            [sp.Symbol("x%d_%d" % (i, j)) for j in range(self.dimension + 1)]
+            [sympy.Symbol("x%d_%d" % (i, j)) for j in range(self.dimension + 1)]
             for i in range(self.degree + 1)
         ]
         points_flattened = [var for variables in points for var in variables]
@@ -400,16 +400,16 @@ class RationalCurve:
 
         # Get the coefficients of the equations
         equations_coeffs = [
-            sp.Poly((bernstein_basis[i] - self.symbolic[i]), t, greedy=False).all_coeffs()
+            sympy.Poly((bernstein_basis[i] - self.symbolic[i]), t, greedy=False).all_coeffs()
             for i in range(self.dimension + 1)
         ]
         # Flatten the list
         equations_coeffs = [coeff for coeffs in equations_coeffs for coeff in coeffs]
 
         # Solve the equations
-        points_sol = sp.linsolve(equations_coeffs, points_flattened)
+        points_sol = sympy.linsolve(equations_coeffs, points_flattened)
         # Convert the solutions to numpy arrays (get points)
-        points_array = np.array(points_sol.args[0], dtype="float64").reshape(
+        points_array = numpy.array(points_sol.args[0], dtype="float64").reshape(
             self.degree + 1, self.dimension + 1)
 
         points_objects = [PointHomogeneous()] * (self.degree + 1)
@@ -419,7 +419,7 @@ class RationalCurve:
         return points_objects
 
     def get_bernstein_polynomial_equations(self,
-                                           t_var: sp.Symbol,
+                                           t_var: sympy.Symbol,
                                            reparametrization: bool = False,
                                            degree: int = None
                                            ) -> list:
@@ -449,19 +449,19 @@ class RationalCurve:
             # Mapping of t to the interval [-1, 1]
             t = (t_var + 1) / 2
 
-            # NOT WORKING because sp.Poly cannot handle
-            # t = 1/sp.tan(t_var/2)
+            # NOT WORKING because sympy.Poly cannot handle
+            # t = 1/sympy.tan(t_var/2)
             # t = 1/t_var
 
         # Initialize the polynomial expression list
         expr = []
         # Generate the polynomial expression using the Bernstein polynomials
         for i in range(degree + 1):
-            expr.append(sp.binomial(degree, i) * t**i * (1 - t) ** (degree - i))
+            expr.append(sympy.binomial(degree, i) * t**i * (1 - t) ** (degree - i))
 
         return expr
 
-    def inverse_coeffs(self) -> np.ndarray:
+    def inverse_coeffs(self) -> numpy.ndarray:
         """
         Get the coefficients of the inverse curve.
 
@@ -470,7 +470,7 @@ class RationalCurve:
         numpy.ndarray
             Coefficient matrix of the inverse curve.
         """
-        inverse_coeffs = np.zeros((self.dimension + 1, self.degree + 1))
+        inverse_coeffs = numpy.zeros((self.dimension + 1, self.degree + 1))
         for i in range(self.dimension + 1):
             inverse_coeffs[i, :] = self.coeffs[i, :][::-1]
 
@@ -500,7 +500,7 @@ class RationalCurve:
 
     def extract_expressions(self) -> list:
         """
-        Extract the expressions of the curve (avoiding sp.Poly class).
+        Extract the expressions of the curve (avoiding sympy.Poly class).
 
         Returns
         -------
@@ -510,8 +510,8 @@ class RationalCurve:
         return [self.set_of_polynomials[i].expr
                 for i in range(len(self.set_of_polynomials))]
 
-    def evaluate(self, t_param: Union[float, np.ndarray],
-                 inverted_part: bool = False) -> np.ndarray:
+    def evaluate(self, t_param: Union[float, numpy.ndarray],
+                 inverted_part: bool = False) -> numpy.ndarray:
         """
         Evaluate the curve for a given parameter and return as a dual quaternion vector.
 
@@ -527,9 +527,9 @@ class RationalCurve:
         numpy.ndarray
             Pose of the curve as a dual quaternion vector.
         """
-        t = sp.Symbol("t")
+        t = sympy.Symbol("t")
         if inverted_part:
-            return np.array(
+            return numpy.array(
                 [
                     self.set_of_polynomials_inversed[i].subs(t, t_param).evalf()
                     for i in range(len(self.set_of_polynomials_inversed))
@@ -537,7 +537,7 @@ class RationalCurve:
                 dtype="float64",
             )
         else:
-            return np.array(
+            return numpy.array(
                 [
                     self.set_of_polynomials[i].subs(t, t_param).evalf()
                     for i in range(len(self.set_of_polynomials))
@@ -545,7 +545,7 @@ class RationalCurve:
                 dtype="float64",
             )
 
-    def evaluate_as_matrix(self, t_param, inverted_part: bool = False) -> np.ndarray:
+    def evaluate_as_matrix(self, t_param, inverted_part: bool = False) -> numpy.ndarray:
         """
         Evaluate the curve for a given parameter and return as a transformation matrix.
 
@@ -605,19 +605,19 @@ class RationalCurve:
         tuple of numpy.ndarray
             (x, y, z) coordinates of the curve.
         """
-        t = sp.Symbol("t")
+        t = sympy.Symbol("t")
 
         if interval == 'closed':
             # tangent half-angle substitution for closed curves
-            t_space = np.tan(np.linspace(-np.pi/2, np.pi/2, steps + 1))
+            t_space = numpy.tan(numpy.linspace(-numpy.pi/2, numpy.pi/2, steps + 1))
         else:
-            t_space = np.linspace(interval[0], interval[1], steps)
+            t_space = numpy.linspace(interval[0], interval[1], steps)
 
         # make a copy of the polynomials and append the homogeneous coordinate
         # to the Z-equation place in the list if in 2D, so later z = 1
         polynoms = deepcopy(self.set_of_polynomials)
         if self.dimension == 2:
-            polynoms.append(sp.Poly(polynoms[0], t))
+            polynoms.append(sympy.Poly(polynoms[0], t))
 
         # plot the curve
         curve_points = [PointHomogeneous()] * steps
@@ -627,7 +627,7 @@ class RationalCurve:
             # if it is a pose in SE3, convert it to a point via matrix mapping
             if self.is_motion:
                 point = DualQuaternion(point).dq2point_via_matrix()
-                point = np.concatenate((np.array([1]), point))
+                point = numpy.concatenate((numpy.array([1]), point))
             elif self.is_affine_motion:
                 point = point[:4]
 
@@ -652,7 +652,7 @@ class RationalCurve:
         if not self.is_motion:
             raise ValueError("The curve is not a motion curve, cannot convert to PR12")
 
-        t = sp.Symbol("t")
+        t = sympy.Symbol("t")
 
         # convert the motion curve to a dual quaternion, then map to matrix
         curve_matrix = DualQuaternion(self.symbolic).dq2matrix(normalize=False)
@@ -663,8 +663,8 @@ class RationalCurve:
         curve_r12 = curve_matrix[1:4, :].T.flatten()
 
         # create PR12 vector of polynomial equations
-        curve_pr12 = np.concatenate((np.array([curve_p]), curve_r12))
-        curve_poly = [sp.Poly(curve, t) for curve in curve_pr12]
+        curve_pr12 = numpy.concatenate((numpy.array([curve_p]), curve_r12))
+        curve_poly = [sympy.Poly(curve, t) for curve in curve_pr12]
 
         return RationalCurve(curve_poly)
 
@@ -748,13 +748,13 @@ class RationalCurve:
         float
             Length of the curve path.
         """
-        t_space = np.tan(np.linspace(-np.pi/2, np.pi/2, num_of_points))
+        t_space = numpy.tan(numpy.linspace(-numpy.pi/2, numpy.pi/2, num_of_points))
         poses = [self.evaluate(t) for t in t_space]
 
         points = [DualQuaternion(p).dq2point_via_matrix()
                   for p in poses]
 
-        return np.sum(np.linalg.norm(np.diff(points, axis=0), axis=1))
+        return numpy.sum(numpy.linalg.norm(numpy.diff(points, axis=0), axis=1))
 
     def split_in_equal_segments(self,
                                 interval: list[float],
@@ -798,17 +798,17 @@ class RationalCurve:
         elif num_segments < 2:
             raise ValueError("The number of segments must be greater than 1")
 
-        t = sp.Symbol('t')
+        t = sympy.Symbol('t')
 
         curve_dq = DualQuaternion(self.symbolic)
         point_path = curve_dq.act(point_to_act_on)
 
-        dx_dt = sp.diff(point_path[1] / point_path[0], t)
-        dy_dt = sp.diff(point_path[2] / point_path[0], t)
-        dz_dt = sp.diff(point_path[3] / point_path[0], t)
+        dx_dt = sympy.diff(point_path[1] / point_path[0], t)
+        dy_dt = sympy.diff(point_path[2] / point_path[0], t)
+        dz_dt = sympy.diff(point_path[3] / point_path[0], t)
 
-        integrand = sp.sqrt(dx_dt ** 2 + dy_dt ** 2 + dz_dt ** 2)
-        integrand_func = sp.lambdify(t, integrand, 'numpy')
+        integrand = sympy.sqrt(dx_dt ** 2 + dy_dt ** 2 + dz_dt ** 2)
+        integrand_func = sympy.lambdify(t, integrand, 'numpy')
 
         arc_length, _ = quad(integrand_func, interval[0], interval[1])
         desired_segment_length = arc_length / num_segments
@@ -885,14 +885,14 @@ class RationalCurve:
         t_val = (low + high) / 2
         return t_val
 
-    def study_quadric_check(self) -> np.ndarray:
+    def study_quadric_check(self) -> numpy.ndarray:
         """
         Calculate the error of the curve from the Study quadric
 
         :return: coefficients error of the curve from the Study quadric
-        :rtype: np.ndarray
+        :rtype: numpy.ndarray
         """
-        poly_list = [np.polynomial.Polynomial(self.coeffs[i, :][::-1])
+        poly_list = [numpy.polynomial.Polynomial(self.coeffs[i, :][::-1])
                      for i in range(8)]
 
         study_quadric = (poly_list[0] * poly_list[4] + poly_list[1] * poly_list[5]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
-import numpy as np
+import numpy
 
 
 class LinkageCAD:
@@ -23,7 +23,7 @@ class LinkageCAD:
         tool, optional
             Optional tool definition associated with the linkage.
         """
-        self.design_points = np.asarray(design_points, dtype=float)
+        self.design_points = numpy.asarray(design_points, dtype=float)
         self.tool = tool
 
     @property
@@ -268,7 +268,7 @@ class LinkageCAD:
 
         return fused
 
-    def _scaled_points(self, units: str = "m") -> np.ndarray:
+    def _scaled_points(self, units: str = "m") -> numpy.ndarray:
         """Return design points scaled to the requested units.
 
         Parameters
@@ -279,7 +279,7 @@ class LinkageCAD:
 
         Returns
         -------
-        np.ndarray
+        numpy.ndarray
             Scaled design points as a floating-point array.
         """
         if units == "m":
@@ -289,15 +289,15 @@ class LinkageCAD:
         else:
             raise ValueError(f"Unsupported unit: {units!r}")
 
-        return np.asarray(self.design_points, dtype=float) * scale
+        return numpy.asarray(self.design_points, dtype=float) * scale
 
     def _iter_all_segments(
             self,
-            points: np.ndarray,
+            points: numpy.ndarray,
             link_radius: float,
             joint_radius: float,
             add_tool_frame: bool,
-    ) -> Iterator[tuple[np.ndarray, np.ndarray, float]]:
+    ) -> Iterator[tuple[numpy.ndarray, numpy.ndarray, float]]:
         """Yield all cylindrical segments for the mechanism and tool frame.
 
         Parameters
@@ -324,10 +324,10 @@ class LinkageCAD:
 
     def _iter_mechanism_segments(
             self,
-            points: np.ndarray,
+            points: numpy.ndarray,
             link_radius: float,
             joint_radius: float,
-    ) -> Iterator[tuple[np.ndarray, np.ndarray, float]]:
+    ) -> Iterator[tuple[numpy.ndarray, numpy.ndarray, float]]:
         """Yield cylindrical segments representing links and joint cylinders.
 
         Parameters
@@ -350,9 +350,9 @@ class LinkageCAD:
 
     def _iter_tool_segments(
             self,
-            points: np.ndarray,
+            points: numpy.ndarray,
             link_radius: float,
-    ) -> Iterator[tuple[np.ndarray, np.ndarray, float]]:
+    ) -> Iterator[tuple[numpy.ndarray, numpy.ndarray, float]]:
         """Yield cylindrical segments for the optional tool-frame geometry.
 
         Parameters
@@ -367,8 +367,8 @@ class LinkageCAD:
         tuple
             (p0, p1, radius) tuples describing tool-frame cylinders.
         """
-        tool_origin = np.zeros(3)
-        tool_axes = np.eye(3)
+        tool_origin = numpy.zeros(3)
+        tool_axes = numpy.eye(3)
 
         idx = len(points) // 2
         pt0 = points[idx]
@@ -376,7 +376,7 @@ class LinkageCAD:
 
         mid_point = (pt0 + pt1) / 2
 
-        length_tool_link = np.linalg.norm(pt1 - tool_origin)
+        length_tool_link = numpy.linalg.norm(pt1 - tool_origin)
 
         yield tool_origin, mid_point, link_radius
         # yield tool_origin, pt1, link_radius / 2
@@ -385,10 +385,10 @@ class LinkageCAD:
             yield tool_origin, axis * length_tool_link * 0.2, link_radius / 2
 
     @staticmethod
-    def _segment_direction_and_length(p0: np.ndarray,
-                                      p1: np.ndarray,
+    def _segment_direction_and_length(p0: numpy.ndarray,
+                                      p1: numpy.ndarray,
                                       tol: float = 1e-9,
-                                      ) -> tuple[np.ndarray | None, float]:
+                                      ) -> tuple[numpy.ndarray | None, float]:
         """Compute a unit direction vector and length between two points.
 
         Parameters
@@ -405,11 +405,11 @@ class LinkageCAD:
             ``None`` when the segment is degenerate, and ``length`` is the
             Euclidean distance between the points.
         """
-        p0 = np.asarray(p0, dtype=float)
-        p1 = np.asarray(p1, dtype=float)
+        p0 = numpy.asarray(p0, dtype=float)
+        p1 = numpy.asarray(p1, dtype=float)
 
         vec = p1 - p0
-        length = np.linalg.norm(vec)
+        length = numpy.linalg.norm(vec)
 
         if length < tol:
             return None, 0.0
@@ -446,7 +446,7 @@ class LinkageCAD:
         cylinder = trimesh.creation.cylinder(radius=radius, height=length)
         transform = trimesh.geometry.align_vectors([0, 0, 1], direction)
         cylinder.apply_transform(transform)
-        cylinder.apply_translation((np.asarray(p0) + np.asarray(p1)) / 2)
+        cylinder.apply_translation((numpy.asarray(p0) + numpy.asarray(p1)) / 2)
         return cylinder
 
     @staticmethod
@@ -473,19 +473,19 @@ class LinkageCAD:
 
         cyl = build123d.Cylinder(radius=radius, height=length)
 
-        z_axis = np.array([0.0, 0.0, 1.0])
-        axis = np.cross(z_axis, direction)
-        axis_norm = np.linalg.norm(axis)
+        z_axis = numpy.array([0.0, 0.0, 1.0])
+        axis = numpy.cross(z_axis, direction)
+        axis_norm = numpy.linalg.norm(axis)
 
         if axis_norm > 1e-9:
             axis /= axis_norm
-            angle = np.degrees(
-                np.arccos(np.clip(np.dot(z_axis, direction), -1.0, 1.0))
+            angle = numpy.degrees(
+                numpy.arccos(numpy.clip(numpy.dot(z_axis, direction), -1.0, 1.0))
             )
             cyl = cyl.rotate(
                 build123d.Axis((0, 0, 0), build123d.Vector(*axis)),
                 angle,
             )
 
-        midpoint = (np.asarray(p0) + np.asarray(p1)) / 2
+        midpoint = (numpy.asarray(p0) + numpy.asarray(p1)) / 2
         return cyl.locate(build123d.Location(tuple(midpoint)))

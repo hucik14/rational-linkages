@@ -4,8 +4,8 @@ from time import time
 from typing import Union
 from warnings import warn
 
-import numpy as np
-import sympy as sp
+import numpy
+import sympy
 
 from .DualQuaternion import DualQuaternion
 from .Linkage import LineSegment
@@ -241,20 +241,20 @@ class RationalMechanism(RationalCurve):
             return tool
         elif tool == 'mid_of_last_link':
             # calculate the midpoint of the last link
-            nearly_zero = np.finfo(float).eps
+            nearly_zero = numpy.finfo(float).eps
             p0 = self.factorizations[0].direct_kinematics(nearly_zero, inverted_part=True)[-1]
             p1 = self.factorizations[1].direct_kinematics(nearly_zero, inverted_part=True)[-1]
 
             # define the x axis vector - along the last link
-            vec_x = (p1 - p0) / np.linalg.norm(p1 - p0)
+            vec_x = (p1 - p0) / numpy.linalg.norm(p1 - p0)
 
             # get some random vector from the last joint points
             vec_y_pts = self.factorizations[0].direct_kinematics(nearly_zero, inverted_part=True)[-2:]
             vec_y = vec_y_pts[1] - vec_y_pts[0]
 
             # define the z axis vector - perpendicular to the x and y vectors
-            vec_z = np.cross(vec_x, vec_y)
-            vec_z = vec_z / np.linalg.norm(vec_z)
+            vec_z = numpy.cross(vec_x, vec_y)
+            vec_z = vec_z / numpy.linalg.norm(vec_z)
 
             mid = (p1 + p0) / 2
 
@@ -273,7 +273,7 @@ class RationalMechanism(RationalCurve):
                    return_point_homogeneous: bool = False,
                    update_design: bool = False,
                    pretty_print: bool = True,
-                   onshape_print: bool = False) -> tuple[np.ndarray, np.ndarray, list]:
+                   onshape_print: bool = False) -> tuple[numpy.ndarray, numpy.ndarray, list]:
         """
         Get the design parameters of the linkage for the CAD model.
 
@@ -298,7 +298,7 @@ class RationalMechanism(RationalCurve):
 
         Returns
         -------
-        tuple of (np.ndarray, np.ndarray, list)
+        tuple of (numpy.ndarray, numpy.ndarray, list)
             Design parameters of the linkage.
         """
         screws = deepcopy(self.get_screw_axes())
@@ -325,9 +325,9 @@ class RationalMechanism(RationalCurve):
             self.update_segments()
 
         # add the first connection point to the end of the list
-        connection_params = np.vstack((connection_params, connection_params[0, :]))
+        connection_params = numpy.vstack((connection_params, connection_params[0, :]))
 
-        design_params = np.zeros((self.num_joints, 2))
+        design_params = numpy.zeros((self.num_joints, 2))
 
         for i in range(self.num_joints):
             # compensate d-ith parameter of DH
@@ -382,16 +382,16 @@ class RationalMechanism(RationalCurve):
 
         return dh, design_params, design_points
 
-    def get_segment_connections(self) -> np.ndarray:
+    def get_segment_connections(self) -> numpy.ndarray:
         """
         Get the connection parameters of the linkage.
 
         Returns
         -------
-        np.ndarray
+        numpy.ndarray
             Connection points of the linkage.
         """
-        connection_params = np.zeros((self.num_joints, 2))
+        connection_params = numpy.zeros((self.num_joints, 2))
         for i in range(len(self.factorizations[0].linkage)):
             connection_params[i, :] = self.factorizations[0].linkage[i].points_params
 
@@ -405,7 +405,7 @@ class RationalMechanism(RationalCurve):
     def get_dh_params(self,
                       unit: str = 'rad',
                       scale: float = 1.0,
-                      include_base: bool = False) -> np.ndarray:
+                      include_base: bool = False) -> numpy.ndarray:
         """
         Get the standard Denavit-Hartenberg parameters of the linkage.
 
@@ -429,23 +429,23 @@ class RationalMechanism(RationalCurve):
 
         Returns
         -------
-        np.ndarray
+        numpy.ndarray
             Theta, d, a, alpha array of Denavit-Hartenberg parameters.
 
         """
         frames = deepcopy(self.get_frames(include_base=include_base))
         j = self.num_joints + 1 if include_base else self.num_joints
 
-        dh = np.zeros((j, 4))
+        dh = numpy.zeros((j, 4))
         for i in range(j):
             th, d, a, al = frames[i].dh_to_other_frame(frames[i+1])
 
             if unit == 'deg':
-                th = np.rad2deg(th)
-                al = np.rad2deg(al)
+                th = numpy.rad2deg(th)
+                al = numpy.rad2deg(al)
             elif unit == 'tanhalf':
-                th = np.tan(th / 2)
-                al = np.tan(al / 2)
+                th = numpy.tan(th / 2)
+                al = numpy.tan(al / 2)
             elif unit != 'rad':
                 raise ValueError("unit must be deg or rad")
 
@@ -491,12 +491,12 @@ class RationalMechanism(RationalCurve):
             pts, dist, cos_angle = line.common_perpendicular_to_other_line(screws[i])
             vec = pts[0] - pts[1]
 
-            if not np.isclose(dist, 0.0):  # if the lines are skew or parallel
+            if not numpy.isclose(dist, 0.0):  # if the lines are skew or parallel
                 # normalize vec - future X axis
-                vec_x = vec / np.linalg.norm(vec)
+                vec_x = vec / numpy.linalg.norm(vec)
 
                 # if parallel
-                if np.isclose(cos_angle, 1.0) or np.isclose(cos_angle, -1.0):
+                if numpy.isclose(cos_angle, 1.0) or numpy.isclose(cos_angle, -1.0):
                     # choose origin as footpoint of the line
                     frames[i + 1] = TransfMatrix.from_vectors(vec_x,
                                                               line.direction,
@@ -509,18 +509,18 @@ class RationalMechanism(RationalCurve):
                                                             origin=pts[0])
 
             else:  # Z axes are intersecting or coincident
-                if np.isclose(np.dot(frames[i].a, line.direction), 1):
+                if numpy.isclose(numpy.dot(frames[i].a, line.direction), 1):
                     # Z axes are coincident, therefore the frames are the same
                     frames[i+1] = deepcopy(frames[i])
 
-                elif np.isclose(np.dot(frames[i].a, line.direction), -1):
+                elif numpy.isclose(numpy.dot(frames[i].a, line.direction), -1):
                     # Z axes are coincident, but differ in orientation
-                    rot_x_pi = TransfMatrix.from_rpy([np.pi, 0, 0])
+                    rot_x_pi = TransfMatrix.from_rpy([numpy.pi, 0, 0])
                     frames[i + 1] = TransfMatrix(frames[i].matrix @ rot_x_pi.matrix)
 
                 else:  # Z axis intersect with an angle
                     # future X axis as cross product of previous Z axis and new Z axis
-                    vec_x = np.cross(frames[i].a, line.direction)
+                    vec_x = numpy.cross(frames[i].a, line.direction)
 
                     frames[i + 1] = TransfMatrix.from_vectors(vec_x,
                                                               line.direction,
@@ -572,49 +572,49 @@ class RationalMechanism(RationalCurve):
         return screws + branch2[::-1]
 
     def map_connection_params(self,
-                              connection_params: np.ndarray,
-                              midpoints_distance: float) -> np.ndarray:
+                              connection_params: numpy.ndarray,
+                              midpoints_distance: float) -> numpy.ndarray:
         """
         Map the connection parameters to the given joint length.
 
         Parameters
         ----------
-        connection_params : np.ndarray
+        connection_params : numpy.ndarray
             List of connection points parameters of the linkage.
         midpoints_distance : float
             Distance between the midpoints of the two links that connect at a joint.
 
         Returns
         -------
-        np.ndarray
+        numpy.ndarray
             Mapped connection points parameters.
         """
-        c_params = np.asarray(connection_params)
+        c_params = numpy.asarray(connection_params)
 
         for i in range(len(c_params)):
-            c_params_len = np.linalg.norm(c_params[i, 0] - c_params[i, 1])
+            c_params_len = numpy.linalg.norm(c_params[i, 0] - c_params[i, 1])
 
-            if not np.allclose(c_params_len, midpoints_distance):
+            if not numpy.allclose(c_params_len, midpoints_distance):
                 c_params[i, :] = self._map_joint_segment(c_params[i, :],
                                                          midpoints_distance)
 
         return c_params
 
     @staticmethod
-    def _map_joint_segment(points_params: np.ndarray, midpoints_distance: float):
+    def _map_joint_segment(points_params: numpy.ndarray, midpoints_distance: float):
         """
         Map the joint segment to the scale of the linkage.
 
         Parameters
         ----------
-        points_params : np.ndarray
+        points_params : numpy.ndarray
             List of connection points parameters of the joint segment.
         midpoints_distance : float
             Distance between the midpoints of the two links that connect at a joint.
 
         Returns
         -------
-        np.ndarray
+        numpy.ndarray
             Mapped joint segment.
         """
 
@@ -627,7 +627,7 @@ class RationalMechanism(RationalCurve):
                 mapped_interval = [mid_point + max_length/2, mid_point - max_length/2]
             return mapped_interval
 
-        points_params = np.asarray(points_params)
+        points_params = numpy.asarray(points_params)
         new_params = map_interval(points_params, midpoints_distance)
 
         # Calculate midpoints
@@ -835,33 +835,33 @@ class RationalMechanism(RationalCurve):
         tuple of (list of t values, list of intersection points)
             Tuple containing a list of t values and a list of intersection points.
         """
-        t = sp.Symbol("t")
+        t = sympy.Symbol("t")
 
         # lines are colliding when expr = 0
-        expr = np.dot(l0.direction, l1.moment) + np.dot(l0.moment, l1.direction)
+        expr = numpy.dot(l0.direction, l1.moment) + numpy.dot(l0.moment, l1.direction)
 
         # reparametrize the expresion by t -> (t + 1) / 2 to interval [-1, 1]
-        e = sp.Expr(expr).subs(t, (t + 1) / 2).evalf()
+        e = sympy.Expr(expr).subs(t, (t + 1) / 2).evalf()
 
-        expr_poly = sp.Poly(e.args[0], t)
+        expr_poly = sympy.Poly(e.args[0], t)
         expr_coeffs = expr_poly.all_coeffs()
 
         # convert to numpy polynomial
-        expr_n = np.array(expr_coeffs, dtype="float64")
-        np_poly = np.polynomial.polynomial.Polynomial(expr_n[::-1])
+        expr_n = numpy.array(expr_coeffs, dtype="float64")
+        np_poly = numpy.polynomial.polynomial.Polynomial(expr_n[::-1])
 
         # inversing coeffs enables to solve intervals (-oo, 0) and (0, oo), that are
         # actually mapped to [-1, 1]
-        np_poly_inversed = np.polynomial.polynomial.Polynomial(expr_n)
+        np_poly_inversed = numpy.polynomial.polynomial.Polynomial(expr_n)
 
         # solve for t
         colliding_lines_sol = np_poly.roots()
         colliding_lines_sol_inversed = np_poly_inversed.roots()
         # extract real solutions
-        sol_real = colliding_lines_sol.real[np.isclose(colliding_lines_sol.imag,
+        sol_real = colliding_lines_sol.real[numpy.isclose(colliding_lines_sol.imag,
                                                        0, atol=1e-5)]
         sol_real_inversed = colliding_lines_sol_inversed.real[
-            np.isclose(colliding_lines_sol_inversed.imag, 0, atol=1e-5)]
+            numpy.isclose(colliding_lines_sol_inversed.imag, 0, atol=1e-5)]
 
         sol_real = [((sol + 1)/2) for sol in sol_real]
         sol_real_inversed = [((sol + 1)/2) for sol in sol_real_inversed]
@@ -869,13 +869,13 @@ class RationalMechanism(RationalCurve):
         solutions = deepcopy(sol_real)
 
         for sol in sol_real_inversed:
-            if np.isclose(sol, 0):
+            if numpy.isclose(sol, 0):
                 # eps is very small number (avoid division by zero)
-                sol = 1 / np.finfo(float).eps
+                sol = 1 / numpy.finfo(float).eps
             else:
                 sol = 1 / sol
 
-            solutions = np.append(solutions, sol)
+            solutions = numpy.append(solutions, sol)
 
         intersection_points = self.get_intersection_points(l0, l1, solutions)
 
@@ -928,7 +928,7 @@ class RationalMechanism(RationalCurve):
         list of LineSegment
             List of LineSegment objects.
         """
-        t = sp.Symbol("t")
+        t = sympy.Symbol("t")
 
         segments = [[], []]
 
@@ -985,7 +985,7 @@ class RationalMechanism(RationalCurve):
         list of LineSegment
             List of LineSegment objects.
         """
-        t = sp.Symbol("t")
+        t = sympy.Symbol("t")
 
         segments = []
 
@@ -1205,7 +1205,7 @@ class RationalMechanism(RationalCurve):
             Tool frame of the mechanism.
         """
         if unit == 'deg':
-            joint_angle = np.deg2rad(joint_angle)
+            joint_angle = numpy.deg2rad(joint_angle)
         elif unit != 'rad':
             raise ValueError("unit must be deg or rad")
 
@@ -1284,7 +1284,7 @@ class RationalMechanism(RationalCurve):
         else:
             joint_angle = self.factorizations[0].t_param_to_joint_angle(t)
             if unit == 'deg':
-                joint_angle = np.rad2deg(joint_angle)
+                joint_angle = numpy.rad2deg(joint_angle)
             return joint_angle
 
     def _ik_gauss_newton(self,
@@ -1311,7 +1311,7 @@ class RationalMechanism(RationalCurve):
             If the method does not converge.
         """
         def run_gauss_newton(pose, robust):
-            t = sp.Symbol("t")
+            t = sympy.Symbol("t")
 
             curves = [self.curve(), self.curve().inverse_curve()]
             success = False
@@ -1326,7 +1326,7 @@ class RationalMechanism(RationalCurve):
             pose = pose * self.tool_frame.inv()
 
             if robust:
-                t_init_set = np.linspace(-1.0, 1.0, 30)
+                t_init_set = numpy.linspace(-1.0, 1.0, 30)
                 max_iterations = 50
                 tol = 1e-15
 
@@ -1340,15 +1340,15 @@ class RationalMechanism(RationalCurve):
                 c_diff = [element.diff(t) for element in norm_curve]
 
                 # numerical preparation of the derivatives
-                c_diff_funcs = [sp.lambdify(t, expr, modules='numpy')
+                c_diff_funcs = [sympy.lambdify(t, expr, modules='numpy')
                                 for expr in c_diff]
                 def c_diff_lambdified(x: float):
-                    return np.array([f(x) for f in c_diff_funcs])
+                    return numpy.array([f(x) for f in c_diff_funcs])
 
-                curve_funcs = [sp.lambdify(t, expr, modules='numpy')
+                curve_funcs = [sympy.lambdify(t, expr, modules='numpy')
                                for expr in curve.symbolic]
                 def curve_lambdified(x: float):
-                    return np.array([f(x) for f in curve_funcs])
+                    return numpy.array([f(x) for f in curve_funcs])
 
                 for t_val in t_init_set:
                     step_size = 1.0
@@ -1357,7 +1357,7 @@ class RationalMechanism(RationalCurve):
                     for i in range(max_iterations):
 
                         # check if t_val is valid, i.e. must be in the range [-1, 1]
-                        if (t_val == sp.nan or np.isnan(t_val) or t_val > 10.0
+                        if (t_val == sympy.nan or numpy.isnan(t_val) or t_val > 10.0
                                 or t_val < -10.0):
                             break
 
@@ -1366,17 +1366,17 @@ class RationalMechanism(RationalCurve):
                         c_diff_eval = c_diff_lambdified(t_val)
 
                         # error to desired pose
-                        if (np.isclose(target_pose[0], 0.0)
-                                or np.isclose(current_pose[0], 0.0)):
+                        if (numpy.isclose(target_pose[0], 0.0)
+                                or numpy.isclose(current_pose[0], 0.0)):
                             twist_to_desired = target_pose - current_pose
                         else:
                             twist_to_desired = (target_pose / target_pose[0]
                                                 - current_pose / current_pose[0])
 
-                        square_dist_to_desired = np.sum(twist_to_desired ** 2)
+                        square_dist_to_desired = numpy.sum(twist_to_desired ** 2)
 
                         t_val += (step_size * (c_diff_eval @ twist_to_desired)
-                                  / np.sum(c_diff_eval ** 2))
+                                  / numpy.sum(c_diff_eval ** 2))
 
                         if square_dist_to_desired > previous_error:
                             step_size *= 0.5
@@ -1400,8 +1400,8 @@ class RationalMechanism(RationalCurve):
                 t_res = t_min[0]
 
             if inversed_part:
-                if np.isclose(t_res, 0.0):
-                    t_res = np.finfo(np.float64).tiny
+                if numpy.isclose(t_res, 0.0):
+                    t_res = numpy.finfo(numpy.float64).tiny
                 t_res = 1 / t_res
 
             return t_res, success
@@ -1470,10 +1470,10 @@ class RationalMechanism(RationalCurve):
         .. code-block:: python
 
             from rational_linkages import RationalCurve, RationalMechanism
-            import numpy as np
+            import numpy
             import matplotlib.pyplot as plt
 
-            coeffs = np.array([[0, 0, 0],
+            coeffs = numpy.array([[0, 0, 0],
                                [4440, 39870, 22134],
                                [16428, 9927, -42966],
                                [-37296,-73843,-115878],
@@ -1487,7 +1487,7 @@ class RationalMechanism(RationalCurve):
             time = 3  # seconds
             n_steps = 100
             t0 = 0
-            t1 = np.pi/4
+            t1 = numpy.pi/4
             method = 'quintic'
             #method = 'cubic'
 
@@ -1510,8 +1510,8 @@ class RationalMechanism(RationalCurve):
 
         """
         if unit == 'deg':
-            joint_angle_start = np.deg2rad(joint_angle_start)
-            joint_angle_end = np.deg2rad(joint_angle_end)
+            joint_angle_start = numpy.deg2rad(joint_angle_start)
+            joint_angle_end = numpy.deg2rad(joint_angle_end)
         elif unit != 'rad':
             raise ValueError("unit must be deg or rad")
 
@@ -1533,7 +1533,7 @@ class RationalMechanism(RationalCurve):
                     + a_4 * t ** 4 + a_5 * t ** 5)
 
         time_gap = time_sec / num_points
-        traj = np.zeros(num_points)
+        traj = numpy.zeros(num_points)
         for i in range(num_points):
             if method == 'cubic' or method == 'quintic':
                 if method == 'cubic':
@@ -1541,8 +1541,8 @@ class RationalMechanism(RationalCurve):
                 elif method == 'quintic':
                     scaling = quintic_time_scaling(time_sec, time_gap * i)
 
-                traj[i] = (scaling * np.array(joint_angle_end)
-                           + (1 - scaling) * np.array(joint_angle_start))
+                traj[i] = (scaling * numpy.array(joint_angle_end)
+                           + (1 - scaling) * numpy.array(joint_angle_start))
             elif method == 'quintic_with_velocity':
                 traj[i] = quintic_time_scaling_with_velocity(time_gap * i,
                                                              time_sec,
@@ -1557,8 +1557,8 @@ class RationalMechanism(RationalCurve):
         if generate_csv:
             RationalMechanism._generate_csv(traj, time_gap)
 
-        vel = np.diff(traj, axis=0) * num_points / time_sec
-        acc = np.diff(vel, axis=0) * num_points / time_sec
+        vel = numpy.diff(traj, axis=0) * num_points / time_sec
+        acc = numpy.diff(vel, axis=0) * num_points / time_sec
 
         return traj, vel, acc
 
@@ -1600,8 +1600,8 @@ class RationalMechanism(RationalCurve):
             Tuple of joint position (angle), velocity, and acceleration.
         """
         if unit == 'deg':
-            joint_angle_start = np.deg2rad(joint_angle_start)
-            joint_angle_end = np.deg2rad(joint_angle_end)
+            joint_angle_start = numpy.deg2rad(joint_angle_start)
+            joint_angle_end = numpy.deg2rad(joint_angle_end)
         elif unit != 'rad':
             raise ValueError("unit must be deg or rad")
 
@@ -1635,8 +1635,8 @@ class RationalMechanism(RationalCurve):
             time_gap = time_sec / num_points
             RationalMechanism._generate_csv(joint_angles, time_gap)
 
-        vel = np.diff(joint_angles, axis=0) * num_points / time_sec
-        acc = np.diff(vel, axis=0) * num_points / time_sec
+        vel = numpy.diff(joint_angles, axis=0) * num_points / time_sec
+        acc = numpy.diff(vel, axis=0) * num_points / time_sec
 
         return joint_angles, vel, acc
 
@@ -1652,20 +1652,20 @@ class RationalMechanism(RationalCurve):
         time_gap
             Time gap.
         """
-        time_space = np.arange(0, len(traj) * time_gap, time_gap)
+        time_space = numpy.arange(0, len(traj) * time_gap, time_gap)
         pos = traj
-        vel = np.diff(traj, axis=0) / time_gap
-        #vel = np.append(np.array([0.0]), vel)  # add .0 to equalize the array length
-        vel = np.append(vel, vel[-1])
-        acc = np.diff(vel, axis=0) / time_gap
-        #acc = np.append(acc, np.array([0.0]))  # add .0 to equalize the array length
-        acc = np.append(acc, acc[-1])
+        vel = numpy.diff(traj, axis=0) / time_gap
+        #vel = numpy.append(numpy.array([0.0]), vel)  # add .0 to equalize the array length
+        vel = numpy.append(vel, vel[-1])
+        acc = numpy.diff(vel, axis=0) / time_gap
+        #acc = numpy.append(acc, numpy.array([0.0]))  # add .0 to equalize the array length
+        acc = numpy.append(acc, acc[-1])
 
         # Stack the arrays horizontally to create a 2D array with 4 columns
-        data = np.column_stack((time_space, pos, vel, acc))
+        data = numpy.column_stack((time_space, pos, vel, acc))
 
         # Save the stacked array to a CSV file
-        np.savetxt('trajectory.csv', data, delimiter=',', fmt='%1.6f')
+        numpy.savetxt('trajectory.csv', data, delimiter=',', fmt='%1.6f')
 
     def update_metric(self):
         """
@@ -1754,7 +1754,7 @@ class RationalMechanism(RationalCurve):
         # slice out the last element
         return motion_indices[:-1]
 
-    def get_design_points(self, scale: float = 1.0) -> np.ndarray:
+    def get_design_points(self, scale: float = 1.0) -> numpy.ndarray:
         """
         Return the design points of the mechanism, scaled and closed as a loop.
 
@@ -1765,12 +1765,12 @@ class RationalMechanism(RationalCurve):
 
         Returns
         -------
-        np.ndarray
+        numpy.ndarray
             Points array.
         """
         _, _, pts = self.get_design(pretty_print=False, update_design=True)
-        pts = np.vstack(pts) * scale
-        pts = np.vstack([pts, pts[0]])
+        pts = numpy.vstack(pts) * scale
+        pts = numpy.vstack([pts, pts[0]])
         return pts
 
     def export_single_mesh(self,
