@@ -5,7 +5,7 @@ Backend Utilities
 -----------------
 
 .. automodule:: rational_linkages.backend
-   :members:
+   :members: set_backend, get_backend, is_symbolic
    :undoc-members:
    :show-inheritance:
 

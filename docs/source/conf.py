@@ -78,18 +78,27 @@ bibtex_bibfiles = ['refs.bib']
 
 nitpicky = True
 nitpick_ignore = [
+    ('py:class', 'optional'),
+    
     ('py:class', 'np.ndarray'),
     ('py:class', 'numpy.ndarray'),
     ('py:class', 'numpy.array'),
     ('py:class', 'np.array'),
-    ('py:class', 'np.polynomial.Polynomial'),
-    ('py:class', 'sp.Symbol'),
-    ('py:class', 'sp.Poly'),
-    ('py:class', 'sp.Matrix'),
-    ('py:class', 'sp.Rational'),
-    ('py:class', 'bq.Poly'),
-    ('py:class', 'gl.GLViewWidget'),
-    ('py:class', 'PyQt6.QtWidgets.QWidget'),
+]
+
+nitpick_ignore_regex = [
+    (r'py:func', r'sympy\..*'),
+    (r'py:class', r'sympy\..*'),
+    (r'py:func', r'sp\..*'),
+    (r'py:class', r'sp\..*'),
+    (r'py:func', r'scipy\..*'),
+    (r'py:class', r'scipy\..*'),
+
+    (r'py:class', r'PyQt6\..*'),
+    (r'py:class', r'QtCore\..*'),
+    (r'py:class', r'Q\w+'),
+
+    (r'py:data', r'typing\..*'),
 ]
 
 # NumPy docstring style

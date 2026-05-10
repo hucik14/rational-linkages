@@ -133,7 +133,7 @@ as seen in the following example:
 Dual Quaternion Actions
 -----------------------
 
-The class :class:`.dualQuaternionAction` implements methods for performing actions
+The class :mod:`.dualQuaternionAction` implements methods for performing actions
 on points and lines in 3D space.
 
 An action is transformation of a point or a line by given dual quaternion. In case
