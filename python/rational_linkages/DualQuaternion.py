@@ -18,7 +18,7 @@ class DualQuaternion:
 
     By default, all computation is performed with NumPy (``float64``). When
     the global backend is set to ``"sympy"`` via
-    :func:`~rational_linkages.set_backend`, construction transparently returns a
+    :func:`.set_backend`, construction transparently returns a
     :class:`~rational_linkages.DualQuaternionSymbolic` instance instead.
 
     Parameters
@@ -591,7 +591,7 @@ class DualQuaternion:
     @property
     def real(self) -> numpy.ndarray:
         """
-        Real scalars of the dual quaternion: ``[p0, d0]``.
+        Real scalars of the dual quaternion ``[p0, d0]``.
 
         Returns
         -------
@@ -604,7 +604,7 @@ class DualQuaternion:
     @property
     def imag(self) -> numpy.ndarray:
         """
-        Imaginary parts of the dual quaternion: ``[p1, p2, p3, d1, d2, d3]``.
+        Imaginary parts of the dual quaternion ``[p1, p2, p3, d1, d2, d3]``.
 
         Returns
         -------
@@ -655,7 +655,7 @@ class DualQuaternion:
 
     def conjugate(self) -> "DualQuaternion":
         """
-        Dual quaternion conjugate: conjugate both primal and dual parts.
+        Dual quaternion conjugate, both primal and dual parts.
 
         Returns
         -------
@@ -680,7 +680,7 @@ class DualQuaternion:
 
     def eps_conjugate(self) -> "DualQuaternion":
         """
-        Epsilon (dual) conjugate: negate the dual part only.
+        Epsilon (dual) conjugate, negate the dual part only.
 
         Returns
         -------

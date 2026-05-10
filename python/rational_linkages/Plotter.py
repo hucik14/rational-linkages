@@ -11,7 +11,7 @@ class Plotter:
     Parameters
     ----------
     mechanism
-        Optional :class:`~rational_linkages.RationalMechanism.RationalMechanism`
+        Optional :class:`.RationalMechanism`
         instance used by an interactive
         plotter. If provided and ``jupyter_notebook`` is False an
         interactive widget is created.

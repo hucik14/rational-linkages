@@ -14,7 +14,7 @@ class NormalizedPlane:
 
     By default, all computation is performed with NumPy (``float64``). When
     the global backend is set to ``"sympy"`` via
-    :func:`~rational_linkages.set_backend`, construction transparently returns a
+    :func:`.set_backend`, construction transparently returns a
     :class:`~rational_linkages.NormalizedPlaneSymbolic` instance instead.
 
     Parameters

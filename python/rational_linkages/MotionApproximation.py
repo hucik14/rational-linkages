@@ -33,11 +33,11 @@ class MotionApproximation:
         Parameters
         ----------
         init_curve
-            Initial :class:`RationalCurve` guess. A good starting guess can be
+            Initial :class:`.RationalCurve` guess. A good starting guess can be
             produced with the motion interpolation utilities.
         poses_or_points
-            Sequence of target poses (:class:`DualQuaternion`) or target points
-            (:class:`PointHomogeneous`) to approximate.
+            Sequence of target poses (:class:`.DualQuaternion`) or target points
+            (:class:`.PointHomogeneous`) to approximate.
         t_vals
             Parameter values corresponding to the targets, in the same order.
 
@@ -45,7 +45,7 @@ class MotionApproximation:
         -------
         tuple
             ``(approximated_curve, optimization_result)`` where
-            ``approximated_curve`` is a :class:`RationalCurve` and
+            ``approximated_curve`` is a :class:`.RationalCurve` and
             ``optimization_result`` is the solver's result object.
         """
         if init_curve.degree != 3:
@@ -70,7 +70,7 @@ class MotionApproximation:
 
     @staticmethod
     def _construct_curve(flattended_coeffs) -> RationalCurve:
-        """Build a monic cubic :class:`RationalCurve` from flattened coefficients.
+        """Build a monic cubic :class:`.RationalCurve` from flattened coefficients.
 
         Parameters
         ----------
@@ -91,7 +91,7 @@ class MotionApproximation:
 
     @staticmethod
     def _construct_curve_nonmonic(flattended_coeffs) -> RationalCurve:
-        """Build a non-monic cubic :class:`RationalCurve` from flattened coeffs.
+        """Build a non-monic cubic :class:`.RationalCurve` from flattened coeffs.
 
         Parameters
         ----------
@@ -114,10 +114,10 @@ class MotionApproximation:
         Parameters
         ----------
         init_curve
-            Initial :class:`RationalCurve` guess used to parameterize the
+            Initial :class:`.RationalCurve` guess used to parameterize the
             optimization variables.
         poses
-            Sequence of :class:`DualQuaternion` target poses the curve should
+            Sequence of :class:`.DualQuaternion` target poses the curve should
             approximate.
         t_vals
             Array of parameter values for the poses.
@@ -126,7 +126,7 @@ class MotionApproximation:
         -------
         tuple
             ``(result_curve, result)`` where ``result_curve`` is the optimized
-            :class:`RationalCurve` and ``result`` is the optimizer result.
+            :class:`.RationalCurve` and ``result`` is the optimizer result.
         """
         metric = AffineMetric(init_curve,
                               [PointHomogeneous.from_3d_point(pose.dq2point_via_matrix())
@@ -200,9 +200,9 @@ class MotionApproximation:
         Parameters
         ----------
         init_curve
-            Initial :class:`RationalCurve` guess.
+            Initial :class:`.RationalCurve` guess.
         points
-            Sequence of :class:`PointHomogeneous` target points.
+            Sequence of :class:`.PointHomogeneous` target points.
         t_vals
             Array of parameter values for the points.
 
@@ -210,7 +210,7 @@ class MotionApproximation:
         -------
         tuple
             ``(result_curve, result)`` where ``result_curve`` is the
-            optimized :class:`RationalCurve` and ``result`` is the optimizer result.
+            optimized :class:`.RationalCurve` and ``result`` is the optimizer result.
         """
         t_vals_init = np.array([0, 1/6, 1/3, 1/2, 2/3, 5/6, 1])
         t_vals = np.concatenate((t_vals_init, t_vals), axis=None)
@@ -288,13 +288,13 @@ class MotionApproximation:
         Parameters
         ----------
         init_curve
-            The :class:`RationalCurve` whose coefficients are to be adjusted.
+            The :class:`.RationalCurve` whose coefficients are to be adjusted.
 
         Returns
         -------
         tuple
             ``(result_curve, result)`` where ``result_curve`` is the adjusted
-            :class:`RationalCurve` and ``result`` is the optimizer result.
+            :class:`.RationalCurve` and ``result`` is the optimizer result.
         """
         initial_guess = init_curve.coeffs.flatten()
 

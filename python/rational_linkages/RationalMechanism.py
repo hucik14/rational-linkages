@@ -1125,7 +1125,7 @@ class RationalMechanism(RationalCurve):
             Minimum length of the joint segment. Default is 0.001.
         max_iters : int, optional
             Maximum number of iterations. Default is 10.
-        kwargs : additional keyword arguments
+        **kwargs
             Additional keyword arguments for the optimization method.
 
         Returns

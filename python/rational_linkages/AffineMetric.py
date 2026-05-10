@@ -30,7 +30,7 @@ class AffineMetric:
             Rational curve representing the motion.
         points
             Points in 3D space given as homogeneous points that define the
-            metric (each element is a :class:`PointHomogeneous`).
+            metric (each element is a :class:`.PointHomogeneous`).
         """
         self.motion_curve = motion_curve
         self.points = points

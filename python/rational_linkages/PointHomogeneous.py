@@ -16,7 +16,7 @@ class PointHomogeneous:
 
     By default, all computation is performed with NumPy (``float64``). When
     the global backend is set to ``"sympy"`` via
-    :func:`~rational_linkages.set_backend`, construction transparently
+    :func:`.set_backend`, construction transparently
     returns a :class:`~rational_linkages.PointHomogeneousSymbolic` instance instead,
     with no change to the calling code required.
 

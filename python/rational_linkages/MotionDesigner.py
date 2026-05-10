@@ -91,7 +91,7 @@ class MotionDesigner:
             ``'cubic_from_points'``, ``'cubic_from_poses'``,
             ``'quadratic_from_points'``, and ``'quadratic_from_poses'``.
         initial_points_or_poses, optional
-            Initial list of :class:`PointHomogeneous` or :class:`DualQuaternion`
+            Initial list of :class:`.PointHomogeneous` or :class:`.DualQuaternion`
             instances used as interpolation targets.
         arrows_length, optional
             Visual length of pose arrows in the plot.
@@ -256,7 +256,7 @@ class MotionDesigner:
         scale, optional
             Uniform scale applied to mesh vertices.
         transform, optional
-            Optional :class:`TransfMatrix` to apply to the vertex positions.
+            Optional :class:`.TransfMatrix` to apply to the vertex positions.
         color, optional
             RGBA color for the mesh item.
         name, optional
@@ -272,7 +272,7 @@ class MotionDesigner:
         Returns
         -------
         object
-            The created GL item returned by :meth:`add_mesh`.
+            The created GL item returned by :meth:`.add_mesh`.
         """
         if not os.path.isfile(path):
             raise FileNotFoundError(path)
@@ -763,7 +763,7 @@ if QtWidgets is not None:
             """Synthesize and show a mechanism preview from the current curve.
 
             The method computes an interpolated curve from the current
-            control points, constructs a :class:`RationalMechanism` and adds a
+            control points, constructs a :class:`.RationalMechanism` and adds a
             preview interactive widget for the mechanism.
             """
             if (self.method == 'quadratic_from_points'
@@ -974,7 +974,7 @@ if QtWidgets is not None:
             ----------
             coefficients
                 Numeric coefficients of the rational curve used to construct
-                a :class:`RationalMechanism` for previewing.
+                a :class:`.RationalMechanism` for previewing.
             """
             cr = RationalCurve.from_coeffs(coefficients)
             me = RationalMechanism(cr.factorize())

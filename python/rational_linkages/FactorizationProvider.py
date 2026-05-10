@@ -15,7 +15,7 @@ class FactorizationProvider:
     """Provide motion factorizations for polynomial or curve inputs.
 
     This class provides methods to factorize a polynomial or a
-    :class:`RationalCurve` into motion factorizations. It integrates with the
+    :class:`.RationalCurve` into motion factorizations. It integrates with the
     external ``biquaternion_py`` project (BiQuaternions_py).
 
     References
@@ -47,13 +47,13 @@ class FactorizationProvider:
         Parameters
         ----------
         curve
-            A :class:`RationalCurve` or a ``biquaternion_py.polynomials.Poly``
+            A :class:`.RationalCurve` or a ``biquaternion_py.polynomials.Poly``
             representing the motion polynomial to factorize.
 
         Returns
         -------
         list[MotionFactorization]
-            Two alternative :class:`MotionFactorization` instances describing
+            Two alternative :class:`.MotionFactorization` instances describing
             possible motion decompositions.
 
         Warns
@@ -93,12 +93,12 @@ class FactorizationProvider:
         Parameters
         ----------
         factorization
-            The :class:`MotionFactorization` to be analyzed and re-factored.
+            The :class:`.MotionFactorization` to be analyzed and re-factored.
 
         Returns
         -------
         list[MotionFactorization]
-            A list of alternative :class:`MotionFactorization` instances.
+            A list of alternative :class:`.MotionFactorization` instances.
 
         Warns
         -----
@@ -180,7 +180,7 @@ class FactorizationProvider:
         Returns
         -------
         DualQuaternion
-            A :class:`DualQuaternion` instance representing the rotation axis
+            A :class:`.DualQuaternion` instance representing the rotation axis
             (parameter removed).
         """
         t = Symbol("t")

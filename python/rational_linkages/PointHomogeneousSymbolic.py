@@ -12,7 +12,7 @@ class PointHomogeneousSymbolic(PointHomogeneous):
 
     Subclass of :class:`~rational_linkages.PointHomogeneous` for algebraic computation.
     Typically not instantiated directly — when the global backend is set to
-    ``"sympy"`` via :func:`~rational_linkages.set_backend`,
+    ``"sympy"`` via :func:`.set_backend`,
     :class:`~rational_linkages.PointHomogeneous` transparently returns instances of this
     class via its ``__new__`` factory.
 

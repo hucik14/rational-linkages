@@ -108,8 +108,8 @@ class MotionInterpolation:
         ----------
         poses_or_points
             Sequence of input poses or points. Supported types are
-            :class:`DualQuaternion`, :class:`TransfMatrix` and
-            :class:`PointHomogeneous`. Supported counts are 2, 3, 4, 5 or 7.
+            :class:`.DualQuaternion`, :class:`.TransfMatrix` and
+            :class:`.PointHomogeneous`. Supported counts are 2, 3, 4, 5 or 7.
         lambda_val, optional
             Lambda parameter used for cubic interpolation with four poses.
         motion_family, optional
@@ -189,7 +189,7 @@ class MotionInterpolation:
         Parameters
         ----------
         poses
-            Sequence of three :class:`DualQuaternion` poses.
+            Sequence of three :class:`.DualQuaternion` poses.
 
         Returns
         -------
@@ -250,7 +250,7 @@ class MotionInterpolation:
         Parameters
         ----------
         poses
-            Sequence of three :class:`DualQuaternion` poses.
+            Sequence of three :class:`.DualQuaternion` poses.
 
         Returns
         -------
@@ -293,7 +293,7 @@ class MotionInterpolation:
         Parameters
         ----------
         poses
-            Sequence of two :class:`DualQuaternion` poses.
+            Sequence of two :class:`.DualQuaternion` poses.
 
         Returns
         -------
@@ -315,7 +315,7 @@ class MotionInterpolation:
         Parameters
         ----------
         poses
-            Sequence of two :class:`DualQuaternion` poses.
+            Sequence of two :class:`.DualQuaternion` poses.
 
         Returns
         -------
@@ -376,7 +376,7 @@ class MotionInterpolation:
         Parameters
         ----------
         poses
-            Sequence of two :class:`DualQuaternion` poses.
+            Sequence of two :class:`.DualQuaternion` poses.
         max_iter, optional
             Maximum number of optimization iterations (0 = run until tolerance).
 
@@ -432,7 +432,7 @@ class MotionInterpolation:
         Parameters
         ----------
         poses
-            Sequence of four :class:`DualQuaternion` poses.
+            Sequence of four :class:`.DualQuaternion` poses.
         lambda_val, optional
             Lambda parameter selecting a family solution.
         motion_family, optional
@@ -522,7 +522,7 @@ class MotionInterpolation:
         Parameters
         ----------
         poses
-            Sequence of four :class:`DualQuaternion` poses.
+            Sequence of four :class:`.DualQuaternion` poses.
         k_idx, optional
             Index selecting which auxiliary k-dual-quaternion to use.
         lambda_val, optional
@@ -624,7 +624,7 @@ class MotionInterpolation:
         Parameters
         ----------
         poses
-            Sequence of four :class:`DualQuaternion` poses.
+            Sequence of four :class:`.DualQuaternion` poses.
 
         Returns
         -------
@@ -660,9 +660,9 @@ class MotionInterpolation:
         Parameters
         ----------
         poses
-            List of :class:`DualQuaternion` poses (indices 1..3 are used).
+            List of :class:`.DualQuaternion` poses (indices 1..3 are used).
         k
-            Auxiliary :class:`DualQuaternion` used in the solving system.
+            Auxiliary :class:`.DualQuaternion` used in the solving system.
 
         Returns
         -------

@@ -70,12 +70,12 @@ class CollisionAnalyser:
 
         The mechanism stores factorizations as sequences of dual quaternion
         factors. This method composes those factors to obtain the relative
-        motions and converts each motion into a :class:`RationalCurve`.
+        motions and converts each motion into a :class:`.RationalCurve`.
 
         Returns
         -------
         list
-            List of :class:`RationalCurve` objects representing the relative
+            List of :class:`.RationalCurve` objects representing the relative
             motions of the mechanism.
         """
         sequence = DualQuaternion()

@@ -47,18 +47,18 @@ def act(
     """
     Act on a geometric object with a dual quaternion (or a list of factors).
 
-    Dispatches to :func:`_act_on_line` or :func:`_act_on_point` based on the
+    Dispatches to ``_act_on_line`` or ``_act_on_point`` based on the
     type of ``affected_object``.  When ``acting_object`` is a list, the factors
     are multiplied left-to-right before the action is applied.
 
     Parameters
     ----------
     acting_object :
-        A :class:`~rational_linkages.DualQuaternion`, or a list of
-        :class:`~rational_linkages.DualQuaternion` factors whose product is used.
+        A :class:`.DualQuaternion`, or a list of
+        :class:`.DualQuaternion` factors whose product is used.
     affected_object :
-        A :class:`~rational_linkages.NormalizedLine` or
-        :class:`~rational_linkages.PointHomogeneous` to transform.
+        A :class:`.NormalizedLine` or
+        :class:`.PointHomogeneous` to transform.
 
     Returns
     -------
@@ -136,7 +136,7 @@ def _prepare_acting_object(
     acting_object: Union["DualQuaternion", list["DualQuaternion"]],
 ) -> "DualQuaternion":
     """
-    Reduce *acting_object* to a single :class:`~rational_linkages.DualQuaternion`.
+    Reduce *acting_object* to a single :class:`.DualQuaternion`.
 
     If *acting_object* is already a ``DualQuaternion`` it is returned as-is.
     If it is a list of ``DualQuaternion`` factors they are multiplied
@@ -169,7 +169,7 @@ def _act_on_line(
 
     Uses the formula ``acting_dq * line_as_dq * acting_dq.conjugate()``.
     The conjugation is already embedded in
-    :meth:`~rational_linkages.NormalizedLine.line2dq_array`, so the standard
+    :meth:`.NormalizedLine.line2dq_array`, so the standard
     (non-epsilon) conjugate is used here.
 
     Parameters

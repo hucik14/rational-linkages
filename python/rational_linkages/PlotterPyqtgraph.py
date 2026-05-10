@@ -809,7 +809,7 @@ if gl is not None:
 
             Parameters
             ----------
-            point : array-like or object
+            point : object
                 The 3D point to label.
             text : str
                 The label text.

@@ -11,10 +11,10 @@ class NormalizedLineSymbolic(NormalizedLine):
     """
     Symbolic Plücker line backed by SymPy expressions.
 
-    Subclass of :class:`~rational_linkages.NormalizedLine` for algebraic
-    computation. Typically not instantiated directly — when the global backend
-    is set to ``"sympy"`` via :func:`~rational_linkages.set_backend`,
-    :class:`~rational_linkages.NormalizedLine` transparently returns instances
+    Subclass of :class:`.NormalizedLine` for algebraic
+    computation. Typically, not instantiated directly — when the global backend
+    is set to ``"sympy"`` via :func:`.set_backend`,
+    :class:`.NormalizedLine` transparently returns instances
     of this class via its ``__new__`` factory.
 
     Parameters

@@ -14,9 +14,9 @@ class MiniBall:
         Parameters
         ----------
         points
-            Sequence of :class:`PointHomogeneous` instances to be enclosed.
+            Sequence of :class:`.PointHomogeneous` instances to be enclosed.
         metric, optional
-            Optional :class:`AffineMetric` instance specifying a non-Euclidean
+            Optional :class:`.AffineMetric` instance specifying a non-Euclidean
             distance. If ``None`` (or the string ``'euclidean'``), the
             Euclidean metric is used.
         method, optional
@@ -56,7 +56,7 @@ class MiniBall:
         Returns
         -------
         (PointHomogeneous, float)
-            Tuple with the ball center (as :class:`PointHomogeneous`) and the
+            Tuple with the ball center (as :class:`.PointHomogeneous`) and the
             squared radius.
         """
         if method == 'minimize':
@@ -74,7 +74,7 @@ class MiniBall:
     def get_ball_minimize(self):
         """Compute the smallest enclosing ball by numerical optimization.
 
-        Uses :mod:`scipy.optimize.minimize` to find a center and radius that
+        Uses :func:`scipy.optimize.minimize` to find a center and radius that
         satisfy inequality constraints for all input points under the chosen
         metric.
 
@@ -179,7 +179,7 @@ class MiniBall:
         points
             An array of points (shape (k, D)) used to compute the circumsphere.
         metric, optional
-            Optional :class:`AffineMetric` to measure distances; if ``None``
+            Optional :class:`.AffineMetric` to measure distances; if ``None``
             Euclidean distances are used.
 
         Returns
@@ -226,7 +226,7 @@ class MiniBall:
         points
             Array of input points with shape (N, D).
         metric, optional
-            Optional :class:`AffineMetric` specifying the distance measure.
+            Optional :class:`.AffineMetric` specifying the distance measure.
         epsilon, optional
             Numerical tolerance used to test if points lie on a candidate
             sphere.

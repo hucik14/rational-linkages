@@ -9,10 +9,10 @@ class TransfMatrixSymbolic(TransfMatrix):
     """
     Symbolic rigid body transformation backed by SymPy expressions.
 
-    Subclass of :class:`TransfMatrix` for algebraic computation. Typically
+    Subclass of :class:`.TransfMatrix` for algebraic computation. Typically
     not instantiated directly — when the global backend is set to
-    ``"sympy"`` via :func:`~rational_linkages.set_backend`,
-    :class:`TransfMatrix` transparently returns instances of this class via
+    ``"sympy"`` via :func:`.set_backend`,
+    :class:`.TransfMatrix` transparently returns instances of this class via
     its ``__new__`` factory.
 
     The primary attribute ``matrix`` is a :class:`sympy.Matrix` rather
@@ -69,7 +69,7 @@ class TransfMatrixSymbolic(TransfMatrix):
     @classmethod
     def from_standard(cls, matrix) -> "TransfMatrixSymbolic":
         """
-        Construct a :class:`TransfMatrixSymbolic` from a standard-convention matrix.
+        Construct a :class:`.TransfMatrixSymbolic` from a standard-convention matrix.
 
         Expects the standard SE(3) layout (rotation top-left, translation
         top-right, bottom row ``[0, 0, 0, 1]``).

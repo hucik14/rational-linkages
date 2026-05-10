@@ -473,11 +473,11 @@ class RationalSoo(RationalCurve):
 
         Parameters
         ----------
-        tau : array-like
+        tau :
             Nodes for the Lagrange basis.
         symbol : sympy.Symbol
             Symbol for the polynomial variable.
-        weights : array-like
+        weights :
             Weights for the Lagrange basis.
 
         Returns

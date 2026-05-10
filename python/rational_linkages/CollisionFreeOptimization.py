@@ -19,7 +19,7 @@ class CollisionFreeOptimization:
         Parameters
         ----------
         mechanism
-            The :class:`RationalMechanism` instance to optimize.
+            The :class:`.RationalMechanism` instance to optimize.
         """
         self.mechanism = mechanism
 
@@ -142,7 +142,7 @@ class CombinatorialSearch:
         Parameters
         ----------
         mechanism
-            The :class:`RationalMechanism` to optimize.
+            The :class:`.RationalMechanism` to optimize.
         linkage_length
             Total linkage length used to compute shift values.
         step_length, optional

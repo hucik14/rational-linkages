@@ -26,9 +26,9 @@ class Linkage:
         Parameters
         ----------
         axis
-            The axis (as a :class:`DualQuaternion`) describing the joint line.
+            The axis (as a :class:`.DualQuaternion`) describing the joint line.
         connection_points
-            One or two :class:`PointHomogeneous` objects representing the
+            One or two :class:`.PointHomogeneous` objects representing the
             default connection points (if only one is given it will be
             duplicated to form a pair).
         """
@@ -89,7 +89,7 @@ class Linkage:
         Parameters
         ----------
         point
-            A :class:`PointHomogeneous` known to lie on the axis.
+            A :class:`.PointHomogeneous` known to lie on the axis.
 
         Returns
         -------
@@ -159,7 +159,7 @@ class PointsConnection:
     """Container exposing the two connection points of a joint.
 
     This small helper provides sequence-like access to the two underlying
-    :class:`PointHomogeneous` instances.
+    :class:`.PointHomogeneous` instances.
     """
     def __init__(self, connection_point: list[PointHomogeneous]):
         """Create a PointsConnection wrapper.
@@ -167,7 +167,7 @@ class PointsConnection:
         Parameters
         ----------
         connection_point
-            Sequence with two :class:`PointHomogeneous` objects.
+            Sequence with two :class:`.PointHomogeneous` objects.
         """
         self._connection_point0 = connection_point[0]
         self._connection_point1 = connection_point[1]
@@ -202,7 +202,7 @@ class LineSegment:
     """Represent a physical line segment produced by two moving points.
 
     A LineSegment stores parametric point expressions (typically
-    :class:`PointHomogeneous` instances with parameter t) for its endpoints and
+    :class:`.PointHomogeneous` instances with parameter t) for its endpoints and
     bookkeeping metadata such as type and factorization indices.
     """
     # Class-level registry to store all instances
@@ -273,7 +273,7 @@ class LineSegment:
         Parameters
         ----------
         point
-            A :class:`PointHomogeneous` representing the query point.
+            A :class:`.PointHomogeneous` representing the query point.
         t_val
             Parameter value at which the segment endpoints are evaluated.
 

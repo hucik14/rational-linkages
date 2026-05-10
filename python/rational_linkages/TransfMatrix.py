@@ -25,8 +25,8 @@ class TransfMatrix:
 
     By default, all computation is performed with NumPy (``float64``). When
     the global backend is set to ``"sympy"`` via
-    :func:`~rational_linkages.set_backend`, construction transparently
-    returns a :class:`TransfMatrixSymbolic` instance instead.
+    :func:`.set_backend`, construction transparently
+    returns a :class:`.TransfMatrixSymbolic` instance instead.
 
     Parameters
     ----------
@@ -63,7 +63,7 @@ class TransfMatrix:
 
     def __new__(cls, matrix=None):
         """
-        Intercept construction and return a :class:`TransfMatrixSymbolic`
+        Intercept construction and return a :class:`.TransfMatrixSymbolic`
         when the global backend is ``"sympy"``.
 
         Only applied when ``cls`` is exactly ``TransfMatrix``; subclass
@@ -92,7 +92,7 @@ class TransfMatrix:
     @classmethod
     def from_standard(cls, matrix) -> "TransfMatrix":
         """
-        Construct a :class:`TransfMatrix` from a standard-convention matrix.
+        Construct a :class:`.TransfMatrix` from a standard-convention matrix.
 
         Expects the standard SE(3) layout (rotation top-left, translation
         top-right, bottom row ``[0, 0, 0, 1]``).

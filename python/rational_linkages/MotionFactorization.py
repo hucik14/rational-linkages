@@ -21,7 +21,7 @@ class MotionFactorization(RationalCurve):
     Parameters
     ----------
     sequence_of_factored_dqs
-        Sequence of :class:`DualQuaternion` instances representing the revolute
+        Sequence of :class:`.DualQuaternion` instances representing the revolute
         axes (factors) of the motion factorization.
 
     Attributes
@@ -33,7 +33,7 @@ class MotionFactorization(RationalCurve):
     number_of_factors
         Number of factors in the factorization.
     linkage
-        Lazy property returning the per-axis :class:`Linkage` objects.
+        Lazy property returning the per-axis :class:`.Linkage` objects.
 
     Example
     -------
@@ -61,7 +61,7 @@ class MotionFactorization(RationalCurve):
         Parameters
         ----------
         sequence_of_factored_dqs
-            List of :class:`DualQuaternion` objects representing the revolute
+            List of :class:`.DualQuaternion` objects representing the revolute
             axes of the rational motion factorization.
         """
         curve_polynomials = self.get_polynomials_from_factorization(
@@ -94,7 +94,7 @@ class MotionFactorization(RationalCurve):
         Parameters
         ----------
         factors
-            Sequence of :class:`DualQuaternion` factor axes.
+            Sequence of :class:`.DualQuaternion` factor axes.
 
         Returns
         -------
@@ -151,8 +151,8 @@ class MotionFactorization(RationalCurve):
         Parameters
         ----------
         affected_object
-            Object to act on (for example :class:`PointHomogeneous` or
-            :class:`NormalizedLine`).
+            Object to act on (for example :class:`.PointHomogeneous` or
+            :class:`.NormalizedLine`).
         param
             Parameter value on the motion curve.
         start_idx, end_idx, optional
@@ -370,7 +370,7 @@ class MotionFactorization(RationalCurve):
         Returns
         -------
         list[Linkage]
-            For each dual-quaternion axis, a :class:`Linkage` whose connection
+            For each dual-quaternion axis, a :class:`.Linkage` whose connection
             points are chosen as the foot point of the axis to the origin.
         """
         return [Linkage(axis,
@@ -383,7 +383,7 @@ class MotionFactorization(RationalCurve):
         Parameters
         ----------
         points
-            Flat list of :class:`PointHomogeneous` values. Points are paired
+            Flat list of :class:`.PointHomogeneous` values. Points are paired
             (p0,p1) per joint in order.
         """
         # pair the input points
@@ -430,7 +430,7 @@ class MotionFactorization(RationalCurve):
         -------
         tuple
             ``(joint_line, point0, point1)`` where points are
-            :class:`PointHomogeneous` instances.
+            :class:`.PointHomogeneous` instances.
         """
         point0 = self.linkage[idx].points[0]
         point1 = self.linkage[idx].points[1]
@@ -468,7 +468,7 @@ class MotionFactorization(RationalCurve):
         Parameters
         ----------
         other_factorization_point
-            A :class:`PointHomogeneous` from the complementary factorization.
+            A :class:`.PointHomogeneous` from the complementary factorization.
 
         Returns
         -------
@@ -491,7 +491,7 @@ class MotionFactorization(RationalCurve):
         Parameters
         ----------
         other_factorization_point
-            A :class:`PointHomogeneous` specifying the other-factorization point.
+            A :class:`.PointHomogeneous` specifying the other-factorization point.
 
         Returns
         -------
