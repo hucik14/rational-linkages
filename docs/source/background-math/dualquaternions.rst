@@ -96,6 +96,7 @@ method mentioned above has the following shape:
     \mathbf{pp^*} = \begin{bmatrix} p_0^2 + p_1^2 + p_2^2 + p_3^2 \\ 0 \\ 0 \\ 0 \\
     2\epsilon (p_0p_4 + p_1p_5 + p_2p_6 + p_3p_7) \\ 0 \\ 0 \\ 0 \end{bmatrix}
 
+.. _matrix_convention:
 
 Correspondence between Dual Quaternions and Transformation Matrices
 -------------------------------------------------------------------
