@@ -10,10 +10,10 @@ class QuaternionSymbolic(Quaternion):
     """
     Symbolic quaternion backed by SymPy expressions.
 
-    Subclass of :class:`~rational_linkages.Quaternion` for algebraic
+    Subclass of :class:`.Quaternion` for algebraic
     computation. Typically, not instantiated directly — when the global backend is
     set to ``"sympy"`` via :func:`.set_backend`,
-    :class:`~rational_linkages.Quaternion` transparently returns instances
+    :class:`.Quaternion` transparently returns instances
     of this class via its ``__new__`` factory.
 
     All arithmetic operators return :class:`QuaternionSymbolic` instances.

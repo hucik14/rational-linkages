@@ -25,7 +25,6 @@ print(sys.path)
 
 # -- Helper functions --------------------------------------------------------
 
-
 def get_version():
     # Get the directory of this file
     this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -39,7 +38,6 @@ def get_version():
 
 # -- Project information -----------------------------------------------------
 
-
 project = 'Rational Linkages'
 copyright = '2026, Daniel Huczala'
 author = 'Daniel Huczala'
@@ -47,14 +45,10 @@ author = 'Daniel Huczala'
 # The full version, including alpha/beta/rc tags
 release = get_version()
 
-
 # -- General configuration ---------------------------------------------------
 
 autodoc_mock_imports = ["rational_linkages.utils_rust"]
 
-# Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
-# ones.
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
@@ -66,10 +60,6 @@ extensions = [
     'sphinx_copybutton',
 ]
 
-suppress_warnings = [
-    'autodoc.mocked_object',
-]
-
 # for 3D visualization
 html_static_path = ['_static']
 html_allow_raw_html = True
@@ -79,15 +69,12 @@ bibtex_bibfiles = ['refs.bib']
 nitpicky = True
 nitpick_ignore = [
     ('py:class', 'optional'),
-    ('py:class', 'numpy.ndarray'),
     ('py:class', 'numpy.array'),
 ]
 
 nitpick_ignore_regex = [
     (r'py:func', r'sympy\..*'),
     (r'py:class', r'sympy\..*'),
-    (r'py:func', r'scipy\..*'),
-    (r'py:class', r'scipy\..*'),
     (r'py:class', r'PyQt6\..*'),
     (r'py:class', r'QtCore\..*'),
     (r'py:class', r'Q\w+'),
@@ -116,36 +103,4 @@ intersphinx_mapping = {
     'pyqtgraph': ('https://pyqtgraph.readthedocs.io/en/latest/', None),
 }
 
-
-autodoc_type_aliases = {
-    'CollisionFreeOptimization': 'rational_linkages.CollisionFreeOptimization.CollisionFreeOptimization',
-    'DualQuaternion': 'rational_linkages.DualQuaternion.DualQuaternion',
-    'ExudynAnalysis': 'rational_linkages.ExudynAnalysis.ExudynAnalysis',
-    'LineSegment': 'rational_linkages.Linkage.LineSegment',
-    'Linkage': 'rational_linkages.Linkage.Linkage',
-    'PointsConnection': 'rational_linkages.Linkage.PointsConnection',
-    'MotionDesigner': 'rational_linkages.MotionDesigner.MotionDesigner',
-    'MotionFactorization': 'rational_linkages.MotionFactorization.MotionFactorization',
-    'MotionInterpolation': 'rational_linkages.MotionInterpolation.MotionInterpolation',
-    'NormalizedLine': 'rational_linkages.NormalizedLine.NormalizedLine',
-    'NormalizedPlane': 'rational_linkages.NormalizedPlane.NormalizedPlane',
-    'Plotter': 'rational_linkages.Plotter.Plotter',
-    'PointHomogeneous': 'rational_linkages.PointHomogeneous.PointHomogeneous',
-    'Quaternion': 'rational_linkages.Quaternion.Quaternion',
-    'BezierSegment': 'rational_linkages.RationalBezier.BezierSegment',
-    'RationalBezier': 'rational_linkages.RationalBezier.RationalBezier',
-    'RationalCurve': 'rational_linkages.RationalCurve.RationalCurve',
-    'RationalMechanism': 'rational_linkages.RationalMechanism.RationalMechanism',
-    'TransfMatrix': 'rational_linkages.TransfMatrix.TransfMatrix',
-}
-
 html_theme = 'sphinx_rtd_theme'
-
-
-### DOCTEST
-# doctest_test_doctest_blocks = 'default'
-# set bool skip_this_doctest = True here in order to skip the doctest (set by
-# directive :skipif: in the testcode and testcleanup blocks)
-# doctest_global_setup = """
-# skip_this_doctest = False
-# """

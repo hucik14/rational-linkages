@@ -8,8 +8,10 @@ from .DualQuaternion import DualQuaternion
 from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
 
+
 MotionFactorization = "MotionFactorization"
 AffineMetric = "AffineMetric"
+BezierSegment = "BezierSegment"
 
 
 class RationalCurve:
@@ -669,7 +671,7 @@ class RationalCurve:
         return RationalCurve(curve_poly)
 
     def split_in_beziers(self,
-                         min_splits: int = 0) -> list["BezierSegment"]:
+                         min_splits: int = 0) -> list[BezierSegment]:
         """
         Split the curve into Bezier curves with positive weights of control points.
 

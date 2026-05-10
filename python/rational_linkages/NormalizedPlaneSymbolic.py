@@ -10,10 +10,10 @@ class NormalizedPlaneSymbolic(NormalizedPlane):
     """
     Symbolic plane backed by SymPy expressions.
 
-    Subclass of :class:`~rational_linkages.NormalizedPlane` for algebraic
+    Subclass of :class:`.NormalizedPlane` for algebraic
     computation. Typically not instantiated directly — when the global backend
     is set to ``"sympy"`` via :func:`.set_backend`,
-    :class:`~rational_linkages.NormalizedPlane` transparently returns instances
+    :class:`.NormalizedPlane` transparently returns instances
     of this class via its ``__new__`` factory.
 
     Parameters

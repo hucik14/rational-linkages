@@ -6,6 +6,10 @@ import numpy
 from .backend import is_symbolic
 
 
+DualQuaternion = "DualQuaternion"
+TransfMatrix = "TransfMatrix"
+
+
 class PointHomogeneous:
     """
     Point in projective space with homogeneous coordinates.
@@ -17,7 +21,7 @@ class PointHomogeneous:
     By default, all computation is performed with NumPy (``float64``). When
     the global backend is set to ``"sympy"`` via
     :func:`.set_backend`, construction transparently
-    returns a :class:`~rational_linkages.PointHomogeneousSymbolic` instance instead,
+    returns a :class:`.PointHomogeneousSymbolic` instance instead,
     with no change to the calling code required.
 
     Parameters
@@ -77,7 +81,7 @@ class PointHomogeneous:
     def __new__(cls, point=None, rational: bool = False):
         """
         Intercept construction and return a
-        :class:`~rational_linkages.PointHomogeneousSymbolic` when the global backend
+        :class:`.PointHomogeneousSymbolic` when the global backend
         is ``"sympy"``.
 
         Only applied when ``cls`` is exactly ``PointHomogeneous``; subclass
@@ -190,7 +194,7 @@ class PointHomogeneous:
         return cls(numpy.insert(point, 0, 1.0))
 
     @classmethod
-    def from_dual_quaternion(cls, dq: "DualQuaternion") -> "PointHomogeneous":
+    def from_dual_quaternion(cls, dq: DualQuaternion) -> "PointHomogeneous":
         """
         Construct a homogeneous point from a dual quaternion.
 
@@ -556,7 +560,7 @@ class PointHomogeneous:
         c = self.coordinates
         return numpy.array([c[0], 0, 0, 0, 0, c[1], c[2], c[3]])
 
-    def point2affine12d(self, map_alpha: "TransfMatrix") -> numpy.ndarray:
+    def point2affine12d(self, map_alpha: TransfMatrix) -> numpy.ndarray:
         """
         Map the point to 12-dimensional affine space.
 

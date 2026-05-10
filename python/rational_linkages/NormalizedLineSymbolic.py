@@ -7,6 +7,9 @@ import sympy
 from .NormalizedLine import NormalizedLine
 
 
+PointHomogeneous = "PointHomogeneous"
+
+
 class NormalizedLineSymbolic(NormalizedLine):
     """
     Symbolic Plücker line backed by SymPy expressions.
@@ -118,18 +121,18 @@ class NormalizedLineSymbolic(NormalizedLine):
 
     @classmethod
     def from_two_points(cls,
-                        pt0: Union["PointHomogeneous", Sequence[float]],
-                        pt1: Union["PointHomogeneous", Sequence[float]]) -> "NormalizedLine":
+                        pt0: Union[PointHomogeneous, Sequence[float]],
+                        pt1: Union[PointHomogeneous, Sequence[float]]) -> "NormalizedLine":
         """
         Construct a ``NormalizedLine`` from the given ``pt0`` and ``pt1``.
 
         Parameters
         ----------
         pt0
-            A :class:`~rational_linkages.PointHomogeneous` or a 3-vector of SymPy expressions
+            A :class:`.PointHomogeneous` or a 3-vector of SymPy expressions
             or numbers representing a point on the line.
         pt1
-            A :class:`~rational_linkages.PointHomogeneous` or a 3-vector of SymPy expressions
+            A :class:`.PointHomogeneous` or a 3-vector of SymPy expressions
             or numbers representing a different point on the line.
 
         Returns
@@ -294,7 +297,7 @@ class NormalizedLineSymbolic(NormalizedLine):
 
     def contains_point(
         self,
-        point: Union["PointHomogeneous", numpy.ndarray, Sequence],
+        point: Union[PointHomogeneous, numpy.ndarray, Sequence],
     ) -> bool:
         """
         Return ``True`` if *point* lies on the line (symbolic check).
@@ -302,7 +305,7 @@ class NormalizedLineSymbolic(NormalizedLine):
         Parameters
         ----------
         point
-            A :class:`~rational_linkages.PointHomogeneous` or a 3-vector of SymPy
+            A :class:`.PointHomogeneous` or a 3-vector of SymPy
             expressions / numbers.
 
         Returns

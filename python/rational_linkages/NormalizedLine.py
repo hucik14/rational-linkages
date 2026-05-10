@@ -6,6 +6,11 @@ import numpy
 from .backend import is_symbolic
 
 
+PointHomogeneous = "PointHomogeneous"
+DualQuaternion = "DualQuaternion"
+NormalizedPlane = "NormalizedPlane"
+
+
 class NormalizedLine:
     """
     Line in 3D space represented by Plücker coordinates (unit screw axis).
@@ -17,7 +22,7 @@ class NormalizedLine:
     By default, all computation is performed with NumPy (``float64``). When
     the global backend is set to ``"sympy"`` via
     :func:`.set_backend`, construction transparently returns a
-    :class:`~rational_linkages.NormalizedLineSymbolic` instance instead.
+    :class:`.NormalizedLineSymbolic` instance instead.
 
     Parameters
     ----------
@@ -81,7 +86,7 @@ class NormalizedLine:
     def __new__(cls, unit_screw=None):
         """
         Intercept construction and return a
-        :class:`~rational_linkages.NormalizedLineSymbolic` when the global
+        :class:`.NormalizedLineSymbolic` when the global
         backend is ``"sympy"``.
 
         Only applied when ``cls`` is exactly ``NormalizedLine``; subclass
@@ -175,8 +180,8 @@ class NormalizedLine:
     @classmethod
     def from_two_points(
         cls,
-        pt0: Union["PointHomogeneous", Sequence[float]],
-        pt1: Union["PointHomogeneous", Sequence[float]],
+        pt0: Union[PointHomogeneous, Sequence[float]],
+        pt1: Union[PointHomogeneous, Sequence[float]],
     ) -> "NormalizedLine":
         """
         Construct a NormalizedLine from two points.
@@ -184,10 +189,10 @@ class NormalizedLine:
         Parameters
         ----------
         pt0 :
-            First point — either a :class:`~rational_linkages.PointHomogeneous` or a
+            First point — either a :class:`.PointHomogeneous` or a
             3-vector ``[x, y, z]``.
         pt1 :
-            Second point — either a :class:`~rational_linkages.PointHomogeneous` or a
+            Second point — either a :class:`.PointHomogeneous` or a
             3-vector ``[x, y, z]``.
 
         Returns
@@ -285,7 +290,7 @@ class NormalizedLine:
         return cls(numpy.concatenate((direction, moment)))
 
     @classmethod
-    def from_dual_quaternion(cls, dq: "DualQuaternion") -> "NormalizedLine":
+    def from_dual_quaternion(cls, dq: DualQuaternion) -> "NormalizedLine":
         """
         Construct a NormalizedLine from a DualQuaternion.
 
@@ -467,7 +472,7 @@ class NormalizedLine:
 
     def contains_point(
         self,
-        point: Union["PointHomogeneous", numpy.ndarray, Sequence[float]],
+        point: Union[PointHomogeneous, numpy.ndarray, Sequence[float]],
     ) -> bool:
         """
         Return ``True`` if *point* lies on the line.
@@ -478,7 +483,7 @@ class NormalizedLine:
         Parameters
         ----------
         point :
-            A :class:`~rational_linkages.PointHomogeneous` or a 3-vector ``[x, y, z]``.
+            A :class:`.PointHomogeneous` or a 3-vector ``[x, y, z]``.
 
         Returns
         -------
@@ -543,7 +548,7 @@ class NormalizedLine:
 
         return points, distance, cos_angle
 
-    def intersection_with_plane(self, plane: "NormalizedPlane") -> numpy.ndarray:
+    def intersection_with_plane(self, plane: NormalizedPlane) -> numpy.ndarray:
         """
         Return the homogeneous intersection point of the line with *plane*.
 

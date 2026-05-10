@@ -12,14 +12,14 @@ class DualQuaternion:
     Dual quaternion representing a rigid body displacement in 3D space.
 
     A dual quaternion consists of a primal part ``p`` (rotation) and a dual
-    part ``d`` (translation), stored as two :class:`~rational_linkages.Quaternion`
+    part ``d`` (translation), stored as two :class:`.Quaternion`
     instances. The 8 Study parameters ``[p0, p1, p2, p3, d0, d1, d2, d3]``
     are the concatenation of the two quaternion coefficient vectors.
 
     By default, all computation is performed with NumPy (``float64``). When
     the global backend is set to ``"sympy"`` via
     :func:`.set_backend`, construction transparently returns a
-    :class:`~rational_linkages.DualQuaternionSymbolic` instance instead.
+    :class:`.DualQuaternionSymbolic` instance instead.
 
     Parameters
     ----------
@@ -93,7 +93,7 @@ class DualQuaternion:
     def __new__(cls, coeffs=None, rational: bool = False):
         """
         Intercept construction and return a
-        :class:`~rational_linkages.DualQuaternionSymbolic` when the global
+        :class:`.DualQuaternionSymbolic` when the global
         backend is ``"sympy"``.
 
         Only applied when ``cls`` is exactly ``DualQuaternion``; subclass

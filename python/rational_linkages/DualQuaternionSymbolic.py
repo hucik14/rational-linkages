@@ -11,10 +11,10 @@ class DualQuaternionSymbolic(DualQuaternion):
     """
     Symbolic dual quaternion backed by SymPy expressions.
 
-    Subclass of :class:`~rational_linkages.DualQuaternion` for algebraic
+    Subclass of :class:`.DualQuaternion` for algebraic
     computation. Typically, not instantiated directly — when the global backend
     is set to ``"sympy"`` via :func:`.set_backend`,
-    :class:`~rational_linkages.DualQuaternion` transparently returns instances
+    :class:`.DualQuaternion` transparently returns instances
     of this class via its ``__new__`` factory.
 
     All arithmetic operators return :class:`DualQuaternionSymbolic` instances.

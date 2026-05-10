@@ -15,7 +15,7 @@ class Quaternion:
     By default, all computation is performed with NumPy (``float64``). When
     the global backend is set to ``"sympy"`` via
     :func:`.set_backend`, construction transparently
-    returns a :class:`~rational_linkages.QuaternionSymbolic` instance
+    returns a :class:`.QuaternionSymbolic` instance
     instead, with no change to the calling code required.
 
     Parameters
@@ -76,7 +76,7 @@ class Quaternion:
     def __new__(cls, coeffs=None):
         """
         Intercept construction and return a
-        :class:`~rational_linkages.QuaternionSymbolic` when the global
+        :class:`.QuaternionSymbolic` when the global
         backend is ``"sympy"``.
 
         Only applied when ``cls`` is exactly ``Quaternion``; subclass

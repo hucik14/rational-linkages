@@ -262,7 +262,20 @@ Utilities (Python)
 Utilities (Rust)
 ----------------
 
-.. automodule:: rational_linkages.utils_rust
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. py:module:: rational_linkages.utils_rust
+
+   Rust-compiled extension module for performance-critical operations.
+
+.. py:function:: motion_interp_x3(p1, p2, p3)
+
+   :param numpy.ndarray p1: First point.
+   :param numpy.ndarray p2: Second point.
+   :param numpy.ndarray p3: Third point.
+   :returns: Interpolated result.
+   :rtype: list
+
+.. py:function:: sum_as_string(x, y)
+
+   :param int x: First integer.
+   :param int y: Second integer.
+   :rtype: str

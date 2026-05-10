@@ -63,13 +63,13 @@ class Plotter:
             labels of matching length.
         ``interval`` : tuple or ``'closed'``
             Parameter interval used for
-            :class:`~rational_linkages.RationalCurve.RationalCurve`
+            :class:`.RationalCurve`
             and
-            :class:`~rational_linkages.RationalBezier.RationalBezier`.
+            :class:`.RationalBezier`.
             If set to ``'closed'``, the curve will
             be plotted using tangent function in full scale, including t -> inf.
         ``with_poses`` : bool
-            Show poses for :class:`~rational_linkages.RationalCurve.RationalCurve`.
+            Show poses for :class:`.RationalCurve`.
         ``t`` : float
             Mechanism/factorization configuration parameter.
 

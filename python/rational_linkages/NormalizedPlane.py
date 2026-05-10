@@ -4,6 +4,9 @@ import numpy
 
 from .backend import is_symbolic
 
+PointHomogeneous = "PointHomogeneous"
+NormalizedLine = "NormalizedLine"
+
 
 class NormalizedPlane:
     """
@@ -15,7 +18,7 @@ class NormalizedPlane:
     By default, all computation is performed with NumPy (``float64``). When
     the global backend is set to ``"sympy"`` via
     :func:`.set_backend`, construction transparently returns a
-    :class:`~rational_linkages.NormalizedPlaneSymbolic` instance instead.
+    :class:`.NormalizedPlaneSymbolic` instance instead.
 
     Parameters
     ----------
@@ -70,7 +73,7 @@ class NormalizedPlane:
     def __new__(cls, normal=None, point=None):
         """
         Intercept construction and return a
-        :class:`~rational_linkages.NormalizedPlaneSymbolic` when the global
+        :class:`.NormalizedPlaneSymbolic` when the global
         backend is ``"sympy"``.
 
         Only applied when ``cls`` is exactly ``NormalizedPlane``; subclass
@@ -126,8 +129,8 @@ class NormalizedPlane:
     @classmethod
     def from_two_points_as_bisector(
         cls,
-        point1: "PointHomogeneous",
-        point2: "PointHomogeneous",
+        point1: PointHomogeneous,
+        point2: PointHomogeneous,
     ) -> "NormalizedPlane":
         """
         Construct the bisector plane of two points.
@@ -138,9 +141,9 @@ class NormalizedPlane:
         Parameters
         ----------
         point1 :
-            First :class:`~rational_linkages.PointHomogeneous`.
+            First :class:`.PointHomogeneous`.
         point2 :
-            Second :class:`~rational_linkages.PointHomogeneous`.
+            Second :class:`.PointHomogeneous`.
 
         Returns
         -------
@@ -155,9 +158,9 @@ class NormalizedPlane:
     @classmethod
     def from_three_points(
         cls,
-        point0: "PointHomogeneous",
-        point1: "PointHomogeneous",
-        point2: "PointHomogeneous",
+        point0: PointHomogeneous,
+        point1: PointHomogeneous,
+        point2: PointHomogeneous,
     ) -> "NormalizedPlane":
         """
         Construct a plane through three non-collinear points.
@@ -165,11 +168,11 @@ class NormalizedPlane:
         Parameters
         ----------
         point0 :
-            First :class:`~rational_linkages.PointHomogeneous`.
+            First :class:`.PointHomogeneous`.
         point1 :
-            Second :class:`~rational_linkages.PointHomogeneous`.
+            Second :class:`.PointHomogeneous`.
         point2 :
-            Third :class:`~rational_linkages.PointHomogeneous`.
+            Third :class:`.PointHomogeneous`.
 
         Returns
         -------
@@ -191,8 +194,8 @@ class NormalizedPlane:
     @classmethod
     def from_line_and_point(
         cls,
-        line: "NormalizedLine",
-        point: "PointHomogeneous",
+        line: NormalizedLine,
+        point: PointHomogeneous,
     ) -> "NormalizedPlane":
         """
         Construct the plane spanned by a line and a point not on the line.
@@ -200,9 +203,9 @@ class NormalizedPlane:
         Parameters
         ----------
         line :
-            A :class:`~rational_linkages.NormalizedLine` contained in the plane.
+            A :class:`.NormalizedLine` contained in the plane.
         point :
-            A :class:`~rational_linkages.PointHomogeneous` contained in the plane.
+            A :class:`.PointHomogeneous` contained in the plane.
 
         Returns
         -------
@@ -376,7 +379,7 @@ class NormalizedPlane:
         return numpy.concatenate((line_dir, line_moment))
 
     def intersection_with_line(
-        self, line: "NormalizedLine"
+        self, line: NormalizedLine
     ) -> numpy.ndarray:
         """
         Return the homogeneous intersection point of the plane with a line.
