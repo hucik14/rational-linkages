@@ -37,15 +37,8 @@ quaternion :math:`\mathbf{q}_d = (p_4, p_5, p_6, p_7)`.
 In the package, the class :class:`.DualQuaternion` is used to represent dual
 quaternions. A simple example of creating an identity dual quaternion is:
 
-.. testcode:: [dual_quaternion_example1]
-
-    from rational_linkages import DualQuaternion
-    p = DualQuaternion()
-
-.. testcleanup:: [dual_quaternion_example1]
-
-    del p, DualQuaternion
-
+.. literalinclude:: /examples/d_bm_dualquaternions_simple.py
+    :language: python
 
 which will create a dual quaternion :math:`\mathbf{p} = (1, 0, 0, 0, 0, 0, 0, 0)`.
 
@@ -103,6 +96,7 @@ method mentioned above has the following shape:
     \mathbf{pp^*} = \begin{bmatrix} p_0^2 + p_1^2 + p_2^2 + p_3^2 \\ 0 \\ 0 \\ 0 \\
     2\epsilon (p_0p_4 + p_1p_5 + p_2p_6 + p_3p_7) \\ 0 \\ 0 \\ 0 \end{bmatrix}
 
+.. _matrix_convention:
 
 Correspondence between Dual Quaternions and Transformation Matrices
 -------------------------------------------------------------------
@@ -134,89 +128,13 @@ also known as roll-pitch-yaw angles. The method :meth:`.TransfMatrix.from_rpy_xy
 serves for this purpose. Conversion to dual quaternion is then straightforward,
 as seen in the following example:
 
-.. testcode:: [dual_quaternion_example2]
-
-    # Create a transformation matrix from Tait-Bryan angles and translation vector,
-    # and convert it to dual quaternion
-
-    from rational_linkages import TransfMatrix, DualQuaternion
-    from math import pi
-
-    # Identity/origin
-    T0 = TransfMatrix()
-
-    # Create a transformation matrix from Tait-Bryan angles and translation vector
-    T1 = TransfMatrix.from_rpy_xyz([pi/2, 0, 0], [1, 2, 3])
-
-    # Create a transformation matrix from Tait-Bryan angles and translation vector,
-    # use degrees instead of radians
-    T2 = TransfMatrix.from_rpy_xyz([0, -90, 0], [4, 5, 6], unit='deg')
-
-    # Convert the transformation matrices to dual quaternions
-    T_list = [T0, T1, T2]
-
-    for T in T_list:
-        p = DualQuaternion(T.matrix2dq())
-        print("--------------------")
-        print("Transformation matrix:")
-        print(T)
-        print("Corresponding dual quaternion:")
-        print(p)
-        print("--------------------")
-
-    # Create TransfMatrix from DualQuaternion
-    p = DualQuaternion(T2.matrix2dq())
-    T = TransfMatrix(p.dq2matrix())
-    print(T)
-
-
-
-The output of the example is:
-
-.. testoutput:: [dual_quaternion_example2]
-
-    --------------------
-    Transformation matrix:
-    [[1., 0., 0., 0.],
-     [0., 1., 0., 0.],
-     [0., 0., 1., 0.],
-     [0., 0., 0., 1.]]
-    Corresponding dual quaternion:
-    [1., 0., 0., 0., 0., 0., 0., 0.]
-    --------------------
-    --------------------
-    Transformation matrix:
-    [[ 1.,  0.,  0.,  0.],
-     [ 1.,  1.,  0.,  0.],
-     [ 2.,  0.,  0., -1.],
-     [ 3.,  0.,  1.,  0.]]
-    Corresponding dual quaternion:
-    [ 1. ,  1. ,  0. ,  0. ,  0.5, -0.5, -2.5, -0.5]
-    --------------------
-    --------------------
-    Transformation matrix:
-    [[ 1.,  0.,  0.,  0.],
-     [ 4.,  0.,  0., -1.],
-     [ 5.,  0.,  1.,  0.],
-     [ 6.,  1.,  0.,  0.]]
-    Corresponding dual quaternion:
-    [ 1. ,  0. , -1. ,  0. , -2.5, -5. , -2.5, -1. ]
-    --------------------
-    [[ 1.,  0.,  0.,  0.],
-     [ 4.,  0., -0., -1.],
-     [ 5.,  0.,  1., -0.],
-     [ 6.,  1.,  0.,  0.]]
-
-.. testcleanup:: [dual_quaternion_example2]
-
-    del TransfMatrix, DualQuaternion
-    del T0, T1, T2, T, p, T_list
-
+.. literalinclude:: /examples/d_bm_dualquaternions.py
+    :language: python
 
 Dual Quaternion Actions
 -----------------------
 
-The class :class:`.DualQuaternionAction` implements methods for performing actions
+The class :mod:`.dualQuaternionAction` implements methods for performing actions
 on points and lines in 3D space.
 
 An action is transformation of a point or a line by given dual quaternion. In case
@@ -255,9 +173,6 @@ DQ Action on a Plane
 ^^^^^^^^^^^^^^^^^^^^
 
 Planes are not supported by the package yet.
-
-
-
 
 
 **References:**

@@ -1,373 +1,671 @@
 from typing import Optional, Sequence
+from warnings import warn
 
-import numpy as np
-from sympy import Rational
+import numpy
 
-from .TransfMatrix import TransfMatrix
+from .backend import is_symbolic
 
-# Forward declarations for class names
+
 DualQuaternion = "DualQuaternion"
+TransfMatrix = "TransfMatrix"
 
 
 class PointHomogeneous:
     """
-    Points in projective space with homogeneous coordinates.
+    Point in projective space with homogeneous coordinates.
 
-    Homogeneous coordinates are used to represent points, including points at infinity.
-    The first row of the point array (index 0) stores the homogeneous coordinates.
+    Homogeneous coordinates ``[w, x, y, z]`` represent points in ℙⁿ,
+    including points at infinity (where ``w = 0``). The coordinate vector
+    may have length 3 (ℙ²), 4 (ℙ³), or higher ℙⁿ for more abstract applications.
 
-    :ivar coordinates: Array of floats representing the homogeneous coordinates of the
-        point.
-    :ivar is_at_infinity: Indicates whether the point is at infinity (coordinates[0] is
-        close to 0).
+    By default, all computation is performed with NumPy (``float64``). When
+    the global backend is set to ``"sympy"`` via
+    :func:`.set_backend`, construction transparently
+    returns a :class:`.PointHomogeneousSymbolic` instance instead,
+    with no change to the calling code required.
 
-    :examples:
+    Parameters
+    ----------
+    point :
+        Sequence of homogeneous coordinates ``[w, x, y, ...]``. If
+        ``None``, the origin in ℙ³ ``[1, 0, 0, 0]`` is constructed.
 
-    .. testcode:: [point_homogeneous_example1]
+    Attributes
+    ----------
+    coordinates : numpy.ndarray
+        1-D array of homogeneous coordinates.
+    is_at_infinity : bool
+        ``True`` when the homogeneous coordinate ``w`` is (numerically)
+        zero, i.e. the point lies on the hyperplane at infinity.
+    is_2d : bool
+        ``True`` if the point is in ℙ² (3 homogeneous coordinates).
+    is_3d : bool
+        ``True`` if the point is in ℙ³ (4 homogeneous coordinates).
 
-        # Create points in projective space
+    Examples
+    --------
+    .. code-block:: python
 
         from rational_linkages import PointHomogeneous
 
 
-        origin_point_3D = PointHomogeneous()
-        origin_point_2D = PointHomogeneous.at_origin_in_2d()
-        custom_point = PointHomogeneous([2.0, 3.0, 4.0, 1.0])
+        origin = PointHomogeneous()
+        custom = PointHomogeneous([2.0, 1.0, -3.0, 4.0])
+        origin_2d = PointHomogeneous.at_origin_in_2d()
 
-    .. testcleanup:: [point_homogeneous_example1]
+    .. clear-namespace::
 
-        del PointHomogeneous
-        del origin_point_3D, origin_point_2D, custom_point
+    .. code-block:: python
+
+        # Symbolic backend
+
+        import rational_linkages
+        rational_linkages.set_backend("sympy")
+
+        from rational_linkages import PointHomogeneous
+        from sympy import symbols
+
+        w, x, y, z = symbols("w x y z", real=True)
+        p = PointHomogeneous([w, x, y, z])   # transparently returns PointHomogeneousSymbolic
+
+        rational_linkages.set_backend("numpy")
+
+    .. clear-namespace::
 
     """
 
-    def __init__(self,
-                 point: Optional[Sequence[float]] = None,
-                 rational: bool = False):
-        """
-        Class to store points in PR3 or PR2
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
 
-        Homogeneous coordinates are stored in the first row of the point array (index 0)
-        :param point: array or list of floats
-        :param bool rational: flag to indicate if the point shall be treated as rational
-            i.e. using SymPy expressions
+    def __new__(cls, point=None, rational: bool = False):
         """
+        Intercept construction and return a
+        :class:`.PointHomogeneousSymbolic` when the global backend
+        is ``"sympy"``.
+
+        Only applied when ``cls`` is exactly ``PointHomogeneous``; subclass
+        constructors are never redirected, preventing infinite recursion.
+
+        Parameters
+        ----------
+        point :
+            Forwarded unchanged to ``__init__``.
+        rational :
+            Keeps or forces rational values by using symbolic backend
+
+        Returns
+        -------
+        PointHomogeneous or PointHomogeneousSymbolic
+        """
+        if cls is PointHomogeneous:
+            symbolic = is_symbolic() or (
+                    point is not None
+                    and any(hasattr(c, 'free_symbols') for c in point)
+            )
+            if symbolic:
+                from .PointHomogeneousSymbolic import PointHomogeneousSymbolic
+                return object.__new__(PointHomogeneousSymbolic)
+        return object.__new__(cls)
+
+    # ------------------------------------------------------------------
+    # Construction
+    # ------------------------------------------------------------------
+
+    def __init__(self, point: Optional[Sequence[float]] = None, rational: bool = False):
         self.is_rational = rational
-        self.is_expression = False
-
         self.coordinates = self._initialize_coordinates(point)
-        self.is_at_infinity = self._check_if_at_infinity()
-        self.coordinates_normalized = self.normalize() if not (
-            self.is_at_infinity) else None
+        self._is_at_infinity = None
+        self.is_2d = True if len(self.coordinates) == 3 else False
+        self.is_3d = True if len(self.coordinates) == 4 else False
+        self._normalized: Optional["PointHomogeneous"] = None
 
-        self.orbit = None
-
-    def _initialize_coordinates(self, point: Optional[Sequence[float]]) -> np.ndarray:
+    def _initialize_coordinates(self, point: Optional[Sequence[float]]) -> numpy.ndarray:
         """
-        Initialize the coordinates of the point
+        Initialize the coordinate array.
 
-        If None, create point at origin in PR3, otherwise convert the point to float. If
-        the point is an expression, it will be stored as a SymPy object.
+        Returns ``float64`` for numeric input, ``object`` dtype when SymPy
+        expressions are detected (fallback path; prefer setting the backend
+        to ``"sympy"`` explicitly).
 
-        :param point: array or list of floats
+        Parameters
+        ----------
+        point :
+            Sequence of homogeneous coordinates, or ``None`` for the origin.
 
-        :return: array of floats or Sympy objects
-        :rtype: np.ndarray
+        Returns
+        -------
+        numpy.ndarray
         """
-        if point is None:  # Origin point in PR3
-            return np.array([1, 0, 0, 0], dtype='float64')
-
-        if self.is_rational:
-            return np.array([Rational(coord) for coord in point], dtype=object)
-
-        # try to convert the point to float, if it is an expression, it will fail
+        if point is None:
+            return numpy.array([1.0, 0.0, 0.0, 0.0], dtype=numpy.float64)
         try:
-            return np.asarray(point, dtype='float64')
-        except Exception:
-            self.is_expression = True
-            self.is_rational = True
-            return np.array(point, dtype=object)
+            return numpy.asarray(point, dtype=numpy.float64)
+        except (TypeError, ValueError):
+            return numpy.array(point, dtype=object)
 
     def _check_if_at_infinity(self) -> bool:
         """
-        Check if the point is at infinity
+        Return ``True`` if the homogeneous coordinate is numerically zero.
 
-        :return: True if the point is at infinity, False otherwise
-        :rtype: bool
+        Returns
+        -------
+        bool
         """
-        if self.is_expression:
-            return self.coordinates[0] == 0
-        elif self.is_rational:
-            return self.coordinates[0] == 0
-        else:
-            return np.isclose(self.coordinates[0], 0.0, atol=1e-12)
+        return bool(numpy.isclose(float(self.coordinates[0]), 0.0, atol=1e-12))
 
-    @classmethod
-    def at_origin_in_2d(cls):
-        """
-        Create homogeneous point at origin in 2D
-
-        :return: PointHomogeneous
-        """
-        point = np.zeros(3)
-        point[0] = 1
-        return cls(point)
+    # ------------------------------------------------------------------
+    # Class methods
+    # ------------------------------------------------------------------
 
     @classmethod
-    def from_3d_point(cls, point: np.ndarray):
+    def at_origin_in_2d(cls) -> "PointHomogeneous":
         """
-        Create homogeneous point from 3D point
+        Construct the origin in ℙ².
 
-        :param point: 3D point
-        :return: PointHomogeneous
+        Returns
+        -------
+        PointHomogeneous
         """
-        point = np.asarray(point)
+        return cls(numpy.array([1.0, 0.0, 0.0]))
+
+    @classmethod
+    def from_3d_point(cls, point: numpy.ndarray) -> "PointHomogeneous":
+        """
+        Construct a homogeneous point from a 3-vector.
+
+        Parameters
+        ----------
+        point :
+            3-vector ``[x, y, z]``.
+
+        Returns
+        -------
+        PointHomogeneous
+
+        Raises
+        ------
+        ValueError
+            If ``point`` is not a 3-vector.
+        """
+        point = numpy.asarray(point)
         if len(point) != 3:
-            raise ValueError("PointHomogeneous: point has to be 3D")
-        point = np.insert(point, 0, 1)
-        return cls(point)
+            raise ValueError("PointHomogeneous.from_3d_point: point must be a 3-vector")
+        return cls(numpy.insert(point, 0, 1.0))
 
     @classmethod
-    def from_dual_quaternion(cls, dq: "DualQuaternion"):
+    def from_dual_quaternion(cls, dq: DualQuaternion) -> "PointHomogeneous":
         """
-        Create homogeneous point from dual quaternion
+        Construct a homogeneous point from a dual quaternion.
 
-        :param dq: DualQuaternion
-        :return: PointHomogeneous
+        Extracts ``[dq[0], dq[5], dq[6], dq[7]]`` as ``[w, x, y, z]``.
+
+        Parameters
+        ----------
+        dq :
+            Source dual quaternion.
+
+        Returns
+        -------
+        PointHomogeneous
         """
+        return cls([dq[0], dq[5], dq[6], dq[7]])
 
-        p0 = dq[0]
-        p1 = dq[5]
-        p2 = dq[6]
-        p3 = dq[7]
-        return cls([p0, p1, p2, p3])
+    # ------------------------------------------------------------------
+    # Indexing / iteration
+    # ------------------------------------------------------------------
 
     def __getitem__(self, idx):
-        """
-        Get specified coordinate from point
-        :param idx: coordinate index
-        :return: float
-        """
+        """Return the coordinate at *idx*."""
         return self.coordinates[idx]
 
-    def __repr__(self):
-        """
-        Print point
-        :return:
-        """
-        p = np.array2string(self.array(),
-                            precision=10,
-                            suppress_small=True,
-                            separator=', ',
-                            max_line_width=100000)
-        return f"{p}"
+    def __len__(self) -> int:
+        """Number of homogeneous coordinates."""
+        return len(self.coordinates)
 
-    def __add__(self, other: "PointHomogeneous"):
-        """
-        Add two points
+    # ------------------------------------------------------------------
+    # Properties
+    # ------------------------------------------------------------------
 
-        :param PointHomogeneous other: Other point
+    @property
+    def is_at_infinity(self) -> bool:
+        if self._is_at_infinity is None:
+            self._is_at_infinity = self._check_if_at_infinity()
+        return self._is_at_infinity
 
-        :return: two points added together
-        :rtype: PointHomogeneous
+    @property
+    def x(self) -> float:
         """
-        return PointHomogeneous(self.coordinates + other.coordinates)
+        The x coordinate of the point.
 
-    def __mul__(self, other):
+        Returns
+        -------
+        float
         """
-        Multiply point by scalar
-        :param other: float
-        :return: array of floats
+        if self.is_at_infinity:
+            warn(
+                "PointHomogeneous.x property accessed on a point at infinity "
+                "— the result has no unique Euclidean representative.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+        if self.is_2d or self.is_3d:
+            return self.coordinates[1] / self.coordinates[0]
+        else:
+            raise ValueError("PointHomogeneous.x property is only defined for 2D and 3D points")
+
+    @property
+    def y(self) -> float:
+        """
+        The y coordinate of the point.
+
+        Returns
+        -------
+        float
+        """
+        if self.is_at_infinity:
+            warn(
+                "PointHomogeneous.y property accessed on a point at infinity "
+                "— the result has no unique Euclidean representative.",
+                UserWarning,
+                stacklevel=2,
+            )
+        if self.is_2d or self.is_3d:
+            return self.coordinates[2] / self.coordinates[0]
+        else:
+            raise ValueError("PointHomogeneous.z property is only defined for 2D and 3D points")
+
+    @property
+    def z(self) -> float:
+        """
+        The z coordinate of the point.
+
+        Returns
+        -------
+        float
+        """
+        if self.is_at_infinity:
+            warn(
+                "PointHomogeneous.y property accessed on a point at infinity "
+                "— the result has no unique Euclidean representative.",
+                UserWarning,
+                stacklevel=2,
+            )
+        if self.is_3d:
+            return self.coordinates[3] / self.coordinates[0]
+        else:
+            raise ValueError("PointHomogeneous.z property is only defined for 3D points")
+
+    # ------------------------------------------------------------------
+    # Representation
+    # ------------------------------------------------------------------
+
+    def __repr__(self) -> str:
+        p = numpy.array2string(
+            self.coordinates,
+            precision=10,
+            suppress_small=True,
+            separator=", ",
+            max_line_width=100000,
+        )
+        return f"{self.__class__.__qualname__}({p})"
+
+    # ------------------------------------------------------------------
+    # Arithmetic operators
+    # ------------------------------------------------------------------
+
+    def __add__(self, other: "PointHomogeneous") -> "PointHomogeneous":
+        """
+        Element-wise sum of two points.
+
+        Parameters
+        ----------
+        other :
+            Point to add.
+
+        Returns
+        -------
+        PointHomogeneous
+        """
+        return self.__class__(self.coordinates + other.coordinates)
+
+    def __sub__(self, other: "PointHomogeneous") -> "PointHomogeneous":
+        """
+        Element-wise difference of two points.
+
+        Parameters
+        ----------
+        other :
+            Point to subtract.
+
+        Returns
+        -------
+        PointHomogeneous
+        """
+        return self.__class__(self.coordinates - other.coordinates)
+
+    def __mul__(self, other) -> "PointHomogeneous":
+        """
+        Scale the point by a scalar.
+
+        Parameters
+        ----------
+        other :
+            Scalar value.
+
+        Returns
+        -------
+        PointHomogeneous
+
+        Raises
+        ------
+        ValueError
+            If ``other`` is a ``PointHomogeneous``.
         """
         if isinstance(other, PointHomogeneous):
             raise ValueError("PointHomogeneous: cannot multiply two points")
-        return PointHomogeneous(self.coordinates * other)
+        return self.__class__(self.coordinates * other)
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> "PointHomogeneous":
+        """Scalar-on-left multiplication, delegates to ``__mul__``."""
         return self.__mul__(other)
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> "PointHomogeneous":
         """
-        Divide point by scalar
-        :param other: float
-        :return: array of floats
+        Divide the point by a scalar.
+
+        Parameters
+        ----------
+        other :
+            Scalar value.
+
+        Returns
+        -------
+        PointHomogeneous
+
+        Raises
+        ------
+        ValueError
+            If ``other`` is a ``PointHomogeneous``.
         """
         if isinstance(other, PointHomogeneous):
             raise ValueError("PointHomogeneous: cannot divide two points")
-        return PointHomogeneous(self.coordinates / other)
+        return self.__class__(self.coordinates / other)
 
-    def __sub__(self, other):
+    def __eq__(self, other: "PointHomogeneous") -> bool:
         """
-        Subtract two points
+        Coefficient-wise equality.
 
-        :param PointHomogeneous other: Other point
+        Parameters
+        ----------
+        other :
+            Point to compare against.
 
-        :return: two points subtracted
-        :rtype: PointHomogeneous
+        Returns
+        -------
+        bool
         """
-        return PointHomogeneous(self.coordinates - other.coordinates)
+        return numpy.array_equal(self.coordinates, other.coordinates)
 
-    def array(self) -> np.ndarray:
-        """
-        Return point as numpy array
-        :return:
-        """
-        return self.coordinates
+    # ------------------------------------------------------------------
+    # Core operations
+    # ------------------------------------------------------------------
 
-    def normalize(self) -> np.ndarray:
+    def array(self) -> numpy.ndarray:
         """
-        Normalize the point
-        :return: 4x1 array
+        Return coordinates as a NumPy array.
+
+        Returns
+        -------
+        numpy.ndarray
+        """
+        return self.coordinates.copy()
+
+    def norm(self):
+        """
+        Return the norm of the point.
+
+        Returns
+        -------
+        float
+        """
+        return numpy.linalg.norm(self.normalized_euclidean())
+
+    def normalize(self) -> "PointHomogeneous":
+        """
+        Return the normalized point (homogeneous coordinate scaled to 1).
+
+        The result is cached after the first call.
+
+        Returns
+        -------
+        PointHomogeneous
+            Point with ``coordinates / coordinates[0]``.
+
+        """
+        if self._normalized is None:
+            if self.is_at_infinity:
+                self._normalized = self.__class__(
+                    self.coordinates / numpy.linalg.norm(self.coordinates)
+                )
+            else:
+                self._normalized = self.__class__(
+                    self.coordinates / self.coordinates[0]
+                )
+        return self._normalized
+
+    def normalized_euclidean(self) -> numpy.ndarray:
+        """
+        Return the Euclidean (non-homogeneous) coordinates.
+
+        Normalizes the point and drops the leading homogeneous coordinate,
+        returning ``coordinates[1:]`` after scaling by ``1 / w``.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array of length ``len(coordinates) - 1``.
+
+        Warnings
+        --------
+        ValueError
+            If the point is at infinity.
         """
         if self.is_at_infinity:
-            return self.coordinates / np.linalg.norm(self.coordinates)
+            warn(
+                "PointHomogeneous.normalized_euclidean() called on a point at infinity — "
+                "the result has no unique Euclidean representative.",
+                UserWarning,
+                stacklevel=2,
+            )
+        return self.normalize().array()[1:]
+
+    def normalized_in_3d(self) -> numpy.ndarray:
+        """
+        Return the Euclidean coordinates (homogeneous coordinate dropped).
+
+        .. deprecated::
+            Use :meth:`normalized_euclidean` instead. This method will be
+            removed in a future version.
+
+        Returns
+        -------
+        numpy.ndarray
+        """
+        warn(
+            "PointHomogeneous.normalized_in_3d() is deprecated and will be removed in a "
+            "future version. Use normalized_euclidean() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.normalized_euclidean()
+
+    # ------------------------------------------------------------------
+    # Conversion methods
+    # ------------------------------------------------------------------
+
+    def point2matrix(self) -> numpy.ndarray:
+        """
+        Convert to a homogeneous SE(3) matrix with identity rotation.
+
+        Follows the European convention: the first column carries the
+        translation and the remaining columns carry the rotation (identity
+        here).
+
+        Returns
+        -------
+        numpy.ndarray
+            4×4 array.
+
+        Raises
+        ------
+        ValueError
+            If the coordinate length is not 3, 4, 12, or 13.
+        """
+        norm = self.normalize().array()
+        mat = numpy.eye(4)
+
+        if len(norm) == 3:          # ℙ²
+            mat[1:3, 0] = norm[1:3]
+        elif len(norm) == 4:        # ℙ³
+            mat[1:4, 0] = norm[1:4]
+        elif len(norm) == 12:       # affine displacement in ℝ¹²
+            mat[1:4, 0] = norm[0:3]
+            mat[1:4, 1] = norm[3:6]
+            mat[1:4, 2] = norm[6:9]
+            mat[1:4, 3] = norm[9:12]
+        elif len(norm) == 13:       # affine displacement in ℙ¹²
+            mat[1:4, 0] = norm[1:4]
+            mat[1:4, 1] = norm[4:7]
+            mat[1:4, 2] = norm[7:10]
+            mat[1:4, 3] = norm[10:13]
         else:
-            return self.coordinates / self.coordinates[0]
-
-    def normalized_in_3d(self) -> np.ndarray:
-        """
-        Normalize the point and return its 3D coordinates
-        :return: 3x1 array
-        """
-        return self.coordinates_normalized[1:]
-
-    def point2matrix(self) -> np.ndarray:
-        """
-        Convert point to homogeneous SE3 matrix with identity in rotation part
-
-        This methods follows the European convention for SE3 matrices, i.e. the first
-        column of the matrix is translation and the rotation part is represented by
-        the remaining 3 columns.
-
-        :return: 4x4 array
-        :rtype: np.ndarray
-        """
-        mat = np.eye(4)
-        if len(self.coordinates_normalized) == 3:  # point in PR2
-            mat[1:3, 0] = self.coordinates_normalized[1:3]
-        elif len(self.coordinates_normalized) == 4:
-            mat[1:4, 0] = self.coordinates_normalized[1:4]
-
-        # affine displacement in R12
-        elif len(self.coordinates_normalized) == 12:
-            mat[1:4, 0] = self.coordinates_normalized[0:3]
-            mat[1:4, 1] = self.coordinates_normalized[3:6]
-            mat[1:4, 2] = self.coordinates_normalized[6:9]
-            mat[1:4, 3] = self.coordinates_normalized[9:12]
-
-        # affine displacement in PR12
-        elif len(self.coordinates_normalized) == 13:
-            mat[1:4, 0] = self.coordinates_normalized[1:4]
-            mat[1:4, 1] = self.coordinates_normalized[4:7]
-            mat[1:4, 2] = self.coordinates_normalized[7:10]
-            mat[1:4, 3] = self.coordinates_normalized[10:13]
-        else:
-            raise ValueError("PointHomogeneous: point has to be in PR2 or PR3")
-
+            raise ValueError(
+                "PointHomogeneous.point2matrix: coordinate length must be 3, 4, 12, or 13"
+            )
         return mat
 
-    def point2dq_array(self) -> np.ndarray:
+    def point2dq_array(self) -> numpy.ndarray:
         """
-        Embed point to dual quaternion space
+        Embed the point into dual quaternion space.
 
-        :return: np.array of shape (8,)
+        Maps ``[w, x, y, z]`` → ``[w, 0, 0, 0, 0, x, y, z]``.
+
+        Returns
+        -------
+        numpy.ndarray
+            8-vector.
         """
-        return np.array(
-            [
-                self.coordinates[0],
-                0,
-                0,
-                0,
-                0,
-                self.coordinates[1],
-                self.coordinates[2],
-                self.coordinates[3],
-            ]
-        )
+        c = self.coordinates
+        return numpy.array([c[0], 0, 0, 0, 0, c[1], c[2], c[3]])
 
-    def point2affine12d(self, map_alpha: TransfMatrix) -> np.array:
+    def point2affine12d(self, map_alpha: TransfMatrix) -> numpy.ndarray:
         """
-        Map point to 12D affine space
+        Map the point to 12-dimensional affine space.
 
-        :param TransfMatrix map_alpha: SE3matrix object that maps point to 12D affine
-            space
+        Parameters
+        ----------
+        map_alpha :
+            SE(3) matrix object providing ``.t``, ``.n``, ``.o``, ``.a``
+            column vectors.
 
-        :return: 12D affine point
-        :rtype: np.array
+        Returns
+        -------
+        numpy.ndarray
+            12-vector.
         """
+        c = self.coordinates
+        return numpy.concatenate((
+            c[0] * map_alpha.t,
+            c[1] * map_alpha.n,
+            c[2] * map_alpha.o,
+            c[3] * map_alpha.a,
+        ))
 
-        x = self.coordinates
-        point0 = x[0] * map_alpha.t
-
-        point1 = x[1] * map_alpha.n
-        point2 = x[2] * map_alpha.o
-        point3 = x[3] * map_alpha.a
-
-        return np.concatenate((point0, point1, point2, point3))
-
-    def linear_interpolation(self, other, t: float = 0.5) -> "PointHomogeneous":
+    def linear_interpolation(self, other: "PointHomogeneous", t: float = 0.5) -> "PointHomogeneous":
         """
-        Linear interpolation between two points
+        Linearly interpolate between two points.
 
-        :param other: PointHomogeneous
-        :param t: parameter of interpolation in range [0, 1]
-        :return: PointHomogeneous
+        Parameters
+        ----------
+        other :
+            Target point.
+        t :
+            Interpolation parameter in ``[0, 1]``. Default ``0.5``.
+
+        Returns
+        -------
+        PointHomogeneous
+            Interpolated point.
         """
-        return PointHomogeneous(self.coordinates * (1 - t) + other.coordinates * t)
+        return self.__class__(self.coordinates * (1.0 - t) + other.coordinates * t)
 
-    def get_plot_data(self) -> np.ndarray:
+    def get_plot_data(self) -> numpy.ndarray:
         """
-        Get data for plotting in 3D space
+        Return Euclidean coordinates for 3-D plotting.
 
-        :return: np.ndarray of shape (3, 1)
+        Returns
+        -------
+        numpy.ndarray
+            ``float64`` array of shape ``(3,)``.
         """
-        return np.array(self.normalized_in_3d(), dtype="float64")
+        return numpy.array(self.normalized_euclidean(), dtype=numpy.float64)
 
-    def evaluate(self, t_param: float) -> 'PointHomogeneous':
+    def evalf(self):
         """
-        Evaluate the point at the given parameter
+        Evaluate the coordinates to floating-point numbers.
 
-        :param float t_param: parameter
+        Only relevant for PointHomogeneousSymbolic. Numeric version returns
+        just self.
 
-        :return: evaluated point with float elements
-        :rtype: PointHomogeneous
+        Returns
+        -------
+        PointHomogeneous
+            Self.
         """
-        from sympy import Expr, Number, Symbol
+        return self
 
-        t = Symbol("t")
-
-        point_expr = [Expr(coord) if not isinstance(coord, Number) else coord
-                      for coord in self.coordinates]
-        point = [coord.subs(t, t_param).evalf().args[0]
-                 if not isinstance(coord, Number) else coord
-                 for coord in point_expr]
-        return PointHomogeneous(np.asarray(point, dtype="float64"))
-
-    def get_point_orbit(self,
-                        acting_center: "PointHomogeneous",
-                        acting_radius: float,
-                        metric: "AffineMetric",
-                        ) -> tuple[np.ndarray, float]:
+    def evalf_euclidean(self) -> numpy.ndarray:
         """
-        Get point orbit
+        Evaluate the Euclidean coordinates to floating-point numbers.
 
-        Equation from Schroecker and Webber, Guaranteed collision detection with
-        toleranced motions, 2014, eq. 4.
+        Only relevant for PointHomogeneousSymbolic. Numeric version returns
+        just self.normalized_euclidean().
 
-        :param PointHomogeneous acting_center: center of the acting ball
-        :param float acting_radius: squared radius of the orbit ball
-        :param AffineMetric metric: metric of the curve
-
-        :return: point center and radius squared
-        :rtype: tuple[np.ndarray, float]
+        Returns
+        -------
+        numpy.ndarray
+            ``float64`` array of shape ``(3,)``.
         """
-        point_center = acting_center.point2matrix() @ self.coordinates_normalized
+        return self.normalized_euclidean()
 
-        coords_3d = self.normalized_in_3d()
+    def eval(self, params: dict):
+        """
+        Placeholder for PointHomogeneousSymbolic.eval(). Evaluates line with given parameters.
 
-        radius_squared = acting_radius * (1/metric.total_mass + np.sum([(coord ** 2 / metric.inertia_eigen_vals[i]) for i, coord in enumerate(coords_3d)]))
+        Parameters
+        ----------
+        params : dict
+            Dictionary of Sympy parameters and values to be evaluated for.
 
-        return point_center, radius_squared
+        Returns
+        -------
+        PointHomogeneous
+            Self.
+        """
+        return self
+
+    def evaluate(self, param: float):
+        """
+        Placeholder for PointHomogeneousSymbolic.eval(). Evaluates line with a given parameter.
+
+        Returns
+        -------
+        PointHomogeneous
+            Self.
+        """
+        return self
 
 
 class PointOrbit:
@@ -392,7 +690,7 @@ class PointOrbit:
     @property
     def radius(self):
         if self._radius is None:
-            self._radius = np.sqrt(self.radius_squared)
+            self._radius = numpy.sqrt(self.radius_squared)
         return self._radius
 
     def get_plot_data_mpl(self) -> tuple:
@@ -404,15 +702,15 @@ class PointOrbit:
         """
         if len(self.center.coordinates) == 4:
             # Create the 3D sphere representing the circle
-            u = np.linspace(0, 2 * np.pi, 10)
-            v = np.linspace(0, np.pi, 10)
+            u = numpy.linspace(0, 2 * numpy.pi, 10)
+            v = numpy.linspace(0, numpy.pi, 10)
 
-            x = (self.radius * np.outer(np.cos(u), np.sin(v))
-                 + self.center.normalized_in_3d()[0])
-            y = (self.radius * np.outer(np.sin(u), np.sin(v))
-                 + self.center.normalized_in_3d()[1])
-            z = (self.radius * np.outer(np.ones(np.size(u)), np.cos(v))
-                 + self.center.normalized_in_3d()[2])
+            x = (self.radius * numpy.outer(numpy.cos(u), numpy.sin(v))
+                 + self.center.normalized_euclidean()[0])
+            y = (self.radius * numpy.outer(numpy.sin(u), numpy.sin(v))
+                 + self.center.normalized_euclidean()[1])
+            z = (self.radius * numpy.outer(numpy.ones(numpy.size(u)), numpy.cos(v))
+                 + self.center.normalized_euclidean()[2])
         else:
             raise ValueError("Cannot plot ball due to incompatible dimension.")
 
@@ -425,5 +723,5 @@ class PointOrbit:
         :return: center and radius
         :rtype: tuple
         """
-        center = tuple(self.center.normalized_in_3d())
+        center = tuple(self.center.normalized_euclidean())
         return center, self.radius

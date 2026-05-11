@@ -23,6 +23,8 @@ class TestMotionFactorization(TestCase):
         self.assertEqual(f1.number_of_factors, 2)
 
     def test_repr(self):
+        from rational_linkages import set_backend
+        set_backend("numpy")
         f1 = MotionFactorization(
             [
                 DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
@@ -30,7 +32,7 @@ class TestMotionFactorization(TestCase):
             ]
         )
 
-        self.assertEqual(repr(f1), "MotionFactorization([[t, 0, 0, -1, 0, 0, 0, 0], [t, 0, 0, -2, 0, 0, 1, 0]])")
+        self.assertEqual(repr(f1), "MotionFactorization([DQ([t, 0, 0, -1.00000000000000, 0, 0, 0, 0]), DQ([t, 0, 0, -2.00000000000000, 0, 0, 1.00000000000000, 0])])")
 
     def test_get_polynomials_from_factorization(self):
         f1 = [DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0]),
@@ -39,13 +41,13 @@ class TestMotionFactorization(TestCase):
         t = sp.Symbol("t")
 
         self.assertEqual(MotionFactorization.get_polynomials_from_factorization(f1),
-                         [sp.Poly(t**2 - 2, t),
+                         [sp.Poly(t**2 - 2.0, t),
                           sp.Poly(0, t),
                           sp.Poly(0, t),
-                          sp.Poly(-3*t, t),
+                          sp.Poly(-3.*t, t),
                           sp.Poly(0, t),
-                          sp.Poly(1, t),
-                          sp.Poly(1*t, t),
+                          sp.Poly(1., t),
+                          sp.Poly(1.*t, t),
                           sp.Poly(0, t)]
                          )
 
@@ -60,8 +62,8 @@ class TestMotionFactorization(TestCase):
         t = sp.Symbol("t")
 
         self.assertEqual(f1.get_symbolic_factors(),
-                         [DualQuaternion([t, 0, 0, -1, 0, 0, 0, 0]),
-                          DualQuaternion([t, 0, 0, -2, 0, 0, 1, 0])])
+                         [DualQuaternion([t, 0, 0, -1., 0, 0, 0, 0]),
+                          DualQuaternion([t, 0, 0, -2., 0, 0, 1., 0])])
 
     def test_get_numerical_factors(self):
         f1 = MotionFactorization(
@@ -91,8 +93,8 @@ class TestMotionFactorization(TestCase):
         act_p1 = f1.act(point1, 0.782886)
         act_line = f1.act(line, 0.782886)
 
-        self.assertTrue(np.allclose(act_p0.normalized_in_3d(), np.array([-7.04232596e-04, 0.704319001, 0.0])))
-        self.assertTrue(np.allclose(act_p1.normalized_in_3d(), np.array([-7.04232596e-04, 0.704319001, 1.0])))
+        self.assertTrue(np.allclose(act_p0.normalized_euclidean(), np.array([-7.04232596e-04, 0.704319001, 0.0])))
+        self.assertTrue(np.allclose(act_p1.normalized_euclidean(), np.array([-7.04232596e-04, 0.704319001, 1.0])))
         self.assertTrue(np.allclose(act_line.screw, np.array([0.0,  0.0,  1.0, 0.704319001, 7.04232596e-04, 0.0])))
 
         self.assertTrue(act_line.contains_point(act_p0) and act_line.contains_point(act_p1))
@@ -103,7 +105,7 @@ class TestMotionFactorization(TestCase):
              DualQuaternion([0, 0, 0, 1, 0, 0, -2 / 3, 0])])
 
         act_p0_withf2 = f2.act(point0, 0.782886)
-        self.assertTrue(np.allclose(act_p0_withf2.normalized_in_3d(), act_p0.normalized_in_3d()))
+        self.assertTrue(np.allclose(act_p0_withf2.normalized_euclidean(), act_p0.normalized_euclidean()))
 
         # test with other factorizations, results has to be the same
         h1 = DualQuaternion([0, 1, 0, 0, 0, 0, 0, 0])
@@ -117,8 +119,8 @@ class TestMotionFactorization(TestCase):
         f2 = MotionFactorization([k1, k2, k3])
         point = PointHomogeneous([-13, -3, 7, 50])
 
-        self.assertTrue(np.allclose(f1.act(point, 0.55).normalized_in_3d(),
-                                    f2.act(point, 0.55).normalized_in_3d()))
+        self.assertTrue(np.allclose(f1.act(point, 0.55).normalized_euclidean(),
+                                    f2.act(point, 0.55).normalized_euclidean()))
 
     def test_direct_kinematics(self):
         h1 = DualQuaternion([0, 0, 0, 1, 0, 0, 0, 0])

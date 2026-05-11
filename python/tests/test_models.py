@@ -1,50 +1,122 @@
-import unittest
-import pickle
-from unittest.mock import patch, mock_open
-from rational_linkages.models import bennett_ark24, collisions_free_6r, plane_fold_6r
+"""
+Tests for rational_linkages.datasets loaders.
+
+Run with:
+    pytest tests/test_datasets.py -v
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import pytest
+
+from rational_linkages.models import (
+    bennett_ark24,
+    cart_stl,
+    collisions_free_6r,
+    interp_4poses_6r,
+    plane_fold_6r,
+)
+from rational_linkages import RationalMechanism
 
 
-class TestModels(unittest.TestCase):
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
-    # Bennett Ark24
-    @patch('importlib.resources.path')
-    @patch('builtins.open', new_callable=mock_open, read_data=pickle.dumps("Bennett data"))
-    def test_bennett_ark24_returns_correct_data(self, mock_open, mock_path):
-        result = bennett_ark24()
-        self.assertEqual(result, "Bennett data")
+PKL_LOADERS = [
+    ("bennett_ark24", bennett_ark24),
+    ("collisions_free_6r", collisions_free_6r),
+    ("plane_fold_6r", plane_fold_6r),
+    ("interp_4poses_6r", interp_4poses_6r),
+]
 
-    @patch('importlib.resources.path')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_bennett_ark24_raises_error_when_file_not_found(self, mock_open, mock_path):
-        mock_path.side_effect = FileNotFoundError
-        with self.assertRaises(FileNotFoundError):
-            bennett_ark24()
 
-    # Collisions Free 6R
-    @patch('importlib.resources.path')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_collisions_free_6r_raises_error_when_file_not_found(self, mock_open, mock_path):
-        mock_path.side_effect = FileNotFoundError
-        with self.assertRaises(FileNotFoundError):
-            collisions_free_6r()
+# ---------------------------------------------------------------------------
+# Pickle loaders — type and basic sanity
+# ---------------------------------------------------------------------------
 
-    @patch('importlib.resources.path')
-    @patch('builtins.open', new_callable=mock_open, read_data=pickle.dumps("6R data"))
-    def test_collisions_free_6r_returns_correct_data(self, mock_open, mock_path):
-        result = collisions_free_6r()
-        self.assertEqual(result, "6R data")
+class TestPickleLoaders:
 
-    # Plane fold 6R
-    @patch('importlib.resources.path')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_collisions_free_6r_raises_error_when_file_not_found(self, mock_open,
-                                                                 mock_path):
-        mock_path.side_effect = FileNotFoundError
-        with self.assertRaises(FileNotFoundError):
-            plane_fold_6r()
+    @pytest.mark.parametrize("name,loader", PKL_LOADERS)
+    def test_returns_rational_mechanism(self, name, loader):
+        """Each loader must return a RationalMechanism instance."""
+        result = loader()
+        assert isinstance(result, RationalMechanism), (
+            f"{name}() returned {type(result).__name__}, expected RationalMechanism"
+        )
 
-    @patch('importlib.resources.path')
-    @patch('builtins.open', new_callable=mock_open, read_data=pickle.dumps("6R data"))
-    def test_collisions_free_6r_returns_correct_data(self, mock_open, mock_path):
-        result = plane_fold_6r()
-        self.assertEqual(result, "6R data")
+    @pytest.mark.parametrize("name,loader", PKL_LOADERS)
+    def test_returns_new_object_each_call(self, name, loader):
+        """Each call should deserialise a fresh object (no shared state)."""
+        a = loader()
+        b = loader()
+        assert a is not b, f"{name}() returned the same object on two calls"
+
+    @pytest.mark.parametrize("name,loader", PKL_LOADERS)
+    def test_does_not_raise(self, name, loader):
+        """Loading must not raise any exception."""
+        try:
+            loader()
+        except Exception as exc:
+            pytest.fail(f"{name}() raised unexpectedly: {exc}")
+
+
+# ---------------------------------------------------------------------------
+# STL loader
+# ---------------------------------------------------------------------------
+
+class TestCartStl:
+
+    def test_returns_string(self):
+        path = cart_stl()
+        assert isinstance(path, str), f"cart_stl() should return str, got {type(path)}"
+
+    def test_file_exists(self):
+        path = cart_stl()
+        assert os.path.isfile(path), f"cart_stl() path does not exist: {path}"
+
+    def test_has_stl_extension(self):
+        path = cart_stl()
+        assert Path(path).suffix.lower() == ".stl", (
+            f"cart_stl() should point to a .stl file, got: {path}"
+        )
+
+    def test_file_not_empty(self):
+        path = cart_stl()
+        assert os.path.getsize(path) > 0, f"cart_stl() file is empty: {path}"
+
+    def test_returns_new_path_each_call(self):
+        """Path string should be consistent across calls (same file)."""
+        assert cart_stl() == cart_stl()
+
+
+# ---------------------------------------------------------------------------
+# importlib.resources resolution
+# ---------------------------------------------------------------------------
+
+class TestResourceResolution:
+    """Ensure data files are bundled and accessible via importlib.resources."""
+
+    def test_data_package_accessible(self):
+        import importlib.resources
+        pkg = importlib.resources.files("rational_linkages.data")
+        assert pkg is not None
+
+    @pytest.mark.parametrize("filename", [
+        "bennett_ark24.pkl",
+        "collisions_free_6r.pkl",
+        "plane_fold_6r.pkl",
+        "interp_4poses_6r.pkl",
+        "cart.stl",
+    ])
+    def test_resource_file_exists(self, filename):
+        import importlib.resources
+        ref = importlib.resources.files("rational_linkages.data").joinpath(filename)
+        with importlib.resources.as_file(ref) as path:
+            assert path.exists(), (
+                f"Bundled resource '{filename}' not found at {path}. "
+                "Check [tool.setuptools.package-data] in pyproject.toml."
+            )

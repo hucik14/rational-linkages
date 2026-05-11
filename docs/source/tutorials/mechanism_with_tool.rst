@@ -24,43 +24,8 @@ to match the size of the links specified by the method :meth:`.RationalMechanism
 The point pairs are a convenient way
 to assembly your mechanism correctly. See the example below:
 
-.. testcode:: [assembling-mechanism-with-tool]
-
-    from rational_linkages import Plotter
-    from rational_linkages.models import bennett_ark24
-
-    m = bennett_ark24()
-    dh, design_params, design_points = m.get_design(return_point_homogeneous=True,
-                                                    pretty_print=False)
-
-    # obtain points on joint0
-    base_joint0_pts = design_points[0]
-
-    # obtain points on the last joint (joint3)
-    base_joint3_pts = design_points[-1]
-
-    p = Plotter(m, arrows_length=0.1, backend='matplotlib')
-    # plot the first joint points
-    for i, pt in enumerate(base_joint0_pts):
-        p.plot(pt, label=f'j0{i}')
-
-    # plot the last joint points
-    for i, pt in enumerate(base_joint3_pts):
-        p.plot(pt, label=f'j3{i}')
-    p.show()
-
-    m.export_single_mesh(add_tool_frame=True,
-                         file_name='mesh_bennett_ark24.stl')
-
-.. testoutput:: [assembling-mechanism-with-tool]
-
-    Mesh exported to 'mesh_bennett_ark24.stl'
-
-
-.. testcleanup:: [assembling-mechanism-with-tool]
-
-        del Plotter, bennett_ark24, m, dh, design_params, design_points, p, base_joint0_pts, base_joint3_pts, i, pt
-
+.. literalinclude:: /examples/d_t_mech_tool.py
+    :language: python
 
 The output will look similar like in the figure below, where the points belonging
 to joints 0 and 3  are plotted

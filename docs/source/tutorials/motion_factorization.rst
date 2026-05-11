@@ -20,29 +20,8 @@ rational dual quaternions, constructed using the method
 Factorization of planar 4-bar
 -----------------------------
 
-.. testcode:: [motion_factorization_example1]
-
-    from rational_linkages import (DualQuaternion, MotionFactorization,
-                                   RationalMechanism, Plotter)
-
-
-    f1 = MotionFactorization([DualQuaternion.as_rational([0, 0, 0, 1, 0, 0, 0, 0]),
-                              DualQuaternion.as_rational([0, 0, 0, 2, 0, 0, -1, 0])])
-
-    # find factorizations
-    factorizations = f1.factorize()
-
-    # create mechanism
-    m = RationalMechanism(factorizations, tool='mid_of_last_link')
-
-    # plot mechanism
-    plt = Plotter(mechanism=m, arrows_length=0.05)
-    plt.show()
-
-.. testcleanup:: [motion_factorization_example1]
-
-    del DualQuaternion, MotionFactorization, RationalMechanism, Plotter
-    del f1, factorizations, m, plt
+.. literalinclude:: /examples/d_t_motion_factorization_4bar.py
+    :language: python
 
 Which results in the following plot:
 
@@ -55,32 +34,8 @@ Which results in the following plot:
 Factorization of spatial 6R mechanism
 -------------------------------------
 
-.. testcode:: [motion_factorization_example2]
-
-    from rational_linkages import (DualQuaternion, MotionFactorization, RationalMechanism,
-                                   Plotter)
-
-
-    h1 = DualQuaternion.as_rational([0, 1, 0, 0, 0, 0, 0, 0])
-    h2 = DualQuaternion.as_rational([0, 0, 3, 0, 0, 0, 0, 1])
-    h3 = DualQuaternion.as_rational([0, 1, 1, 0, 0, 0, 0, -2])
-
-    f1 = MotionFactorization([h1, h2, h3])
-
-    # find factorizations
-    factorizations = f1.factorize()
-
-    # create mechanism
-    m = RationalMechanism(factorizations)
-
-    # plot mechanism
-    plt = Plotter(mechanism=m, arrows_length=0.2)
-    plt.show()
-
-.. testcleanup:: [motion_factorization_example2]
-
-    del DualQuaternion, MotionFactorization, RationalMechanism, Plotter
-    del h1, h2, h3, f1, factorizations, m, plt
+.. literalinclude:: /examples/d_t_motion_factorization_6r.py
+    :language: python
 
 Which results in the following plot:
 

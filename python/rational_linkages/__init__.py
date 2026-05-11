@@ -1,13 +1,3 @@
-# __init__.py
-
-from importlib.metadata import PackageNotFoundError, version
-
-try:
-    __version__ = version("rational_linkages")
-except PackageNotFoundError:
-    # package is not installed
-    __version__ = "unknown"
-
 from .CollisionFreeOptimization import CollisionFreeOptimization
 from .DualQuaternion import DualQuaternion
 from .ExudynAnalysis import ExudynAnalysis
@@ -22,6 +12,6 @@ from .PointHomogeneous import PointHomogeneous
 from .Quaternion import Quaternion
 from .RationalBezier import BezierSegment, RationalBezier
 from .RationalCurve import RationalCurve
-from .RationalDualQuaternion import RationalDualQuaternion
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
+from .backend import set_backend, get_backend, is_symbolic

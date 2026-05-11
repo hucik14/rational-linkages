@@ -31,42 +31,8 @@ It performs the motion :math:`C(t)` given byt the following equation
 
 This equation serves as the input for the following script.
 
-.. testcode:: [ark2024_example]
-
-        # Bennett mechanism example
-
-        from rational_linkages import RationalCurve, RationalMechanism, FactorizationProvider, Plotter
-        import numpy as np
-
-        coeffs = np.array([[0, 0, 0],
-                           [4440, 39870, 22134],
-                           [16428, 9927, -42966],
-                           [-37296,-73843,-115878],
-                           [0, 0, 0],
-                           [-1332, -14586, -7812],
-                           [-2664, -1473, 6510],
-                           [-1332, -1881, -3906]])
-
-        # define a rational curve object
-        c = RationalCurve.from_coeffs(coeffs)
-
-        # factorize the curve
-        factors = c.factorize()
-
-        # define a mechanism object
-        m = RationalMechanism(factors)
-
-        # define a plotter object, set interactive mode and number of discrete steps
-        # to plot the curve
-        p = Plotter(mechanism=m, steps=500, arrows_length=0.05)
-
-        # plot the mechanism
-        p.show()
-
-.. testcleanup:: [ark2024_example]
-
-        del RationalCurve, RationalMechanism, FactorizationProvider, Plotter, np
-        del coeffs, c, factors, m, p
+.. literalinclude:: /examples/d_ark2024_bennett.py
+    :language: python
 
 
 The curve :math:`C(t)` is of degree 2 in the variable :math:`t`, and can be factorized
@@ -158,32 +124,8 @@ If there are collisions, it will return list of parameter :math:`t` values, wher
 collisions happen. This value can be passed to the plotting window at the textbox
 :code:`Set param t [-]`.
 
-.. code-block:: python
-
-        # NOT TESTED
-        # IMPORTANT NOTE:
-        #
-        # due to Sphinx's doctest extension constraints, the following
-        # code is NOT automatically tested. In case of error, please
-        # report this issue to the developers.
-
-        # Loading a mechanism, collision checking, and design generation
-
-        from rational_linkages import RationalMechanism
-        from rational_linkages.models import bennett_ark24
-
-
-        # on Windows, the script has to be run inside the if __name__ == '__main__'
-        # so the parallel processing can be used
-        if __name__ == '__main__':
-            # load the mechanism
-            m = bennett_ark24()
-
-            # check for collisions
-            m.collision_check(parallel=True)
-
-            # generate the design
-            dh, cp, _ = m.get_design(unit='deg', scale=200)
+.. literalinclude:: /examples/d_ark2024_parallel_colls.py
+    :language: python
 
 This last line of the script generates the design of the mechanism with the following
 output:
@@ -202,6 +144,11 @@ output:
         ---
         Link 3: d = -0.000000, a = 83.708761, alpha = -94.053746
         cp_0 = 59.167707, cp_1 = -83.494598
+
+**IMPORTANT NOTE:** there has been updates to Rational Linkages, therefore the values ``cp`` of the connection
+points yield by method :meth:`.RationalMechanism.get_design` will differ. However, to keep consistency with
+the Onshape models shared bellow, the old values are kept here. To obtain mechanism design for your
+particular linkage, generate STEP model as shown in :ref:`cad_tutorial` tutorial.
 
 The argument :code:`unit='deg'` specifies, that :math:`\alpha_i` angle is given in
 degrees. The argument :code:`scale=200` specifies the length parameters :math:`d_i`,
@@ -249,7 +196,7 @@ The models are opened for copying and editing for Onshape users. Use free accoun
 free education plan for academia: https://www.onshape.com/en/education/
 
 Any link can be edited with newly calculated parameters. Use *"Variable Studio 1"* tab
-in the model as show via **red arrow** in the figure below. I might happen that the link
+in the model as show via **red arrow** in the figure below. It might happen that the link
 curve is not suitable for the new parameters (it has a unnaturally curved shape or not
 renders at all). In that case, adjust two curve points by editing their coordinates
 by double clink on the features *"spline_pt0-edits_link_shape"* and

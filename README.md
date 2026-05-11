@@ -39,7 +39,7 @@ following badge:
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb)
 
 In case of other questions or contributions, please, email the author at:
-`daniel.huczala@uibk.ac.at`
+`daniel.huczala@snu.ac.kr`
 
 STL files of some mechanisms may be found as
 [models on Printables.com](https://www.printables.com/@hucik14_497869/collections/443601).

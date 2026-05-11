@@ -2,7 +2,7 @@ from typing import Union
 from warnings import warn
 
 import biquaternion_py
-import numpy as np
+import numpy
 
 from sympy import Symbol, Rational
 
@@ -12,39 +12,55 @@ from .RationalCurve import RationalCurve
 
 
 class FactorizationProvider:
-    """
-    This class provides the factorizations for the given curve or motion factorization.
+    """Provide motion factorizations for polynomial or curve inputs.
 
-    It connetion to the project BiQuaternions_py made by Daren Thimm, University of
-    Innbruck, Austria. Git repository: `BiQuaternions_py`_.
+    This class provides methods to factorize a polynomial or a
+    :class:`.RationalCurve` into motion factorizations. It integrates with the
+    external ``biquaternion_py`` project (BiQuaternions_py).
 
-    .. _BiQuaternions_py: https://git.uibk.ac.at/geometrie-vermessung/biquaternion_py
+    References
+    ----------
+    BiQuaternions_py
+        https://git.uibk.ac.at/geometrie-vermessung/biquaternion_py
     """
     def __init__(self, use_rationals: bool = False):
-        """
-        Creates a new instance of the FactorizationProvider class.
+        """Create a FactorizationProvider.
 
-        :param bool use_rationals: If True, the factorization will be performed
-            with rational numbers in QQ instead of floating point numbers in RR.
+        Parameters
+        ----------
+        use_rationals, optional
+            If True, attempt to perform polynomial factorization in the
+            rational domain (QQ); otherwise use floating-point domain (RR).
 
-        :ivar str domain: The domain of the factorization, either 'QQ' or 'RR'.
+        Notes
+        -----
+        The instance attribute ``domain`` is set to either ``'QQ'`` or
+        ``'RR'`` depending on this flag.
         """
         self.domain = 'QQ' if use_rationals else 'RR'
 
     def factorize_motion_curve(self,
                                curve: Union[RationalCurve,
-                               biquaternion_py.polynomials.Poly]) -> (
-            list)[MotionFactorization]:
-        """
-        Factorizes the given curve into a multiple motion factorizations.
+                               biquaternion_py.polynomials.Poly]) -> list[MotionFactorization]:
+        """Factorize a motion curve or biquaternion polynomial.
 
-        :param Union[RationalCurve, biquaternion_py.polynomials.Poly] curve: The curve
-            to factorize, either as a RationalCurve or as a polynomial.
+        Parameters
+        ----------
+        curve
+            A :class:`.RationalCurve` or a ``biquaternion_py.polynomials.Poly``
+            representing the motion polynomial to factorize.
 
-        :return: The factorizations of the curve.
-        :rtype: list[MotionFactorization]
+        Returns
+        -------
+        list[MotionFactorization]
+            Two alternative :class:`.MotionFactorization` instances describing
+            possible motion decompositions.
 
-        :warning: If the given curve has not only rational numbers as input.
+        Warns
+        -----
+        If the input polynomial contains non-rational coefficients while the
+        provider was configured for rational factorization, a warning is
+        emitted and the factorization is performed in floating point.
         """
         t = Symbol("t")
 
@@ -72,18 +88,23 @@ class FactorizationProvider:
 
     def factorize_for_motion_factorization(self, factorization: MotionFactorization) \
             -> list[MotionFactorization]:
-        """
-        Analyzes the given motion factorization and provides other motion
-        factorizations, if possible.
+        """Generate alternative factorizations from an existing factorization.
 
-        :param MotionFactorization factorization: The motion factorization to
-            factorize for.
+        Parameters
+        ----------
+        factorization
+            The :class:`.MotionFactorization` to be analyzed and re-factored.
 
-        :return: The factorizations of the motion factorization.
-        :rtype: list[MotionFactorization]
+        Returns
+        -------
+        list[MotionFactorization]
+            A list of alternative :class:`.MotionFactorization` instances.
 
-        :warning: If the given motion factorization has not only dual
-            quaternions with rational numbers elements as input.
+        Warns
+        -----
+        Emits a warning if a rational-domain factorization was requested but
+        the dual-quaternion factors are not rational; in that case the
+        computation proceeds in floating-point arithmetic.
         """
         # check if the given factorization has input DualQuaternions as rational numbers
         if self.domain == 'QQ':
@@ -105,16 +126,25 @@ class FactorizationProvider:
 
     def factorize_polynomial(self,
                              poly: biquaternion_py.polynomials.Poly) -> (
-            list)[biquaternion_py.polynomials.Poly]:
-        """
-        Factorizes the given polynomial into irreducible factors.
+             list)[biquaternion_py.polynomials.Poly]:
+        """Factorize a biquaternion polynomial into irreducible factors.
 
-        :param biquaternion_py.polynomials.Poly poly: The polynomial to factorize.
+        Parameters
+        ----------
+        poly
+            A ``biquaternion_py.polynomials.Poly`` instance to factorize.
 
-        :return: The irreducible factors of the polynomial.
-        :rtype: list[biquaternion_py.polynomials.Poly]
+        Returns
+        -------
+        list[biquaternion_py.polynomials.Poly]
+            A list of factorization polynomials used to derive motion
+            factorizations.
 
-        :raises: If the factorization failed.
+        Raises
+        ------
+        ValueError
+            If the polynomial cannot be factorized into multiple irreducible
+            factors.
         """
         # Calculate the norm polynomial. To avoid numerical problems, extract
         # the scalar part, since the norm should be purely real
@@ -138,15 +168,20 @@ class FactorizationProvider:
 
     def factor2rotation_axis(self,
                              factor: biquaternion_py.polynomials.Poly) -> (
-            DualQuaternion):
-        """
-        Converts the given factor to a dual quaternion representing the rotation axis
-        of a linkage, excluding the parameter.
+             DualQuaternion):
+        """Convert a polynomial factor into a dual-quaternion rotation axis.
 
-        :param biquaternion_py.polynomials.Poly factor: The factor to convert.
+        Parameters
+        ----------
+        factor
+            A ``biquaternion_py.polynomials.Poly`` representing a linear factor
+            in the motion polynomial (typically of the form ``t - axis``).
 
-        :return: The rotation axis of the factor.
-        :rtype: DualQuaternion
+        Returns
+        -------
+        DualQuaternion
+            A :class:`.DualQuaternion` instance representing the rotation axis
+            (parameter removed).
         """
         t = Symbol("t")
         t_dq = DualQuaternion([t, 0, 0, 0, 0, 0, 0, 0])
@@ -159,7 +194,7 @@ class FactorizationProvider:
         if self.domain == 'QQ':
             return DualQuaternion(axis_h.array())
         else:
-            axis_h = np.asarray(axis_h.array(), dtype='float64')
+            axis_h = numpy.asarray(axis_h.array(), dtype='float64')
             return DualQuaternion(axis_h)
 
 

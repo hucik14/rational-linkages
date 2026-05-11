@@ -8,10 +8,15 @@ def dq_algebraic2vector(ugly_expression: list) -> list:
     Converts an algebraic equation in terms of i, j, k, epsilon to an 8-vector
     representation with coefficients [p0, p1, p2, p3, p4, p5, p6, p7].
 
-    :param list ugly_expression: An algebraic equation in terms of i, j, k, epsilon.
+    Parameters
+    ----------
+    ugly_expression : list
+        An algebraic equation in terms of i, j, k, epsilon.
 
-    :return: 8-vector representation of the algebraic equation
-    :rtype: list
+    Returns
+    -------
+    list
+        8-vector representation of the algebraic equation.
     """
     from sympy import expand, symbols, Integer  # lazy import
     i, j, k, epsilon = symbols('i j k epsilon')
@@ -33,15 +38,23 @@ def dq_algebraic2vector(ugly_expression: list) -> list:
 
 def extract_coeffs(expr, var, deg: int, expand: bool = True):
     """
-    Extracts the coefficients of a polynomial expression.
+    Extract the coefficients of a polynomial expression.
 
-    :param sympy.Expr expr: Polynomial expression.
-    :param sympy.Symbol var: Variable to extract coefficients with respect to.
-    :param int deg: Degree of the polynomial.
-    :param bool expand: Expand the expression before extracting coefficients.
+    Parameters
+    ----------
+    expr : sympy.Expr
+        Polynomial expression.
+    var : sympy.Symbol
+        Variable to extract coefficients with respect to.
+    deg : int
+        Degree of the polynomial.
+    expand : bool, optional
+        Expand the expression before extracting coefficients (default is True).
 
-    :return: List of coefficients of the polynomial.
-    :rtype: list
+    Returns
+    -------
+    list
+        List of coefficients of the polynomial.
     """
     if expand:
         from sympy import expand  # lazy import
@@ -50,13 +63,19 @@ def extract_coeffs(expr, var, deg: int, expand: bool = True):
 
 def color_rgba(color: str, transparency: float = 1.0) -> tuple:
     """
-    Convert a common color name to RGB tuple.
+    Convert a common color name to an RGBA tuple.
 
-    :param str color: color name or shortcut
-    :param float transparency: transparency value
+    Parameters
+    ----------
+    color : str
+        Color name or shortcut.
+    transparency : float, optional
+        Transparency value (default is 1.0).
 
-    :return: RGBA color scheme
-    :rtype: tuple
+    Returns
+    -------
+    tuple
+        RGBA color scheme.
     """
     color_map = {
         'red': (1, 0, 0),
@@ -86,12 +105,17 @@ def color_rgba(color: str, transparency: float = 1.0) -> tuple:
 
 def sum_of_squares(list_of_values: list) -> float:
     """
-    Calculate the sum of squares of values in given list.
+    Calculate the sum of squares of values in a given list.
 
-    :param list list_of_values: List of values.
+    Parameters
+    ----------
+    list_of_values : list
+        List of values.
 
-    :return: Sum of squares of the values.
-    :rtype: float
+    Returns
+    -------
+    float
+        Sum of squares of the values.
     """
     return sum([value**2 for value in list_of_values])
 
@@ -99,6 +123,16 @@ def sum_of_squares(list_of_values: list) -> float:
 def is_package_installed(package_name: str) -> bool:
     """
     Check if a package is installed.
+
+    Parameters
+    ----------
+    package_name : str
+        Name of the package to check.
+
+    Returns
+    -------
+    bool
+        True if the package is installed, False otherwise.
     """
     from importlib.metadata import distribution  # lazy import
 
@@ -111,19 +145,27 @@ def is_package_installed(package_name: str) -> bool:
 
 def tr_from_dh_rationally(t_theta, di, ai, t_alpha):
     """
-    Create transformation matrix from DH parameters using Sympy in rational form.
+    Create a transformation matrix from DH parameters using Sympy in rational form.
 
     The input shall be rational numbers, including the angles which are expected
     to be parameters of tangent half-angle substitution, i.e., t_theta = tan(theta/2)
     and t_alpha = tan(alpha/2).
 
-    :param sp.Rational t_theta: DH parameter theta in tangent half-angle form
-    :param sp.Rational di: DH parameter d, the offset along Z axis
-    :param sp.Rational ai: DH parameter a, the length along X axis
-    :param sp.Rational t_alpha: DH parameter alpha in tangent half-angle form
+    Parameters
+    ----------
+    t_theta : sympy.Rational
+        DH parameter theta in tangent half-angle form.
+    di : sympy.Rational
+        DH parameter d, the offset along Z axis.
+    ai : sympy.Rational
+        DH parameter a, the length along X axis.
+    t_alpha : sympy.Rational
+        DH parameter alpha in tangent half-angle form.
 
-    :return: 4x4 transformation matrix
-    :rtype: sp.Matrix
+    Returns
+    -------
+    sympy.Matrix
+        4x4 transformation matrix.
     """
     from sympy import Matrix, eye, Expr  # lazy import
 
@@ -147,13 +189,19 @@ def normalized_line_rationally(point, direction):
     """
     Create a normalized Plücker line from a point and a direction using Sympy.
 
-    The input shall be rational numbers, i.e. Sympy objects.
+    The input shall be rational numbers, i.e., Sympy objects.
 
-    :param sp.Rational point:
-    :param sp.Rational direction:
+    Parameters
+    ----------
+    point : sympy.Rational
+        Point in space.
+    direction : sympy.Rational
+        Direction vector.
 
-    :return: 6-vector representing the Plücker line
-    :rtype: sp.Matrix
+    Returns
+    -------
+    sympy.Matrix
+        6-vector representing the Plücker line.
     """
     from sympy import Matrix, Expr  # lazy import
 
@@ -164,3 +212,16 @@ def normalized_line_rationally(point, direction):
     pt = Matrix(point)
     mom = (-1 * dir).cross(pt)
     return Matrix.vstack(dir, mom)
+
+
+def evaluate_numerically(object_to_evaluate):
+    """
+    Evaluate the point to floating-point numbers.
+
+    Returns
+    -------
+    numpy.ndarray
+        The evaluated coordinates as a numpy array of floats.
+    """
+    from numpy import array, float64
+    return array([v.evalf() for v in object_to_evaluate.coordinates], dtype=float64)
