@@ -15,3 +15,29 @@ from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
 from .backend import set_backend, get_backend, is_symbolic
+
+__all__ = [
+	"CollisionFreeOptimization",
+	"DualQuaternion",
+	"ExudynAnalysis",
+	"LineSegment",
+	"Linkage",
+	"PointsConnection",
+	"MotionDesigner",
+	"MotionFactorization",
+	"MotionInterpolation",
+	"NormalizedLine",
+	"NormalizedPlane",
+	"Plotter",
+	"PointHomogeneous",
+	"Quaternion",
+	"BezierSegment",
+	"RationalBezier",
+	"RationalCurve",
+	"RationalMechanism",
+	"TransfMatrix",
+	"set_backend",
+	"get_backend",
+	"is_symbolic",
+]
+

@@ -434,11 +434,11 @@ class NormalizedLine:
         numpy.ndarray
             4-vector ``[w, x, y, z]``.
         """
-        l, m = self.direction, self.moment
+        direction, moment = self.direction, self.moment
         pt_quadric = numpy.array([
-            [-l[0],    0,    m[2], -m[1]],
-            [-l[1], -m[2],     0,  m[0]],
-            [-l[2],  m[1], -m[0],     0],
+            [-direction[0],         0,  moment[2], -moment[1]],
+            [-direction[1], -moment[2],          0,  moment[0]],
+            [-direction[2],  moment[1], -moment[0],          0],
         ])
         max_index = numpy.abs(pt_quadric[:, 0]).argmax()
         return pt_quadric[max_index, :]

@@ -582,7 +582,7 @@ class RationalCurve:
         list of MotionFactorization
             List of MotionFactorization objects.
         """
-        if type(self) != RationalCurve:
+        if type(self) is not RationalCurve:
             raise TypeError("Can factorize only for a rational curve or motion "
                             "factorization")
 

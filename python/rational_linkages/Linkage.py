@@ -287,7 +287,9 @@ class LineSegment:
         p1 = self.point1.evaluate(t_val).evalf()
 
         # segment length
-        l = numpy.linalg.norm(p0.normalized_euclidean() - p1.normalized_euclidean())
+        segment_length = numpy.linalg.norm(
+            p0.normalized_euclidean() - p1.normalized_euclidean()
+        )
 
         # distance between the point0 and the collision point
         d0 = numpy.linalg.norm(p0.normalized_euclidean() - point.normalized_euclidean())
@@ -295,7 +297,7 @@ class LineSegment:
         # distance between the point1 and the collision point
         d1 = numpy.linalg.norm(p1.normalized_euclidean() - point.normalized_euclidean())
 
-        if numpy.allclose(l, d0 + d1):
+        if numpy.allclose(segment_length, d0 + d1):
             return True
         else:
             return False
