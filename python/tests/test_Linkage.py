@@ -1,9 +1,9 @@
-from unittest import TestCase
+import pytest
 
 from rational_linkages import LineSegment, Linkage, PointsConnection
 
 
-class Test(TestCase):
+class TestLinkage:
     def test_linkage(self):
         pass
 
