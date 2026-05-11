@@ -23,6 +23,7 @@ matplotlib.use("Agg")
 
 with patch("rational_linkages.PlotterPyqtgraph.PlotterPyqtgraph.show"), \
      patch("PyQt6.QtWidgets.QApplication.exec"), \
+     patch("matplotlib.use"), \
      patch("matplotlib.pyplot.show"):
     runpy.run_path(sys.argv[1], run_name="__main__")
 """

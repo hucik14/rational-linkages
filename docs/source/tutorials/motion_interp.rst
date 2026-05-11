@@ -88,19 +88,6 @@ The curve is then factorized, and the resulting mechanism is plotted.
 
     6R mechanism whose tool frame (purple link) follows the curve :math:`C(t)`.
 
-
-Quadratic interpolation of 2 poses
-----------------------------------
-
-The following example partially applies the method by :footcite:t:`Brunnthaler2005`,
-but interpolates only 2 poses. The 3rd pose is set first set to the identity. If this
-fails, the 3rd pose is than obtained by setting a random rotation and optimizing the
-position of the 3rd pose to achieve the shortest curve-path length.
-
-.. literalinclude:: /examples/d_t_interp_quad2poses.py
-    :language: python
-
-
 .. _changing_bases_interpolation:
 
 Quadratic interpolation of 5 points

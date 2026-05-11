@@ -373,6 +373,11 @@ class MotionInterpolation:
                                                 ) -> list[sympy.Poly]:
         """Optimized search for a helper third pose for quadratic interpolation.
 
+        .. deprecated::
+            :meth:`interpolate_quadratic_2_poses_optimized` is deprecated and will be
+            removed in a future release. Use
+            :meth:`interpolate_quadratic_2_poses_random` instead.
+
         Parameters
         ----------
         poses
@@ -385,6 +390,13 @@ class MotionInterpolation:
         list[sympy.Poly]
             Symbolic polynomial representation for the interpolated curve.
         """
+        warn(
+            'interpolate_quadratic_2_poses_optimized is deprecated and will be '
+            'removed in a future release. Use interpolate_quadratic_2_poses_random '
+            'instead.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
         from scipy.optimize import minimize  # lazy import
 
         mid_pose = DualQuaternion.random_on_study_quadric()
