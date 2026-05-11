@@ -512,8 +512,10 @@ class RationalCurve:
         return [self.set_of_polynomials[i].expr
                 for i in range(len(self.set_of_polynomials))]
 
-    def evaluate(self, t_param: Union[float, numpy.ndarray],
-                 inverted_part: bool = False) -> numpy.ndarray:
+    def evaluate(self,
+                 t_param: Union[float, numpy.ndarray],
+                 inverted_part: bool = False,
+                 numerically: bool = True) -> numpy.ndarray:
         """
         Evaluate the curve for a given parameter and return as a dual quaternion vector.
 
@@ -523,6 +525,8 @@ class RationalCurve:
             Parameter value(s) for the curve.
         inverted_part : bool, optional
             If True, return the inverted part of the curve. Default is False.
+        numerically : bool, optional
+            If True, returns numerical (numpy) values, otherwise sympy
 
         Returns
         -------
@@ -530,22 +534,32 @@ class RationalCurve:
             Pose of the curve as a dual quaternion vector.
         """
         t = sympy.Symbol("t")
-        if inverted_part:
-            return numpy.array(
-                [
-                    self.set_of_polynomials_inversed[i].subs(t, t_param).evalf()
-                    for i in range(len(self.set_of_polynomials_inversed))
-                ],
-                dtype="float64",
-            )
-        else:
-            return numpy.array(
-                [
-                    self.set_of_polynomials[i].subs(t, t_param).evalf()
-                    for i in range(len(self.set_of_polynomials))
-                ],
-                dtype="float64",
-            )
+        if numerically:
+            if inverted_part:
+                return numpy.array(
+                    [self.set_of_polynomials_inversed[i].subs(t, t_param).evalf()
+                     for i in range(len(self.set_of_polynomials_inversed))],
+                    dtype="float64",
+                )
+            else:
+                return numpy.array(
+                    [self.set_of_polynomials[i].subs(t, t_param).evalf()
+                     for i in range(len(self.set_of_polynomials))],
+                    dtype="float64",
+                )
+        else:  # sympy
+            if inverted_part:
+                return numpy.array(
+                    [self.set_of_polynomials_inversed[i].subs(t, t_param)
+                     for i in range(len(self.set_of_polynomials_inversed))],
+                    dtype=object,
+                )
+            else:
+                return numpy.array(
+                    [self.set_of_polynomials[i].subs(t, t_param)
+                     for i in range(len(self.set_of_polynomials))],
+                    dtype=object,
+                )
 
     def evaluate_as_matrix(self, t_param, inverted_part: bool = False) -> numpy.ndarray:
         """
