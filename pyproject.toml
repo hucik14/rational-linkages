@@ -110,9 +110,9 @@ src = ["python"]
 line-length = 100
 target-version = "py310"
 
-#[tool.pytest.ini_options]
-#addopts = "--cov=rational_linkages --cov-report=term-missing"
-#testpaths = ["python/tests"]
+[tool.pytest.ini_options]
+addopts = "--cov=rational_linkages --cov-report=term-missing"
+testpaths = ["python/tests"]
 #testpaths = ["python/rational_linkages"]  # docstring examples
 #testpaths = ["python/tests", "python/rational_linkages"]  # test all
 
