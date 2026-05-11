@@ -3,6 +3,11 @@
 ARK 2024 Paper - Extended Information
 =====================================
 
+**IMPORTANT NOTE:** there has been updates to Rational Linkages, therefore the values output of
+the method :meth:`.RationalMechanism.get_design` will differ. However, to keep consistency with
+the Onshape models shared bellow, the old values are kept here. To obtain mechanism design for your
+particular linkage, generate STEP model as shown in :ref:`cad_tutorial` tutorial.
+
 This page contains the extended information for the paper submitted to conference ARK
 2024, Lublijana, Slovenia, under the title: *Rational Linkages: From Poses to
 3D-printed Prototypes*
