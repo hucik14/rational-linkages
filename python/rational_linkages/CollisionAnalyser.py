@@ -224,10 +224,10 @@ class CollisionAnalyser:
             True if any pair of miniballs collide (indicating a collision for
             the segments), False otherwise.
         """
-        if not segment0 in self.segment_orbits:
+        if segment0 not in self.segment_orbits:
             self.segment_orbits[segment0] = self.get_segment_orbit(segment0)
 
-        if not segment1 in self.segment_orbits:
+        if segment1 not in self.segment_orbits:
             self.segment_orbits[segment1] = self.get_segment_orbit(segment1)
 
         seg_orb0 = self.segment_orbits[segment0]
