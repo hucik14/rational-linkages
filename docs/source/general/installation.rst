@@ -26,7 +26,7 @@ or with optional dependencies:
 for installing also **opt** (optional) dependencies (ipython - inline plotting,
 scipy - optimization problems solving, matplotlib - alternative engine for 3D plotting)
 and **cad** dependencies (exudyn - multibody simulations, ngsolve - work with meshes in exudyn,
-build123d - generating STEP files of linkages, trimesh + manifold 3d - generating STL files).
+build123d - generating STEP files of linkages, trimesh + manifold3d - generating STL files).
 
 On **Linux** systems, to run GUI interactive plotting, some additional
 libraries are required for plotting with PyQt6. Using
