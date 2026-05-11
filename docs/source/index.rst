@@ -106,15 +106,6 @@ of Ostrava. See `full video on Youtube <https://www.youtube.com/watch?v=T_7lkPjd
    background-math
    modules
 
-
-Indices and Tables:
--------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-
 Authors
 -------
 

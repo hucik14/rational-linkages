@@ -5,3 +5,8 @@ Rational Linkages API
    :maxdepth: 4
 
    rational_linkages
+
+Index
+-----
+
+* :ref:`genindex`
