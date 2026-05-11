@@ -21,17 +21,10 @@ or with optional dependencies:
 
 .. code-block:: bash
 
-    pip install rational-linkages[opt,exu]
+    pip install "rational-linkages[opt,cad]"
 
-Mac/linux users might need to add backslashes to escape the brackets, e.g.:
-
-.. code-block:: bash
-
-    pip install rational-linkages\[opt,exu\]
-
-for installing also **opt** (optional) dependencies (scipy - optimization problems solving, ipython - inline plotting,
-matplotlib - alternative engine for 3D plotting, trimesh + manifold3d - STL
-meshes generation)
+for installing also **opt** (optional) dependencies (ipython - inline plotting,
+scipy - optimization problems solving, matplotlib - alternative engine for 3D plotting)
 and **cad** dependencies (exudyn - multibody simulations, ngsolve - work with meshes in exudyn,
 build123d - generating STEP files of linkages, trimesh + manifold 3d - generating STL files).
 
