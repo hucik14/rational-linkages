@@ -1030,7 +1030,9 @@ class PlotterMatplotlib:
         # update the plot
         if not self.jupyter_notebook:
             self.fig.canvas.draw_idle()
-            self.fig.canvas.update()
+            # FigureCanvasAgg has no update(); GUI canvases do.
+            if hasattr(self.fig.canvas, "update"):
+                self.fig.canvas.update()
             self.fig.canvas.flush_events()
 
     def show(self):

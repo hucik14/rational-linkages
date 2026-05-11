@@ -58,7 +58,7 @@ test_coverage:
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
   script:
     - *common_script
-    - pip install -e .[opt]
+    - pip install -e .[opt, cad]
     - pip install pytest sybil pytest-cov
     - python -m pytest
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
