@@ -431,7 +431,8 @@ class TransfMatrixSymbolic(TransfMatrix):
     def __repr__(self) -> str:
         rows = self.matrix.tolist()
         row_strings = [f"[{', '.join(map(str, row))}]" for row in rows]
-        return f"[{',\n '.join(row_strings)}]"
+        joined = ',\n '.join(row_strings)
+        return f"[{joined}]"
 
     def __eq__(self, other: "TransfMatrix") -> bool:
         diff = self.matrix - (
