@@ -14,7 +14,8 @@ class TestMotionInterpolation:
         p2 = DualQuaternion([0, 10, 37, -84, 0, -3, -6, -3])
 
         # Call the interpolate method
-        curve = mi.interpolate([p2, p1, p0])
+        with pytest.warns(UserWarning, match="first pose IS NOT the identity"):
+            curve = mi.interpolate([p2, p1, p0])
 
         # Check the type of the returned object
         assert isinstance(curve, RationalCurve)
@@ -35,12 +36,14 @@ class TestMotionInterpolation:
             mi.interpolate(poses)
 
         p0 = TransfMatrix(p0.dq2matrix())
-        curve = mi.interpolate([p0, p1, p2])
+        with pytest.warns(UserWarning, match="first pose IS NOT the identity"):
+            curve = mi.interpolate([p0, p1, p2])
         assert isinstance(curve, RationalCurve)
 
         p2 = "invalid"
-        with pytest.raises(TypeError):
-            mi.interpolate([p0, p1, p2])
+        with pytest.warns(UserWarning, match="first pose IS NOT the identity"):
+            with pytest.raises(TypeError):
+                mi.interpolate([p0, p1, p2])
 
     def test_interpolate_quadratic(self):
         mi = MotionInterpolation()
