@@ -884,7 +884,15 @@ if gl is not None:
             else:
                 painter.setPen(QtGui.QColor(QtCore.Qt.GlobalColor.white))
             # Get the Model-View-Projection matrix
-            projection_matrix = self.projectionMatrix()
+            # pyqtgraph 0.14+ uses a projection stack (currentProjection method)
+            # pyqtgraph 0.13 and earlier use projectionMatrix() with no args
+            try:
+                # Try 0.13 API
+                projection_matrix = self.projectionMatrix()
+            except AttributeError:
+                # Fall back for 0.14+ API
+                # TODO: check in the future
+                projection_matrix = self.currentProjection()
             view_matrix = self.viewMatrix()
             mvp = projection_matrix * view_matrix
             # Draw all labels
