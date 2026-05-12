@@ -835,6 +835,22 @@ if gl is not None:
             # Schedule label painting as a separate operation
             QtCore.QTimer.singleShot(0, self.update_text_overlay)
 
+        def projectionMatrix(self, region=None):
+            if region is None:
+                region = (0, 0, self.deviceWidth(), self.deviceHeight())
+
+            x0, y0, w, h = self.getViewport()
+            dist = self.opts['distance']
+            fov = self.opts['fov']
+
+            from math import tan, radians
+            r = dist * tan(0.5 * radians(fov))
+            t = r * h / w
+
+            tr = QtGui.QMatrix4x4()
+            tr.ortho(-r, r, -t, t, -dist * 1000., dist * 1000.)
+            return tr
+
         def update_text_overlay(self):
             """
             Update the text overlay with current labels.
