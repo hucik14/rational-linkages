@@ -275,7 +275,11 @@ class MotionDesigner:
             The created GL item returned by :meth:`.add_mesh`.
         """
         if not os.path.isfile(path):
-            raise FileNotFoundError(path)
+            raise FileNotFoundError(
+                f"STL file not found: '{path}' "
+                f"(resolved to '{os.path.abspath(path)}'). "
+                f"Pass an absolute path or a path relative to your working directory."
+            )
 
         # read raw bytes
         with open(path, "rb") as f:
