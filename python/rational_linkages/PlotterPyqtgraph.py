@@ -95,7 +95,10 @@ class PlotterPyqtgraph:
         self.widget = CustomGLViewWidget(white_background=self.white_background)
         self.widget.setWindowTitle('Rational Linkages')
         self.widget.opts['distance'] = 10
-        self.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
+        self.widget.setCameraPosition(
+            distance=10,
+            rotation=QtGui.QQuaternion.fromEulerAngles(30, 0, -30)
+        )
 
         if self.white_background:
             self.widget.setBackgroundColor(255, 255, 255, 255)
@@ -779,6 +782,7 @@ if gl is not None:
             **kwargs
                 Additional keyword arguments for GLViewWidget.
             """
+            kwargs['rotationMethod'] = 'quaternion'
             super().__init__(*args, **kwargs)
             self.labels = []
             self.white_background = white_background
@@ -1134,7 +1138,9 @@ if QtWidgets is not None:
                                             white_background=self.white_background,
                                             parent_app=parent_app)
             # Optionally adjust the camera.
-            self.plotter.widget.setCameraPosition(distance=10, azimuth=30, elevation=30)
+            self.plotter.widget.setCameraPosition(
+                distance=10,
+                rotation=QtGui.QQuaternion.fromEulerAngles(30, 0, -30))
 
             # Main layout: split between the 3D view and a control panel.
             main_layout = QtWidgets.QHBoxLayout(self)

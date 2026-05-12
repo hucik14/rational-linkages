@@ -1032,7 +1032,7 @@ if QtWidgets is not None:
         def add_mesh(self,
                      vertices: numpy.ndarray,
                      faces: numpy.ndarray,
-                     color: tuple = (0.7, 0.7, 0.7, 0.3),
+                     color: tuple = (0.4, 0.4, 0.4, 0.2),
                      name: str | None = None,
                      smooth: bool = False) -> object:
             """Add a mesh to the 3D view from vertex and face arrays.
