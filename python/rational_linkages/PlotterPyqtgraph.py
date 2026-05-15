@@ -86,6 +86,10 @@ class PlotterPyqtgraph:
         if self.app is None:
             self.app = QApplication(sys.argv)
 
+        # Expose pyqtgraph.opengl for custom scripts that want to construct
+        # GL items via the plotter instance.
+        self.gl = gl
+
         if base is not None:
             if isinstance(base, TransfMatrix):
                 if not base.is_rotation():
@@ -201,6 +205,19 @@ class PlotterPyqtgraph:
                 self._plot(obj, **kwargs)
         else:
             self._plot(objects_to_plot, **kwargs)
+        self.widget.update()
+
+    def add_item(self, item):
+        """
+        Add a custom pyqtgraph OpenGL item to the current 3D view.
+
+        Parameters
+        ----------
+        item : object
+            Any GL item instance compatible with ``GLViewWidget.addItem``
+            (e.g. ``gl.GLSurfacePlotItem``).
+        """
+        self.widget.addItem(item)
         self.widget.update()
 
     def _plot(self, object_to_plot, **kwargs):
