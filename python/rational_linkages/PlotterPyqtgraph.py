@@ -106,7 +106,7 @@ class PlotterPyqtgraph:
         self.widget.opts['distance'] = 10
         self.widget.setCameraPosition(
             distance=10,
-            rotation=QtGui.QQuaternion.fromEulerAngles(30, 0, -30)
+            rotation=QtGui.QQuaternion.fromEulerAngles(-70, 0, -30)
         )
 
         if self.white_background:
@@ -1170,7 +1170,7 @@ if QtWidgets is not None:
             # Optionally adjust the camera.
             self.plotter.widget.setCameraPosition(
                 distance=10,
-                rotation=QtGui.QQuaternion.fromEulerAngles(30, 0, -30))
+                rotation=QtGui.QQuaternion.fromEulerAngles(-70, 0, -30))
 
             # Main layout: split between the 3D view and a control panel.
             main_layout = QtWidgets.QHBoxLayout(self)
