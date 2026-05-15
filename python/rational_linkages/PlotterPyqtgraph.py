@@ -15,6 +15,15 @@ from .RationalCurve import RationalCurve
 from .RationalMechanism import RationalMechanism
 from .TransfMatrix import TransfMatrix
 
+
+def _flat_xyz(vec) -> numpy.ndarray:
+    """Convert a 3D vector-like input to a flat shape (3,) float array."""
+    arr = numpy.asarray(vec, dtype=float)
+    arr = numpy.squeeze(arr)
+    if arr.size != 3:
+        raise ValueError(f"Expected 3D vector, got shape {numpy.asarray(vec).shape}")
+    return arr.reshape(3,)
+
 # Try importing GUI components
 try:
     import pyqtgraph.opengl as gl
@@ -294,8 +303,8 @@ class PlotterPyqtgraph:
         **kwargs
             Additional plotting options.
         """
-        pos0 = numpy.array(p0.normalized_euclidean())
-        pos1 = numpy.array(p1.normalized_euclidean())
+        pos0 = _flat_xyz(p0.normalized_euclidean())
+        pos1 = _flat_xyz(p1.normalized_euclidean())
         pts = numpy.array([pos0, pos1])
         color = self._get_color(kwargs.get('color', 'magenta'), (1, 1, 1, 1))
         line = gl.GLLinePlotItem(pos=pts,
@@ -326,7 +335,7 @@ class PlotterPyqtgraph:
         **kwargs
             Additional plotting options.
         """
-        pts = numpy.array([p.normalized_euclidean() for p in points])
+        pts = numpy.array([_flat_xyz(p.normalized_euclidean()) for p in points])
         color = self._get_color(kwargs.get('color', 'green'), (1, 1, 1, 1))
         line = gl.GLLinePlotItem(pos=pts,
                                  color=color,
@@ -405,8 +414,8 @@ class PlotterPyqtgraph:
         interval = kwargs.pop('interval', (-1, 1))
         data = line.get_plot_data(interval)
 
-        start_pt = numpy.array(data[:3])
-        direction = numpy.array(data[3:])
+        start_pt = _flat_xyz(data[:3])
+        direction = _flat_xyz(data[3:])
         end_pt = start_pt + direction
         pts = numpy.array([start_pt, end_pt])
 
@@ -435,7 +444,7 @@ class PlotterPyqtgraph:
         """
         size = kwargs.pop('size', 4)
 
-        pos = numpy.array(point.get_plot_data())
+        pos = _flat_xyz(point.get_plot_data())
         color = self._get_color(kwargs.get('color', 'red'), (1, 0, 0, 1))
         scatter = gl.GLScatterPlotItem(pos=numpy.array([pos]),
                                        color=color,
@@ -457,10 +466,10 @@ class PlotterPyqtgraph:
         """
         Plot a transformation matrix as three arrows (x, y, and z axes).
         """
-        origin = numpy.array(matrix.t)
-        x_axis = numpy.array([origin, origin + self.arrows_length * numpy.array(matrix.n)])
-        y_axis = numpy.array([origin, origin + self.arrows_length * numpy.array(matrix.o)])
-        z_axis = numpy.array([origin, origin + self.arrows_length * numpy.array(matrix.a)])
+        origin = _flat_xyz(matrix.t)
+        x_axis = numpy.array([origin, origin + self.arrows_length * _flat_xyz(matrix.n)])
+        y_axis = numpy.array([origin, origin + self.arrows_length * _flat_xyz(matrix.o)])
+        z_axis = numpy.array([origin, origin + self.arrows_length * _flat_xyz(matrix.a)])
 
         x_line = gl.GLLinePlotItem(pos=x_axis,
                                    color=(1, 0, 0, 1),
@@ -1036,9 +1045,14 @@ if gl is not None:
             self.tr = transform
 
             # Update the positions for each axis.
-            self.x_axis.setData(pos=numpy.array([transform.t, transform.t + self.length * transform.n]))
-            self.y_axis.setData(pos=numpy.array([transform.t, transform.t + self.length * transform.o]))
-            self.z_axis.setData(pos=numpy.array([transform.t, transform.t + self.length * transform.a]))
+            t = _flat_xyz(transform.t)
+            n = _flat_xyz(transform.n)
+            o = _flat_xyz(transform.o)
+            a = _flat_xyz(transform.a)
+
+            self.x_axis.setData(pos=numpy.array([t, t + self.length * n]))
+            self.y_axis.setData(pos=numpy.array([t, t + self.length * o]))
+            self.z_axis.setData(pos=numpy.array([t, t + self.length * a]))
 
         def addToView(self, view: gl.GLViewWidget):
             """

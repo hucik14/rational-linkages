@@ -16,6 +16,7 @@ p.plot(l)
 p.plot(pt1, label='pt1', color='red')
 p.plot(pt2, label='pt2', color='red')
 
+p.plot(DualQuaternion(), label='origin')
 p.plot(dq1, label='half-turn')
 p.plot(dq2, label='some-rotation')
 p.show()
