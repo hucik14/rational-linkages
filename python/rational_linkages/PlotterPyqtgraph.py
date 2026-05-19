@@ -1643,9 +1643,15 @@ class InteractivePlotter:
                                                arrows_length=arrows_length,
                                                white_background=white_background,
                                                parent_app=self.app)
+
+        self.gl = self.window.plotter.gl
         # self.window.show()
         # self.app.processEvents()
         # self.window.hide()
+
+    def add_item(self, item):
+        """Delegate to plotter"""
+        self.window.plotter.add_item(item)
 
     def plot(self, *args, **kwargs):
         """
