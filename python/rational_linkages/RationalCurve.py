@@ -537,26 +537,26 @@ class RationalCurve:
         if numerically:
             if inverted_part:
                 return numpy.array(
-                    [self.set_of_polynomials_inversed[i].subs(t, t_param).evalf()
+                    [self.set_of_polynomials_inversed[i].as_expr().subs(t, t_param).evalf()
                      for i in range(len(self.set_of_polynomials_inversed))],
                     dtype="float64",
                 )
             else:
                 return numpy.array(
-                    [self.set_of_polynomials[i].subs(t, t_param).evalf()
+                    [self.set_of_polynomials[i].as_expr().subs(t, t_param).evalf()
                      for i in range(len(self.set_of_polynomials))],
                     dtype="float64",
                 )
         else:  # sympy
             if inverted_part:
                 return numpy.array(
-                    [self.set_of_polynomials_inversed[i].subs(t, t_param)
+                    [self.set_of_polynomials_inversed[i].as_expr().subs(t, t_param)
                      for i in range(len(self.set_of_polynomials_inversed))],
                     dtype=object,
                 )
             else:
                 return numpy.array(
-                    [self.set_of_polynomials[i].subs(t, t_param)
+                    [self.set_of_polynomials[i].as_expr().subs(t, t_param)
                      for i in range(len(self.set_of_polynomials))],
                     dtype=object,
                 )
