@@ -116,7 +116,7 @@ class RationalCurve:
         self._coeffs = coeffs
         self._symbolic = None
 
-        self.coeffs_inversed = self.inverse_coeffs()
+        self._coeffs_inversed = None
         self._symbolic_inversed = None
         self._set_of_polynomials_inversed = None
 
@@ -125,6 +125,20 @@ class RationalCurve:
         self.is_affine_motion = self.dimension == 12
 
         self._metric = metric
+
+    @property
+    def coeffs_inversed(self):
+        """
+        Get the coefficients of the inverse curve.
+
+        Returns
+        -------
+        numpy.ndarray
+            Coefficient matrix of the inverse curve.
+        """
+        if self._coeffs_inversed is None:
+            self._coeffs_inversed = self.inverse_coeffs()
+        return self._coeffs_inversed
 
     @property
     def metric(self):
@@ -926,5 +940,7 @@ class RationalCurve:
         study_quadric_error = self.study_quadric_check()
 
         return sum(abs(study_quadric_error)) < 1e-10
+
+
 
 
