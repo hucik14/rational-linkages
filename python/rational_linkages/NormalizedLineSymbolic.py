@@ -330,6 +330,59 @@ class NormalizedLineSymbolic(NormalizedLine):
             for i in range(3)
         )
 
+    def common_perpendicular_to_other_line(self, other: "NormalizedLine") -> tuple:
+        """
+        Compute the common perpendicular between this line and *other*.
+
+        Returns the two foot-points, the distance, and the cosine of the
+        angle between the lines. Falls back to the principal-point distance
+        when the lines are parallel.
+
+        Parameters
+        ----------
+        other :
+            The second line.
+
+        Returns
+        -------
+        tuple[list[numpy.ndarray], float, float]
+            ``(points, distance, cos_angle)`` where ``points`` is a list of
+            two 3-vectors.
+        """
+        l0 = sympy.Matrix(self.direction)
+        m0 = sympy.Matrix(self.moment)
+        l1 = sympy.Matrix(other.direction)
+        m1 = sympy.Matrix(other.moment)
+
+        cross = l0.cross(l1)
+        cross_norm_sq = sympy.simplify(cross.dot(cross))
+
+        if sympy.simplify(cross_norm_sq) != sympy.Integer(0):
+            num0 = (-m0).cross(l1.cross(cross)) + l0 * m1.dot(cross)
+            p0 = num0 / cross_norm_sq
+
+            num1 = m1.cross(l0.cross(cross)) - l1 * m0.dot(cross)
+            p1 = num1 / cross_norm_sq
+
+            diff = p0 - p1
+            distance = sympy.sqrt(sympy.simplify(diff.dot(diff)))
+            cos_angle = sympy.simplify(
+                l0.dot(l1)
+                / (sympy.sqrt(l0.dot(l0)) * sympy.sqrt(l1.dot(l1)))
+            )
+        else:
+            p0 = l0.cross(m0)
+            p1 = l1.cross(m1)
+            diff = p0 - p1
+            distance = sympy.sqrt(sympy.simplify(diff.dot(diff)))
+            cos_angle = sympy.Integer(1)
+
+        points = [
+            numpy.array([sympy.simplify(v) for v in p0], dtype=object),
+            numpy.array([sympy.simplify(v) for v in p1], dtype=object),
+        ]
+        return points, sympy.simplify(distance), sympy.simplify(cos_angle)
+
     def eval(self, subs: dict) -> "NormalizedLineSymbolic":
         """
         Evaluate the line by substituting symbols with values.

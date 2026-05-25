@@ -377,3 +377,34 @@ class TestFromTwoPoints:
         assert sympy.simplify(result.direction[0] - 1) == 0
         assert sympy.simplify(result.direction[1]) == 0
         assert sympy.simplify(result.direction[2]) == 0
+
+
+# ---------------------------------------------------------------------------
+# common_perpendicular_to_other_line
+# ---------------------------------------------------------------------------
+
+class TestCommonPerpendicularSymbolic:
+
+    def test_skew_lines_returns_symbolic_expected_values(self):
+        set_backend("sympy")
+        l1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        l2 = NormalizedLine.from_direction_and_point([0, -1, 0], [2, 0, sympy.Rational(3, 2)])
+
+        points, distance, cos_angle = l1.common_perpendicular_to_other_line(l2)
+
+        assert all(sympy.simplify(points[0][i] - [0, 0, sympy.Rational(3, 2)][i]) == 0 for i in range(3))
+        assert all(sympy.simplify(points[1][i] - [2, 0, sympy.Rational(3, 2)][i]) == 0 for i in range(3))
+        assert sympy.simplify(distance - 2) == 0
+        assert sympy.simplify(cos_angle) == 0
+
+    def test_parallel_lines_returns_principal_points(self):
+        set_backend("sympy")
+        l1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        l2 = NormalizedLine.from_direction_and_point([0, 0, -1], [2, 0, sympy.Rational(3, 2)])
+
+        points, distance, cos_angle = l1.common_perpendicular_to_other_line(l2)
+
+        assert all(sympy.simplify(points[0][i] - [0, 0, 0][i]) == 0 for i in range(3))
+        assert all(sympy.simplify(points[1][i] - [2, 0, 0][i]) == 0 for i in range(3))
+        assert sympy.simplify(distance - 2) == 0
+        assert sympy.simplify(cos_angle - 1) == 0
