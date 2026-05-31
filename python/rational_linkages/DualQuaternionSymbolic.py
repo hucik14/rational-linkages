@@ -103,7 +103,7 @@ class DualQuaternionSymbolic(DualQuaternion):
             coefficient is sampled uniformly from the interval ``[-interval, interval]``.
             Default is 1.
         max_denominator :
-            Maximum denominator for the random rational coefficients. Default is 10.
+            Maximum denominator for the random rational coefficients. Default is 4.
 
         Returns
         -------
@@ -111,7 +111,7 @@ class DualQuaternionSymbolic(DualQuaternion):
         """
         from random import randint  # inner import
 
-        def random_rational(_interval=1, _max_den=10):
+        def random_rational(_interval=1, _max_den=4):
             """
             Random SymPy Rational in the open interval (-interval, interval).
             Example for interval=1: 1/3, -8/9, 0, ...
