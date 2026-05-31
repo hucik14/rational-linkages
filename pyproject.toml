@@ -2,7 +2,6 @@
 requires = [
     "setuptools>=61",
     "setuptools-rust>=1.6",
-    "wheel",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -29,8 +28,7 @@ dependencies = [
     "PyQt6 >= 6.2.0",
     "pyqtgraph < 0.14",
     "PyOpenGL >= 3.0.0",
-    # Windows ARM has issues with PyQt6
-    "matplotlib >= 3.9.0; platform_system == 'Windows' and platform_machine == 'ARM64'",
+    "matplotlib >= 3.9.0; platform_system == 'Windows' and platform_machine == 'ARM64'", # Windows ARM has issues with PyQt6
 ]
 
 [project.optional-dependencies]
@@ -84,18 +82,17 @@ path = "rust/Cargo.toml"
 binding = "PyO3"
 
 [tool.cibuildwheel]
-build = "*"
-skip = "pp* cp3*t-*"  # skip pypy and t-debug builds
-manylinux-x86_64-image = "manylinux2014"
-manylinux-aarch64-image = "manylinux2014"
+skip = "pp* cp3*t-*"
+manylinux-x86_64-image = "manylinux_2_17"
+manylinux-aarch64-image = "manylinux_2_17"
 environment = { CARGO_TERM_COLOR = "always" }
 test-command = "pytest {package}/python/tests"
 #test-skip = ["*-macosx_arm64", "*-macosx_x86_64"]
 
 [tool.cibuildwheel.linux]
 #archs = ["x86_64", "aarch64"]  # legacy option, now set by CIBW_ARCHS_LINUX in wheels.yml of GitHub Actions
-environment = { PATH = "$HOME/.cargo/bin:$PATH" }
-before-build = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+environment = { PATH = "$HOME/.cargo/bin:$PATH", CARGO_TERM_COLOR = "always" }
+before-build = "command -v cargo || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
@@ -103,7 +100,7 @@ archs = ["AMD64"]
 
 [tool.cibuildwheel.macos]
 archs = ["arm64", "x86_64"]
-environment = { MACOSX_DEPLOYMENT_TARGET = "12.0.1" }
+environment = { MACOSX_DEPLOYMENT_TARGET = "11.0", CARGO_TERM_COLOR = "always" }
 
 [tool.ruff]
 src = ["python"]
