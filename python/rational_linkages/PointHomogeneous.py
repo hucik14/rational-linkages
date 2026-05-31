@@ -654,6 +654,7 @@ class PointHomogeneous:
         PointHomogeneous
             Self.
         """
+        warn("Nothing to evaluate.")
         return self
 
     def evaluate(self, param: float):
