@@ -6,6 +6,7 @@ import sympy
 from rational_linkages import set_backend
 from rational_linkages.NormalizedLine import NormalizedLine
 from rational_linkages.NormalizedLineSymbolic import NormalizedLineSymbolic
+from rational_linkages.PointHomogeneous import PointHomogeneous
 
 
 @pytest.fixture(autouse=True)
@@ -39,6 +40,11 @@ def mom_syms():
 
 class TestInitializeComponents:
 
+    def test_default_constructor_returns_symbolic_z_axis(self):
+        line = NormalizedLineSymbolic()
+        assert list(line.direction) == [sympy.Integer(0), sympy.Integer(0), sympy.Integer(1)]
+        assert list(line.moment) == [sympy.Integer(0), sympy.Integer(0), sympy.Integer(0)]
+
     def test_normalizes_constant_sympy_direction(self):
         line = NormalizedLineSymbolic([
             sympy.sqrt(2),
@@ -58,6 +64,11 @@ class TestInitializeComponents:
 
         assert sympy.simplify(line.direction[0] - t) == 0
         assert sympy.simplify(line.moment[0] - 2 * t) == 0
+
+    def test_zero_numeric_direction_warns(self):
+        with pytest.warns(UserWarning, match="zero norm"):
+            line = NormalizedLineSymbolic([0, 0, 0, 1, 2, 3])
+        assert list(line.direction) == [sympy.Integer(0), sympy.Integer(0), sympy.Integer(0)]
 
 
 # ---------------------------------------------------------------------------
@@ -377,6 +388,45 @@ class TestFromTwoPoints:
         assert sympy.simplify(result.direction[0] - 1) == 0
         assert sympy.simplify(result.direction[1]) == 0
         assert sympy.simplify(result.direction[2]) == 0
+
+
+# ---------------------------------------------------------------------------
+# core symbolic behavior
+# ---------------------------------------------------------------------------
+
+class TestCoreSymbolicBehavior:
+
+    def test_equality_uses_symbolic_simplification(self):
+        x = sympy.symbols("x", real=True)
+        a = NormalizedLineSymbolic([x + x, 0, 0, 0, 0, 0])
+        b = NormalizedLineSymbolic([2 * x, 0, 0, 0, 0, 0])
+        assert a == b
+
+    def test_array_returns_object_dtype_copy(self):
+        line = NormalizedLineSymbolic([0, 0, 1, 1, 2, 3])
+        arr = line.array()
+        assert arr.dtype == object
+        arr[0] = sympy.Integer(99)
+        assert line.screw[0] != sympy.Integer(99)
+
+    def test_line2dq_array_mapping(self):
+        line = NormalizedLineSymbolic([0, 0, 1, 1, -2, 3])
+        dq = line.line2dq_array()
+        expected = [0, 0, 0, 1, 0, -1, 2, -3]
+        assert all(sympy.simplify(g - e) == 0 for g, e in zip(dq, expected))
+
+    def test_contains_point_true_with_sequence_input(self):
+        line = NormalizedLineSymbolic.from_direction_and_point([0, 0, 1], [1, 0, 0])
+        assert line.contains_point([1, 0, 5])
+
+    def test_contains_point_true_with_point_homogeneous_input(self):
+        line = NormalizedLineSymbolic.from_direction_and_point([0, 0, 1], [1, 0, 0])
+        point = PointHomogeneous([1, 1, 0, 7])
+        assert line.contains_point(point)
+
+    def test_contains_point_false_for_offline_point(self):
+        line = NormalizedLineSymbolic.from_direction_and_point([0, 0, 1], [1, 0, 0])
+        assert not line.contains_point([2, 0, 5])
 
 
 # ---------------------------------------------------------------------------

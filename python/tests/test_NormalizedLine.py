@@ -2,6 +2,7 @@ import warnings
 
 import numpy
 import pytest
+import sympy
 
 from rational_linkages import set_backend
 from rational_linkages.DualQuaternion import DualQuaternion
@@ -82,6 +83,15 @@ class TestConstruction:
         nl = NormalizedLine(arr)
         assert numpy.allclose(nl.screw, arr)
 
+    def test_init_falls_back_to_object_dtype_when_float_cast_fails(self):
+        class RawLine(NormalizedLine):
+            pass
+
+        with pytest.warns(numpy.exceptions.ComplexWarning, match="Casting complex values to real"):
+            nl = RawLine([1 + 1j, 0, 0, 0, 0, 0])
+        assert nl.direction.dtype == object
+        assert nl.moment.dtype == object
+
 
 class TestFromTwoPoints:
 
@@ -129,6 +139,15 @@ class TestFromDirectionAndPoint:
         nl = NormalizedLine.from_direction_and_point([2, 0, 0], [1, 0, 0])
         assert numpy.isclose(numpy.linalg.norm(nl.direction), 1.0)
 
+    def test_fallback_to_object_dtype_when_float_cast_fails(self):
+        class RawLine(NormalizedLine):
+            pass
+
+        with pytest.warns(numpy.exceptions.ComplexWarning, match="Casting complex values to real"):
+            nl = RawLine.from_direction_and_point([1 + 1j, 0, 0], [0, 1, 0])
+        assert nl.direction.dtype == object
+        assert nl.moment.dtype == object
+
 
 class TestFromDirectionAndMoment:
 
@@ -140,6 +159,15 @@ class TestFromDirectionAndMoment:
     def test_returns_instance(self):
         nl = NormalizedLine.from_direction_and_moment([0, 0, 1], [0, 0, 0])
         assert isinstance(nl, NormalizedLine)
+
+    def test_fallback_to_object_dtype_when_float_cast_fails(self):
+        class RawLine(NormalizedLine):
+            pass
+
+        with pytest.warns(numpy.exceptions.ComplexWarning, match="Casting complex values to real"):
+            nl = RawLine.from_direction_and_moment([1 + 1j, 0, 0], [0, 1, 0])
+        assert nl.direction.dtype == object
+        assert nl.moment.dtype == object
 
 
 class TestFromDualQuaternion:
@@ -452,6 +480,24 @@ class TestIntersectionWithPlane:
         nl = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 1, 0])
         result = nl.intersection_with_plane(plane)
         assert not numpy.isclose(result[0], 0.0)
+
+
+# ---------------------------------------------------------------------------
+# eval / evaluate / evalf placeholders
+# ---------------------------------------------------------------------------
+
+class TestEvalPlaceholders:
+
+    def test_eval_returns_self(self, z_axis):
+        assert z_axis.eval({"unused": 1}) is z_axis
+
+    def test_eval(self):
+        set_backend("numpy")
+        t = sympy.Symbol("t")
+        l = NormalizedLine([t**2, 1 + t, 0, 0, 0, 3 * t])
+        result = l.eval({t: 0}).evalf().array()
+        expected = numpy.array([0, 1, 0, 0, 0, 0])
+        assert numpy.allclose(result, expected)
 
 
 # ---------------------------------------------------------------------------

@@ -119,6 +119,25 @@ class TestConstruction:
             assert sympy.simplify(g - e) == 0
 
 
+class TestRandom:
+
+    def test_random_returns_symbolic_instance(self):
+        set_backend("sympy")
+        dq = DualQuaternionSymbolic.random(interval=2, max_denominator=5)
+        assert isinstance(dq, DualQuaternionSymbolic)
+        assert all(isinstance(v, sympy.Basic) for v in dq.array())
+
+    def test_random_coefficients_are_nonzero_rationals_in_open_interval(self):
+        set_backend("sympy")
+        interval = 3
+        dq = DualQuaternionSymbolic.random(interval=interval, max_denominator=7)
+        for value in dq.array():
+            assert isinstance(value, sympy.Rational)
+            assert value != 0
+            assert abs(value) < interval
+            assert value.q <= 7
+
+
 # ---------------------------------------------------------------------------
 # as_rational (inherited — deprecation still fires)
 # ---------------------------------------------------------------------------
@@ -382,6 +401,12 @@ class TestEq:
         dqs_copy = DualQuaternionSymbolic([1, 2, 3, 4, 0, 0, 0, 0])
         assert not (other == dqs_copy)
 
+    def test_equal_after_symbolic_simplification(self):
+        x = sympy.Symbol("x")
+        q1 = DualQuaternionSymbolic([x + x, 0, 0, 0, 0, 0, 0, 0])
+        q2 = DualQuaternionSymbolic([2 * x, 0, 0, 0, 0, 0, 0, 0])
+        assert q1 == q2
+
 
 # ---------------------------------------------------------------------------
 # Properties
@@ -610,6 +635,17 @@ class TestStudyQuadric:
         assert dq.is_on_study_quadric()
 
 
+class TestStudyCondition:
+
+    def test_study_condition_matches_manual_dot_product(self, syms, dqs):
+        p0, p1, p2, p3, d0, d1, d2, d3 = syms
+        expected = sympy.simplify(p0 * d0 + p1 * d1 + p2 * d2 + p3 * d3)
+        assert sympy.simplify(dqs.study_condition() - expected) == 0
+
+    def test_study_condition_is_zero_for_identity(self, identity):
+        assert sympy.simplify(identity.study_condition()) == 0
+
+
 # ---------------------------------------------------------------------------
 # back_projection
 # ---------------------------------------------------------------------------
@@ -685,6 +721,11 @@ class TestDq2Matrix:
 
     def test_normalized_top_left_is_one(self, dqs_numeric):
         assert sympy.simplify(dqs_numeric.dq2matrix(normalize=True)[0, 0] - 1) == 0
+
+    def test_without_normalization_top_left_is_primal_squared_norm(self, dqs_numeric):
+        mat = dqs_numeric.dq2matrix(normalize=False)
+        expected = sympy.simplify(sum(v**2 for v in dqs_numeric.p.array()))
+        assert sympy.simplify(mat[0, 0] - expected) == 0
 
     def test_pure_translation_rotation_block(self, pure_translation_sym):
         mat = pure_translation_sym.dq2matrix()
@@ -830,6 +871,29 @@ class TestEval:
                     * DualQuaternionSymbolic([1, 0, 0, 0, 0, 1, 0, 0]))
         assert all(sympy.simplify(g - e) == 0
                    for g, e in zip(result.array(), expected.array()))
+
+
+class TestEvalf:
+
+    def test_evalf_returns_numeric_dualquaternion_with_numpy_backend(self):
+        set_backend("sympy")
+        dq = DualQuaternionSymbolic([
+            sympy.Rational(1, 2), sympy.Rational(3, 2), 0, 0,
+            0, sympy.Rational(5, 2), 0, 0,
+        ])
+        set_backend("numpy")
+        result = dq.evalf()
+
+        assert type(result) is DualQuaternion
+        assert not isinstance(result, DualQuaternionSymbolic)
+        assert result.array().dtype == numpy.float64
+        assert numpy.allclose(result.array(), [0.5, 1.5, 0, 0, 0, 2.5, 0, 0])
+
+    def test_evalf_does_not_mutate_original_symbolic_object(self):
+        set_backend("sympy")
+        dq = DualQuaternionSymbolic([sympy.Rational(1, 3), 0, 0, 0, 0, 0, 0, 0])
+        _ = dq.evalf()
+        assert dq[0] == sympy.Rational(1, 3)
 
 # ---------------------------------------------------------------------------
 # act / _analyze_affected_object

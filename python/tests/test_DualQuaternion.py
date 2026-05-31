@@ -1083,6 +1083,13 @@ class TestEval:
                     * DualQuaternion([1, 0, 1, 0, 0, 0, 0, 0]))
         assert numpy.allclose(result.array(), expected.array())
 
+
+class TestEvalf:
+
+    def test_evalf_returns_same_instance_for_numeric_dualquaternion(self):
+        dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+        assert dq.evalf() is dq
+
 # ---------------------------------------------------------------------------
 # from_bq_biquaternion
 # ---------------------------------------------------------------------------

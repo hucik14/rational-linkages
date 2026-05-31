@@ -85,6 +85,14 @@ class TestConstruction:
     def test_not_symbolic_instance(self, q):
         assert not isinstance(q, QuaternionSymbolic)
 
+    def test_falls_back_to_object_dtype_when_float_cast_fails(self):
+        class RawQuaternion(Quaternion):
+            pass
+
+        q = RawQuaternion([1 + 1j, 0, 0, 0])
+        assert q.q.dtype == object
+        assert q.q[0] == 1 + 1j
+
     def test_factory_returns_symbolic_when_sympy_backend(self):
         set_backend("sympy")
         q = Quaternion([1, 0, 0, 0])
@@ -132,6 +140,17 @@ class TestIndexing:
     def test_setitem_updates_q(self, q):
         q[1] = 42.0
         assert q.q[1] == 42.0
+
+    def test_len_returns_four(self, q):
+        assert len(q) == 4
+
+    def test_iter_yields_all_coefficients(self, q):
+        coeffs = list(q)
+        assert numpy.array_equal(coeffs, [1.0, 2.0, 3.0, 4.0])
+
+    def test_iter_type_matches_q_values(self, identity):
+        for coeff in identity:
+            assert isinstance(coeff, (float, numpy.floating))
 
 
 # ---------------------------------------------------------------------------
@@ -247,6 +266,9 @@ class TestMul:
         # guard against numpy scalar falling through to Hamilton product branch
         result = q * numpy.float32(1)
         assert numpy.allclose(result.array(), q.array())
+
+    def test_rmul_non_number_returns_notimplemented(self, q):
+        assert q.__rmul__("not-a-number") is NotImplemented
 
 
 class TestNeg:
@@ -452,4 +474,18 @@ class TestNormalize:
 
     def test_double_normalize_is_idempotent(self, q):
         assert numpy.allclose(q.normalize().normalize().array(), q.normalize().array())
+
+
+class TestEvalf:
+
+    def test_evalf_returns_same_instance_for_numeric_quaternion(self, q):
+        assert q.evalf() is q
+
+    def test_eval(self, symbols, qs):
+        a, b, c, d = symbols
+        result = qs.eval({a: 1, b: 2, c: -3, d: 4})
+        assert isinstance(result, Quaternion)
+        assert isinstance(result, QuaternionSymbolic)
+        assert numpy.allclose(result.array(), [1.0, 2.0, -3.0, 4.0])
+
 

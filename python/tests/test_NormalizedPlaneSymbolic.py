@@ -1,4 +1,5 @@
 import numpy
+import numpy as np
 import pytest
 import sympy
 
@@ -347,3 +348,11 @@ class TestEval:
         result = plane.eval({t: 0})
         assert sympy.simplify(result.normal[0] - 1) == 0   # cos(0) = 1
         assert sympy.simplify(result.normal[1] - 0) == 0   # sin(0) = 0
+
+    def test_evalf(self):
+        set_backend("sympy")
+        t = sympy.Symbol("t")
+        plane = NormalizedPlane([0, 0, 1], [0, 0, t])
+        result = plane.eval({t: 5}).evalf()
+        expected = numpy.array([-5.,  0.,  0.,  1.])
+        assert np.allclose(result, expected)
