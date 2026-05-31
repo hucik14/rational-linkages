@@ -91,6 +91,39 @@ class DualQuaternionSymbolic(DualQuaternion):
                 sympy.Integer(0), sympy.Integer(0),
             ])
 
+    @classmethod
+    def random(cls, interval: int = 1, max_denominator: int = 4,) -> "DualQuaternionSymbolic":
+        """
+        Create a random dual quaternion with rational coefficients.
+
+        Parameters
+        ----------
+        interval :
+            SymPy number specifying the range of random coefficients. Each
+            coefficient is sampled uniformly from the interval ``[-interval, interval]``.
+            Default is 1.
+        max_denominator :
+            Maximum denominator for the random rational coefficients. Default is 10.
+
+        Returns
+        -------
+        DualQuaternionSymbolic
+        """
+        from random import randint  # inner import
+
+        def random_rational(_interval=1, _max_den=10):
+            """
+            Random SymPy Rational in the open interval (-interval, interval).
+            Example for interval=1: 1/3, -8/9, 0, ...
+            """
+            while True:
+                den = randint(1, _max_den)
+                num = randint(-_interval * den + 1, _interval * den - 1)  # (-interval, interval)
+                if num != 0:  # exclude zero
+                    return sympy.Rational(num, den)
+
+        return cls([random_rational(interval, max_denominator) for _ in range(8)])
+
     # ------------------------------------------------------------------
     # Representation
     # ------------------------------------------------------------------

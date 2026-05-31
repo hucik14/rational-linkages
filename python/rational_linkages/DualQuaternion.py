@@ -211,6 +211,9 @@ class DualQuaternion:
         .. clear-namespace::
 
         """
+        if cls is DualQuaternion and is_symbolic():
+            from .DualQuaternionSymbolic import DualQuaternionSymbolic
+            return DualQuaternionSymbolic.random(interval)
         return cls(numpy.random.uniform(-interval, interval, 8))
 
     @classmethod
