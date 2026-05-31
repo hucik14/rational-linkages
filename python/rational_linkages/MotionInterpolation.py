@@ -430,7 +430,8 @@ class MotionInterpolation:
 
         poses.append(optimal_pose_projected)
 
-        return MotionInterpolation.interpolate_quadratic(poses)
+        return MotionInterpolation.interpolate_quadratic(
+            [DualQuaternion(pose.array(), rational=True).back_projection() for pose in poses])
 
     @staticmethod
     def interpolate_cubic(poses: list[DualQuaternion],
