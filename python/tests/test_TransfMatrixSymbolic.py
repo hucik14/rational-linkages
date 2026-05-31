@@ -133,6 +133,16 @@ class TestSymbolicProperties:
         sym_identity.n = [s, 0, 0]
         assert sympy.simplify(sym_identity.n[0] - s) == 0
 
+    def test_o_setter(self, sym_identity):
+        b = sympy.Symbol("b")
+        sym_identity.o = [0, b, 0]
+        assert sympy.simplify(sym_identity.o[1] - b) == 0
+
+    def test_a_setter(self, sym_identity):
+        c = sympy.Symbol("c")
+        sym_identity.a = [0, 0, c]
+        assert sympy.simplify(sym_identity.a[2] - c) == 0
+
 
 # ---------------------------------------------------------------------------
 # Arithmetic (symbolic)
@@ -158,6 +168,15 @@ class TestSymbolicMul:
         ])
         result = t1 * t2
         assert sympy.simplify(result.t[0] - (tx + ty)) == 0
+
+    def test_mul_accepts_other_with_non_sympy_matrix(self, sym_identity):
+        class Other:
+            def __init__(self):
+                self.matrix = [[1, 0, 0, 0], [1, 1, 0, 0], [2, 0, 1, 0], [3, 0, 0, 1]]
+
+        result = sym_identity * Other()
+        assert isinstance(result, TransfMatrixSymbolic)
+        assert result.t == sympy.Matrix([1, 2, 3])
 
 
 class TestSymbolicEq:
@@ -202,6 +221,51 @@ class TestSymbolicCore:
 
     def test_inv_identity_is_identity(self, sym_identity):
         assert sym_identity.inv().matrix == sympy.eye(4)
+
+    def test_repr_multiline_contains_rows(self, sym_identity):
+        r = repr(sym_identity)
+        assert "[1, 0, 0, 0]" in r
+        assert "\n" in r
+
+    def test_pprint_calls_sympy_pprint(self, sym_identity, monkeypatch):
+        captured = {}
+
+        def _fake_pprint(matrix):
+            captured["matrix"] = matrix
+
+        monkeypatch.setattr(sympy, "pprint", _fake_pprint)
+        sym_identity.pprint()
+        assert captured["matrix"] == sym_identity.matrix
+
+    def test_is_rotation_warns_and_returns_false_for_invalid_rotation(self):
+        bad = TransfMatrixSymbolic([
+            [1, 0, 0, 0],
+            [0, 0, -1, 0],
+            [0, -1, 0, 0],
+            [0, 0, 0, 1],
+        ])
+        with pytest.warns(UserWarning, match="determinant"):
+            assert not bad.is_rotation()
+
+    def test_matrix2dq_identity_branch_p0_nonzero(self, sym_identity):
+        dq = sym_identity.matrix2dq()
+        assert all(sym_eq(g, e) for g, e in zip(dq, [1, 0, 0, 0, 0, 0, 0, 0]))
+
+    def test_matrix2dq_180deg_x_uses_p0_zero_normalization(self):
+        mat = TransfMatrixSymbolic([
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, -1, 0],
+            [0, 0, 0, -1],
+        ])
+        dq = mat.matrix2dq()
+        assert all(sym_eq(g, e) for g, e in zip(dq, [0, 1, 0, 0, 0, 0, 0, 0]))
+
+    def test_matrix2dq_guard_for_no_candidate(self, sym_identity, monkeypatch):
+        # Force all candidate checks to fail so the fallback branch is exercised.
+        monkeypatch.setattr(sympy, "simplify", lambda _: sympy.Integer(0))
+        dq = sym_identity.matrix2dq()
+        assert len(dq) == 8
 
 
 # ---------------------------------------------------------------------------

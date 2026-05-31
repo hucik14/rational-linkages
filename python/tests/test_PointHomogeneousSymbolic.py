@@ -345,6 +345,13 @@ class TestNormalize:
         assert all(sympy.simplify(result[i]) == 0 for i in range(1, 4))
 
 
+class TestNorm:
+
+    def test_norm_uses_normalized_euclidean(self, ps_numeric):
+        # ps_numeric=[2,4,6,8] -> normalized euclidean [2,3,4]
+        assert sympy.simplify(ps_numeric.norm() - sympy.sqrt(29)) == 0
+
+
 # ---------------------------------------------------------------------------
 # normalized_euclidean
 # ---------------------------------------------------------------------------
@@ -432,6 +439,44 @@ class TestPoint2Matrix:
         mat = ps_numeric.point2matrix()
         for g, e in zip(mat[1:4, 0], [2, 3, 4]):
             assert sympy.simplify(g - e) == 0
+
+    def test_len3_branch(self):
+        p = PointHomogeneousSymbolic([2, 4, 6])
+        mat = p.point2matrix()
+        expected = sympy.Matrix([
+            [1, 0, 0, 0],
+            [2, 1, 0, 0],
+            [3, 0, 1, 0],
+            [0, 0, 0, 1],
+        ])
+        assert mat == expected
+
+    def test_len12_branch(self):
+        p = PointHomogeneousSymbolic([1, 10, 11, 12, 20, 21, 22, 30, 31, 32, 40, 41])
+        mat = p.point2matrix()
+        expected = sympy.Matrix([
+            [1, 0, 0, 0],
+            [1, 12, 22, 32],
+            [10, 20, 30, 40],
+            [11, 21, 31, 41],
+        ])
+        assert mat == expected
+
+    def test_len13_branch(self):
+        p = PointHomogeneousSymbolic([2, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24])
+        mat = p.point2matrix()
+        expected = sympy.Matrix([
+            [1, 0, 0, 0],
+            [1, 4, 7, 10],
+            [2, 5, 8, 11],
+            [3, 6, 9, 12],
+        ])
+        assert mat == expected
+
+    def test_invalid_length_raises(self):
+        p = PointHomogeneousSymbolic([1, 2, 3, 4, 5])
+        with pytest.raises(ValueError, match="coordinate length"):
+            p.point2matrix()
 
 
 # ---------------------------------------------------------------------------
@@ -553,3 +598,12 @@ class TestEval:
         norm = result.normalize()
         assert sympy.simplify(norm[0] - 1) == 0
         assert sympy.simplify(norm[1] - 2) == 0
+
+
+class TestEvalfEuclidean:
+
+    def test_evalf_euclidean_numeric_values(self):
+        p = PointHomogeneousSymbolic([2, 4, 6, 8])
+        got = p.evalf_euclidean()
+        assert isinstance(got, numpy.ndarray)
+        assert numpy.allclose(got, [2.0, 3.0, 4.0])

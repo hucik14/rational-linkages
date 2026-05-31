@@ -83,6 +83,7 @@ class TestConstruction:
         nl = NormalizedLine(arr)
         assert numpy.allclose(nl.screw, arr)
 
+    @pytest.mark.filterwarnings("ignore::numpy.exceptions.ComplexWarning")
     def test_init_falls_back_to_object_dtype_when_float_cast_fails(self):
         class RawLine(NormalizedLine):
             pass
@@ -139,6 +140,7 @@ class TestFromDirectionAndPoint:
         nl = NormalizedLine.from_direction_and_point([2, 0, 0], [1, 0, 0])
         assert numpy.isclose(numpy.linalg.norm(nl.direction), 1.0)
 
+    @pytest.mark.filterwarnings("ignore::numpy.exceptions.ComplexWarning")
     def test_fallback_to_object_dtype_when_float_cast_fails(self):
         class RawLine(NormalizedLine):
             pass
@@ -160,6 +162,7 @@ class TestFromDirectionAndMoment:
         nl = NormalizedLine.from_direction_and_moment([0, 0, 1], [0, 0, 0])
         assert isinstance(nl, NormalizedLine)
 
+    @pytest.mark.filterwarnings("ignore::numpy.exceptions.ComplexWarning")
     def test_fallback_to_object_dtype_when_float_cast_fails(self):
         class RawLine(NormalizedLine):
             pass

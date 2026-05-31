@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 import pytest
+import sympy
 
 from rational_linkages import set_backend
 from rational_linkages.TransfMatrix import TransfMatrix
@@ -546,6 +547,11 @@ class TestFromDhParameters:
         )
         assert np.allclose(m_deg.matrix, m_rad.matrix, atol=1e-10)
 
+    def test_symbolic_theta_triggers_sympy_fallback_path(self):
+        theta = sympy.Symbol("theta", real=True)
+        with pytest.raises((TypeError, ValueError)):
+            TransfMatrix.from_dh_parameters(theta, 1, 2, 0)
+
 
 # ---------------------------------------------------------------------------
 # from_rotation
@@ -607,6 +613,18 @@ class TestRpy:
 
     def test_returns_3_vector(self, identity):
         assert identity.rpy().shape == (3,)
+
+    def test_rpy_gimbal_lock_positive_branch(self):
+        mat = TransfMatrix.from_rpy([0.0, -np.pi / 2, 0.0])
+        assert np.allclose(mat.rpy(), [0.0, -np.pi / 2, 0.0], atol=1e-10)
+
+    def test_rpy_k_equals_2_branch(self):
+        expected = np.array([1.4, 0.2, 1.2])
+        mat = TransfMatrix.from_rpy(expected)
+        R = mat.rot_matrix()
+        k = np.argmax(np.abs([R[0, 0], R[1, 0], R[2, 1], R[2, 2]]))
+        assert k == 2
+        assert np.allclose(mat.rpy(), expected, atol=1e-10)
 
 
 # ---------------------------------------------------------------------------

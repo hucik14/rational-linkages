@@ -2,9 +2,10 @@ import warnings
 
 import numpy
 import pytest
+import sympy
 
 from rational_linkages import set_backend
-from rational_linkages.PointHomogeneous import PointHomogeneous
+from rational_linkages.PointHomogeneous import PointHomogeneous, PointOrbit
 
 
 @pytest.fixture(autouse=True)
@@ -101,6 +102,14 @@ class TestConstruction:
                 return [2.0, 0, 0, 0, 0, 5.0, 6.0, 7.0][idx]
         pt = PointHomogeneous.from_dual_quaternion(_FakeDQ())
         assert numpy.allclose(pt.coordinates, [2.0, 5.0, 6.0, 7.0])
+
+    def test_init_fallback_to_object_dtype_when_float_cast_fails(self):
+        class RawPoint(PointHomogeneous):
+            pass
+
+        pt = RawPoint([1 + 1j, 2.0, 3.0, 4.0])
+        assert pt.coordinates.dtype == object
+        assert pt.coordinates[0] == 1 + 1j
 
 
 # ---------------------------------------------------------------------------
@@ -393,6 +402,42 @@ class TestPoint2Matrix:
     def test_first_row_is_unit(self, p_scaled):
         assert numpy.allclose(p_scaled.point2matrix()[0], [1.0, 0.0, 0.0, 0.0])
 
+    def test_point2matrix_len12_branch(self):
+        pt = PointHomogeneous([1.0, 10.0, 11.0, 12.0, 20.0, 21.0, 22.0, 30.0, 31.0, 32.0, 40.0, 41.0])
+        mat = pt.point2matrix()
+        assert numpy.allclose(mat[1:4, 0], [1.0, 10.0, 11.0])
+        assert numpy.allclose(mat[1:4, 1], [12.0, 20.0, 21.0])
+        assert numpy.allclose(mat[1:4, 2], [22.0, 30.0, 31.0])
+        assert numpy.allclose(mat[1:4, 3], [32.0, 40.0, 41.0])
+
+    def test_point2matrix_len13_branch(self):
+        pt = PointHomogeneous([2.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0])
+        mat = pt.point2matrix()
+        assert numpy.allclose(mat[1:4, 0], [1.0, 2.0, 3.0])
+        assert numpy.allclose(mat[1:4, 1], [4.0, 5.0, 6.0])
+        assert numpy.allclose(mat[1:4, 2], [7.0, 8.0, 9.0])
+        assert numpy.allclose(mat[1:4, 3], [10.0, 11.0, 12.0])
+
+
+class TestPoint2Affine12d:
+
+    def test_point2affine12d_known_values(self):
+        class _Map:
+            t = numpy.array([1.0, 2.0, 3.0])
+            n = numpy.array([4.0, 5.0, 6.0])
+            o = numpy.array([7.0, 8.0, 9.0])
+            a = numpy.array([10.0, 11.0, 12.0])
+
+        pt = PointHomogeneous([2.0, 1.0, -1.0, 3.0])
+        got = pt.point2affine12d(_Map())
+        expected = numpy.concatenate((
+            2.0 * _Map.t,
+            1.0 * _Map.n,
+            -1.0 * _Map.o,
+            3.0 * _Map.a,
+        ))
+        assert numpy.allclose(got, expected)
+
 
 # ---------------------------------------------------------------------------
 # point2dq_array
@@ -491,6 +536,58 @@ class TestLinearInterpolation:
         assert isinstance(a.linear_interpolation(b), PointHomogeneous)
 
 
+class TestPropertiesEdgeCases:
+
+    def test_x_warns_for_point_at_infinity(self):
+        pt = PointHomogeneous([0.0, 1.0, 2.0, 3.0])
+        with pytest.warns(UserWarning, match="at infinity"):
+            with numpy.errstate(divide="ignore", invalid="ignore"):
+                _ = pt.x
+
+    def test_y_warns_for_point_at_infinity(self):
+        pt = PointHomogeneous([0.0, 1.0, 2.0, 3.0])
+        with pytest.warns(UserWarning, match="at infinity"):
+            with numpy.errstate(divide="ignore", invalid="ignore"):
+                _ = pt.y
+
+    def test_z_warns_for_point_at_infinity(self):
+        pt = PointHomogeneous([0.0, 1.0, 2.0, 3.0])
+        with pytest.warns(UserWarning, match="at infinity"):
+            with numpy.errstate(divide="ignore", invalid="ignore"):
+                _ = pt.z
+
+    def test_x_raises_for_non_2d_3d_point(self):
+        pt = PointHomogeneous([1.0, 2.0, 3.0, 4.0, 5.0])
+        with pytest.raises(ValueError, match="only defined for 2D and 3D points"):
+            _ = pt.x
+
+    def test_y_raises_for_non_2d_3d_point(self):
+        pt = PointHomogeneous([1.0, 2.0, 3.0, 4.0, 5.0])
+        with pytest.raises(ValueError):
+            _ = pt.y
+
+    def test_z_raises_for_non_3d_point(self):
+        pt = PointHomogeneous.at_origin_in_2d()
+        with pytest.raises(ValueError, match="only defined for 3D points"):
+            _ = pt.z
+
+    def test_norm_matches_normalized_euclidean_norm(self, p_scaled):
+        assert numpy.isclose(p_scaled.norm(), numpy.linalg.norm(p_scaled.normalized_euclidean()))
+
+
+class TestEvaluationPlaceholders:
+
+    def test_evalf_euclidean_returns_normalized_euclidean(self, p_scaled):
+        assert numpy.allclose(p_scaled.evalf_euclidean(), p_scaled.normalized_euclidean())
+
+    def test_eval_returns_self(self, p):
+        with pytest.warns(UserWarning):
+            assert p.eval({"unused": 1}) is p
+
+    def test_evaluate_returns_self(self, p):
+        assert p.evaluate(0.5) is p
+
+
 # ---------------------------------------------------------------------------
 # get_plot_data
 # ---------------------------------------------------------------------------
@@ -512,3 +609,48 @@ class TestGetPlotData:
     def test_get_plot_data_old(self):
         obj = PointHomogeneous(numpy.array([4, 1, 2, 3]))
         assert numpy.allclose(obj.get_plot_data(), numpy.array([0.25, 0.5, 0.75]))
+
+
+class TestPointOrbit:
+
+    def test_init_converts_center_when_not_point(self):
+        orb = PointOrbit([2.0, 4.0, 6.0, 8.0], radius_squared=9.0, t_interval=(0.0, 1.0))
+        assert isinstance(orb.center, PointHomogeneous)
+        assert orb.t_interval == (0.0, 1.0)
+
+    def test_init_keeps_center_when_point(self):
+        pt = PointHomogeneous([1.0, 2.0, 3.0, 4.0])
+        orb = PointOrbit(pt, radius_squared=4.0, t_interval=(0.0, 1.0))
+        assert orb.center is pt
+
+    def test_repr_contains_fields(self):
+        orb = PointOrbit([1.0, 0.0, 0.0, 0.0], radius_squared=1.0, t_interval=(0.0, 2.0))
+        r = repr(orb)
+        assert "PointOrbit(" in r
+        assert "radius_squared=1.0" in r
+
+    def test_radius_cached(self):
+        orb = PointOrbit([1.0, 0.0, 0.0, 0.0], radius_squared=9.0, t_interval=(0.0, 1.0))
+        r1 = orb.radius
+        orb.radius_squared = 16.0
+        r2 = orb.radius
+        assert numpy.isclose(r1, 3.0)
+        assert numpy.isclose(r2, 3.0)
+
+    def test_get_plot_data_mpl_returns_mesh_for_3d_center(self):
+        orb = PointOrbit([1.0, 0.0, 0.0, 0.0], radius_squared=4.0, t_interval=(0.0, 1.0))
+        x, y, z = orb.get_plot_data_mpl()
+        assert x.shape == (10, 10)
+        assert y.shape == (10, 10)
+        assert z.shape == (10, 10)
+
+    def test_get_plot_data_mpl_raises_for_non_3d_center(self):
+        orb = PointOrbit(PointHomogeneous.at_origin_in_2d(), radius_squared=1.0, t_interval=(0.0, 1.0))
+        with pytest.raises(ValueError, match="incompatible dimension"):
+            orb.get_plot_data_mpl()
+
+    def test_get_plot_data_returns_center_and_radius(self):
+        orb = PointOrbit([2.0, 4.0, 6.0, 8.0], radius_squared=9.0, t_interval=(0.0, 1.0))
+        center, radius = orb.get_plot_data()
+        assert center == tuple(orb.center.normalized_euclidean())
+        assert numpy.isclose(radius, 3.0)

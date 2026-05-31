@@ -1,7 +1,15 @@
 import pytest
 import sympy
 
-from rational_linkages.utils import is_package_installed, sum_of_squares, dq_algebraic2vector, extract_coeffs
+from rational_linkages.utils import (
+    is_package_installed,
+    sum_of_squares,
+    dq_algebraic2vector,
+    extract_coeffs,
+    color_rgba,
+    tr_from_dh_rationally,
+    normalized_line_rationally,
+)
 
 
 class TestUtils:
@@ -82,3 +90,44 @@ class TestUtils:
         eq = 5 * x ** 4 - 3 * x
         expected_coeffs = [5, 0, 0, -3, 0]
         assert extract_coeffs(eq, x, 4) == expected_coeffs
+
+    def test_color_rgba_alias_and_named_color(self):
+        assert color_rgba('r') == (1, 0, 0, 1.0)
+        assert color_rgba('green') == (0, 1, 0, 1.0)
+
+    def test_color_rgba_unknown_defaults_to_red(self):
+        assert color_rgba('not-a-color') == (1, 0, 0, 1.0)
+
+    def test_color_rgba_transparency_passthrough(self):
+        assert color_rgba('blue', transparency=0.25) == (0, 0, 1, 0.25)
+
+    def test_tr_from_dh_rationally_known_identity_angles(self):
+        zero = sympy.Integer(0)
+        di = sympy.Integer(7)
+        ai = sympy.Integer(5)
+        mat = tr_from_dh_rationally(zero, di, ai, zero)
+
+        expected = sympy.Matrix([
+            [1, 0, 0, 0],
+            [5, 1, 0, 0],
+            [0, 0, 1, 0],
+            [7, 0, 0, 1],
+        ])
+        assert mat == expected
+
+    def test_tr_from_dh_rationally_rejects_non_sympy_inputs(self):
+        with pytest.raises(ValueError, match='sympy objects'):
+            tr_from_dh_rationally(0.0, sympy.Integer(1), sympy.Integer(2), sympy.Integer(0))
+
+    def test_normalized_line_rationally_known_values(self):
+        point = [sympy.Integer(1), sympy.Integer(2), sympy.Integer(3)]
+        direction = [sympy.Integer(0), sympy.Integer(0), sympy.Integer(1)]
+        line = normalized_line_rationally(point, direction)
+
+        expected = sympy.Matrix([0, 0, 1, 2, -1, 0])
+        assert line == expected
+
+    def test_normalized_line_rationally_rejects_non_sympy_inputs(self):
+        with pytest.raises(ValueError, match='sympy objects'):
+            normalized_line_rationally([1.0, 2.0, 3.0], [sympy.Integer(0), sympy.Integer(0), sympy.Integer(1)])
+
