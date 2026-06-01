@@ -32,6 +32,7 @@
 
 ### changed (7 changes)
 
+- [numpy v2+ required](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/e88d9a9b)
 - [RationalCurve generates inverse coeffs only when demanded](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/16c4045e)
 - [added as_expr in RationalCurve for improved expression handling taking into account t in denominator](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/ffc94842)
 - [update of contribute.rst according to new code structure](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/dc854a30)

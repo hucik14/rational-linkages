@@ -111,7 +111,7 @@ target-version = "py313"
 addopts = "--cov=rational_linkages --cov-report=term-missing"
 testpaths = ["python/tests"]
 #testpaths = ["python/tests", "python/rational_linkages"]  # test all
-# pytest -q python/tests/test_docs_examples.py
+# pytest -q python/tests/test_docs_examples.py  # set HEADLESS = False
 
 [tool.coverage.report]
 omit = [
