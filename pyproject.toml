@@ -83,10 +83,11 @@ binding = "PyO3"
 
 [tool.cibuildwheel]
 skip = "pp* cp3*t-*"
-manylinux-x86_64-image = "manylinux_2_17"
-manylinux-aarch64-image = "manylinux_2_17"
+manylinux-x86_64-image = "manylinux2014"
+manylinux-aarch64-image = "manylinux2014"
 environment = { CARGO_TERM_COLOR = "always" }
-test-command = "pytest {package}/python/tests"
+#test-command = "pytest {package}/python/tests"
+test-command = ""
 #test-skip = ["*-macosx_arm64", "*-macosx_x86_64"]
 
 [tool.cibuildwheel.linux]

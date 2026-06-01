@@ -53,9 +53,10 @@ of Ostrava. See [full video on Youtube](https://www.youtube.com/watch?v=T_7lkPjd
 
 ## Intallation instuctions
 
-Recommended Python version is **3.11**, when it provides the smoothest plotting 
-(but 3.10 or higher are supported). Python 3.11 is also the version used for 
-development.
+Recommended Python version is **3.13**, when it provides the smoothest plotting 
+(but 3.10 or higher are supported). Python 3.13 is also the version used for 
+development. Some dependencies not yet support Python 3.14, therefore
+it is not recommended to use for full functionality of the package.
 
 ### Install from PyPI
 
