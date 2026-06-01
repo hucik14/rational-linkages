@@ -140,7 +140,7 @@ class TestUtils:
         a = self._make([1, 0, 0])
         b = self._make([0, 1, 0])
         result = cross_product_on_objects(a, b)
-        expected = numpy.cross(a, b)
+        expected = numpy.cross([1, 0, 0], [0, 1, 0])
         numpy.testing.assert_array_equal(result, expected)
 
     def test_returns_object_dtype(self):
