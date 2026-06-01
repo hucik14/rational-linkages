@@ -1,34 +1,43 @@
 from itertools import product
 
-import numpy as np
+import numpy
 
 from .NormalizedLine import NormalizedLine
 from .RationalMechanism import RationalMechanism
 
 
 class CollisionFreeOptimization:
-    """
-    Class for the optimization of the mechanism for full-cycle collision-free design.
+    """Optimization helpers for finding collision-free full-cycle designs.
+
+    The class contains utilities to estimate an initial configuration for the
+    mechanism (smallest polyline) and to run higher-level optimization
+    routines (for example combinatorial search).
     """
     def __init__(self, mechanism: RationalMechanism):
-        """
-        Initialize the combinatorial search algorithm.
+        """Create a new optimizer for a mechanism.
 
-        :param RationalMechanism mechanism: The mechanism to optimize.
+        Parameters
+        ----------
+        mechanism
+            The :class:`.RationalMechanism` instance to optimize.
         """
         self.mechanism = mechanism
 
     def smallest_polyline(self) -> tuple:
-        """
-        Get points on mechanism axes that form the smallest polyline.
+        """Find points on mechanism axes that form the smallest polyline.
 
-        This method calculates the smallest polyline that can be formed by points on
-        the mechanism axes. It uses scipy's minimize function to find the points on
-        the axes that minimize the total distance of the polyline.
+        The routine represents each mechanism axis as a normalized line and
+        chooses one point on each axis such that the closed polyline connecting
+        these points has minimal total Euclidean length. The optimization is
+        performed with ``scipy.optimize.minimize``.
 
-        :return: points on the mechanism axes that form the smallest polyline,
-            parameters of the points, result of the optimization
-        :rtype: tuple
+        Returns
+        -------
+        tuple
+            ``(points, points_params, result)`` where ``points`` is a list of
+            3D points on the axes, ``points_params`` are the parameter values
+            used to generate these points (duplicated per joint connection
+            point), and ``result`` is the optimizer result object.
         """
         try:
             from scipy.optimize import minimize  # lazy import
@@ -48,18 +57,18 @@ class CollisionFreeOptimization:
             p = [line.point_on_line(x[i]) for i, line in enumerate(lines)]
 
             total_distance = sum(
-                np.linalg.norm(p[i] - p[i + 1])
+                numpy.linalg.norm(p[i] - p[i + 1])
                 for i in range(self.mechanism.num_joints - 1))
             # Add distance between last and first point
-            total_distance += np.linalg.norm(p[-1] - p[0])
+            total_distance += numpy.linalg.norm(p[-1] - p[0])
             return total_distance
 
-        x_init = np.zeros(self.mechanism.num_joints)
+        x_init = numpy.zeros(self.mechanism.num_joints)
         result = minimize(objective_function, x_init)
 
         # double the parameters for the two joint connection points
         points_params = result.x
-        points_params = [np.array([param, param]) for param in points_params]
+        points_params = [numpy.array([param, param]) for param in points_params]
 
         points = [line.point_on_line(float(points_params[i][0]))
                   for i, line in enumerate(lines)]
@@ -72,15 +81,26 @@ class CollisionFreeOptimization:
                  min_joint_segment_length: float,
                  max_iters: int,
                  **kwargs):
-        """
-        Optimize the mechanism for collision-free operation.
+        """Run a high-level optimization to obtain collision-free design params.
 
-        :param method: optimization method
-        :param step_length: length of the step, i.e. the shift distance value, see
-            :ref:`combinatorial_search` for more detail
-        :param min_joint_segment_length: minimum length of the joint segment
-        :param max_iters: maximum number of iterations
-        :param kwargs: additional keyword arguments
+        Parameters
+        ----------
+        method
+            Name of the optimization method to run (e.g. ``'combinatorial_search'``).
+        step_length
+            Step length used by the chosen optimization method (see the
+            combinatorial search documentation for details).
+        min_joint_segment_length
+            Minimum allowed length for joint segments during the search.
+        max_iters
+            Maximum number of iterations to consider.
+        **kwargs
+            Additional keyword arguments forwarded to the chosen method.
+
+        Returns
+        -------
+        list
+            Parameters for a collision-free design found by the optimizer.
         """
         # initial estimation - the smallest polyline
         points, points_params, result = self.smallest_polyline()
@@ -104,26 +124,33 @@ class CollisionFreeOptimization:
 
 
 class CombinatorialSearch:
-    """
-    Combinatorial search algorithm of collision-free linkages.
+    """Combinatorial search for collision-free linkages.
 
-    Algorithm by :footcite:t:`Li2020`.
+    The algorithm follows the approach in the referenced work
+    (:footcite:`Li2020`) and performs an enumerative search over discrete
+    shift values for links and joint connection points to find collision-free
+    mechanism designs.
     """
     def __init__(self,
                  mechanism: RationalMechanism,
                  linkage_length: float,
-                 step_length: float = 10.0,  # TODO step length estimation
+                 step_length: float = 10.0,
                  min_joint_segment_length: float = 0.001,
                  max_iters: int = 10):
-        """
-        Initialize the combinatorial search algorithm.
+        """Create a combinatorial search instance.
 
-        :param RationalMechanism mechanism: The mechanism to optimize.
-        :param float linkage_length: length of the linkage
-        :param float step_length: length of the step, i.e. the shift distance value, see
-            :ref:`combinatorial_search` for more detail
-        :param float min_joint_segment_length: minimum length of the joint segment
-        :param int max_iters: maximum number of iterations
+        Parameters
+        ----------
+        mechanism
+            The :class:`.RationalMechanism` to optimize.
+        linkage_length
+            Total linkage length used to compute shift values.
+        step_length, optional
+            Step-length divisor used to scale shift increments (default 10.0).
+        min_joint_segment_length, optional
+            Minimum allowable length for joint segments (default 0.001).
+        max_iters, optional
+            Maximum number of iterations (default 10).
         """
         self.mechanism = mechanism
         self.linkage_length = linkage_length
@@ -132,11 +159,23 @@ class CombinatorialSearch:
         self.max_iters = max_iters + 1
 
     def combinatorial_search(self, **kwargs):
-        """
-        Perform collision-free combinatorial search method.
+        """Run the top-level combinatorial search.
 
-        :return: list of collision-free points parameters
-        :rtype: list
+        The search iterates over increasing shift magnitudes and first attempts
+        to find collision-free link-only configurations before searching the
+        full mechanism including joint segments.
+
+        Parameters
+        ----------
+        **kwargs
+            Optional control parameters (for example ``start_iteration`` and
+            ``end_iteration`` can be provided). See method usage in the code.
+
+        Returns
+        -------
+        list or None
+            Collision-free point parameters or ``None`` if no solution was
+            found.
         """
 
         iter_start = kwargs.get('start_iteration', 1)
@@ -171,16 +210,21 @@ class CombinatorialSearch:
             return None
 
     def search_links(self, iteration: int, combinations: list = None):
-        """
-        Search for the solution of the combinatorial search algorithm, links only.
+        """Search for a collision-free link-only configuration.
 
-        Searches for the smallest polyline that is collision free (only links).
+        Parameters
+        ----------
+        iteration
+            Iteration index used to scale the shift magnitude.
+        combinations, optional
+            Precomputed combinations of discrete shifts to test. If
+            ``None``, combinations are generated internally.
 
-        :param iteration: iteration index
-        :param list combinations: list of combinations to search links
-
-        :return: list of collision-free points parameters
-        :rtype: list
+        Returns
+        -------
+        list or None
+            Collision-free points parameters if a solution is found,
+            otherwise ``None``.
         """
         shift_val = iteration * self.linkage_length / self.step_length
 
@@ -189,11 +233,10 @@ class CombinatorialSearch:
         else:
             combs = combinations
 
-        # TODO: parallelize the search
         for i, sequence in enumerate(combs):
             print("--- iteration: {}, shift_value: {}, sequence {} of {}: {}"
                   .format(iteration, shift_val, i + 1, len(combs), sequence))
-            points_params = shift_val * np.asarray(sequence)
+            points_params = shift_val * numpy.asarray(sequence)
             points_params = [[param] for param in points_params]
 
             # update the design of the mechanism
@@ -212,16 +255,23 @@ class CombinatorialSearch:
         return None
 
     def search_mechanism(self, coll_free_links_params: list, combinations: list = None):
-        """
-        Search for the solution of the combinatorial search algorithm, including joints.
+        """Search for a full collision-free mechanism design including joints.
 
-        Searches for the mechanism that is collision free (including joint segments).
+        Parameters
+        ----------
+        coll_free_links_params
+            Collision-free points parameters for links (as returned by
+            :meth:`search_links`). These parameters are doubled and adjusted
+            to represent joint connection point pairs.
+        combinations, optional
+            Precomputed joint-shift combinations to try. If ``None``, these
+            are generated internally.
 
-        :param list coll_free_links_params: list of collision-free points parameters
-        :param list combinations: list of combinations to search mechanism design
-
-        :return: list of collision-free points parameters
-        :rtype: list
+        Returns
+        -------
+        list or None
+            Collision-free point parameters for the full mechanism, or
+            ``None`` if no configuration could be found.
         """
         shift_val = 0.5 * self.min_joint_segment_length
 
@@ -235,7 +285,7 @@ class CombinatorialSearch:
         for i, sequence in enumerate(combs):
             print("--- joint search. Shift_value: {}, sequence {} of {}: {}"
                   .format(shift_val, i + 1, len(combs), sequence))
-            shift_seq = shift_val * np.asarray(sequence)
+            shift_seq = shift_val * numpy.asarray(sequence)
 
             points_params = [[params[0] + shift_seq[ii * 2],
                               params[1] + shift_seq[ii * 2 + 1]]
@@ -257,13 +307,19 @@ class CombinatorialSearch:
         return None
 
     def _get_combinations_sequences(self, joints: bool = False):
-        """
-        Get all combinations of the joint angles and shuffle them.
+        """Generate discrete combination sequences used by the search.
 
-        :param bool joints: True if joints segments are searched for, False otherwise
+        Parameters
+        ----------
+        joints, optional
+            If False, generate combinations for link-only shifts; if True,
+            generate combinations for joint-segment shifts.
 
-        :return: list of all combinations of joint angles
-        :rtype: list
+        Returns
+        -------
+        list
+            A list of tuples representing the discrete sequences to enumerate
+            during the search.
         """
         if not joints:
             elements = [0, 1, -1]

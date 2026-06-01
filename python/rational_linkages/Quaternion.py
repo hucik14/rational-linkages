@@ -1,202 +1,517 @@
 from typing import Optional, Sequence
 
-import numpy as np
+import numpy
+
+from .backend import is_symbolic
 
 
 class Quaternion:
     """
-    Quaternion class representing a 4-dimensional quaternion.
+    Quaternion representing a 4-dimensional number ``[w, x, y, z]``.
 
-    :ivar np.ndarray q: 4-vector of quaternion parameters
+    Used as the building block of `DualQuaternion`, where the primal and
+    dual parts are each a ``Quaternion``.
 
-    :examples:
+    By default, all computation is performed with NumPy (``float64``). When
+    the global backend is set to ``"sympy"`` via
+    :func:`.set_backend`, construction transparently
+    returns a :class:`.QuaternionSymbolic` instance
+    instead, with no change to the calling code required.
 
-    .. testcode:: [quaternion_example1]
+    Parameters
+    ----------
+    coeffs :
+        Coefficients ``[w, x, y, z]``. If ``None``, the identity
+        quaternion ``[1, 0, 0, 0]`` is constructed.
 
-        # General usage
+    Attributes
+    ----------
+    q : numpy.ndarray
+        4-vector of quaternion coefficients ``[w, x, y, z]``.
+
+    Raises
+    ------
+    ValueError
+        If ``coeffs`` is not a 4-vector.
+
+    Examples
+    --------
+
+    .. code-block:: python
 
         from rational_linkages import Quaternion
 
-        identity_quaternion = Quaternion()
-        quaternion_from_list = Quaternion([0.5, 2, 1, 5])
 
-    .. testcleanup:: [quaternion_example1]
+        identity = Quaternion()
+        q = Quaternion([1.0, 2.0, 3.0, 4.0])
+        print(identity)
+        print(q)
 
-        del Quaternion, identity_quaternion, quaternion_from_list
+    .. clear-namespace::
+
+    .. code-block:: python
+
+        # Fully symbolic backend — set once at the top of your script
+
+        import rational_linkages
+        rational_linkages.set_backend("sympy")
+
+        from rational_linkages import Quaternion
+        from sympy import symbols
+
+
+        a, b = symbols("a b", real=True)
+        q = Quaternion([a, b, 0, 0])   # transparently returns QuaternionSymbolic
+
+    .. clear-namespace::
+
     """
+    __hash__ = None  # mutable, not hashable by default; can be overridden in subclasses
+    __array_priority__ = 20.0  # prioritizes Quaternion over numpy array __rmul__
 
-    def __init__(self, vec4: Optional[Sequence[float]] = None):
-        """
-        Quaternion class
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
 
-        :param Optional[Sequence[float]] vec4: 4-vector list of quaternion parameters
+    def __new__(cls, coeffs=None):
         """
-        if vec4 is not None:
-            if len(vec4) != 4:
-                raise ValueError("Quaternion: vec4 has to be 4-vector")
-            self.q = np.asarray(vec4, dtype=object)
+        Intercept construction and return a
+        :class:`.QuaternionSymbolic` when the global
+        backend is ``"sympy"``.
+
+        Only applied when ``cls`` is exactly ``Quaternion``; subclass
+        constructors are never redirected, preventing infinite recursion.
+
+        Parameters
+        ----------
+        coeffs :
+            Forwarded unchanged to ``__init__``.
+
+        Returns
+        -------
+        Quaternion or QuaternionSymbolic
+            A numeric or symbolic instance depending on the active backend.
+        """
+        if cls is Quaternion:
+            symbolic = is_symbolic() or (
+                    coeffs is not None
+                    and any(hasattr(c, 'free_symbols') for c in coeffs)
+            )
+            if symbolic:
+                from .QuaternionSymbolic import QuaternionSymbolic
+                return object.__new__(QuaternionSymbolic)
+        return object.__new__(cls)
+
+    # ------------------------------------------------------------------
+    # Construction
+    # ------------------------------------------------------------------
+
+    def __init__(self, coeffs: Optional[Sequence[float]] = None):
+        if coeffs is not None:
+            if len(coeffs) != 4:
+                raise ValueError("Quaternion: coeffs has to be 4-vector")
+            try:
+                self.q = numpy.asarray(coeffs, dtype=numpy.float64)
+            except (TypeError, ValueError):
+                self.q = numpy.asarray(coeffs, dtype=object)
         else:
-            self.q = np.array([1, 0, 0, 0])
+            self.q = numpy.array([1.0, 0.0, 0.0, 0.0], dtype=numpy.float64)
 
-        self.real = self.q[0]
-        self.imag = self.q[1:]
+    @property
+    def real(self):
+        return self.q[0]
+
+    @property
+    def imag(self):
+        return self.q[1:]
+
+    # ------------------------------------------------------------------
+    # Indexing
+    # ------------------------------------------------------------------
 
     def __getitem__(self, idx):
         """
-        Get an element of Quaternion
+        Get a coefficient by index.
 
-        :param idx: index of the Quaternion element to call 0..3
-        :return: float
+        Parameters
+        ----------
+        idx :
+            Index in range ``0..3``.
+
+        Returns
+        -------
+        float
+            Coefficient at ``idx``.
         """
-        element = self.q
-        element = element[idx]  # or, p.dob = p.dob.__getitem__(indx)
-        return element
+        return self.q[idx]
 
     def __setitem__(self, idx, value):
         """
-        Set an element of Quaternion
+        Set a coefficient by index.
 
-        :param idx: index of the Quaternion element to call 0..3
-        :param value: float
+        Parameters
+        ----------
+        idx :
+            Index in range ``0..3``.
+        value :
+            New coefficient value.
         """
         self.q[idx] = value
 
-    def __repr__(self):
-        """
-        Printing method override
+    def __len__(self):
+        """Length of the quaternion, always 4."""
+        return 4
 
-        :return: Quaterion in readable form
-        :rtype: str
-        """
-        q = np.array2string(self.array(),
-                            precision=10,
-                            suppress_small=True,
-                            separator=', ',
-                            max_line_width=100000)
+    def __iter__(self):
+        """Iterate over quaternions."""
+        return iter(self.q)
+
+    # ------------------------------------------------------------------
+    # Representation
+    # ------------------------------------------------------------------
+
+    def __repr__(self):
+        q = numpy.array2string(self.array(),
+                               precision=16,
+                               suppress_small=True,
+                               separator=', ',
+                               max_line_width=100000)
         return f"{self.__class__.__qualname__}({q})"
 
-    def __add__(self, other):
-        """
-        Quaternion addition
+    # ------------------------------------------------------------------
+    # Properties
+    # ------------------------------------------------------------------
 
-        :param other: Quaternion
-        :return: Quaternion
+    @property
+    def coordinates(self):
         """
-        return Quaternion(self.q + other.q)
+        Return the coordinates of the quaternion.
 
-    def __sub__(self, other):
+        Returns
+        -------
+        numpy.ndarray
+            4-vector of quaternion coordinates.
         """
-        Quaternion subtraction
+        return self.q.copy()
 
-        :param other: Quaternion
-        :return: Quaternion
-        """
-        return Quaternion(self.q - other.q)
+    # ------------------------------------------------------------------
+    # Arithmetic operators
+    # ------------------------------------------------------------------
 
-    def __mul__(self, other):
+    def __add__(self, other: "Quaternion") -> "Quaternion":
         """
-        Quaternion Multiplication
+        Add two quaternions.
 
-        :param other: Quaternion
-        :return: Quaternion
+        Parameters
+        ----------
+        other :
+            Quaternion to add.
+
+        Returns
+        -------
+        Quaternion
+            Element-wise sum.
         """
-        if isinstance(other, (int, float)):
-            return Quaternion(self.q * other)
-        else:
+        return self.__class__(self.q + other.q)
+
+    def __sub__(self, other: "Quaternion") -> "Quaternion":
+        """
+        Subtract two quaternions.
+
+        Parameters
+        ----------
+        other :
+            Quaternion to subtract.
+
+        Returns
+        -------
+        Quaternion
+            Element-wise difference.
+        """
+        return self.__class__(self.q - other.q)
+
+    def __mul__(self, other: "Quaternion | int | float") -> "Quaternion":
+        """
+        Multiply two quaternions, or scale by a scalar.
+
+        Parameters
+        ----------
+        other :
+            Quaternion, or a scalar ``int`` / ``float``.
+
+        Returns
+        -------
+        Quaternion
+            Hamilton product, or scalar-scaled quaternion.
+        """
+        if isinstance(other, Quaternion):
             w, x, y, z = self.q
             ow, ox, oy, oz = other.q
-            return Quaternion(np.array([w * ow - x * ox - y * oy - z * oz,
-                                        w * ox + x * ow + y * oz - z * oy,
-                                        w * oy - x * oz + y * ow + z * ox,
-                                        w * oz + x * oy - y * ox + z * ow]))
-
-    def __rmul__(self, other):
-        """Handle when the quaternion is on the right side of the multiplication"""
-        return self.__mul__(other)
-
-    def __truediv__(self, other):
-        """
-        Quaternion division
-
-        :param Quaternion, int, float other: Quaternion
-
-        :return: Quaternion
-        :rtype: Quaternion
-        """
-        if isinstance(other, (int, float)):
-            return Quaternion(self.q / other)
+            return self.__class__(numpy.array([
+                w * ow - x * ox - y * oy - z * oz,
+                w * ox + x * ow + y * oz - z * oy,
+                w * oy - x * oz + y * ow + z * ox,
+                w * oz + x * oy - y * ox + z * ow,
+            ]))
         else:
+            return self.__class__(self.q * other)
+
+    def __rmul__(self, other: "Quaternion | int | float") -> "Quaternion":
+        """Scalar-on-left multiplication, delegates to ``__mul__``."""
+        from numbers import Number  # lazy import
+        if isinstance(other, Number):
+            return self.__mul__(other)
+        return NotImplemented
+
+    def __truediv__(self, other: "Quaternion | int | float") -> "Quaternion":
+        """
+        Divide by a quaternion or scalar.
+
+        Parameters
+        ----------
+        other :
+            Quaternion, or a scalar ``int`` / ``float``.
+
+        Returns
+        -------
+        Quaternion
+            ``self * other.inv()`` for quaternions, or element-wise
+            division for scalars.
+        """
+        if isinstance(other, Quaternion):
             return self * other.inv()
+        return self.__class__(self.q / other)
 
-    def __neg__(self):
+    def __neg__(self) -> "Quaternion":
         """
-        Quaternion negation
+        Negate the quaternion.
 
-        :return: Quaternion
-        :rtype: Quaternion
+        Returns
+        -------
+        Quaternion
+            Quaternion with all coefficients negated.
         """
-        return Quaternion(-1 * self.q)
+        return self.__class__(-self.q)
 
-    def __eq__(self, other):
+    def __eq__(self, other: "Quaternion") -> bool:
         """
-        Compare two Quaternions if they are equal
+        Test coefficient-wise equality.
 
-        :param other: Quaternion
-        :return: bool
+        Parameters
+        ----------
+        other :
+            Quaternion to compare against.
+
+        Returns
+        -------
+        bool
+            ``True`` if all coefficients are equal.
         """
-        return np.array_equal(self.array(), other.array())
+        return numpy.array_equal(self.array(), other.array())
 
-    def array(self):
+    # ------------------------------------------------------------------
+    # Core operations
+    # ------------------------------------------------------------------
+
+    def array(self) -> numpy.ndarray:
         """
-        Quaternion to numpy array
+        Return coefficients as a numpy array.
 
-        :return: numpy array of quaternion 4-vector parameters
-        :rtype: np.ndarray
+        Returns
+        -------
+        numpy.ndarray
+            4-vector ``[w, x, y, z]``.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            from rational_linkages import Quaternion
+
+            q = Quaternion([1, 2, 3, 4])
+            q_array = q.array()
+            print(q_array)  # numpy.array([1., 2., 3., 4.])
+
+        .. clear-namespace::
+
         """
-        return np.array([self.q[0], self.q[1], self.q[2], self.q[3]])
+        return self.q.copy()
 
-    def conjugate(self):
+    def conjugate(self) -> "Quaternion":
         """
-        Quaternion conjugate
+        Quaternion conjugate.
 
-        :return: Quaternion
-        :rtype: Quaternion
+        Returns
+        -------
+        Quaternion
+            ``[w, -x, -y, -z]``.
+
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            from rational_linkages import Quaternion
+
+            q = Quaternion([1, 2, 3, 4])
+            q_conj = q.conjugate()
+            print(q_conj)  # [1., -2., -3., -4.]
+
+        .. clear-namespace::
+
         """
-        q0 = self.q[0]
-        q1 = -1 * self.q[1]
-        q2 = -1 * self.q[2]
-        q3 = -1 * self.q[3]
+        return self.__class__([self.q[0], -self.q[1], -self.q[2], -self.q[3]])
 
-        return Quaternion(np.array([q0, q1, q2, q3]))
-
-    def norm(self):
+    def norm(self) -> float:
         """
-        Quaternion norm, aslo called the Quadrance
+        Quaternion norm (also called the Quadrance).
 
-        :return: Quaternion
-        :rtype: float
+        Returns the squared length ``w² + x² + y² + z²``, not the
+        Euclidean length. See `length` for the latter.
+
+        Returns
+        -------
+        float
+            Squared norm.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            from rational_linkages import Quaternion
+
+            q = Quaternion([1, 2, 3, 4])
+            q_quadrance = q.norm()
+            print(q_quadrance)
+
+        .. clear-namespace::
+
         """
-        q0 = self.q[0]
-        q1 = self.q[1]
-        q2 = self.q[2]
-        q3 = self.q[3]
+        return float(numpy.dot(self.q, self.q))
 
-        return q0**2 + q1**2 + q2**2 + q3**2
-
-    def length(self):
+    def length(self) -> float:
         """
-        Quaternion length
+        Euclidean length of the quaternion.
 
-        :return: Quaternion
-        :rtype: float
-        """
-        return np.sqrt(self.norm())
+        Returns
+        -------
+        float
+            ``sqrt(norm())``.
 
-    def inv(self):
-        """
-        Quaternion inverse
+        Examples
+        --------
 
-        :return: Quaternion
-        :rtype: Quaternion
+        .. code-block:: python
+
+            from rational_linkages import Quaternion
+
+            q = Quaternion([1, 2, 3, 4])
+            q_len = q.length()
+            print(q_len)
+
+        .. clear-namespace::
+
         """
-        return Quaternion(self.conjugate().array() / self.norm())
+        return float(numpy.sqrt(self.norm()))
+
+    def inv(self) -> "Quaternion":
+        """
+        Quaternion inverse.
+
+        Returns
+        -------
+        Quaternion
+            ``conjugate() / norm()``.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            from rational_linkages import Quaternion
+
+            q = Quaternion([1, 2, 3, 4])
+            q_inv = q.inv()
+            print(q_inv)
+
+        .. clear-namespace::
+
+        """
+        return self.__class__(self.conjugate().q / self.norm())
+
+    def normalize(self) -> "Quaternion":
+        """
+        Normalize the quaternion to unit length.
+
+        Returns
+        -------
+        Quaternion
+            Normalized quaternion with the same direction but length 1.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            from rational_linkages import Quaternion
+
+
+            q = Quaternion([2, 1, -2, 0])
+            q_normalized = q.normalize()
+            print(q_normalized)
+
+        .. clear-namespace::
+
+        """
+        return self / self.length()
+
+
+    def eval(self, subs: dict) -> "Quaternion":
+        """
+        Evaluate the quaternion by substituting symbols with values.
+
+        Parameters
+        ----------
+        subs : dict
+            Dictionary mapping SymPy symbols to numeric values.
+
+        Returns
+        -------
+        Quaternion
+            New numeric quaternion with substitutions applied, backed by
+            ``float64``.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import Quaternion
+            from sympy import symbols
+
+
+            t = symbols("t")
+            q1 = Quaternion([5*t, 3, 0, -t])
+            q_numeric = q1.eval({t : 1})
+            print(type(q_numeric))   # Quaternion (numeric)
+            print(q_numeric)
+
+        .. clear-namespace::
+
+        """
+        evaluated = [float(v.subs(subs)) if hasattr(v, "subs") else float(v)
+                     for v in self.q]
+        return Quaternion(evaluated)
+
+    def evalf(self) -> "Quaternion":
+        """
+        Placeholder for QuaternionSymbolic.evalf() method.
+
+        Returns
+        -------
+        Quaternion
+            Evaluated quaternion.
+        """
+        return self

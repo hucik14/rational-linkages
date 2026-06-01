@@ -1,16 +1,11 @@
-import unittest
-
 import sympy
+import pytest
 
-from rational_linkages import (
-    PointHomogeneous,
-    RationalMechanism,
-    RationalCurve)
-
+from rational_linkages import RationalMechanism, RationalCurve
 from rational_linkages.AffineMetric import AffineMetric
 
 
-class TestAffineMetric(unittest.TestCase):
+class TestAffineMetric:
     def test_init(self):
         t = sympy.Symbol("t")
         curve = RationalCurve([sympy.Poly(1.0 * t ** 2 - 2.0, t),
@@ -26,6 +21,7 @@ class TestAffineMetric(unittest.TestCase):
         m_points = m.points_at_parameter(0, inverted_part=True, only_links=True)
 
         metric = AffineMetric(curve, m_points)
-        self.assertTrue(isinstance(metric, AffineMetric))
+        assert isinstance(metric, AffineMetric)
 
         # TODO: test attributes
+

@@ -39,7 +39,7 @@ following badge:
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb)
 
 In case of other questions or contributions, please, email the author at:
-`daniel.huczala@uibk.ac.at`
+`daniel.huczala@snu.ac.kr`
 
 STL files of some mechanisms may be found as
 [models on Printables.com](https://www.printables.com/@hucik14_497869/collections/443601).
@@ -65,17 +65,13 @@ Using pip:
 
 or with optional dependencies:
 
-<code>pip install rational-linkages[opt,exu]</code>
+<code>pip install "rational-linkages[opt,cad]"</code>
 
-Mac/linux users might need to use backslashes to escape the brackets, e.g.:
-
-<code>pip install rational-linkages\\[opt,exu\\]</code>
-
-for installing also **opt**ional dependencies (scipy - optimization problems solving, ipython - inline plotting,  
-matplotlib - alternative engine for 3D plotting, gmpy2 - optimized symbolic computations, trimesh + manifold3d - STL
-meshes generation) 
-and **cad** dependencies (exudyn - multibody simulations, ngsolve - work with meshes in exudyn,
-build123d - generating STEP files of linkages, trimesh + manifold 3d - generating STL files).
+for installing also **opt**ional dependencies (ipython - inline plotting,
+scipy - optimization problems solving, matplotlib - alternative engine for 3D plotting)
+and **cad** dependencies (exudyn - multibody simulations,
+ngsolve - work with meshes in exudyn, build123d - generating STEP files of linkages,
+trimesh + manifold3d - generating STL files).
 
 On **Linux systems**, to run GUI interactive plotting, 
 some additional libraries might be required for plotting with PyQt6. For example, 
@@ -102,15 +98,11 @@ On 64-bit platform, <code>gmpy2</code> package for optimized symbolic computatio
 
 3. Install the *editable* version of the package using pip:
 
-    <code>pip install -e .[opt]</code> 
+    <code>pip install -e ".[opt,cad]"</code> 
 
    or 
     
-   <code>pip install -e .[opt,dev,doc]</code> including the development and documentation dependencies. 
-
-   Mac/linux users might need to use backslashes to escape the brackets, e.g.: 
-
-   <code>pip install -e .\\[opt\\]</code>
+   <code>pip install -e ".[opt,cad,dev,doc]"</code> including the development and documentation dependencies.
 
 
 To locally develop, you need to install the [Rust toolchain](https://www.rust-lang.org) and 

@@ -15,9 +15,10 @@ Tutorials
    tutorials/synthesis_bennett
    tutorials/mechanism_with_tool
    tutorials/cad
-   tutorials/rational_pluecker_lines
-   tutorials/motion_recovering
    tutorials/control
    tutorials/trajectory_planning
    tutorials/exudyn_analysis
+   tutorials/symbolic_backend
+   tutorials/rational_pluecker_lines
+   tutorials/motion_recovering
 

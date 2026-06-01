@@ -1,6 +1,14 @@
 Rational Linkages
 =================
 
+Backend Utilities
+-----------------
+
+.. automodule:: rational_linkages.backend
+   :members: set_backend, get_backend, is_symbolic
+   :undoc-members:
+   :show-inheritance:
+
 AffineMetric
 ------------
 
@@ -25,10 +33,18 @@ Dual Quaternion
    :undoc-members:
    :show-inheritance:
 
+Dual Quaternion Symbolic
+------------------------
+
+.. automodule:: rational_linkages.DualQuaternionSymbolic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Dual Quaternion Action
 ----------------------
 
-.. automodule:: rational_linkages.DualQuaternionAction
+.. automodule:: rational_linkages.dualQuaternionAction
    :members:
    :undoc-members:
    :show-inheritance:
@@ -46,6 +62,7 @@ Factorization Provider
 
 .. automodule:: rational_linkages.FactorizationProvider
    :members:
+   :exclude-members: Rational, Symbol
    :undoc-members:
    :show-inheritance:
 
@@ -86,6 +103,7 @@ Motion Factorization
 
 .. automodule:: rational_linkages.MotionFactorization
    :members:
+   :exclude-members: Poly, Symbol
    :undoc-members:
    :show-inheritance:
 
@@ -105,10 +123,26 @@ Normalized Line
    :undoc-members:
    :show-inheritance:
 
+Normalized Line Symbolic
+------------------------
+
+.. automodule:: rational_linkages.NormalizedLineSymbolic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Normalized Plane
 ----------------
 
 .. automodule:: rational_linkages.NormalizedPlane
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Normalized Plane Symbolic
+-------------------------
+
+.. automodule:: rational_linkages.NormalizedPlaneSymbolic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -145,10 +179,26 @@ Point Homogeneous
    :undoc-members:
    :show-inheritance:
 
+Point Homogeneous Symbolic
+--------------------------
+
+.. automodule:: rational_linkages.PointHomogeneousSymbolic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Quaternion
 ----------
 
 .. automodule:: rational_linkages.Quaternion
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Quaternion Symbolic
+-------------------
+
+.. automodule:: rational_linkages.QuaternionSymbolic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -169,14 +219,6 @@ Rational Curve
    :undoc-members:
    :show-inheritance:
 
-Rational Dual Quaternion
-------------------------
-
-.. automodule:: rational_linkages.RationalDualQuaternion
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Rational Mechanism
 ------------------
 
@@ -193,10 +235,18 @@ Static Mechanism
    :undoc-members:
    :show-inheritance:
 
-Transf Matrix
--------------
+Transformation Matrix
+---------------------
 
 .. automodule:: rational_linkages.TransfMatrix
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Transformation Matrix Symbolic
+------------------------------
+
+.. automodule:: rational_linkages.TransfMatrixSymbolic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -212,7 +262,20 @@ Utilities (Python)
 Utilities (Rust)
 ----------------
 
-.. automodule:: rational_linkages.utils_rust
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. py:module:: rational_linkages.utils_rust
+
+   Rust-compiled extension module for performance-critical operations.
+
+.. py:function:: motion_interp_x3(p1, p2, p3)
+
+   :param numpy.ndarray p1: First point.
+   :param numpy.ndarray p2: Second point.
+   :param numpy.ndarray p3: Third point.
+   :returns: Interpolated result.
+   :rtype: list
+
+.. py:function:: sum_as_string(x, y)
+
+   :param int x: First integer.
+   :param int y: Second integer.
+   :rtype: str

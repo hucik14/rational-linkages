@@ -80,7 +80,7 @@ the **Binder** service. Click on the badge to start
 the Jupyter Notebook: |binder_badge|
 
 In case of other questions or contributions, please, email the author at:
-daniel.huczala@uibk.ac.at
+daniel.huczala@snu.ac.kr
 
 Main Features:
 --------------
@@ -105,15 +105,6 @@ of Ostrava. See `full video on Youtube <https://www.youtube.com/watch?v=T_7lkPjd
    tutorials
    background-math
    modules
-
-
-Indices and Tables:
--------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
 
 Authors
 -------

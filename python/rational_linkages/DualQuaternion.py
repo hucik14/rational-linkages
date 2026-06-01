@@ -1,595 +1,957 @@
-from typing import Optional, Sequence, Union
+from typing import Optional, Sequence
 from warnings import warn
 
-import numpy as np
-from sympy import Expr, Poly, simplify
+import numpy
 
 from .Quaternion import Quaternion
-
-# Forward declarations for class names
-NormalizedLine = "NormalizedLine"
-PointHomogeneous = "PointHomogeneous"
+from .backend import is_symbolic
 
 
 class DualQuaternion:
     """
-    Class representing Dual Quaternions in 3D space.
+    Dual quaternion representing a rigid body displacement in 3D space.
 
-    Dual Quaternions are used in kinematics and computer graphics for transformations
-    and interpolations. They consist of a primal quaternion representing rotation and
-    translation and a dual quaternion representing infinitesimal transformations.
+    A dual quaternion consists of a primal part ``p`` (rotation) and a dual
+    part ``d`` (translation), stored as two :class:`.Quaternion`
+    instances. The 8 Study parameters ``[p0, p1, p2, p3, d0, d1, d2, d3]``
+    are the concatenation of the two quaternion coefficient vectors.
 
-    :param list[float] study_parameters: array or list of 8 Study
-        parameters. If None, an identity DualQuaternion is constructed.
+    By default, all computation is performed with NumPy (``float64``). When
+    the global backend is set to ``"sympy"`` via
+    :func:`.set_backend`, construction transparently returns a
+    :class:`.DualQuaternionSymbolic` instance instead.
 
-    :ivar Quaternion p: primal quaternion - the primal part of the Dual Quaternion,
-        representing rotation and translation.  See also :class:`~rational_linkages.Quaternion`
-    :ivar Quaternion d: dual quaternion - the dual part of the Dual Quaternion,
-        representing translation. See also :class:`~rational_linkages.Quaternion`
-    :ivar np.ndarray dq: 8-vector of study parameters, representing the Dual Quaternion
+    Parameters
+    ----------
+    coeffs :
+        8-vector of Study parameters ``[p0, p1, p2, p3, d0, d1, d2, d3]``.
+        If ``None``, the identity dual quaternion ``[1, 0, 0, 0, 0, 0, 0, 0]``
+        is constructed.
 
-    :examples:
+    Attributes
+    ----------
+    p : Quaternion
+        Primal part ``[p0, p1, p2, p3]``, representing rotation.
+    d : Quaternion
+        Dual part ``[d0, d1, d2, d3]``, representing translation.
 
-    .. testcode:: [dq_example1]
+    Raises
+    ------
+    ValueError
+        If ``coeffs`` is not an 8-vector.
 
-        # General usage
+    Examples
+    --------
+    .. code-block:: python
 
         from rational_linkages import DualQuaternion
+
         dq = DualQuaternion([1, 2, 3, 4, 0.1, 0.2, 0.3, 0.4])
+        identity = DualQuaternion()
+        print(dq)
+        print(identity)
 
-    .. testcleanup:: [dq_example1]
+    .. clear-namespace::
 
-        del DualQuaternion, dq
+    .. code-block:: python
 
-    .. testcode:: [dq_example2]
+        from rational_linkages import DualQuaternion, Quaternion
 
-        # Identity dual quaternion with no rotation, no translation
-
-        from rational_linkages import DualQuaternion
-        dq = DualQuaternion()
-
-    .. testcleanup:: [dq_example2]
-
-        del DualQuaternion, dq
-
-    .. testcode:: [dq_example3]
-
-        # Dual quaternion from two quaternions
-
-        from rational_linkages import DualQuaternion
-        from rational_linkages import Quaternion
         q1 = Quaternion([0.5, 0.5, 0.5, 0.5])
         q2 = Quaternion([1, 2, 3, 4])
         dq = DualQuaternion.from_two_quaternions(q1, q2)
+        print(dq)
 
-    .. testcleanup:: [dq_example3]
+    .. clear-namespace::
 
-        del DualQuaternion, dq, Quaternion, q1, q2
-        
+    .. code-block:: python
+
+        # Symbolic backend
+
+        import rational_linkages
+        rational_linkages.set_backend("sympy")
+
+        from rational_linkages import DualQuaternion
+        from sympy import symbols
+
+        p0, p1, p2, p3, d0, d1, d2, d3 = symbols("p0 p1 p2 p3 d0 d1 d2 d3", real=True)
+        dq = DualQuaternion([p0, p1, p2, p3, d0, d1, d2, d3])
+        print(dq)
+
+        rational_linkages.set_backend("numpy")
+
+    .. clear-namespace::
     """
 
-    def __init__(self, study_parameters: Optional[Sequence[float]] = None):
-        """
-        Dual Quaternion object, assembled from 8-vector (list or np.array) as DQ,
-        or two 4-vectors (np.arrays) as two Quaternions (see @classmethod bellow).
-        If no Study's parameters are provided, an identity is constructed.
+    __hash__ = None
+    __array_priority__ = 20.0
 
-        :param Optional[Sequence[float]] study_parameters: array or list
-            of 8 Study's parameters. If None, an identity DualQuaternion is constructed.
-            Defaults to None.
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
+
+    def __new__(cls, coeffs=None, rational: bool = False):
         """
-        if study_parameters is not None:
-            if len(study_parameters) != 8:
+        Intercept construction and return a
+        :class:`.DualQuaternionSymbolic` when the global
+        backend is ``"sympy"``.
+
+        Only applied when ``cls`` is exactly ``DualQuaternion``; subclass
+        constructors are never redirected.
+
+        Parameters
+        ----------
+        coeffs :
+            Forwarded unchanged to ``__init__``.
+        rational :
+            Keeps or forces rational values by using symbolic backend
+
+        Returns
+        -------
+        DualQuaternion or DualQuaternionSymbolic
+        """
+        if cls is DualQuaternion:
+            symbolic = is_symbolic() or rational or (
+                    coeffs is not None
+                    and any(hasattr(c, 'free_symbols') for c in coeffs)
+            )
+            if symbolic:
+                from .DualQuaternionSymbolic import DualQuaternionSymbolic
+                return object.__new__(DualQuaternionSymbolic)
+        return object.__new__(cls)
+
+    # ------------------------------------------------------------------
+    # Construction
+    # ------------------------------------------------------------------
+
+    def __init__(self, coeffs: Optional[Sequence[float]] = None, rational: bool = False):
+        self.is_rational = rational
+        if coeffs is not None:
+            if len(coeffs) != 8:
                 raise ValueError("DualQuaternion: input has to be 8-vector")
-            study_parameters = np.asarray(study_parameters)
-            primal = study_parameters[:4]
-            dual = study_parameters[4:]
+            coeffs = numpy.asarray(coeffs)
+            import sympy as _sympy
+            if any(isinstance(v, _sympy.Basic) for v in coeffs):
+                from .QuaternionSymbolic import QuaternionSymbolic
+                self.p = QuaternionSymbolic(coeffs[:4])
+                self.d = QuaternionSymbolic(coeffs[4:])
+            else:
+                try:
+                    coeffs = coeffs.astype(numpy.float64)
+                except (TypeError, ValueError):
+                    coeffs = coeffs.astype(object)
+                self.p = Quaternion(coeffs[:4])
+                self.d = Quaternion(coeffs[4:])
         else:
-            primal = np.array([1, 0, 0, 0])
-            dual = np.array([0, 0, 0, 0])
+            self.p = Quaternion([1.0, 0.0, 0.0, 0.0])
+            self.d = Quaternion([0.0, 0.0, 0.0, 0.0])
 
-        self.p = Quaternion(primal)
-        self.d = Quaternion(dual)
-        self.dq = self.array()
-
-        # check if all entries of the DQ are rational numbers
-        if all(isinstance(x, Expr) for x in self.array()):
-            self.is_rational = True
-        else:
-            self.is_rational = False
+    # ------------------------------------------------------------------
+    # Class methods
+    # ------------------------------------------------------------------
 
     @classmethod
     def from_two_quaternions(
         cls, primal: Quaternion, dual: Quaternion
     ) -> "DualQuaternion":
         """
-        Construct DualQuaternion from primal and dual Quaternions.
+        Construct a DualQuaternion from primal and dual Quaternions.
 
-        :param Quaternion primal: primal part
-        :param Quaternion dual: dual part
+        Parameters
+        ----------
+        primal :
+            Primal (rotation) quaternion.
+        dual :
+            Dual (translation) quaternion.
 
-        :return: DualQuaternion
-        :rtype: DualQuaternion
+        Returns
+        -------
+        DualQuaternion
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion, Quaternion
+
+            p = Quaternion([1, 0, 0, 0])
+            d = Quaternion([0, 1, 0, 0])
+            dq = DualQuaternion.from_two_quaternions(p, d)
+            print(dq)
+
+        .. clear-namespace::
+
         """
-        return cls(np.concatenate((primal.array(), dual.array())))
+        return cls(numpy.concatenate((primal.array(), dual.array())))
 
     @classmethod
-    def from_bq_biquaternion(cls, biquaternion):
+    def random(cls, interval: float = 1.0) -> "DualQuaternion":
         """
-        Construct DualQuaternion from a biquaternion.
+        Construct a random DualQuaternion with coefficients in
+        ``(-interval, interval)``.
 
-        :param biquaternion_py.biquaternion.BiQuaternion biquaternion: biquaternion
+        Parameters
+        ----------
+        interval :
+            Half-width of the uniform sampling range. Default ``1.0``.
 
-        :return: DualQuaternion
-        :rtype: DualQuaternion
+        Returns
+        -------
+        DualQuaternion
 
-        :raises ValueError: if the input is not a
-            biquaternion_py.biquaternion.BiQuaternion object
-
-        :examples:
-
-        .. testcode:: [dq_bq_example1]
-
-            # Construct dual quaternion from a BiQuaternion
+        Examples
+        --------
+        .. code-block:: python
 
             from rational_linkages import DualQuaternion
-            from biquaternion_py import II, JJ, KK, EE
-            bq = 2*KK + EE * II
-            dq = DualQuaternion.from_bq_biquaternion(bq)
 
-        .. testcleanup:: [dq_bq_example1]
+            dq = DualQuaternion.random()
+            print(dq)
 
-            del DualQuaternion, dq, II, JJ, KK, EE, bq
+        .. clear-namespace::
 
-        .. testcode:: [dq_bq_example2]
+        """
+        if cls is DualQuaternion and is_symbolic():
+            from .DualQuaternionSymbolic import DualQuaternionSymbolic
+            return DualQuaternionSymbolic.random(interval)
+        return cls(numpy.random.uniform(-interval, interval, 8))
 
-            # Construct dual quaternion from a BiQuaternion
+    @classmethod
+    def random_on_study_quadric(cls, interval: float = 1.0) -> "DualQuaternion":
+        """
+        Construct a random DualQuaternion projected onto the Study quadric.
+
+        Parameters
+        ----------
+        interval :
+            Half-width of the uniform sampling range. Default ``1.0``.
+
+        Returns
+        -------
+        DualQuaternion
+        """
+        return cls.random(interval).back_projection()
+
+    @classmethod
+    def random_integers(
+        cls,
+        low: int = -1,
+        high: int = 2,
+        study_condition: bool = True,
+    ) -> "DualQuaternion":
+        """
+        Construct a random DualQuaternion with integer elements.
+
+        Parameters
+        ----------
+        low :
+            Lower bound (inclusive) for random integers. Default ``-1``.
+        high :
+            Upper bound (exclusive) for random integers. Default ``2``.
+        study_condition :
+            If ``True``, project the result onto the Study quadric. Default ``True``.
+
+        Returns
+        -------
+        DualQuaternion
+        """
+        params = numpy.random.randint(low, high, 8).astype(float)
+        dq = cls(params)
+        if study_condition:
+            dq = dq.back_projection()
+        return dq
+
+    @classmethod
+    def as_rational(
+        cls, coeffs: Optional[Sequence] = None
+    ) -> "DualQuaternion":
+        """
+        Construct a DualQuaternion from SymPy ``Rational`` numbers.
+
+        .. deprecated::
+            ``as_rational`` is deprecated and will be removed in a future
+            version. Pass SymPy ``Rational`` values directly to the
+            ``DualQuaternion`` constructor instead::
+
+                from sympy import Rational
+                dq = DualQuaternion([Rational(1, 2), 0, 0, 0, 0, 0, 0, 0])
+
+        Each element of ``coeffs`` is converted to a
+        :class:`sympy.Rational`. Elements may be plain numbers (converted via
+        ``Rational(x)``), or 2-tuples ``(p, q)`` (converted via
+        ``Rational(p, q)``). If ``None``, the rational identity dual quaternion
+        is returned.
+
+        Parameters
+        ----------
+        coeffs :
+            List or array of 8 numbers or ``(numerator, denominator)`` tuples.
+            If ``None``, the identity is constructed.
+
+        Returns
+        -------
+        DualQuaternion
+            Dual quaternion whose coefficients are SymPy ``Rational`` objects.
+
+        """
+        warn(
+            "DualQuaternion.as_rational() is deprecated and will be removed in a "
+            "future version. Pass sympy.Rational values directly to the "
+            "DualQuaternion constructor instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        from sympy import Rational, Expr
+
+        if coeffs is not None:
+            rational_params = [
+                x if isinstance(x, Expr)
+                else Rational(*x) if isinstance(x, tuple)
+                else Rational(x)
+                for x in coeffs
+            ]
+        else:
+            rational_params = [
+                Rational(1), Rational(0), Rational(0), Rational(0),
+                Rational(0), Rational(0), Rational(0), Rational(0),
+            ]
+        return cls(rational_params)
+
+    @classmethod
+    def from_bq_biquaternion(cls, biquaternion) -> "DualQuaternion":
+        """
+        Construct a DualQuaternion from a ``biquaternion_py`` BiQuaternion.
+
+        Parameters
+        ----------
+        biquaternion :
+            A ``biquaternion_py.biquaternion.BiQuaternion`` instance.
+
+        Returns
+        -------
+        DualQuaternion
+
+        Raises
+        ------
+        ValueError
+            If ``biquaternion`` is not a ``BiQuaternion`` instance.
+
+        Examples
+        --------
+        .. code-block:: python
 
             from rational_linkages import DualQuaternion
             from biquaternion_py import BiQuaternion
+
             bq = BiQuaternion(1, 0, 0, 0, 0, 2, 3, 4)
             dq = DualQuaternion.from_bq_biquaternion(bq)
+            print(dq)
 
-        .. testcleanup:: [dq_bq_example2]
+        .. clear-namespace::
 
-            del DualQuaternion, dq, BiQuaternion, bq
         """
-        from biquaternion_py import BiQuaternion
+        from biquaternion_py import BiQuaternion  # lazy import
 
         if not isinstance(biquaternion, BiQuaternion):
-            raise ValueError("The input has to be a "
-                             "biquaternion_py.biquaternion.BiQuaternion object"
-                             "from biquaternion_py package.")
-
-        coeffs = biquaternion.coeffs
-        return cls(np.array(coeffs, dtype="float64"))
+            raise ValueError(
+                "Input must be a biquaternion_py.biquaternion.BiQuaternion object."
+            )
+        return cls(numpy.array(biquaternion.coeffs, dtype="float64"))
 
     @classmethod
-    def from_bq_poly(cls, poly, indet):
+    def from_bq_poly(cls, poly, indet) -> "DualQuaternion":
         """
-        Construct DualQuaternion from a biquaternion polynomial.
+        Construct a DualQuaternion from a degree-1 ``biquaternion_py`` polynomial.
 
-        The biquaternion polynomial is given in the form (t - h), where t is the
-        indeterminant and h is a biquaternion. To obtain the DualQuaternion, the
-        coefficients of the polynomial are negated and then assembled into a numpy
-        array.
+        The polynomial is expected to be of the form ``(t - h)``, where ``t``
+        is the indeterminate and ``h`` is a BiQuaternion. The DualQuaternion is
+        assembled from the negated constant coefficients of the polynomial.
 
-        :param biquaternion_py.polynomials.Poly poly: biquaternion polynomial
-        :param sp.Symbol indet: indeterminant of the polynomial
+        Parameters
+        ----------
+        poly :
+            A ``biquaternion_py.polynomials.Poly`` instance of degree 1.
+        indet :
+            The SymPy symbol used as indeterminate of the polynomial.
 
-        :return: DualQuaternion
-        :rtype: DualQuaternion
+        Returns
+        -------
+        DualQuaternion
 
-        :raises ValueError: if the input is not a biquaternion_py.polynomials.Poly
-            object
-        :raises ValueError: if the polynomial is not of degree 1
+        Raises
+        ------
+        ValueError
+            If ``poly`` is not a ``Poly`` instance or is not of degree 1.
 
-        :examples:
-
-        .. testcode:: [dq_bq_poly_example1]
-
-            # Construct dual quaternion from a BiQuaternion polynomial
+        Examples
+        --------
+        .. code-block:: python
 
             from rational_linkages import DualQuaternion
-            from biquaternion_py import Poly, II, JJ, KK, EE
+            from biquaternion_py import Poly, KK, EE, II
             from sympy import Symbol
 
-            t = Symbol('t')
-            h = 2*KK + EE * II
-            poly_bq = Poly(t - h, t)
+            t = Symbol("t")
+            h = 2 * KK + EE * II
+            dq = DualQuaternion.from_bq_poly(Poly(t - h, t), indet=t)
+            print(dq)
 
-            # poly_bq must be of form (t - h), i.e. degree 1 otherwise ValueError is raised
-            dq = DualQuaternion.from_bq_poly(poly_bq, indet=t)
+        .. clear-namespace::
 
-        .. testcleanup:: [dq_bq_poly_example1]
-
-            del DualQuaternion, dq, Poly, II, JJ, KK, EE, Symbol, t, h, poly_bq
         """
-        from biquaternion_py import Poly
+        from biquaternion_py import Poly  # lazy import
 
         if not isinstance(poly, Poly):
-            raise ValueError("The input has to be a biquaternion_py.polynomials.Poly "
-                             "object from biquaternion_py package.")
-        elif poly.deg(indet) != 1:
-            raise ValueError("The polynomial has to be of degree 1.")
+            raise ValueError(
+                "Input must be a biquaternion_py.polynomials.Poly object."
+            )
+        if poly.deg(indet) != 1:
+            raise ValueError("Polynomial must be of degree 1.")
 
         poly_coeffs = [-x for x in poly.coeff(indet, 0).coeffs]
-        return cls(np.array(poly_coeffs, dtype="float64"))
+        return cls(numpy.array(poly_coeffs, dtype="float64"))
 
-    @classmethod
-    def as_rational(cls, study_parameters: Union[list, np.ndarray] = None):
+    # ------------------------------------------------------------------
+    # Representation
+    # ------------------------------------------------------------------
+
+    def __repr__(self) -> str:
+        arr = numpy.array2string(
+            self.array(),
+            precision=16,
+            suppress_small=True,
+            separator=", ",
+            max_line_width=100000,
+        )
+        return f"{self.__class__.__qualname__}({arr})"
+
+    # ------------------------------------------------------------------
+    # Indexing
+    # ------------------------------------------------------------------
+
+    def __getitem__(self, idx):
         """
-        Assembly of DualQuaternion from Sympy's rational numbers (Rational).
+        Get a Study parameter by index (0..7).
 
-        :param Union[list, np.ndarray] study_parameters: list of 8 numbers
+        Parameters
+        ----------
+        idx :
+            Index in range ``0..7``.
 
-        :return: DualQuaternion with rational elements
-        :rtype: DualQuaternion
+        Returns
+        -------
+        float
         """
-        from sympy import Rational
-
-        if study_parameters is not None:
-            rational_numbers = [x if isinstance(x, Expr)
-                                else Rational(*x) if isinstance(x, tuple)
-                                else Rational(x)
-                                for x in study_parameters]
-        else:
-            rational_numbers = [Rational(1), Rational(0), Rational(0), Rational(0),
-                                Rational(0), Rational(0), Rational(0), Rational(0)]
-
-        return cls(rational_numbers)
-
-    @classmethod
-    def random(cls, interval: float = 1):
-        """
-        Construct a random DualQuaternion with in the interval (-interval, interval)
-
-        :param float interval: interval of random numbers
-
-        :return: DualQuaternion with random numbers
-        :rtype: DualQuaternion
-        """
-        study_parameters = np.random.uniform(-interval, interval, 8)
-        return cls(study_parameters)
-
-    @classmethod
-    def random_on_study_quadric(cls, interval: float = 1):
-        """
-        Construct a random DualQuaternion on the Study quadric
-
-        The interval (-interval, interval) is used to generate random numbers.
-
-        :param float interval: interval of random numbers
-
-        :return: DualQuaternion with random numbers lying on the Study quadric
-        :rtype: DualQuaternion
-        """
-        dq = cls.random(interval)
-        return dq.back_projection()
-
-    @classmethod
-    def random_integers(cls,
-                        low: int = -1,
-                        high: int = 2,
-                        study_condition: bool = True) -> "DualQuaternion":
-        """
-        Construct a random DualQuaternion with integer elements, opt. on Study Quadric
-
-        :param int low: lower bound of random integers
-        :param int high: upper bound of random integers
-        :param bool study_condition: if True, the generated DualQuaternion is
-            on the Study quadric. Defaults to True.
-
-        :return: DualQuaternion with random integer elements
-        :rtype: DualQuaternion
-        """
-        study_parameters = np.random.randint(low, high, 8)
-        if study_condition:
-            dq = cls(study_parameters)
-            dq = dq.back_projection()
-            study_parameters = dq.array()
-        return cls(study_parameters)
-
-    def __repr__(self):
-        """
-        Printing method override
-
-        :return: DualQuaterion in readable form
-        :rtype: str
-        """
-        dq = np.array2string(self.array(),
-                             precision=10,
-                             suppress_small=True,
-                             separator=', ',
-                             max_line_width=100000)
-        return f"{dq}"
-
-    def __getitem__(self, idx) -> np.ndarray:
-        """
-        Get an element of DualQuaternion
-
-        :param int idx: index of the Quaternion element to call 0..7
-
-        :return: float number of the element
-        :rtype: np.ndarray
-        """
-        element = self.array()
-        element = element[idx]  # or, p.dob = p.dob.__getitem__(idx)
-        return element
+        return self.array()[idx]
 
     def __setitem__(self, idx, value):
         """
-        Set an element of DualQuaternion
+        Set a Study parameter by index (0..7).
 
-        :param int idx: index of the element to set (0..7)
-        :param value: value to set
+        Parameters
+        ----------
+        idx :
+            Index in range ``0..7``.
+        value :
+            New value.
         """
         if idx < 4:
             self.p[idx] = value
         else:
             self.d[idx - 4] = value
-        # Update the array representation
-        self.dq = self.array()
 
-    def __eq__(self, other) -> bool:
+    def __len__(self) -> int:
+        """Length of the dual quaternion, always 8."""
+        return 8
+
+    def __iter__(self):
+        """Iterate over Study parameters."""
+        return iter(self.array())
+
+    # ------------------------------------------------------------------
+    # Arithmetic operators
+    # ------------------------------------------------------------------
+
+    def __eq__(self, other: "DualQuaternion") -> bool:
         """
-        Compare two DualQuaternions if they are equal
+        Test coefficient-wise equality.
 
-        :param DualQuaternion other: DualQuaternion
+        Parameters
+        ----------
+        other :
+            DualQuaternion to compare against.
 
-        :return: True if two DualQuaternions are equal, False otherwise
-        :rtype: bool
+        Returns
+        -------
+        bool
         """
+        return numpy.array_equal(self.array(), other.array())
 
-        return np.array_equal(self.array(), other.array())
-
-    def __add__(self, other) -> "DualQuaternion":
+    def __add__(self, other: "DualQuaternion") -> "DualQuaternion":
         """
-        Addition of two DualQuaternions
+        Add two dual quaternions.
 
-        :param DualQuaternion other: other DualQuaternion
+        Parameters
+        ----------
+        other :
+            DualQuaternion to add.
 
-        :return: added DualQuaternion
-        :rtype: DualQuaternion
+        Returns
+        -------
+        DualQuaternion
         """
-        p = self.p + other.p
-        d = self.d + other.d
-        return DualQuaternion.from_two_quaternions(p, d)
+        return self.__class__.from_two_quaternions(self.p + other.p, self.d + other.d)
 
-    def __sub__(self, other) -> "DualQuaternion":
+    def __sub__(self, other: "DualQuaternion") -> "DualQuaternion":
         """
-        Subtraction of two DualQuaternions
+        Subtract two dual quaternions.
 
-        :param DualQuaternion other: other DualQuaternion
+        Parameters
+        ----------
+        other :
+            DualQuaternion to subtract.
 
-        :return: subtracted DualQuaternion
-        :rtype: DualQuaternion
+        Returns
+        -------
+        DualQuaternion
         """
-        p = self.p - other.p
-        d = self.d - other.d
-        return DualQuaternion.from_two_quaternions(p, d)
+        return self.__class__.from_two_quaternions(self.p - other.p, self.d - other.d)
 
-    def __mul__(self, other) -> "DualQuaternion":
+    def __mul__(
+        self, other: "DualQuaternion | int | float"
+    ) -> "DualQuaternion":
         """
-        Multiplication of two DualQuaternions
+        Multiply two dual quaternions, or scale by a scalar.
 
-        :param DualQuaternion, int, float other: other DualQuaternion
+        For two dual quaternions the product is defined as:
 
-        :return: multiplied DualQuaternion
-        :rtype: DualQuaternion
+        - primal: ``self.p * other.p``
+        - dual:   ``self.d * other.p + self.p * other.d``
+
+        Parameters
+        ----------
+        other :
+            DualQuaternion, or a scalar ``int`` / ``float``.
+
+        Returns
+        -------
+        DualQuaternion
         """
-        if isinstance(other, (int, float)):
-            return DualQuaternion(self.array() * other)
-        else:
+        if isinstance(other, DualQuaternion):
             p = self.p * other.p
-            d = (self.d * other.p) + (self.p * other.d)
-            return DualQuaternion.from_two_quaternions(p, d)
-
-    def __rmul__(self, other) -> "DualQuaternion":
-        """Handle when the dual quaternion is on the right side of the multiplication"""
-        return self.__mul__(other)
-
-    def __truediv__(self, other) -> "DualQuaternion":
-        """
-        Division of two DualQuaternions
-
-        :param DualQuaternion, int, float other: other DualQuaternion
-
-        :return: divided DualQuaternion
-        :rtype: DualQuaternion
-
-        :warn: if the DualQuaternion was divided by other DualQuaternion
-        """
-        if isinstance(other, (int, float)):
-            return DualQuaternion(self.array() / other)
+            d = self.d * other.p + self.p * other.d
+            return self.__class__.from_two_quaternions(p, d)
         else:
-            warn("DualQuaternion was multiplied by the inverse of the other "
-                 "DualQuaternion.")
+            return self.__class__(self.array() * other)
+
+    def __rmul__(self, other: "DualQuaternion | int | float") -> "DualQuaternion":
+        """Scalar-on-left multiplication, delegates to ``__mul__``."""
+        from numbers import Number
+        if isinstance(other, Number):
+            return self.__mul__(other)
+        return NotImplemented
+
+    def __truediv__(
+        self, other: "DualQuaternion | int | float"
+    ) -> "DualQuaternion":
+        """
+        Divide by a dual quaternion or scalar.
+
+        Dividing by a dual quaternion is equivalent to multiplying by its
+        inverse and emits a warning.
+
+        Parameters
+        ----------
+        other :
+            DualQuaternion, or a scalar ``int`` / ``float``.
+
+        Returns
+        -------
+        DualQuaternion
+        """
+        if isinstance(other, DualQuaternion):
+            warn(
+                "DualQuaternion divided by DualQuaternion: "
+                "computing self * other.inv()."
+            )
             return self * other.inv()
+        return self.__class__(self.array() / other)
 
     def __neg__(self) -> "DualQuaternion":
         """
-        Negation of the DualQuaternion
+        Negate the dual quaternion.
 
-        :return: negated DualQuaternion
-        :rtype: DualQuaternion
+        Returns
+        -------
+        DualQuaternion
         """
-        return DualQuaternion(-1 * self.array())
+        return self.__class__(-self.array())
 
-    def real(self) -> np.ndarray:
+    # ------------------------------------------------------------------
+    # Properties
+    # ------------------------------------------------------------------
+
+    @property
+    def real(self) -> numpy.ndarray:
         """
-        Real part of the DualQuaternion, list of first and fifth element
+        Real scalars of the dual quaternion ``[p0, d0]``.
 
-        :return: real part of the DualQuaternion
-        :rtype: np.ndarray
+        Returns
+        -------
+        numpy.ndarray
+            2-vector.
         """
-        return np.array([self.array()[0], self.array()[4]])
+        arr = self.array()
+        return numpy.array([arr[0], arr[4]])
 
-    def imag(self) -> np.ndarray:
+    @property
+    def imag(self) -> numpy.ndarray:
         """
-        Imaginary part of the DualQuaternion
+        Imaginary parts of the dual quaternion ``[p1, p2, p3, d1, d2, d3]``.
 
-        List of 6 elements - ijk elements of the primal and dual part. In case of a
-        line, these might be Plucker coordinates.
-
-        :return: imaginary part of the DualQuaternion
-        :rtype: np.ndarray
+        Returns
+        -------
+        numpy.ndarray
+            6-vector (e.g. Plücker coordinates when the DQ represents a line).
         """
-        return np.array([self.array()[1], self.array()[2], self.array()[3],
-                         self.array()[5], self.array()[6], self.array()[7]])
+        arr = self.array()
+        return numpy.array([arr[1], arr[2], arr[3], arr[5], arr[6], arr[7]])
+
+    @property
+    def coordinates(self):
+        """
+        Return the coordinates of the dual quaternion.
+
+        Returns
+        -------
+        numpy.ndarray
+            8-vector of dual quaternion coordinates.
+        """
+        return self.array()
+
+    # ------------------------------------------------------------------
+    # Core operations
+    # ------------------------------------------------------------------
+
+    def array(self) -> numpy.ndarray:
+        """
+        Return the 8 Study parameters as a numpy array.
+
+        Returns
+        -------
+        numpy.ndarray
+            8-vector ``[p0, p1, p2, p3, d0, d1, d2, d3]``.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+            print(dq.array())
+
+        .. clear-namespace::
+
+        """
+        return numpy.concatenate((self.p.array(), self.d.array()))
+
+    def conjugate(self) -> "DualQuaternion":
+        """
+        Dual quaternion conjugate, both primal and dual parts.
+
+        Returns
+        -------
+        DualQuaternion
+            ``[p.conjugate(), d.conjugate()]``.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+            print(dq.conjugate())
+
+        .. clear-namespace::
+
+        """
+        return self.__class__.from_two_quaternions(
+            self.p.conjugate(), self.d.conjugate()
+        )
+
+    def eps_conjugate(self) -> "DualQuaternion":
+        """
+        Epsilon (dual) conjugate, negate the dual part only.
+
+        Returns
+        -------
+        DualQuaternion
+            ``[p, -d]``.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+            print(dq.eps_conjugate())
+
+        .. clear-namespace::
+
+        """
+        return self.__class__.from_two_quaternions(self.p, -self.d)
+
+    def norm(self) -> "DualQuaternion":
+        """
+        Dual quaternion norm as a dual number, returned as a DualQuaternion.
+
+        The primal norm ``p·p`` occupies index 0, the dual norm
+        ``2(p·d)`` occupies index 4; all other entries are zero.
+
+        Returns
+        -------
+        DualQuaternion
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 0, 0, 0, 0, 1, 2, 3])
+            print(dq.norm())
+
+        .. clear-namespace::
+
+        """
+        p_arr = self.p.array()
+        d_arr = self.d.array()
+        primal_norm = numpy.dot(p_arr, p_arr)
+        dual_norm = 2.0 * numpy.dot(p_arr, d_arr)
+        return self.__class__(
+            numpy.array([primal_norm, 0.0, 0.0, 0.0, dual_norm, 0.0, 0.0, 0.0])
+        )
+
+    def normalize(self) -> "DualQuaternion":
+        """
+        Normalize the dual quaternion so that ``p0 == 1``.
+
+        Returns
+        -------
+        DualQuaternion
+
+        Raises
+        ------
+        ValueError
+            If the first Study parameter is zero.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([2, 0, 0, 0, 0, 2, 4, 6])
+            print(dq.normalize())
+
+        .. clear-namespace::
+
+        """
+        p0 = self.array()[0]
+        if numpy.isclose(p0, 0.0):
+            raise ValueError(
+                "DualQuaternion: the first Study parameter is zero; "
+                "cannot normalize."
+            )
+        return self.__class__(self.array() / p0)
+
+    def inv(self) -> "DualQuaternion":
+        """
+        Inverse of the dual quaternion.
+
+        Computed as ``p_inv = p.inv()``; ``d_inv = -p_inv * d * p_inv``.
+
+        Returns
+        -------
+        DualQuaternion
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 0, 0, 0, 0, 1, 0, 0])
+            print(dq * dq.inv())
+
+        .. clear-namespace::
+
+        """
+        p_inv = self.p.inv()
+        d_inv = -1 * p_inv * self.d * p_inv
+        return self.__class__.from_two_quaternions(p_inv, d_inv)
 
     def back_projection(self) -> "DualQuaternion":
         """
-        Returns the projection of dual quaternion onto Study quadric.
+        Project the dual quaternion onto the Study quadric (fiber projection).
 
-        The back projection, or also known as fiber projection, is a method to project
-        a dual quaternion onto the Study quadric, i.e. to obtain a proper rigid body
-        displacement that it represents.
+        If the dual quaternion already lies on the Study quadric the instance
+        is returned unchanged.
 
-        :return: DualQuaternion
-        :rtype: DualQuaternion
+        Returns
+        -------
+        DualQuaternion
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 2, 3, 4, 5, 6, 7, 8])
+            dq_on_quadric = dq.back_projection()
+            print(dq_on_quadric.is_on_study_quadric())
+
+        .. clear-namespace::
+
         """
         if self.is_on_study_quadric():
             return self
 
-        else:
-            primal = self.p
-            dual = self.d
+        primal = self.p
+        dual = self.d
+        primal_2norm = 2.0 * primal.norm()
+        new_primal = Quaternion([primal_2norm, 0.0, 0.0, 0.0])
+        new_dual = -1 * (primal * dual.conjugate() - dual * primal.conjugate())
+        zero_q = Quaternion([0.0, 0.0, 0.0, 0.0])
 
-            primal_2norm = 2 * primal.norm()
-            new_primal = Quaternion(np.array([primal_2norm, 0, 0, 0]))
-            new_dual = -1 * (primal * dual.conjugate() - dual * primal.conjugate())
+        dq = (
+            self.__class__.from_two_quaternions(new_primal, new_dual)
+            * self.__class__.from_two_quaternions(primal, zero_q)
+        ) / 2.0
 
-            dq = (DualQuaternion.from_two_quaternions(new_primal, new_dual)
-                  * DualQuaternion.from_two_quaternions(primal, Quaternion(np.zeros(4)))
-                  ) / 2
+        return dq
 
-            return dq
-
-    def array(self) -> np.ndarray:
+    def extended_dot(self, other: "DualQuaternion") -> float:
         """
-        DualQuaternion to numpy array (8-vector of study parameters)
+        Extended scalar (dot) product of two dual quaternions.
 
-        :return: DualQuaternion as numpy array
-        :rtype: np.ndarray
-        """
-        return np.concatenate((self.p.array(), self.d.array()))
+        Defined as ``self.p · other.d + self.d · other.p``.
 
-    def conjugate(self) -> "DualQuaternion":
-        """
-        Dual Quaternion conjugate
+        Parameters
+        ----------
+        other :
+            Second DualQuaternion.
 
-        :return: conjugated DualQuaternion
-        :rtype: DualQuaternion
-        """
-        return DualQuaternion.from_two_quaternions(
-            self.p.conjugate(), self.d.conjugate())
+        Returns
+        -------
+        float
 
-    def eps_conjugate(self) -> "DualQuaternion":
-        """
-        Dual Quaternion epsilon conjugate
+        Examples
+        --------
+        .. code-block:: python
 
-        :return: epsilon-conjugated DualQuaternion
-        :rtype: DualQuaternion
-        """
-        dual_part_eps_c = -1 * self.d.array()
-        return DualQuaternion(np.concatenate((self.p.array(), dual_part_eps_c)))
+            from rational_linkages import DualQuaternion
 
-    def normalize(self) -> "DualQuaternion":
-        """
-        Normalize the DualQuaternion by the first element
+            dq1 = DualQuaternion([1, 0, 0, 0, 0, 1, 0, 0])
+            dq2 = DualQuaternion([1, 0, 0, 0, 0, 0, 1, 0])
+            print(dq1.extended_dot(dq2))
 
-        :return: normalized DualQuaternion
-        :rtype: DualQuaternion
-        """
-        if np.allclose(self.array()[0], 0.):
-            raise ValueError("DualQuaternion: the first element is zero, "
-                             "cannot normalize the DualQuaternion.")
-        return DualQuaternion(self.array() / self.array()[0])
+        .. clear-namespace::
 
-    def norm(self) -> "DualQuaternion":
         """
-        Dual Quaternion norm as dual number (8-vector of study parameters), primal norm
-        is in the first element, dual norm is in the fifth element
-
-        :return: norm of the DualQuaternion
-        :rtype: DualQuaternion
-        """
-        n = self.p.norm()
-        eps_n = 2 * (
-            self.p[0] * self.d[0]
-            + self.p[1] * self.d[1]
-            + self.p[2] * self.d[2]
-            + self.p[3] * self.d[3]
+        return float(
+            numpy.dot(self.p.array(), other.d.array())
+            + numpy.dot(self.d.array(), other.p.array())
         )
-        return DualQuaternion(np.array([n, 0, 0, 0, eps_n, 0, 0, 0]))
 
-    def inv(self):
+    def is_on_study_quadric(self, approximate: bool = False) -> bool:
         """
-        Inverse of the DualQuaternion
+        Check whether the dual quaternion lies on the Study quadric.
 
-        :return: inverse of the DualQuaternion
-        :rtype: DualQuaternion
+        The Study condition is ``p · d == 0`` (dot product of primal and
+        dual coefficient vectors).
+
+        Parameters
+        ----------
+        approximate :
+            If ``True``, use a looser threshold of ``1e-10`` instead of the
+            default strict ``1e-20``.
+
+        Returns
+        -------
+        bool
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 0, 0, 0, 0, 0, 0, 0])
+            print(dq.is_on_study_quadric())
+
+        .. clear-namespace::
+
         """
-        p = self.p.inv()
-        d = -1 * p * self.d * p
-        return DualQuaternion.from_two_quaternions(p, d)
+        threshold = 1e-10 if approximate else 1e-20
+        condition = self.study_condition()
+        return numpy.isclose(condition, 0.0, atol=threshold)
 
-    def extended_dot(self, other) -> tuple:
+    def study_condition(self) -> float:
         """
-        Extended scalar (dot) product of two DualQuaternions
+        Compute the Study condition value ``p · d``.
 
-        :param DualQuaternion other: other DualQuaternion
+        Returns
+        -------
+        float
+            The value of the Study condition, which should be zero for valid
+            rigid body displacements.
 
-        :return: extended scalar (dot) product
-        :rtype: float
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 0, 0, 0, 0, 0, 0, 0])
+            print(dq.study_condition())
         """
-        ext_dot = (np.dot(self.p.array(), other.d.array())
-                   + np.dot(self.d.array(), other.p.array()))
-        return ext_dot
+        return float(numpy.dot(self.p.array(), self.d.array()))
 
-    def is_on_study_quadric(self, approximate_sol: bool = False) -> bool:
+    def dq2matrix(self, normalize: bool = True) -> numpy.ndarray:
         """
-        Check if the DualQuaternion is on the study quadric
+        Convert to a 4×4 SE(3) homogeneous transformation matrix.
 
-        :param bool approximate_sol: if True, the strong numerical condition is used
-            to check if the point is on the Study quadric. This is a problem of
-            numerics, while numerically the point is close, it is actually nearly
-            on the quadric. For an optional approximate check, set to False.
-            Defaults to False.
+        Parameters
+        ----------
+        normalize :
+            If ``True`` (default), divide by the top-left entry so that the
+            rotation block is properly scaled.
 
-        :return: True if the DualQuaternion is on the study quadric, False otherwise
-        :rtype: bool
+        Returns
+        -------
+        numpy.ndarray
+            4×4 transformation matrix.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 0, 0, 0, 0, 1, 2, 3])
+            print(dq.dq2matrix())
+
+        .. clear-namespace::
+
         """
-        threshold = 1e-10 if approximate_sol else 1e-20
+        p0, p1, p2, p3 = self.p.array()
+        d0, d1, d2, d3 = self.d.array()
 
-        study_condition = (self.p[0] * self.d[0] + self.p[1] * self.d[1]
-                           + self.p[2] * self.d[2] + self.p[3] * self.d[3])
-        study_condition = np.asarray(study_condition, dtype="float64")
-        return np.isclose(study_condition, 0.0, atol=threshold)
-
-    def dq2matrix(self, normalize: bool = True) -> np.ndarray:
-        """
-        Dual Quaternion to SE(3) transformation matrix
-
-        The transformation matrix is normalized by the first element of the matrix.
-
-        :param bool normalize: if True, the transformation matrix is normalized by the
-            first element of the matrix. Defaults to True.
-
-        :return: 4x4 transformation matrix
-        :rtype: np.ndarray
-        """
-        p0 = self[0]
-        p1 = self[1]
-        p2 = self[2]
-        p3 = self[3]
-        d0 = self[4]
-        d1 = self[5]
-        d2 = self[6]
-        d3 = self[7]
-
-        # mapping
         r11 = p0**2 + p1**2 - p2**2 - p3**2
         r22 = p0**2 - p1**2 + p2**2 - p3**2
         r33 = p0**2 - p1**2 - p2**2 + p3**2
@@ -606,173 +968,322 @@ class DualQuaternion:
         r24 = 2 * (-p0 * d2 + p1 * d3 + p2 * d0 - p3 * d1)
         r34 = 2 * (-p0 * d3 - p1 * d2 + p2 * d1 + p3 * d0)
 
-        tr = np.array([[r44, 0, 0, 0],
-                       [r14, r11, r12, r13],
-                       [r24, r21, r22, r23],
-                       [r34, r31, r32, r33]])
+        mat = numpy.array([
+            [r44,  0,   0,   0  ],
+            [r14, r11, r12, r13],
+            [r24, r21, r22, r23],
+            [r34, r31, r32, r33],
+        ])
+        return mat / mat[0, 0] if normalize else mat
 
-        output_matrix = tr / tr[0, 0] if normalize else tr
-        return output_matrix
-
-    def dq2point_via_matrix(self) -> np.ndarray:
+    def dq2point(self) -> numpy.ndarray:
         """
-        Dual Quaternion to point via SE(3) transformation matrix
+        Extract the translation 3-vector directly from Study parameters.
 
-        :return: array of 3-coordinates of point
-        :rtype: np.ndarray
-        """
-        mat = self.dq2matrix()
-        return mat[1:4, 0]
+        Normalizes by ``p0`` first, then reads indices 5-7.
 
-    def dq2point(self) -> np.ndarray:
-        """
-        Dual Quaternion directly to point
+        Returns
+        -------
+        numpy.ndarray
+            3-vector ``[tx, ty, tz]``.
 
-        :return: array of 3-coordinates of point
-        :rtype: np.ndarray
-        """
-        dq = self.array() / self.array()[0]
-        return dq[5:8]
+        Examples
+        --------
+        .. code-block:: python
 
-    def dq2point_homogeneous(self) -> np.ndarray:
-        """
-        Dual Quaternion directly to point
+            from rational_linkages import DualQuaternion
 
-        :return: array of 3-coordinates of point
-        :rtype: np.ndarray
+            dq = DualQuaternion([2, 0, 0, 0, 0, 2, 4, 6])
+            print(dq.dq2point())
+
+        .. clear-namespace::
+
         """
-        dq = self.array()
-        return np.array([dq[0], dq[5], dq[6], dq[7]])
+        arr = self.array() / self.array()[0]
+        return arr[5:8]
+
+    def dq2point_homogeneous(self) -> numpy.ndarray:
+        """
+        Extract the homogeneous point ``[p0, d1, d2, d3]``.
+
+        Returns
+        -------
+        numpy.ndarray
+            4-vector.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 0, 0, 0, 0, 1, 2, 3])
+            print(dq.dq2point_homogeneous())
+
+        .. clear-namespace::
+
+        """
+        arr = self.array()
+        return numpy.array([arr[0], arr[5], arr[6], arr[7]])
+
+    def dq2point_via_matrix(self) -> numpy.ndarray:
+        """
+        Extract the translation 3-vector via the SE(3) matrix.
+
+        Returns
+        -------
+        numpy.ndarray
+            3-vector ``[tx, ty, tz]`` (column 0, rows 1-3 of ``dq2matrix()``).
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 0, 0, 0, 0, 1, 2, 3])
+            print(dq.dq2point_via_matrix())
+
+        .. clear-namespace::
+
+        """
+        return self.dq2matrix()[1:4, 0]
 
     def dq2line_vectors(self) -> tuple:
         """
-        Dual Quaternion directly to line coordinates
+        Convert the dual quaternion to Plücker line coordinates.
 
-        If the DQ is a sympy Expression, it is not converted to float and not normalized
+        Returns the direction vector and moment vector of the represented
+        line. Both vectors are normalized.
 
-        :return: tuple of 2 numpy arrays, 3-vector coordinates each
-        :rtype: tuple
+        Returns
+        -------
+        tuple[numpy.ndarray, numpy.ndarray]
+            ``(direction, moment)`` each a 3-vector.
 
-        :raises ValueError: if the dual quaternion has more than one indeterminate
+        Raises
+        ------
+        ValueError
+            If the dual quaternion contains more than one free symbol.
 
-        :warn: if the dual quaternion has NOT zeros in 1st and 5th element, it is not
-            a line
+        Warns
+        -----
+        UserWarning
+            If the dual quaternion does not appear to represent a line
+            (non-zero first or fifth element).
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([0, 0, 0, 1, 0, 0, -2, 0])
+            direction, moment = dq.dq2line_vectors()
+            print(direction, moment)
+
+        .. clear-namespace::
+
         """
-        dq = self.array()
-        if any(isinstance(x, Expr) for x in dq):
-            try:
-                dq = np.asarray(dq, dtype="float64")
-            except Exception:
-                pass
+        arr = self.array()
+        # try to cast symbolic arrays to numeric
+        try:
+            arr = arr.astype(numpy.float64)
+        except (TypeError, ValueError):
+            pass
 
-        if any(isinstance(x, Expr) for x in dq):
-            dq0_simple = simplify(dq[0])
-            dq4_simple = simplify(dq[4])
+        if arr.dtype == object:
+            # symbolic path
+            import sympy
+            dq0 = sympy.simplify(arr[0])
+            dq4 = sympy.simplify(arr[4])
+            free = (dq0 + dq4).free_symbols
+            if len(free) > 1:
+                raise ValueError(
+                    "dq2line_vectors: dual quaternion has more than one free symbol."
+                )
+            if dq0 != 0 or dq4 != 0:
+                warn(
+                    "dq2line_vectors: dual quaternion has non-zero first or fifth "
+                    "element; it may not represent a line."
+                )
+            return arr[1:4], -arr[5:8]
 
-            if len((dq0_simple + dq4_simple).free_symbols) > 1:
-                raise ValueError("dq2line_vectors method error: the dual quaternion "
-                                 "has more than one indeterminate.")
-
-            if not (dq0_simple == 0 or dq4_simple == 0):
-                coeffs = []
-                for t in dq0_simple.free_symbols:
-                    coeffs += Poly(dq0_simple, t).all_coeffs()
-                for t in dq4_simple.free_symbols:
-                    coeffs += Poly(dq4_simple, t).all_coeffs()
-
-                coeffs = np.array(coeffs, dtype="float64")
-                all_close_to_zero = all(np.isclose(coeff, 0) for coeff in coeffs)
-
-                if not all_close_to_zero:  # warn that the DQ is not a line
-                    warn("dq2line_vectors method warning: the dual quaternion has NOT "
-                         "zeros in 1st and 5th element, it is not a line.")
-
-            direction = dq[1:4]
-            moment = -1 * dq[5:8]
-            # TODO normalize the direction and moment when sympy expressions are used
-
-        else:
-            k = dq[0] ** 2 - dq[1] ** 2 - dq[2] ** 2 - dq[3] ** 2  # differs from Study
-            f = k - dq[0] ** 2
-            g = dq[0] * dq[4]
-
-            dir = f * dq[1:4]
-            mom = np.array([g * dq[1] - f * dq[5],
-                            g * dq[2] - f * dq[6],
-                            g * dq[3] - f * dq[7]])
-
-            moment = -1 * mom / np.linalg.norm(dir)
-            direction = -1 * dir / np.linalg.norm(dir)
-
+        # numeric path
+        k = arr[0]**2 - arr[1]**2 - arr[2]**2 - arr[3]**2
+        f = k - arr[0]**2
+        g = arr[0] * arr[4]
+        dir_vec = f * arr[1:4]
+        mom_vec = numpy.array([
+            g * arr[1] - f * arr[5],
+            g * arr[2] - f * arr[6],
+            g * arr[3] - f * arr[7],
+        ])
+        norm_dir = numpy.linalg.norm(dir_vec)
+        direction = -dir_vec / norm_dir
+        moment = -mom_vec / norm_dir
         return direction, moment
 
-    def dq2screw(self) -> np.ndarray:
+    def dq2screw(self) -> numpy.ndarray:
         """
-        Dual Quaternion directly to screw coordinates
+        Convert to 6D screw coordinates ``[direction | moment]``.
 
-        :return: array of 6-coordinates of screw
-        :rtype: np.ndarray
+        Returns
+        -------
+        numpy.ndarray
+            6-vector.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([0, 0, 0, 1, 0, 0, -2, 0])
+            print(dq.dq2screw())
+
+        .. clear-namespace::
+
         """
         direction, moment = self.dq2line_vectors()
-        return np.concatenate((direction, moment))
+        return numpy.concatenate((direction, moment))
 
-    def dq2point_via_line(self) -> np.ndarray:
+    def dq2point_via_line(self) -> numpy.ndarray:
         """
-        Dual Quaternion to point via line coordinates
+        Recover a point on the line via ``direction × moment``.
 
-        :return: array of 3-coordinates of point
-        :rtype: np.ndarray
+        Returns
+        -------
+        numpy.ndarray
+            3-vector.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([0, 0, 0, 1, 0, 0, -2, 0])
+            print(dq.dq2point_via_line())
+
+        .. clear-namespace::
+
         """
         direction, moment = self.dq2line_vectors()
-        return np.cross(direction, moment)
+        return numpy.cross(direction, moment)
 
-    def as_12d_vector(self) -> np.ndarray:
+    def as_12d_vector(self) -> numpy.ndarray:
         """
-        Return the DualQuaternion as a 12D vector of normalized transformation matrix
+        Return the dual quaternion as a 12D vector from the SE(3) matrix.
 
-        :return: 12D vector of the DualQuaternion
-        :rtype: np.ndarray
+        Columns 0-3 of rows 1-3 of ``dq2matrix()`` are stacked horizontally.
+
+        Returns
+        -------
+        numpy.ndarray
+            12-vector.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            from rational_linkages import DualQuaternion
+
+            dq = DualQuaternion([1, 0, 0, 0, 0, 1, 2, 3])
+            print(dq.as_12d_vector())
+
+        .. clear-namespace::
+
         """
         mat = self.dq2matrix()
-        return np.hstack((mat[1:4, 0], mat[1:4, 1], mat[1:4, 2], mat[1:4, 3]))
+        return numpy.hstack((mat[1:4, 0], mat[1:4, 1], mat[1:4, 2], mat[1:4, 3]))
 
-    def act(
-        self,
-        affected_object: Union["DualQuaternion", "NormalizedLine", "PointHomogeneous"],
-    ) -> Union["NormalizedLine", "PointHomogeneous"]:
+    def eval(self, subs: dict) -> "DualQuaternion":
         """
-        Act on a line or point with the DualQuaternion
+        Evaluate the dual quaternion by substituting symbols with values.
 
-        The action of a DualQuaternion is a half-turn about its axis. If the
-        acted_object is a DualQuaternion (rotation axis DQ), it is converted to
-        NormalizedLine and then the action is performed.
+        Parameters
+        ----------
+        subs : dict
+            Mapping of SymPy symbols to numeric values.
 
-        :param DualQuaternion, NormalizedLine, or PointHomogeneous affected_object:
-            object to act on (line or point)
+        Returns
+        -------
+        DualQuaternion
+            New numeric dual quaternion with substitutions applied.
 
-        :return: line or point
-        :rtype: NormalizedLine, PointHomogeneous
+        Examples
+        --------
+        .. code-block:: python
 
-        :examples:
+            import rational_linkages
+            rational_linkages.set_backend("sympy")
 
-        .. testcode:: [dq_act_example1]
+            from rational_linkages import DualQuaternion
+            from sympy import symbols
 
-            # Act on a line with a dual quaternion
+            t = symbols("t")
+            dq = DualQuaternion([1, t, 0, 0, 0, t, 0, 0])
+            result = dq.eval({t: 2})
+            print(result)
+ 
+            rational_linkages.set_backend("numpy")
+
+        .. clear-namespace::
+
+        """
+        evaluated = [
+            float(v.subs(subs)) if hasattr(v, "subs") else float(v)
+            for v in self.array()
+        ]
+        return DualQuaternion(evaluated)
+
+    def evalf(self) -> "DualQuaternion":
+        """
+        Placeholder for DualQuaternionSymbolic.evalf() method.
+
+        Returns
+        -------
+        DualQuaternion
+            Evaluated quaternion.
+        """
+        return self
+
+
+    def act(self, affected_object) -> object:
+        """
+        Act on a geometric object (line or point) with this dual quaternion.
+
+        The action is a half-turn about the dual quaternion's axis. If
+        ``affected_object`` is itself a ``DualQuaternion`` (treated as a
+        rotation-axis dual quaternion), it is first converted to a
+        ``NormalizedLine`` and the action is performed on that.
+
+        Parameters
+        ----------
+        affected_object :
+            A ``NormalizedLine``, ``PointHomogeneous``, or ``DualQuaternion``
+            to act upon.
+
+        Returns
+        -------
+        NormalizedLine or PointHomogeneous
+            The transformed geometric object.
+
+        Examples
+        --------
+        .. code-block:: python
 
             from rational_linkages import DualQuaternion, NormalizedLine
-
+            from rational_linkages.dualQuaternionAction import act
 
             dq = DualQuaternion([1, 0, 0, 1, 0, 3, 2, -1])
             line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, -2, 0])
+            line_transformed = dq.act(line)
 
-            line_after_half_turn = dq.act(line)
-
-        .. testcleanup:: [dq_act_example1]
-
-            del DualQuaternion, NormalizedLine, dq, line, line_after_half_turn
+        .. clear-namespace::
 
         """
-        from .DualQuaternionAction import DualQuaternionAction
+        from .dualQuaternionAction import act as _act
 
-        action = DualQuaternionAction()
-        return action.act(self, affected_object)
+        return _act(self, affected_object)

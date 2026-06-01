@@ -62,6 +62,22 @@ Lines can be embedded into dual quaternion space in the following way:
 
 How dual quaternions act on lines can be found in :ref:`dq_action_on_line`.
 
+Dual quaternions that correspond to lines can be interpreted as the `half-turn` transformations,
+i.e. transformations that rotate the origin by 180 degrees around the line. The following
+code snippet plots the half-turn transformation corresponding to a line in 3D space.
+
+.. literalinclude:: /examples/d_bm_points-lines.py
+    :language: python
+
+We can additionally see that if we alter the zero element of :code:`dq1` to get :code:`dq2`, we get a transformation
+that corresponds to some rotation around the line, but not a half-turn transformation anymore.
+
+.. figure:: figures/half_turn.svg
+    :align: center
+    :alt: half-turn transformation
+
+    Half-turn transformation corresponding to a line in 3D space
+
 **References:**
 
 .. footbibliography::

@@ -1,7 +1,7 @@
 import sys
 import struct
 import os
-import numpy as np
+import numpy
 
 from typing import Union
 from warnings import warn
@@ -35,40 +35,27 @@ except (ImportError, OSError):
 
 
 class MotionDesigner:
-    """
-    Main application class for the motion designer.
+    """Main application class for the motion designer.
 
-    Encapsulates the QApplication and the MotionDesigner widget.
+    This class encapsulates the Qt application and provides convenience
+    constructors to create and show the interactive MotionDesigner widget.
 
-    :examples:
+    Examples
+    --------
 
-    Run motion designer without initial points or poses:
+    .. code-block:: python
 
-    .. testcode:: [motiondesigner_ex1]
-
+        # Run motion designer without initial points or poses
         from rational_linkages import MotionDesigner
 
         d = MotionDesigner(method='quadratic_from_poses')
         d.show()
 
-    .. testoutput:: [motiondesigner_ex1]
-        :hide:
-
-        Closing the window... generated points for interpolation:
-        [1, 0, 0, 0, 0, 0, 0, 0]
-        [ 1.          , -0.207522406 , -0.0333866662, -0.0691741237, -0.0625113682, -0.141265791 , -0.4478576802, -0.2637268902]
-        [ 1.          ,  0.2333739522, -0.0427838517,  0.0777914503, -0.0839342318,  0.2991396249,  0.2980046603,  0.345444421 ]
-
-    .. testcleanup:: [motiondesigner_ex1]
-
-        del d, MotionDesigner
-
-    Run motion designer with initial points:
+    .. clear-namespace::
 
     .. code-block:: python
 
-        # NOT TESTED
-
+        # Run motion designer with initial points:
         from rational_linkages import MotionDesigner, PointHomogeneous
 
 
@@ -84,6 +71,7 @@ class MotionDesigner:
         d = MotionDesigner(method='quadratic_from_points', initial_points_or_poses=chosen_points)
         d.show()
 
+    .. clear-namespace::
 
     """
     def __init__(self,
@@ -94,22 +82,27 @@ class MotionDesigner:
                  show_grid: bool = True,
                  white_background: bool = False,
                  preview_mechanism: bool = False):
-        """
-        Initialize the application with the motion designer widget.
+        """Initialize the application and create the designer widget.
 
-        :param str method: The method to use for interpolation, supported values are
-            'cubic_from_points', 'quadratic_from_points', and 'quadratic_from_poses'.
-        :param list[PointHomogeneous] or list[DualQuaternion] initial_points_or_poses:
-            The initial points or poses to use for the motion curve.
-        :param float arrows_length: The length of the arrows for the poses.
-        :param int sliders_range: The plus/minus range for the sliders in the control
-            panel (default is 10, i.e. from -10 to 10 units).
-        :param bool show_grid: Whether to show a grid in the 3D view (default is True).
-        :param bool white_background: Whether to use a white background for the plot.
-        :param bool preview_mechanism: Whether to show a preview of the mechanism. The
-            mechanism is visualized as shortest polyline connecting the axes, in
-            default configuration. The computational time may be significant, leading
-            to lagging rendering.
+        Parameters
+        ----------
+        method
+            Interpolation method; supported values include
+            ``'cubic_from_points'``, ``'cubic_from_poses'``,
+            ``'quadratic_from_points'``, and ``'quadratic_from_poses'``.
+        initial_points_or_poses, optional
+            Initial list of :class:`.PointHomogeneous` or :class:`.DualQuaternion`
+            instances used as interpolation targets.
+        arrows_length, optional
+            Visual length of pose arrows in the plot.
+        sliders_range, optional
+            Slider range (plus/minus) for control widgets.
+        show_grid, optional
+            Whether to display a grid in the 3D view.
+        white_background, optional
+            Whether to use a white background for plotting.
+        preview_mechanism, optional
+            If True, show a mechanism preview (may be computationally heavy).
         """
         if method not in ['cubic_from_points',
                           'cubic_from_poses',
@@ -142,20 +135,23 @@ class MotionDesigner:
               sliders_range: int = 10,
               show_grid: bool = True,
               preview_mechanism: bool = False):
-        """
-        Start Motion Designer with GUI method options.
+        """Start a modal dialog to choose input method and launch the designer.
 
-        :param list[PointHomogeneous] or list[DualQuaternion] initial_points_or_poses:
-            The initial points or poses to use for the motion curve.
-        :param float arrows_length: The length of the arrows for the poses.
-        :param bool white_background: Whether to use a white background for the plot.
-        :param int sliders_range: The plus/minus range for the sliders in the control
-            panel (default is 10, i.e. from -10 to 10 units).
-        :param bool show_grid: Whether to show a grid in the 3D view (default is True).
-        :param bool preview_mechanism: Whether to show a preview of the mechanism. The
-            mechanism is visualized as shortest polyline connecting the axes, in
-            default configuration. The computational time may be significant, leading
-            to lagging rendering.
+        Parameters
+        ----------
+        initial_points_or_poses, optional
+            Initial list of points or poses to seed the designer.
+        arrows_length, optional
+            Visual length of pose arrows.
+        white_background, optional
+            Whether the plot uses a white background.
+        sliders_range, optional
+            Slider range for control widgets.
+        show_grid, optional
+            Whether to display a grid in the 3D view.
+        preview_mechanism, optional
+            Whether to show a computational preview of the synthesized
+            mechanism.
         """
         if QtWidgets is None:
             raise RuntimeError(
@@ -223,17 +219,18 @@ class MotionDesigner:
         return designer
 
     def plot(self, *args, **kwargs):
-        """
-        Plot the given objects in the motion designer widget.
+        """Proxy to the widget plotter's plot method.
 
-        :param args: The objects to plot.
-        :param kwargs: Additional keyword arguments for the plotter.
+        All positional and keyword arguments are forwarded to
+        ``self.window.plotter.plot``.
         """
         self.window.plotter.plot(*args, **kwargs)
 
     def show(self):
-        """
-        Run the application, showing the motion designer widget.
+        """Show the designer widget and execute the application event loop.
+
+        The method returns when the application exits; ``SystemExit`` is
+        suppressed to allow graceful termination.
         """
         self.window.show()
         try:
@@ -244,33 +241,45 @@ class MotionDesigner:
     def add_mesh_from_stl(self,
                           path: str,
                           scale: float = 1.0,
+                          transform: TransfMatrix = None,
                           color: tuple = (0.4, 0.4, 0.4, 0.2),
                           name: str | None = None,
                           smooth: bool = False,
                           max_faces: int = None,
                           weld_tol: float = 1e-8) -> object:
-        """
-        Add a mesh from an STL file to the view.
+        """Load an STL file and add it to the 3D view as a mesh item.
 
-        Load an STL file (ASCII or binary), produce (vertices, faces) arrays,
-        optionally reduce triangle count for performance, and add it to the view
-        via self.add_mesh\(\).
+        Parameters
+        ----------
+        path
+            Path to the STL file (ASCII or binary).
+        scale, optional
+            Uniform scale applied to mesh vertices.
+        transform, optional
+            Optional :class:`.TransfMatrix` to apply to the vertex positions.
+        color, optional
+            RGBA color for the mesh item.
+        name, optional
+            Optional name associated with the mesh (used for removal).
+        smooth, optional
+            If True, use smooth shading when creating the mesh.
+        max_faces, optional
+            If set, subsample triangles to at most this many faces for
+            performance.
+        weld_tol, optional
+            Tolerance used for welding duplicate vertices.
 
-        :param str path: The file path to the STL file.
-        :param float scale: Scale factor for mesh vertices.
-        :param tuple color: RGBA color for the mesh (default is light gray with
-            some transparency).
-        :param str | None name: Optional name for the mesh.
-        :param bool smooth: Whether to use smooth shading (default is False).
-        :param int max_faces: If set, the maximum number of faces to display.
-        :param float weld_tol: Tolerance for welding duplicate vertices (default
-            is 1e-8).
-
-        :return: The GL item created by self.add_mesh.
-        :rtype: object
+        Returns
+        -------
+        object
+            The created GL item returned by :meth:`.add_mesh`.
         """
         if not os.path.isfile(path):
-            raise FileNotFoundError(path)
+            raise FileNotFoundError(
+                f"STL file not found: '{path}' "
+                f"(resolved to '{os.path.abspath(path)}'). "
+                f"Pass an absolute path or a path relative to your working directory."
+            )
 
         # read raw bytes
         with open(path, "rb") as f:
@@ -341,22 +350,22 @@ class MotionDesigner:
         if len(faces) == 0 or len(verts) == 0:
             raise RuntimeError("No triangles parsed from STL")
 
-        verts = np.array(verts, dtype=float)
-        faces = np.array(faces, dtype=int)
+        verts = numpy.array(verts, dtype=float)
+        faces = numpy.array(faces, dtype=int)
         if (max_faces is None) and (faces.shape[0]) > 200000:
             warn("Too many faces may lead to very slow rendering. Consider reducing it using max_faces=200000 parameter.")
             print('number of faces: {}'.format(faces.shape[0]))
 
         # optional subsample triangles for performance
         if (max_faces is not None) and (faces.shape[0] > max_faces):
-            idx = np.linspace(0, faces.shape[0] - 1, max_faces, dtype=int)
+            idx = numpy.linspace(0, faces.shape[0] - 1, max_faces, dtype=int)
             faces = faces[idx]
 
         # weld duplicate vertices within weld_tol
-        decimals = max(0, int(-np.log10(weld_tol))) if weld_tol > 0 else 8
+        decimals = max(0, int(-numpy.log10(weld_tol))) if weld_tol > 0 else 8
         key_map = {}
         unique_verts = []
-        remap = np.empty(len(verts), dtype=int)
+        remap = numpy.empty(len(verts), dtype=int)
         for i, v in enumerate(verts):
             key = (round(float(v[0]), decimals),
                    round(float(v[1]), decimals),
@@ -369,15 +378,22 @@ class MotionDesigner:
                 unique_verts.append((v[0], v[1], v[2]))
                 remap[i] = idx_new
 
-        unique_verts = np.array(unique_verts, dtype=float)
+        unique_verts = numpy.array(unique_verts, dtype=float)
         faces = remap[faces]
 
         # remove unused vertices and remap indices (compact the vertex array)
-        used = np.unique(faces.reshape(-1))
-        new_idx = -np.ones(unique_verts.shape[0], dtype=int)
-        new_idx[used] = np.arange(used.shape[0], dtype=int)
+        used = numpy.unique(faces.reshape(-1))
+        new_idx = -numpy.ones(unique_verts.shape[0], dtype=int)
+        new_idx[used] = numpy.arange(used.shape[0], dtype=int)
         vertices_final = unique_verts[used]
         faces_final = new_idx[faces]
+
+        # transform if needed
+        if transform is not None:
+            tr_arr = transform.array()
+            ones = numpy.ones((len(vertices_final), 1))
+            homogeneous = numpy.hstack([ones, vertices_final])  # Nx4
+            vertices_final = (tr_arr @ homogeneous.T).T[:, 1:]  # back to Nx3
 
         # delegate to existing add_mesh
         return self.window.add_mesh(vertices_final,
@@ -388,13 +404,12 @@ class MotionDesigner:
 
 if QtWidgets is not None:
     class MotionDesignerWidget(QtWidgets.QWidget):
-        """
-        Interactive plotting widget for designing motion curves with interpolated points.
+        """Interactive widget for designing motion curves.
 
-        A widget that displays a 3D view of a motion curve and control points,
-        plus a side panel with controls for selecting and modifying one of the
-        control points (p0 to p6). Moving the sliders adjusts the x, y, and z
-        coordinates of the selected control point, which then updates the curve.
+        The widget displays a 3D view of the motion curve and control points
+        together with a side panel containing sliders and controls to modify
+        the selected control point. The curve updates interactively when
+        control values change.
         """
         def __init__(self,
                      method: str = 'cubic_from_points',
@@ -407,8 +422,31 @@ if QtWidgets is not None:
                      arrows_length: float = 1.0,
                      white_background: bool = False,
                      preview_mechanism: bool = False):
-            """
-            Initialize the motion designer widget.
+            """Initialize the widget and create GUI controls and plots.
+
+            Parameters
+            ----------
+            method, optional
+                Interpolation method used to initialize control points and
+                determine widget behavior.
+            initial_pts, optional
+                Initial list of points or poses to display.
+            parent, optional
+                Optional Qt parent widget.
+            sliders_range, optional
+                Range for sliders used to tweak coordinates.
+            show_grid, optional
+                Whether to display a grid in the 3D view.
+            steps, optional
+                Number of sampling steps used when plotting curves.
+            interval, optional
+                Parameter interval for sampling.
+            arrows_length, optional
+                Visual arrow length for pose frames.
+            white_background, optional
+                Whether to use a white background for the plot.
+            preview_mechanism, optional
+                Whether to enable mechanism preview computation.
             """
             super().__init__(parent)
             self.setMinimumSize(900, 600)
@@ -441,7 +479,7 @@ if QtWidgets is not None:
 
             # array of control point coordinates (in 3D)
             if method == 'quadratic_from_points' or method == 'cubic_from_points':
-                self.plotted_points = np.array([pt.normalized_in_3d()
+                self.plotted_points = numpy.array([pt.normalized_euclidean()
                                                 for pt in self.points])
 
                 # interpolated points markers
@@ -545,8 +583,8 @@ if QtWidgets is not None:
                 for slider, textbox in [(self.slider_roll, self.textbox_roll),
                                         (self.slider_pitch, self.textbox_pitch),
                                         (self.slider_yaw, self.textbox_yaw)]:
-                    slider.setMinimum(int(-np.pi * 100))
-                    slider.setMaximum(int(np.pi * 100))
+                    slider.setMinimum(int(-numpy.pi * 100))
+                    slider.setMaximum(int(numpy.pi * 100))
                     slider.setSingleStep(1)
                     slider.valueChanged.connect(self.on_slider_value_changed)
 
@@ -691,10 +729,11 @@ if QtWidgets is not None:
             return initial_pts
 
         def set_sliders_for_point(self, index):
-            """
-            Set the slider positions to reflect the current coordinates of the
-            control point with the given index.
-            (Here we assume that coordinates are in the range roughly –10..10.)
+            """Set slider values and textboxes to match a control point.
+
+            The function updates sliders and their associated textboxes to
+            reflect the coordinates (and, for pose methods, rotations) of the
+            selected control point.
             """
             index = index + 1  # skip the first point/pose
             sliders = [self.slider_x, self.slider_y, self.slider_z]
@@ -725,10 +764,11 @@ if QtWidgets is not None:
                 slider.blockSignals(False)
 
         def on_synthesize_button_clicked(self):
-            """
-            Called when the "Synthesize mechanism" button is clicked. This method
-            should be implemented to synthesize a mechanism based on the current
-            control points.
+            """Synthesize and show a mechanism preview from the current curve.
+
+            The method computes an interpolated curve from the current
+            control points, constructs a :class:`.RationalMechanism` and adds a
+            preview interactive widget for the mechanism.
             """
             if (self.method == 'quadratic_from_points'
                     or self.method == 'cubic_from_points'
@@ -749,17 +789,15 @@ if QtWidgets is not None:
 
 
         def on_point_selection_changed(self, index):
-            """
-            When a different point is selected in the combo box, update the slider
-            positions to match that point’s coordinates.
-            """
+            """Update UI sliders when the selected control point changes."""
             self.set_sliders_for_point(index)
 
         def on_slider_value_changed(self, value):
-            """
-            Called when any of the sliders change their value. Update the currently
-            selected control point’s x, y, or z coordinate based on the slider values,
-            update the control point markers, and then recalculate the motion curve.
+            """Handle slider changes: update the selected control point and redraw.
+
+            Converts integer slider values into floating point coordinates and
+            updates the internal point list and plotted markers. The motion
+            curve visualization is then refreshed.
             """
             index = self.point_combo.currentIndex() + 1
             # Convert slider values (integers) to floating‑point coordinates.
@@ -807,7 +845,7 @@ if QtWidgets is not None:
             else:
                 # update the selected control point
                 self.points[index] = PointHomogeneous.from_3d_point([new_x, new_y, new_z])
-                self.plotted_points[index] = np.array([new_x, new_y, new_z])
+                self.plotted_points[index] = numpy.array([new_x, new_y, new_z])
                 # update the visual markers
                 self.markers.setData(pos=self.plotted_points)
 
@@ -815,20 +853,17 @@ if QtWidgets is not None:
             self.update_curve_vis()
 
         def on_lambda_slider_value_changed(self, value):
-            """
-            Called when the lambda slider changes its value. Update the lambda value
-            of the cubic curve, update the control point markers, and then recalculate
-            the motion curve.
+            """Update the cubic curve lambda parameter from slider input.
+
+            The displayed lambda value is synchronized with the associated
+            textbox and the curve visualization is refreshed.
             """
             self.lambda_val = self.slider_lambda.value() / 100.0
             self.textbox_lambda.setText(str(self.lambda_val))
             self.update_curve_vis()
 
         def on_swap_family_check_box_changed(self, state):
-            """
-            Called when the swap family checkbox changes its state. Update the
-            motion curve to reflect the new motion family.
-            """
+            """Toggle between motion families when the checkbox state changes."""
             if state == 2:
                 self.motion_family_idx = 1
             else:
@@ -837,11 +872,14 @@ if QtWidgets is not None:
             self.update_curve_vis()
 
         def on_lambda_textbox_changed(self, text, slider):
-            """
-            Update the given slider with the value from the corresponding textbox.
+            """Parse a textbox value and update the corresponding slider.
 
-            :param str text: The text input from the textbox. Should be a number.
-            :param slider: The slider to update with the new value.
+            Parameters
+            ----------
+            text
+                The text content to parse as a number.
+            slider
+                The Qt slider to update.
             """
             if text is not None:
                 try:
@@ -859,9 +897,7 @@ if QtWidgets is not None:
                     raise ValueError(f"Invalid input for slider: {text}")
 
         def on_textbox_changed(self, text, slider):
-            """
-            Update the given slider with the value from the corresponding textbox.
-            """
+            """Parse textbox input and set the slider value accordingly."""
             if text is not None:
                 try:
                     value = float(text)
@@ -874,10 +910,11 @@ if QtWidgets is not None:
                     raise ValueError(f"Invalid input for slider: {text}")
 
         def update_curve_vis(self):
-            """
-            Recalculate the motion curve using the current control points. The
-            interpolation is performed by MotionInterpolation. Then update the curve
-            line in the GLViewWidget.
+            """Recompute the interpolated motion curve and update the display.
+
+            The interpolation method depends on the widget's configured
+            ``method``. The resulting curve samples and frame transforms are
+            plotted in the 3D view.
             """
 
             # get the numeric coefficients from interpolation
@@ -895,18 +932,18 @@ if QtWidgets is not None:
                                                                k_idx=self.motion_family_idx)
 
             # create numpy polynomial objects
-            curve = [np.polynomial.Polynomial(c[::-1]) for c in coeffs]
+            curve = [numpy.polynomial.Polynomial(c[::-1]) for c in coeffs]
 
             # parameter values using a tangent substitution
-            t_space = np.tan(np.linspace(-np.pi / 2, np.pi / 2, self.plotter.steps + 1))
+            t_space = numpy.tan(numpy.linspace(-numpy.pi / 2, numpy.pi / 2, self.plotter.steps + 1))
             curve_points = []
             for t in t_space:
                 dq = DualQuaternion([poly(t) for poly in curve])  # evaluate fot each t
                 pt = dq.dq2point_via_matrix()
                 curve_points.append(pt)
-            curve_points = np.array(curve_points)
+            curve_points = numpy.array(curve_points)
 
-            t_space_frames = np.tan(np.linspace(-np.pi / 2, np.pi / 2, 51))
+            t_space_frames = numpy.tan(numpy.linspace(-numpy.pi / 2, numpy.pi / 2, 51))
             curve_frames = []
             for t in t_space_frames:
                 dq = DualQuaternion([poly(t) for poly in curve])
@@ -935,17 +972,19 @@ if QtWidgets is not None:
                 self._preview_mechanism(coeffs)
 
         def _preview_mechanism(self, coefficients):
-            """
-            Compute and display the mechanism preview.
+            """Compute and display a mechanism preview from curve coefficients.
 
-            :param np.ndarray coefficients: The coefficients of the rational curve,
-                used to compute the mechanism configuration at t → ∞.
+            Parameters
+            ----------
+            coefficients
+                Numeric coefficients of the rational curve used to construct
+                a :class:`.RationalMechanism` for previewing.
             """
-            cr = RationalCurve.from_coeffs(coefficients)  # TODO avoid sympy
-            me = RationalMechanism(cr.factorize())  # TODO avoid sympy
+            cr = RationalCurve.from_coeffs(coefficients)
+            me = RationalMechanism(cr.factorize())
             me.smallest_polyline(update_design=True)
 
-            t_val = 1 / np.finfo(np.float64).eps   # infinite t
+            t_val = 1 / numpy.finfo(numpy.float64).eps   # infinite t
             links = (me.factorizations[0].direct_kinematics(t_val) +
                      me.factorizations[1].direct_kinematics(t_val)[::-1])
             links.insert(0, links[-1])
@@ -954,7 +993,7 @@ if QtWidgets is not None:
                 self.lines = []
 
                 # base link
-                line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                line_item = gl.GLLinePlotItem(pos=numpy.zeros((2, 3)),
                                               color=(1, 0.5, 0, 0.5),
                                               glOptions=self.render_mode,
                                               width=5,
@@ -964,7 +1003,7 @@ if QtWidgets is not None:
 
                 # other links
                 for i in range(1, self.num_lines):
-                    line_item = gl.GLLinePlotItem(pos=np.zeros((2, 3)),
+                    line_item = gl.GLLinePlotItem(pos=numpy.zeros((2, 3)),
                                                   color=(1, 1, 0, 0.5),
                                                   glOptions=self.render_mode,
                                                   width=5,
@@ -975,13 +1014,11 @@ if QtWidgets is not None:
                 for i, line in enumerate(self.lines):
                     pt1 = links[i]
                     pt2 = links[i + 1]
-                    pts = np.array([pt1, pt2])
+                    pts = numpy.array([pt1, pt2])
                     line.setData(pos=pts)
 
         def closeEvent(self, event):
-            """
-            Called when the window is closed. Ensure that the Qt application exits.
-            """
+            """Perform cleanup when the widget is closed and quit the Qt app."""
             print("Closing the window... generated points for interpolation:")
             for pt in self.points:
                 print(pt)
@@ -993,15 +1030,26 @@ if QtWidgets is not None:
             self.plotter.app.quit()
 
         def add_mesh(self,
-                     vertices: np.ndarray,
-                     faces: np.ndarray,
-                     color: tuple = (0.7, 0.7, 0.7, 0.3),
+                     vertices: numpy.ndarray,
+                     faces: numpy.ndarray,
+                     color: tuple = (0.4, 0.4, 0.4, 0.2),
                      name: str | None = None,
                      smooth: bool = False) -> object:
-            """
-            Add a CAD mesh to the 3D view. `vertices` should be (N, 3), `faces` (M, 3).
-            No transform is applied — the mesh is assumed already positioned in the base frame.
-            Returns the created GL item (can be stored or manipulated by caller).
+            """Add a mesh to the 3D view from vertex and face arrays.
+
+            Parameters
+            ----------
+            vertices
+                Array with shape (N, 3) containing vertex coordinates.
+            faces
+                Integer array with shape (M, 3) containing triangle indices.
+            color, name, smooth
+                See :meth:`MotionDesigner.add_mesh_from_stl` for parameter meanings.
+
+            Returns
+            -------
+            object
+                The created GL mesh item.
             """
             if gl is None:
                 raise RuntimeError("OpenGL / pyqtgraph not available")
@@ -1023,8 +1071,12 @@ if QtWidgets is not None:
             return mesh_item
 
         def remove_mesh(self, name: str) -> bool:
-            """
-            Remove the first mesh with the given name. Returns True if removed.
+            """Remove the first mesh item with the provided name.
+
+            Returns
+            -------
+            bool
+                True if an item was found and removed, False otherwise.
             """
             if not hasattr(self, "cad_items"):
                 return False
@@ -1039,8 +1091,8 @@ if QtWidgets is not None:
             return False
 
         def clear_meshes(self) -> None:
-            """
-            Remove all added CAD meshes from the view.
+            """Remove all previously added CAD meshes from the view and clear
+            internal bookkeeping.
             """
             if not hasattr(self, "cad_items"):
                 return

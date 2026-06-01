@@ -30,7 +30,9 @@ def test_from_dh_parameters():
     a = [1, 1]
     alpha = [0, 180]
 
-    m = StaticMechanism.from_dh_parameters(theta, d, a, alpha, unit='deg')
+    with pytest.warns(UserWarning,
+                      match="If the DH parameters do no close the linkages"):
+        m = StaticMechanism.from_dh_parameters(theta, d, a, alpha, unit='deg')
     screws = [scr.screw for scr in m.get_screw_axes()]
 
     expected_screws = numpy.array([[0, 0, 1, 0, 0, 0],

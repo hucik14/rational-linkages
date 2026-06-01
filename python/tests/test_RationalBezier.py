@@ -1,13 +1,11 @@
-from unittest import TestCase
-
+import pytest
 import numpy as np
 
 from rational_linkages import PointHomogeneous, RationalBezier, BezierSegment
 from rational_linkages.RationalBezier import RationalSoo
 
 
-
-class TestRationalBezier(TestCase):
+class TestRationalBezier:
     def test_init(self):
         control_points = [
             PointHomogeneous(np.array([4.0, 0.0, -2.0, 4.0])),
@@ -18,7 +16,7 @@ class TestRationalBezier(TestCase):
         ]
         bezier_curve = RationalBezier(control_points)
 
-        self.assertIsInstance(bezier_curve, RationalBezier)
+        assert isinstance(bezier_curve, RationalBezier)
 
         expected_coeffs = np.array(
             [
@@ -29,7 +27,7 @@ class TestRationalBezier(TestCase):
             ]
         )
 
-        self.assertTrue(np.allclose(bezier_curve.coeffs, expected_coeffs))
+        assert np.allclose(bezier_curve.coeffs, expected_coeffs)
 
     def test_check_for_control_points_at_infinity(self):
         control_points = [
@@ -41,7 +39,7 @@ class TestRationalBezier(TestCase):
         ]
         bezier_curve = RationalBezier(control_points)
 
-        self.assertTrue(bezier_curve.check_for_control_points_at_infinity())
+        assert bezier_curve.check_for_control_points_at_infinity()
 
     def test_split_de_casteljau(self):
         control_points = [
@@ -71,32 +69,24 @@ class TestRationalBezier(TestCase):
 
         left_curve, right_curve = bezier_curve.split_de_casteljau()
 
-        self.assertEqual(
-            len(left_curve.control_points), len(expected_left_curve_control_points)
-        )
+        assert len(left_curve.control_points) == len(expected_left_curve_control_points)
         for i in range(len(left_curve.control_points)):
-            self.assertIsInstance(left_curve.control_points[i], PointHomogeneous)
-            self.assertTrue(
-                np.allclose(
-                    left_curve.control_points[i].array(),
-                    expected_left_curve_control_points[i].array(),
-                )
+            assert isinstance(left_curve.control_points[i], PointHomogeneous)
+            assert np.allclose(
+                left_curve.control_points[i].array(),
+                expected_left_curve_control_points[i].array(),
             )
 
-        self.assertEqual(
-            len(right_curve.control_points), len(expected_right_curve_control_points)
-        )
+        assert len(right_curve.control_points) == len(expected_right_curve_control_points)
         for i in range(len(right_curve.control_points)):
-            self.assertIsInstance(right_curve.control_points[i], PointHomogeneous)
-            self.assertTrue(
-                np.allclose(
-                    right_curve.control_points[i].array(),
-                    expected_right_curve_control_points[i].array(),
-                )
+            assert isinstance(right_curve.control_points[i], PointHomogeneous)
+            assert np.allclose(
+                right_curve.control_points[i].array(),
+                expected_right_curve_control_points[i].array(),
             )
 
 
-class TestRationalSoo(TestCase):
+class TestRationalSoo:
 
     def test_init(self):
         c0 = PointHomogeneous()
@@ -105,10 +95,10 @@ class TestRationalSoo(TestCase):
         control_points = [c0, c1, c2]
         gl_curve = RationalSoo(control_points)
 
-        self.assertIsInstance(gl_curve, RationalSoo)
+        assert isinstance(gl_curve, RationalSoo)
 
         expected_coeffs = np.array([[0.0, 0.0, 1.0],
                                     [0.4330127018922193, 1.5, 1.0669872981077808],
                                     [-2.165063509461097, -0.5, 1.665063509461097],
                                     [-1.7320508075688772, 1.0, 2.7320508075688776]])
-        self.assertTrue(np.allclose(gl_curve.coeffs, expected_coeffs))
+        assert np.allclose(gl_curve.coeffs, expected_coeffs)

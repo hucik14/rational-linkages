@@ -58,7 +58,7 @@ class TestPlotter(unittest.TestCase):
         self.plt.plot(line)
         self.plt.update_limits(self.plt.ax)
         self.plt.fig.savefig('test_plot_line.png')
-        self.assertIsNone(compare_images('plot_line_baseline.png',
+        self.assertIsNone(compare_images('tests_manual/plot_line_baseline.png',
                                        'test_plot_line.png',
                                        0.01))
         os.remove('test_plot_line.png')

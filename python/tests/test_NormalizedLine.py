@@ -1,222 +1,525 @@
-from unittest import TestCase
+import warnings
 
-import numpy as np
+import numpy
+import pytest
+import sympy
 
-from rational_linkages import DualQuaternion, NormalizedLine, PointHomogeneous
+from rational_linkages import set_backend
+from rational_linkages.DualQuaternion import DualQuaternion
+from rational_linkages.NormalizedLine import NormalizedLine
+from rational_linkages.PointHomogeneous import PointHomogeneous
 
 
-class TestNormalizedLine(TestCase):
-    def test_init(self):
-        direction = [0, -1, 0]
-        moment = np.array([1, 2, 3])
-        nl = NormalizedLine(
-            [direction[0], direction[1], direction[2], moment[0], moment[1], moment[2]]
-        )
+@pytest.fixture(autouse=True)
+def restore_backend():
+    """Restore the numpy backend after every test."""
+    yield
+    set_backend("numpy")
 
-        self.assertIsInstance(nl, NormalizedLine)
-        self.assertTrue(np.allclose(nl.direction, np.asarray(direction)))
-        self.assertTrue(np.allclose(nl.moment, moment))
-        self.assertTrue(np.allclose(nl.screw, np.array([0, -1, 0, 1, 2, 3])))
 
-        direction = [0, -1, 3]
-        moment = np.array([1, -2, 3])
-        nl = NormalizedLine(
-            [direction[0], direction[1], direction[2], moment[0], moment[1], moment[2]]
-        )
+@pytest.fixture()
+def z_axis():
+    """NormalizedLine() — Z-axis through origin [0, 0, 1, 0, 0, 0]."""
+    return NormalizedLine()
 
-        direction_normalized = np.array(
-            np.asarray(direction) / np.linalg.norm(direction)
-        )
-        moment_normalized = np.array(moment / np.linalg.norm(direction))
 
-        self.assertTrue(np.allclose(nl.direction, direction_normalized))
-        self.assertTrue(np.allclose(nl.moment, moment_normalized))
+@pytest.fixture()
+def x_line():
+    """X-axis through [0, 1, 1]: direction [1,0,0], moment [0,1,-1]."""
+    return NormalizedLine.from_direction_and_point([1, 0, 0], [0, 1, 1])
 
-        direction = [0, 0, 0]
-        moment = np.array([1, -2, 3])
-        nl = NormalizedLine(
-            [direction[0], direction[1], direction[2], moment[0], moment[1], moment[2]]
-        )
-        self.assertTrue(np.allclose(nl.direction, np.array([0, 0, 0])))
-        self.assertTrue(np.allclose(nl.moment, moment))
 
-        line = NormalizedLine()
-        self.assertTrue(np.allclose(line.direction, np.array([0, 0, 1])))
-        self.assertTrue(np.allclose(line.moment, np.array([0, 0, 0])))
+@pytest.fixture()
+def unit_screw():
+    """Already-unit line [1, 0, 0, 0, 1, -1]."""
+    return NormalizedLine([1, 0, 0, 0, 1, -1])
 
-        # test with sympy input
-        from sympy import Symbol
-        t = Symbol('t')
 
-        line = NormalizedLine([0, 0, 1, t**2, 1-t, t])
+# ---------------------------------------------------------------------------
+# Construction
+# ---------------------------------------------------------------------------
 
-        evaluated_line = line.evaluate(2)
-        self.assertTrue(np.allclose(evaluated_line.screw, np.array([0, 0, 1, 4, -1, 2])))
+class TestConstruction:
 
-    def test_from_two_points(self):
-        point1 = np.array([1, 1, 1])
-        point2 = np.array([3, 1, 1])
-        nl = NormalizedLine.from_two_points(point1, point2)
+    def test_default_is_z_axis(self, z_axis):
+        assert numpy.allclose(z_axis.direction, [0, 0, 1])
+        assert numpy.allclose(z_axis.moment, [0, 0, 0])
 
-        self.assertIsInstance(nl, NormalizedLine)
+    def test_default_screw(self, z_axis):
+        assert numpy.allclose(z_axis.screw, [0, 0, 1, 0, 0, 0])
 
-        expected_direction = np.array([1, 0, 0])
-        expected_moment = np.array([0, 1, -1])
-        self.assertTrue(
-            np.allclose(nl.screw, np.concatenate((expected_direction, expected_moment)))
-        )
+    def test_is_instance(self, z_axis):
+        assert isinstance(z_axis, NormalizedLine)
 
-        point1 = PointHomogeneous([1, 1, 1, 1])
-        point2 = PointHomogeneous([1, 3, 1, 1])
-        nl = NormalizedLine.from_two_points(point1, point2)
-        self.assertIsInstance(nl, NormalizedLine)
+    def test_unit_direction_unchanged(self):
+        nl = NormalizedLine([0, -1, 0, 1, 2, 3])
+        assert numpy.allclose(nl.direction, [0, -1, 0])
+        assert numpy.allclose(nl.moment, [1, 2, 3])
 
-        expected_direction = np.array([1, 0, 0])
-        expected_moment = np.array([0, 1, -1])
-        self.assertTrue(
-            np.allclose(nl.screw, np.concatenate((expected_direction, expected_moment)))
-        )
+    def test_non_unit_direction_normalizes(self):
+        direction = numpy.array([0, -1, 3])
+        moment = numpy.array([1, -2, 3])
+        nl = NormalizedLine([*direction, *moment])
+        norm = numpy.linalg.norm(direction)
+        assert numpy.allclose(nl.direction, direction / norm)
+        assert numpy.allclose(nl.moment, moment / norm)
 
-        point1 = PointHomogeneous([1, 1, 1, 1])
-        point2 = PointHomogeneous([1, 1, 1, 1])
-        with self.assertRaises(ValueError):
-            NormalizedLine.from_two_points(point1, point2)
+    def test_zero_direction_warns(self):
+        with pytest.warns(UserWarning, match="zero norm"):
+            nl = NormalizedLine([0, 0, 0, 1, -2, 3])
+        assert numpy.allclose(nl.direction, [0, 0, 0])
+        assert numpy.allclose(nl.moment, [1, -2, 3])
 
-    def test_from_direction_and_point(self):
-        point = np.array([1, 1, 1])
-        direction = np.array([1, 0, 0])
-        nl = NormalizedLine.from_direction_and_point(direction, point)
+    def test_screw_is_concat_of_direction_and_moment(self, unit_screw):
+        assert numpy.allclose(unit_screw.screw,
+                              numpy.concatenate((unit_screw.direction, unit_screw.moment)))
 
-        self.assertIsInstance(nl, NormalizedLine)
+    def test_dtype_is_float64(self, z_axis):
+        assert z_axis.direction.dtype == numpy.float64
+        assert z_axis.moment.dtype == numpy.float64
 
-        expected_direction = np.array([1, 0, 0])
-        expected_moment = np.array([0, 1, -1])
-        self.assertTrue(
-            np.allclose(nl.screw, np.concatenate((expected_direction, expected_moment)))
-        )
+    def test_from_numpy_array(self):
+        arr = numpy.array([1.0, 0.0, 0.0, 0.0, 1.0, -1.0])
+        nl = NormalizedLine(arr)
+        assert numpy.allclose(nl.screw, arr)
 
-    def test_from_direction_and_moment(self):
-        direction = np.array([1, 0, 0])
-        moment = np.array([0, 1, -1])
-        nl = NormalizedLine.from_direction_and_moment(direction, moment)
+    def test_init_falls_back_to_object_dtype_when_float_cast_fails(self):
+        class RawLine(NormalizedLine):
+            pass
 
-        self.assertIsInstance(nl, NormalizedLine)
+        nl = RawLine([1 + 1j, 0, 0, 0, 0, 0])
+        assert nl.direction.dtype == object
+        assert nl.moment.dtype == object
 
-        expected_direction = np.array([1, 0, 0])
-        expected_moment = np.array([0, 1, -1])
-        self.assertTrue(
-            np.allclose(nl.screw, np.concatenate((expected_direction, expected_moment)))
-        )
 
-    def test_from_dual_quaternion(self):
+class TestFromTwoPoints:
+
+    def test_from_two_3d_arrays(self):
+        nl = NormalizedLine.from_two_points([1, 1, 1], [3, 1, 1])
+        assert numpy.allclose(nl.direction, [1, 0, 0])
+        assert numpy.allclose(nl.moment, [0, 1, -1])
+
+    def test_from_two_point_h(self):
+        p0 = PointHomogeneous([1, 1, 1, 1])
+        p1 = PointHomogeneous([1, 3, 1, 1])
+        nl = NormalizedLine.from_two_points(p0, p1)
+        assert numpy.allclose(nl.screw, [1, 0, 0, 0, 1, -1])
+
+    def test_identical_points_raises(self):
+        p = PointHomogeneous([1, 1, 1, 1])
+        with pytest.raises(ValueError):
+            NormalizedLine.from_two_points(p, p)
+
+    def test_identical_arrays_raises(self):
+        with pytest.raises(ValueError):
+            NormalizedLine.from_two_points([1, 1, 1], [1, 1, 1])
+
+    def test_returns_instance(self):
+        nl = NormalizedLine.from_two_points([0, 0, 0], [1, 0, 0])
+        assert isinstance(nl, NormalizedLine)
+
+    def test_direction_is_unit(self):
+        nl = NormalizedLine.from_two_points([0, 0, 0], [3, 0, 0])
+        assert numpy.isclose(numpy.linalg.norm(nl.direction), 1.0)
+
+
+class TestFromDirectionAndPoint:
+
+    def test_known_values(self):
+        nl = NormalizedLine.from_direction_and_point([1, 0, 0], [0, 1, 1])
+        assert numpy.allclose(nl.direction, [1, 0, 0])
+        assert numpy.allclose(nl.moment, [0, 1, -1])
+
+    def test_returns_instance(self):
+        nl = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        assert isinstance(nl, NormalizedLine)
+
+    def test_direction_is_normalized(self):
+        nl = NormalizedLine.from_direction_and_point([2, 0, 0], [1, 0, 0])
+        assert numpy.isclose(numpy.linalg.norm(nl.direction), 1.0)
+
+    def test_fallback_to_object_dtype_when_float_cast_fails(self):
+        class RawLine(NormalizedLine):
+            pass
+
+        nl = RawLine.from_direction_and_point([1 + 1j, 0, 0], [0, 1, 0])
+        assert nl.direction.dtype == object
+        assert nl.moment.dtype == object
+
+
+class TestFromDirectionAndMoment:
+
+    def test_known_values(self):
+        nl = NormalizedLine.from_direction_and_moment([1, 0, 0], [0, 1, -1])
+        assert numpy.allclose(nl.direction, [1, 0, 0])
+        assert numpy.allclose(nl.moment, [0, 1, -1])
+
+    def test_returns_instance(self):
+        nl = NormalizedLine.from_direction_and_moment([0, 0, 1], [0, 0, 0])
+        assert isinstance(nl, NormalizedLine)
+
+    def test_fallback_to_object_dtype_when_float_cast_fails(self):
+        class RawLine(NormalizedLine):
+            pass
+
+        nl = RawLine.from_direction_and_moment([1 + 1j, 0, 0], [0, 1, 0])
+        assert nl.direction.dtype == object
+        assert nl.moment.dtype == object
+
+
+class TestFromDualQuaternion:
+
+    def test_known_values(self):
         dq = DualQuaternion([0, -2, 0, 0, 0, 4, -4, 6])
-        expected_line = np.array([-1, 0, 0, -2, 2, -3])
+        nl = NormalizedLine.from_dual_quaternion(dq)
+        assert numpy.allclose(nl.screw, [-1, 0, 0, -2, 2, -3])
 
-        line = NormalizedLine.from_dual_quaternion(dq)
-        self.assertTrue(np.allclose(line.screw, expected_line))
+    def test_returns_instance(self):
+        dq = DualQuaternion([0, 0, 0, 1, 0, 0, -2, 0])
+        assert isinstance(NormalizedLine.from_dual_quaternion(dq), NormalizedLine)
 
-    def test_point_on_line(self):
-        direction = [0, 0, 1]
-        moment = np.array([0, -1, 0])
-        nl = NormalizedLine(
-            [direction[0], direction[1], direction[2], moment[0], moment[1], moment[2]]
-        )
 
-        point = nl.point_on_line()
-        self.assertTrue(np.allclose(point, np.array([1, 0, 0])))
+# ---------------------------------------------------------------------------
+# Representation
+# ---------------------------------------------------------------------------
 
-        point = nl.point_on_line(1)
-        self.assertTrue(np.allclose(point, np.array([1, 0, 1])))
+class TestRepr:
 
-    def test_repr(self):
+    def test_repr_contains_class_name(self, z_axis):
+        assert "NormalizedLine" in repr(z_axis)
+
+    def test_repr_default_values(self, z_axis):
+        r = repr(z_axis)
+        assert "0" in r and "1" in r
+
+    def test_repr_is_string(self, z_axis):
+        assert isinstance(repr(z_axis), str)
+
+    def test_repr_old_format(self):
+        # Old repr was a bare array string; new repr wraps with class name.
         line = NormalizedLine()
-        self.assertEqual(line.__repr__(), "[0, 0, 1, 0, 0, 0]")
+        r = repr(line)
+        assert "NormalizedLine" in r
 
-    def test_line2dq_array(self):
-        direction = [0, 0, 1]
-        moment = np.array([0, -2, 0])
-        nl = NormalizedLine(
-            [direction[0], direction[1], direction[2], moment[0], moment[1], moment[2]]
-        )
 
+# ---------------------------------------------------------------------------
+# Indexing
+# ---------------------------------------------------------------------------
+
+class TestIndexing:
+
+    def test_getitem(self, z_axis):
+        assert z_axis[0] == 0.0
+        assert z_axis[1] == 0.0
+        assert z_axis[2] == 1.0
+        assert z_axis[3] == 0.0
+        assert z_axis[4] == 0.0
+        assert z_axis[5] == 0.0
+
+    def test_len(self, z_axis):
+        assert len(z_axis) == 6
+
+
+# ---------------------------------------------------------------------------
+# Equality
+# ---------------------------------------------------------------------------
+
+class TestEquality:
+
+    def test_equal_to_itself(self, z_axis):
+        assert z_axis == z_axis
+
+    def test_equal_to_same_values(self):
+        a = NormalizedLine([1, 0, 0, 0, 1, -1])
+        b = NormalizedLine([1, 0, 0, 0, 1, -1])
+        assert a == b
+
+    def test_not_equal_different_values(self, z_axis, unit_screw):
+        assert not (z_axis == unit_screw)
+
+
+# ---------------------------------------------------------------------------
+# array()
+# ---------------------------------------------------------------------------
+
+class TestArray:
+
+    def test_returns_ndarray(self, z_axis):
+        assert isinstance(z_axis.array(), numpy.ndarray)
+
+    def test_array_matches_screw(self, unit_screw):
+        assert numpy.allclose(unit_screw.array(), unit_screw.screw)
+
+    def test_array_is_copy(self, z_axis):
+        arr = z_axis.array()
+        arr[0] = 99.0
+        assert z_axis.screw[0] != 99.0
+
+
+# ---------------------------------------------------------------------------
+# line2dq_array
+# ---------------------------------------------------------------------------
+
+class TestLine2DqArray:
+
+    def test_known_values(self):
+        nl = NormalizedLine([0, 0, 1, 0, -2, 0])
+        assert numpy.allclose(nl.line2dq_array(), [0, 0, 0, 1, 0, 0, 2, 0])
+
+    def test_shape(self, z_axis):
+        assert z_axis.line2dq_array().shape == (8,)
+
+    def test_first_element_is_zero(self, unit_screw):
+        assert unit_screw.line2dq_array()[0] == 0.0
+
+    def test_fifth_element_is_zero(self, unit_screw):
+        assert unit_screw.line2dq_array()[4] == 0.0
+
+    def test_moment_sign_is_negated(self):
+        nl = NormalizedLine([1, 0, 0, 0, 3, -1])
         dq = nl.line2dq_array()
-        self.assertTrue(np.allclose(dq, np.array([0, 0, 0, 1, 0, 0, 2, 0])))
+        assert numpy.allclose(dq[5:], [0, -3, 1])
 
-    def test_point_homogeneous(self):
-        pass
+    def test_direction_maps_to_indices_1_to_3(self):
+        nl = NormalizedLine([1, 0, 0, 0, 0, 0])
+        assert numpy.allclose(nl.line2dq_array()[1:4], [1, 0, 0])
 
-    def test_get_point_param(self):
-        direction = [0, 0, 1]
-        moment = np.array([0, -1, 0])
-        nl = NormalizedLine(
-            [direction[0], direction[1], direction[2], moment[0], moment[1], moment[2]]
-        )
 
-        self.assertTrue(np.allclose(nl.get_point_param(np.array([1, 0, 0])), 0))
-        self.assertTrue(np.allclose(nl.get_point_param(np.array([1, 0, 3])), 3))
+# ---------------------------------------------------------------------------
+# point_on_line
+# ---------------------------------------------------------------------------
 
-        direction = [0, 0, 0]
-        moment = np.array([0, -1, 0])
-        nl = NormalizedLine(
-            [direction[0], direction[1], direction[2], moment[0], moment[1], moment[2]]
-        )
+class TestPointOnLine:
 
-        self.assertRaises(ValueError, nl.get_point_param, np.array([1, 0, 0]))
+    def test_principal_point_t0(self):
+        nl = NormalizedLine([0, 0, 1, 0, -1, 0])
+        assert numpy.allclose(nl.point_on_line(), [1, 0, 0])
 
-    def test_common_perpendicular_to_other_line(self):
-        # skew lines
-        line1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
-        line2 = NormalizedLine.from_direction_and_point([0, -1, 0], [2, 0, 1.5])
+    def test_t1_advances_by_direction(self):
+        nl = NormalizedLine([0, 0, 1, 0, -1, 0])
+        assert numpy.allclose(nl.point_on_line(1), [1, 0, 1])
 
-        points, distance, cos_angle = line1.common_perpendicular_to_other_line(line2)
+    def test_returns_ndarray(self, z_axis):
+        assert isinstance(z_axis.point_on_line(), numpy.ndarray)
 
-        self.assertTrue(np.allclose(points[0], np.array([0, 0, 1.5])))
-        self.assertTrue(np.allclose(points[1], np.array([2, 0, 1.5])))
-        self.assertTrue(np.allclose(distance, 2))
-        self.assertTrue(np.allclose(cos_angle, 0))
+    def test_shape(self, z_axis):
+        assert z_axis.point_on_line().shape == (3,)
 
-        # parallel lines
-        line1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
-        line2 = NormalizedLine.from_direction_and_point([0, 0, -1], [2, 0, 1.5])
+    def test_t_negative(self):
+        nl = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0])
+        p_pos = nl.point_on_line(2)
+        p_neg = nl.point_on_line(-2)
+        assert numpy.allclose(p_pos - p_neg, 4 * nl.direction)
 
-        points, distance, cos_angle = line1.common_perpendicular_to_other_line(line2)
 
-        self.assertTrue(np.allclose(points[0], np.array([0, 0, 0])))
-        self.assertTrue(np.allclose(points[1], np.array([2, 0, 0])))
-        self.assertTrue(np.allclose(distance, 2))
-        self.assertTrue(np.allclose(cos_angle, 1))
+# ---------------------------------------------------------------------------
+# point_homogeneous
+# ---------------------------------------------------------------------------
 
-        # intersecting lines
-        line1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
-        line2 = NormalizedLine.from_direction_and_point([0, -1, 1], [0, 0, 1.5])
+class TestPointHomogeneousomogeneous:
 
-        points, distance, cos_angle = line1.common_perpendicular_to_other_line(line2)
+    def test_shape(self, z_axis):
+        assert z_axis.point_homogeneous().shape == (4,)
 
-        self.assertTrue(np.allclose(points[0], np.array([0, 0, 1.5])))
-        self.assertTrue(np.allclose(points[1], points[0]))
-        self.assertTrue(np.allclose(distance, 0))
-        self.assertTrue(np.allclose(cos_angle, 0.7071067811865476))
+    def test_returns_ndarray(self, z_axis):
+        assert isinstance(z_axis.point_homogeneous(), numpy.ndarray)
 
-    def test_contains_point(self):
+    def test_nonzero_w_for_finite_line(self, x_line):
+        pt = x_line.point_homogeneous()
+        # at least one coordinate must be non-zero
+        assert not numpy.allclose(pt, numpy.zeros(4))
+
+
+# ---------------------------------------------------------------------------
+# get_point_param
+# ---------------------------------------------------------------------------
+
+class TestGetPointParam:
+
+    def test_principal_point_gives_zero(self):
+        nl = NormalizedLine([0, 0, 1, 0, -1, 0])
+        assert numpy.isclose(nl.get_point_param([1, 0, 0]), 0.0)
+
+    def test_known_nonzero_param(self):
+        nl = NormalizedLine([0, 0, 1, 0, -1, 0])
+        assert numpy.isclose(nl.get_point_param([1, 0, 3]), 3.0)
+
+    def test_zero_direction_raises(self):
+        with pytest.warns(UserWarning):
+            nl = NormalizedLine([0, 0, 0, 0, -1, 0])
+        with pytest.raises(ValueError):
+            nl.get_point_param([1, 0, 0])
+
+    def test_roundtrip_consistency(self, x_line):
+        t = 2.5
+        pt = x_line.point_on_line(t)
+        assert numpy.isclose(x_line.get_point_param(pt), t)
+
+
+# ---------------------------------------------------------------------------
+# contains_point
+# ---------------------------------------------------------------------------
+
+class TestContainsPoint:
+
+    def test_point_on_line_returns_true(self):
+        nl = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0])
         p = PointHomogeneous([1, 1, 0, 0])
-        line = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0])
+        assert nl.contains_point(p)
 
-        self.assertTrue(line.contains_point(p))
-
+    def test_point_off_line_returns_false(self):
+        nl = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0])
         p = PointHomogeneous([1, 1, -1, 0])
-        self.assertTrue(not line.contains_point(p))
+        assert not nl.contains_point(p)
 
-        line = NormalizedLine.from_direction_and_point([1, -1, 1], [1, -2, 4])
-        p = line.point_on_line(0.576)
-        self.assertTrue(line.contains_point(p))
+    def test_point_as_array(self):
+        nl = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0])
+        assert nl.contains_point([1, 0, 0])
 
-    def test_get_plot_data(self):
-        line = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
-        data = line.get_plot_data((0, 1))
+    def test_point_on_line_via_param(self):
+        nl = NormalizedLine.from_direction_and_point([1, -1, 1], [1, -2, 4])
+        pt = nl.point_on_line(0.576)
+        assert nl.contains_point(pt)
 
-        self.assertTrue(np.allclose(data, np.array([0, 0, 0, 0, 0, 1])))
-
+    def test_old_contains_point_true(self):
+        p = PointHomogeneous([1, 1, 0, -1])
         line = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0])
-        data = line.get_plot_data((0, 2))
+        assert line.contains_point(p)
 
-        self.assertTrue(np.allclose(data, np.array([1, 0, 0, 0, 0, 2])))
+    def test_old_contains_point_false(self):
+        p = PointHomogeneous([1, 1, -1, 0])
+        line = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0])
+        assert not line.contains_point(p)
+
+
+# ---------------------------------------------------------------------------
+# common_perpendicular_to_other_line
+# ---------------------------------------------------------------------------
+
+class TestCommonPerpendicular:
+
+    def test_skew_lines_foot_points(self):
+        l1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        l2 = NormalizedLine.from_direction_and_point([0, -1, 0], [2, 0, 1.5])
+        points, distance, cos_angle = l1.common_perpendicular_to_other_line(l2)
+        assert numpy.allclose(points[0], [0, 0, 1.5])
+        assert numpy.allclose(points[1], [2, 0, 1.5])
+
+    def test_skew_lines_distance(self):
+        l1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        l2 = NormalizedLine.from_direction_and_point([0, -1, 0], [2, 0, 1.5])
+        _, distance, _ = l1.common_perpendicular_to_other_line(l2)
+        assert numpy.isclose(distance, 2.0)
+
+    def test_skew_lines_cos_angle(self):
+        l1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        l2 = NormalizedLine.from_direction_and_point([0, -1, 0], [2, 0, 1.5])
+        _, _, cos_angle = l1.common_perpendicular_to_other_line(l2)
+        assert numpy.isclose(cos_angle, 0.0)
+
+    def test_parallel_lines_cos_angle_is_one(self):
+        l1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        l2 = NormalizedLine.from_direction_and_point([0, 0, -1], [2, 0, 1.5])
+        _, _, cos_angle = l1.common_perpendicular_to_other_line(l2)
+        assert numpy.isclose(cos_angle, 1.0)
+
+    def test_parallel_lines_foot_points(self):
+        l1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        l2 = NormalizedLine.from_direction_and_point([0, 0, -1], [2, 0, 1.5])
+        points, _, _ = l1.common_perpendicular_to_other_line(l2)
+        assert numpy.allclose(points[0], [0, 0, 0])
+        assert numpy.allclose(points[1], [2, 0, 0])
+
+    def test_parallel_lines_distance(self):
+        l1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        l2 = NormalizedLine.from_direction_and_point([0, 0, -1], [2, 0, 1.5])
+        _, distance, _ = l1.common_perpendicular_to_other_line(l2)
+        assert numpy.isclose(distance, 2.0)
+
+    def test_intersecting_lines_zero_distance(self):
+        l1 = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        l2 = NormalizedLine.from_direction_and_point([0, -1, 1], [0, 0, 1.5])
+        points, distance, cos_angle = l1.common_perpendicular_to_other_line(l2)
+        assert numpy.allclose(points[0], [0, 0, 1.5])
+        assert numpy.allclose(points[0], points[1])
+        assert numpy.isclose(distance, 0.0)
+        assert numpy.isclose(cos_angle, numpy.sqrt(2) / 2)
+
+    def test_returns_tuple_of_three(self, z_axis, x_line):
+        result = z_axis.common_perpendicular_to_other_line(x_line)
+        assert len(result) == 3
+
+
+# ---------------------------------------------------------------------------
+# intersection_with_plane
+# ---------------------------------------------------------------------------
+
+class TestIntersectionWithPlane:
+
+    def test_known_values(self):
+        from rational_linkages.NormalizedPlane import NormalizedPlane
+        plane = NormalizedPlane([0, 0, 1], [0, 0, 0])
+        line = NormalizedLine.from_direction_and_point([0, 0, 1], [1, -2, -1])
+        result = plane.intersection_with_line(line)
+        normalized = result[1:] / result[0]
+        assert numpy.allclose(normalized, [1, -2, 0])
+
+    def test_shape(self):
+        from rational_linkages.NormalizedPlane import NormalizedPlane
+        plane = NormalizedPlane([1, 0, 0], [0, 0, 0])
+        nl = NormalizedLine.from_direction_and_point([1, 0, 0], [0, 1, 1])
+        result = nl.intersection_with_plane(plane)
+        assert result.shape == (4,)
+
+    def test_w_is_not_zero_for_non_parallel_line(self):
+        from rational_linkages.NormalizedPlane import NormalizedPlane
+        plane = NormalizedPlane([0, 0, 1], [0, 0, 5])
+        nl = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 1, 0])
+        result = nl.intersection_with_plane(plane)
+        assert not numpy.isclose(result[0], 0.0)
+
+
+# ---------------------------------------------------------------------------
+# eval / evaluate / evalf placeholders
+# ---------------------------------------------------------------------------
+
+class TestEvalPlaceholders:
+
+    def test_eval_returns_self(self, z_axis):
+        assert z_axis.eval({"unused": 1}) is z_axis
+
+    def test_eval(self):
+        set_backend("numpy")
+        t = sympy.Symbol("t")
+        l = NormalizedLine([t**2, 1 + t, 0, 0, 0, 3 * t])
+        result = l.eval({t: 0}).evalf().array()
+        expected = numpy.array([0, 1, 0, 0, 0, 0])
+        assert numpy.allclose(result, expected)
+
+
+# ---------------------------------------------------------------------------
+# get_plot_data
+# ---------------------------------------------------------------------------
+
+class TestGetPlotData:
+
+    def test_known_values_origin(self):
+        nl = NormalizedLine.from_direction_and_point([0, 0, 1], [0, 0, 0])
+        assert numpy.allclose(nl.get_plot_data((0, 1)), [0, 0, 0, 0, 0, 1])
+
+    def test_known_values_offset(self):
+        nl = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0])
+        assert numpy.allclose(nl.get_plot_data((0, 2)), [1, 0, 0, 0, 0, 2])
+
+    def test_shape(self, z_axis):
+        assert z_axis.get_plot_data((0, 1)).shape == (6,)
+
+    def test_first_3_is_start_point(self):
+        nl = NormalizedLine.from_direction_and_point([0, 0, 1], [2, 3, 0])
+        data = nl.get_plot_data((0, 1))
+        assert numpy.allclose(data[:3], nl.point_on_line(0))
+
+    def test_last_3_is_direction_vector(self):
+        nl = NormalizedLine.from_direction_and_point([0, 0, 1], [1, 0, 0])
+        data = nl.get_plot_data((0, 1))
+        assert numpy.allclose(data[3:], nl.direction)
