@@ -23,7 +23,7 @@ classifiers = [
 ]
 dependencies = [
     "biquaternion-py >= 1.2.0",
-    "numpy >= 1.10.0",
+    "numpy >= 2.0",
     "sympy >= 1.10.0",
     "PyQt6 >= 6.2.0",
     "pyqtgraph < 0.14",
