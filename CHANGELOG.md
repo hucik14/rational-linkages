@@ -1,5 +1,58 @@
 # Changelog
 
+## 3.0.0 (2026-06-01)
+
+### added (17 changes)
+
+- [symbolic line common perpendicular version](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/ed7970a6)
+- [expose pyqtgraph.opengl and add method to include custom GL items in 3D view](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/a67d1c56)
+- [add _flat_xyz function for 3D vector normalization and update plotting methods](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/62985c8c)
+- [orthogonal projection in PyqtgraphPlotter](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/fba385a6)
+- [CAD-like rotation of scene in PyqtgraphPlotter](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/23aebea1)
+- [descriptive warning when STL file not found during importing it to MD](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/6326b672)
+- [RationalCurve can be evaluated with sympy number results](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/ec56db21)
+- [test pipeline for python 3.14](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/4dd28935)
+- [symbolic backend, including docs](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1778b21e)
+- [added interactive visualization to docs for mechanisms](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/2db0a01d)
+- [example update, stl can change pose by transform](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/f3c15222)
+- [added stl model for visual demo](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/11649319)
+- [PointHom. and DualQuaterion rational=True returns Symbolic class alternative](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/a1250ff6)
+- [math classes refactor, symbolic classes](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/86971731)
+- [matplotlib optional setup for better visibility for papers](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/31aaf63c)
+- [half-turn example of dual quaternion](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/fb06331d)
+- [tutorial to plot curve of a mechanism](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/b0856606)
+
+
+### removed (3 changes)
+
+- [coverage package pipeline testing, now only pytest](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/4db52dd2)
+- [class RationalDualQuaternion.py removed, DualQuaternion can handle rationals itself](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/7764fa19)
+- [examples folder del, configs for v3](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/3664829e)
+
+
+### changed (7 changes)
+
+- [RationalCurve generates inverse coeffs only when demanded](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/16c4045e)
+- [added as_expr in RationalCurve for improved expression handling taking into account t in denominator](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/ffc94842)
+- [update of contribute.rst according to new code structure](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/dc854a30)
+- [new docs testing using literalinclude](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/7333e912)
+- [regenerated models in data](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/0c597341)
+- [examples folder removed and cleand, replaced by scripts folder](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/331decbf)
+- [normalized_in_3d removed from usage within package](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/ed432eee)
+
+
+### fixed (2 changes)
+
+- [safe cross on dtype objects, complex warning skipped](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1300ba69)
+- [dq_algebraic2vector can handle reals](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/64a595bd)
+
+
+### deprecated (1 change)
+
+- [optimization of quadratic curve deprecated](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/c4f602a3)
+
+
+
 ## 2.6.0 (2026-03-13)
 
 ### added (8 changes)
