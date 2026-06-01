@@ -1,5 +1,6 @@
 import pytest
 import sympy
+import numpy
 
 from rational_linkages.utils import (
     is_package_installed,
@@ -9,6 +10,7 @@ from rational_linkages.utils import (
     color_rgba,
     tr_from_dh_rationally,
     normalized_line_rationally,
+    cross_product_on_objects,
 )
 
 
@@ -131,3 +133,44 @@ class TestUtils:
         with pytest.raises(ValueError, match='sympy objects'):
             normalized_line_rationally([1.0, 2.0, 3.0], [sympy.Integer(0), sympy.Integer(0), sympy.Integer(1)])
 
+    def _make(self, data):
+        return numpy.asarray(data, dtype=object)
+
+    def test_matches_numpy_cross_for_real_vectors(self):
+        a = self._make([1, 0, 0])
+        b = self._make([0, 1, 0])
+        result = cross_product_on_objects(a, b)
+        expected = numpy.cross(a, b)
+        numpy.testing.assert_array_equal(result, expected)
+
+    def test_returns_object_dtype(self):
+        a = self._make([1, 0, 0])
+        b = self._make([0, 1, 0])
+        result = cross_product_on_objects(a, b)
+        assert result.dtype == object
+
+    def test_anticommutativity(self):
+        a = self._make([1, 2, 3])
+        b = self._make([4, 5, 6])
+        numpy.testing.assert_array_equal(cross_product_on_objects(a, b), -cross_product_on_objects(b, a))
+
+    def test_parallel_vectors_give_zero(self):
+        a = self._make([1, 2, 3])
+        b = self._make([2, 4, 6])
+        numpy.testing.assert_array_equal(cross_product_on_objects(a, b), [0, 0, 0])
+
+    def test_complex_values(self):
+        a = self._make([1 + 1j, 0, 0])
+        b = self._make([0, 1, 0])
+        result = cross_product_on_objects(-a, b)
+        assert result.dtype == object
+        assert result[2] == (-1 - 1j)
+
+    def test_with_sympy_symbols(self):
+        x, y, z = sympy.symbols("x y z")
+        a = self._make([x, y, z])
+        b = self._make([1, 0, 0])
+        result = cross_product_on_objects(a, b)
+        assert result.dtype == object
+        assert result[1] == z
+        assert result[2] == -y

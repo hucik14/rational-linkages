@@ -225,3 +225,17 @@ def evaluate_numerically(object_to_evaluate):
     """
     from numpy import array, float64
     return array([v.evalf() for v in object_to_evaluate.coordinates], dtype=float64)
+
+
+def cross_product_on_objects(a, b):
+    """Cross product for object dtype arrays."""
+    from numpy import array
+
+    a0, a1, a2 = a[0], a[1], a[2]
+    b0, b1, b2 = b[0], b[1], b[2]
+    return array(
+        [a1 * b2 - a2 * b1,
+         a2 * b0 - a0 * b2,
+         a0 * b1 - a1 * b0],
+        dtype=object,
+    )

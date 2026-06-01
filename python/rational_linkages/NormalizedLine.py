@@ -248,14 +248,18 @@ class NormalizedLine:
         """
         if cls is NormalizedLine and is_symbolic():
             from .NormalizedLineSymbolic import NormalizedLineSymbolic
+
             return NormalizedLineSymbolic.from_direction_and_point(direction, point)
         try:
             direction = numpy.asarray(direction, dtype=numpy.float64)
             point = numpy.asarray(point, dtype=numpy.float64)
+            moment = numpy.cross(-direction, point)
         except (TypeError, ValueError):
             direction = numpy.asarray(direction, dtype=object)
             point = numpy.asarray(point, dtype=object)
-        moment = numpy.cross(-direction, point)
+
+            from rational_linkages.utils import cross_product_on_objects  # inner import
+            moment = cross_product_on_objects(-direction, point)
         return cls(numpy.concatenate((direction, moment)))
 
     @classmethod
