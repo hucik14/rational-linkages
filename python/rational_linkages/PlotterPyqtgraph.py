@@ -482,8 +482,8 @@ class PlotterPyqtgraph:
 
     def _plot_point2(self, point: PointHomogeneous, **kwargs):
         """Plot a point as a cross marker (three intersecting lines)."""
-        size = kwargs.pop("size", 3)
-        half = size * 0.01  # tune this to your scene scale
+        size = kwargs.pop("size", self.arrows_length)
+        half = size * 0.05 # tune this to your scene scale
 
         pos = _flat_xyz(point.get_plot_data())
         color = self._get_color(kwargs.get("color", "red"), (1, 0, 0, 1))
@@ -494,9 +494,10 @@ class PlotterPyqtgraph:
             [[x, y - half, z], [x, y + half, z]],  # Y arm
             [[x, y, z - half], [x, y, z + half]],  # Z arm
         ]:
-            line = gl.GLLinePlotItem(
-                pos=numpy.array(axis_pts), color=color, width=size, glOptions=self.render_mode
-            )
+            line = gl.GLLinePlotItem(pos=numpy.array(axis_pts),
+                                     color=color,
+                                     width=10,
+                                     glOptions=self.render_mode)
             self.widget.addItem(line)
 
         if 'label' in kwargs:
