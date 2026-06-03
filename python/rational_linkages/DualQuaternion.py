@@ -230,6 +230,9 @@ class DualQuaternion:
         -------
         DualQuaternion
         """
+        if cls is DualQuaternion and is_symbolic():
+            from .DualQuaternionSymbolic import DualQuaternionSymbolic
+            return DualQuaternionSymbolic.random_on_study_quadric(interval)
         return cls.random(interval).back_projection()
 
     @classmethod
