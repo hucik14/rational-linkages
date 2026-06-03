@@ -412,7 +412,7 @@ if QtWidgets is not None:
         control values change.
         """
         def __init__(self,
-                     method: str = 'cubic_from_points',
+                     method: str = 'quadratic_from_poses',
                      initial_pts: Union[list[PointHomogeneous], list[DualQuaternion]] = None,
                      parent = None,
                      sliders_range: int = 10,
@@ -456,6 +456,7 @@ if QtWidgets is not None:
             self.points = self._initialize_points(method, initial_pts)
             self.method = method
             self.arrows_length = arrows_length
+            self.cad_items = []
             self.mi = MotionInterpolation()
 
             grid_size = sliders_range * 2
@@ -785,6 +786,14 @@ if QtWidgets is not None:
                                          arrows_length=self.arrows_length,
                                          parent_app=self.plotter.app,
                                          white_background=self.white_background))
+            
+            if self.method == 'quadratic_from_poses' or self.method == 'cubic_from_poses':
+                for item in self.cad_items:
+                    self.mechanism_plotter[-1].plotter.widget.addItem(item[1])
+                labels = ["p{}".format(i) for i in range(len(self.points))]
+                self.mechanism_plotter[-1].plotter.plot(self.points, label=labels)
+            else:
+                pass  # not supported because the result is no monic polynomial
             self.mechanism_plotter[-1].show()
 
 
@@ -1054,10 +1063,6 @@ if QtWidgets is not None:
             if gl is None:
                 raise RuntimeError("OpenGL / pyqtgraph not available")
 
-            # lazy init container for CAD items
-            if not hasattr(self, "cad_items"):
-                self.cad_items = []
-
             # create meshdata and mesh item
             meshdata = gl.MeshData(vertexes=vertices, faces=faces)
             mesh_item = gl.GLMeshItem(meshdata=meshdata,
@@ -1078,8 +1083,6 @@ if QtWidgets is not None:
             bool
                 True if an item was found and removed, False otherwise.
             """
-            if not hasattr(self, "cad_items"):
-                return False
             for i, (n, item) in enumerate(self.cad_items):
                 if n == name:
                     try:
@@ -1094,7 +1097,7 @@ if QtWidgets is not None:
             """Remove all previously added CAD meshes from the view and clear
             internal bookkeeping.
             """
-            if not hasattr(self, "cad_items"):
+            if self.cad_items is None:
                 return
             for _, item in self.cad_items:
                 try:
