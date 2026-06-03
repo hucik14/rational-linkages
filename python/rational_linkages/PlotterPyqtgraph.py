@@ -235,7 +235,7 @@ class PlotterPyqtgraph:
         if type_to_plot == "is_line":
             self._plot_line(object_to_plot, **kwargs)
         elif type_to_plot == "is_point":
-            self._plot_point(object_to_plot, **kwargs)
+            self._plot_point2(object_to_plot, **kwargs)
         elif type_to_plot == "is_motion_factorization":
             self._plot_motion_factorization(object_to_plot, **kwargs)
         elif type_to_plot == "is_dq":
@@ -458,7 +458,15 @@ class PlotterPyqtgraph:
     def _plot_point(self, point: PointHomogeneous, **kwargs):
         """
         Plot a point as a marker.
+
+        Deprecated
+        ----------
+        Use ``_plot_point2`` instead. This method remains for backward
+        compatibility and emits a :class:`DeprecationWarning`.
         """
+        warn("_plot_point is deprecated and will be removed in a future release; use _plot_point2 instead.",
+             DeprecationWarning,
+             stacklevel=2)
         size = kwargs.pop('size', 4)
 
         pos = _flat_xyz(point.get_plot_data())
@@ -468,6 +476,28 @@ class PlotterPyqtgraph:
                                        glOptions=self.render_mode,
                                        size=size)
         self.widget.addItem(scatter)
+
+        if 'label' in kwargs:
+            self.widget.add_label(pos, kwargs['label'])
+
+    def _plot_point2(self, point: PointHomogeneous, **kwargs):
+        """Plot a point as a cross marker (three intersecting lines)."""
+        size = kwargs.pop("size", 3)
+        half = size * 0.01  # tune this to your scene scale
+
+        pos = _flat_xyz(point.get_plot_data())
+        color = self._get_color(kwargs.get("color", "red"), (1, 0, 0, 1))
+
+        x, y, z = pos
+        for axis_pts in [
+            [[x - half, y, z], [x + half, y, z]],  # X arm
+            [[x, y - half, z], [x, y + half, z]],  # Y arm
+            [[x, y, z - half], [x, y, z + half]],  # Z arm
+        ]:
+            line = gl.GLLinePlotItem(
+                pos=numpy.array(axis_pts), color=color, width=size, glOptions=self.render_mode
+            )
+            self.widget.addItem(line)
 
         if 'label' in kwargs:
             self.widget.add_label(pos, kwargs['label'])
