@@ -596,6 +596,28 @@ class RationalCurve:
         dq = DualQuaternion(self.evaluate(t_param, inverted_part))
         return dq.dq2matrix()
 
+    def sample_points(self, num_samples: int,
+                      interval: tuple = (0, 1),
+                      inverted_part: bool = False) -> list[PointHomogeneous]:
+        """
+        Sample points.
+
+        Parameters
+        ----------
+        num_samples : int
+            Number of points to sample.
+        interval : tuple, optional
+            Evaluates on given interval.
+        inverted_part : bool, optional
+
+        Returns
+        -------
+        list of PointHomogeneous
+        """
+        t_vals = numpy.linspace(interval[0], interval[1], num_samples)
+        return [PointHomogeneous(self.evaluate(t_val, inverted_part=inverted_part))
+                for t_val in t_vals]
+
     def factorize(self, use_rationals: bool = False) -> list[MotionFactorization]:
         """
         Factorize the curve into motion factorizations.
