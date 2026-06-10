@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "3.0.0"
+version = "3.0.1"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@snu.ac.kr"},
