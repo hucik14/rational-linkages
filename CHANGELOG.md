@@ -1,5 +1,20 @@
 # Changelog
 
+
+## 3.0.1 (2026-06-10)
+
+### added (2 changes)
+
+- [view STL models also in mechanism preview](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/618b9a52)
+- [create random rational DQ on study quadric](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/6b3c16f2)
+
+
+### changed (2 changes)
+
+- [add _plot_point2 method and deprecate _plot_point for reliability](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/1380456e)
+- [replacing lazy scipy's import of comb with direct import from math](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/b9df7904)
+
+
 ## 3.0.0 (2026-06-01)
 
 ### added (17 changes)

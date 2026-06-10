@@ -3,6 +3,8 @@ from copy import deepcopy
 import numpy
 import sympy
 
+from math import comb
+
 from .DualQuaternion import DualQuaternion
 from .MiniBall import MiniBall
 from .PointHomogeneous import PointHomogeneous
@@ -114,8 +116,6 @@ class RationalBezier(RationalCurve):
         numpy.ndarray
             Numerical coefficients of the Bezier curve.
         """
-        from scipy.special import comb  # lazy import
-
         control_pts = numpy.array([point.array() for point in control_points])
         degree = len(control_points) - 1
 

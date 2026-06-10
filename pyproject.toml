@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rational-linkages"
-version = "3.0.0"
+version = "3.0.1"
 description = "Rational Linkages"
 authors = [
     {name = "Daniel Huczala", email = "daniel.huczala@snu.ac.kr"},
@@ -88,7 +88,6 @@ manylinux-aarch64-image = "manylinux2014"
 environment = { CARGO_TERM_COLOR = "always" }
 #test-command = "pytest {package}/python/tests"
 test-command = ""
-#test-skip = ["*-macosx_arm64", "*-macosx_x86_64"]
 
 [tool.cibuildwheel.linux]
 #archs = ["x86_64", "aarch64"]  # legacy option, now set by CIBW_ARCHS_LINUX in wheels.yml of GitHub Actions

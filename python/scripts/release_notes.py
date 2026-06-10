@@ -5,10 +5,10 @@ from pathlib import Path
 
 CHANGELOG_FILE = 'CHANGELOG.md'
 SOURCE_BRANCH = 'develop'
-TARGET_BRANCH = 'v2.6.0'  # target to compare to
-NEW_VERSION = '3.0.0'
+TARGET_BRANCH = 'v3.0.0'  # target to compare to
+NEW_VERSION = '3.0.1'
 
-repo_path = Path.home() / 'gitlab' / 'rational-linkages'
+repo_path = Path.home() / 'git' / 'rational-linkages'
 
 
 def get_changelog_commits(commits):

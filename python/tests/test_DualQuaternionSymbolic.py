@@ -133,7 +133,6 @@ class TestRandom:
         dq = DualQuaternionSymbolic.random(interval=interval, max_denominator=7)
         for value in dq.array():
             assert isinstance(value, sympy.Rational)
-            assert value != 0
             assert abs(value) < interval
             assert value.q <= 7
 
