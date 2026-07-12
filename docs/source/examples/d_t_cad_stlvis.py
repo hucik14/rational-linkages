@@ -3,6 +3,7 @@ from rational_linkages.models import cart_stl
 
 md = MotionDesigner(method='quadratic_from_poses',
                     preview_mechanism=True,
+                    sliders_range=2.,
                     arrows_length=0.1)
 path_to_stl = cart_stl()  # replace with path to your STL, for example:
 # path_to_stl = "cart.stl"
