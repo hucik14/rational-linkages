@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy
 
@@ -1245,9 +1246,8 @@ if QtWidgets is not None:
             self.text_box_param.setPlaceholderText("Set parameter t [-]:")
             control_layout.addWidget(self.text_box_param)
 
-            self.save_mech_pkl = QtWidgets.QLineEdit()
-            self.save_mech_pkl.setPlaceholderText("Save mechanism PKL, filename:")
-            control_layout.addWidget(self.save_mech_pkl)
+            self.save_mech_btn = QtWidgets.QPushButton("Save mechanism")
+            control_layout.addWidget(self.save_mech_btn)
 
             self.save_figure_box = QtWidgets.QLineEdit()
             self.save_figure_box.setPlaceholderText("Save figure PNG, filename:")
@@ -1342,7 +1342,7 @@ if QtWidgets is not None:
             self.move_slider.valueChanged.connect(self.on_move_slider_changed)
             self.text_box_angle.returnPressed.connect(self.on_angle_text_entered)
             self.text_box_param.returnPressed.connect(self.on_param_text_entered)
-            self.save_mech_pkl.returnPressed.connect(self.on_save_save_mech_pkl)
+            self.save_mech_btn.clicked.connect(self.on_save_save_mech_pkl)
             self.save_figure_box.returnPressed.connect(self.on_save_figure_box)
             for slider in self.joint_sliders:
                 slider.valueChanged.connect(self.on_joint_slider_changed)
@@ -1476,14 +1476,36 @@ if QtWidgets is not None:
 
         def on_save_save_mech_pkl(self):
             """
-            Called when the save text box is submitted.
+            Called when the Save mechanism button is clicked.
+            Opens a popup to enter a filename, then saves on OK.
             """
-            filename = self.save_mech_pkl.text()
-            self.mechanism.save(filename=filename)
+            dialog = QtWidgets.QDialog(self)
+            dialog.setWindowTitle("Save mechanism")
+            dialog.setMinimumWidth(300)
 
-            QtWidgets.QMessageBox.information(self,
-                                              "Success",
-                                              f"Mechanism saved as {filename}.pkl")
+            layout = QtWidgets.QVBoxLayout(dialog)
+            layout.addWidget(QtWidgets.QLabel("Enter filename (without extension):"))
+
+            line_edit = QtWidgets.QLineEdit("mechanism")
+            line_edit.selectAll()
+            layout.addWidget(line_edit)
+
+            buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.StandardButton.Ok |
+                QtWidgets.QDialogButtonBox.StandardButton.Cancel
+            )
+            buttons.accepted.connect(dialog.accept)
+            buttons.rejected.connect(dialog.reject)
+            layout.addWidget(buttons)
+
+            if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+                filename = line_edit.text().strip() or "mechanism"
+                self.mechanism.save(filename=filename)
+                pkl_name = filename if filename.endswith(".pkl") else filename + ".pkl"
+                filepath = os.path.abspath(pkl_name)
+                QtWidgets.QMessageBox.information(self,
+                                                  "Success",
+                                                  f"Mechanism saved as:\n{filepath}")
 
         def on_save_figure_box(self):
             """
