@@ -21,6 +21,7 @@ try:
         FramePlotHelper,
         InteractivePlotterWidget,
         PlotterPyqtgraph,
+        _transf_matrix_to_qmatrix,
     )
 except (ImportError, OSError):
     warn("Failed to import OpenGL or PyQt6. If you expect interactive GUI to work, "
@@ -246,7 +247,8 @@ class MotionDesigner:
                           name: str | None = None,
                           smooth: bool = False,
                           max_faces: int = None,
-                          weld_tol: float = 1e-8) -> object:
+                          weld_tol: float = 1e-8,
+                          attach_to_tool: bool = False) -> object:
         """Load an STL file and add it to the 3D view as a mesh item.
 
         Parameters
@@ -257,6 +259,10 @@ class MotionDesigner:
             Uniform scale applied to mesh vertices.
         transform, optional
             Optional :class:`.TransfMatrix` to apply to the vertex positions.
+            When *attach_to_tool* is ``True`` this transform is treated as a
+            constant offset **relative to the tool frame** and is composed
+            with the motion pose at every slider tick rather than being baked
+            into the vertex data.
         color, optional
             RGBA color for the mesh item.
         name, optional
@@ -268,6 +274,11 @@ class MotionDesigner:
             performance.
         weld_tol, optional
             Tolerance used for welding duplicate vertices.
+        attach_to_tool, optional
+            When ``True`` the mesh rigidly follows the tool-frame pose as the
+            slider moves.  The *transform* (if supplied) is treated as a
+            constant offset relative to the tool frame and is applied at
+            render time instead of being baked into vertex positions.
 
         Returns
         -------
@@ -388,8 +399,8 @@ class MotionDesigner:
         vertices_final = unique_verts[used]
         faces_final = new_idx[faces]
 
-        # transform if needed
-        if transform is not None:
+        # transform if needed — skip baking when mesh is attached to the tool frame
+        if transform is not None and not attach_to_tool:
             tr_arr = transform.array()
             ones = numpy.ones((len(vertices_final), 1))
             homogeneous = numpy.hstack([ones, vertices_final])  # Nx4
@@ -400,7 +411,9 @@ class MotionDesigner:
                                     faces_final,
                                     color=color,
                                     name=name,
-                                    smooth=smooth)
+                                    smooth=smooth,
+                                    attach_to_tool=attach_to_tool,
+                                    initial_transform=transform if attach_to_tool else None)
 
 if QtWidgets is not None:
     class MotionDesignerWidget(QtWidgets.QWidget):
@@ -457,6 +470,9 @@ if QtWidgets is not None:
             self.method = method
             self.arrows_length = arrows_length
             self.cad_items = []
+            self.attached_cad_items = []  # list of (name, mesh_item, TransfMatrix | None)
+            self.attached_stl_t_slider = None
+            self._attached_stl_slider_label = None
             self.mi = MotionInterpolation()
 
             grid_size = sliders_range * 2
@@ -627,6 +643,8 @@ if QtWidgets is not None:
             # Build a vertical control panel.
             control_panel = QtWidgets.QWidget()
             cp_layout = QtWidgets.QVBoxLayout(control_panel)
+            self.control_panel = control_panel
+            self.control_panel_layout = cp_layout
 
             cp_layout.addWidget(QtWidgets.QLabel("Select control point:"))
             cp_layout.addWidget(self.point_combo)
@@ -664,6 +682,7 @@ if QtWidgets is not None:
 
             cp_layout.addSpacing(20)
             cp_layout.addWidget(self.synthesize_button)
+            self._ensure_attached_stl_t_slider()
 
             cp_layout.addStretch(1)
 
@@ -790,12 +809,72 @@ if QtWidgets is not None:
             if self.method == 'quadratic_from_poses' or self.method == 'cubic_from_poses':
                 for item in self.cad_items:
                     self.mechanism_plotter[-1].plotter.widget.addItem(item[1])
+                for name, mesh_item, init_tr in self.attached_cad_items:
+                    try:
+                        self.plotter.widget.removeItem(mesh_item)
+                    except Exception:
+                        pass
+                    self.mechanism_plotter[-1].plotter.widget.addItem(mesh_item)
+                    self.mechanism_plotter[-1].add_attached_mesh(mesh_item, init_tr)
                 labels = ["p{}".format(i) for i in range(len(self.points))]
                 self.mechanism_plotter[-1].plotter.plot(self.points, label=labels)
             else:
                 pass  # not supported because the result is no monic polynomial
             self.mechanism_plotter[-1].show()
 
+
+        def _ensure_attached_stl_t_slider(self):
+            """Add a simple t-slider for attached STL meshes when needed."""
+            if self.attached_stl_t_slider is not None or not self.control_panel_layout:
+                return
+            if not self.attached_cad_items:
+                return
+            if self.method not in ['quadratic_from_poses', 'cubic_from_poses']:
+                return
+
+            self.attached_stl_t_slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+            self.attached_stl_t_slider.setMinimum(-314)
+            self.attached_stl_t_slider.setMaximum(314)
+            self.attached_stl_t_slider.setSingleStep(1)
+            self.attached_stl_t_slider.setValue(-314)
+            self.attached_stl_t_slider.valueChanged.connect(self._on_attached_stl_t_slider_changed)
+
+            self._attached_stl_slider_label = QtWidgets.QLabel("Attached STL angle:")
+            insert_at = max(0, self.control_panel_layout.count() - 1)
+            self.control_panel_layout.insertWidget(insert_at, self.attached_stl_t_slider)
+            self.control_panel_layout.insertWidget(insert_at, self._attached_stl_slider_label)
+            self._on_attached_stl_t_slider_changed(0)
+
+        def _on_attached_stl_t_slider_changed(self, value):
+            """Update the attached STL transform from the joint angle."""
+            if not self.attached_cad_items:
+                return
+            if self.method not in ['quadratic_from_poses', 'cubic_from_poses']:
+                return
+            angle = value / 100.0
+            coeffs = getattr(self, 'curve_coeffs', None)
+            if coeffs is None:
+                if self.method == 'quadratic_from_poses':
+                    coeffs = self.mi.interpolate_quadratic_numerically(self.points)
+                elif self.method == 'cubic_from_poses':
+                    coeffs = self.mi.interpolate_cubic_numerically(self.points,
+                                                                 lambda_val=self.lambda_val,
+                                                                 k_idx=self.motion_family_idx)
+            curve = [numpy.polynomial.Polynomial(c[::-1]) for c in coeffs]
+            t = angle
+            try:
+                if self.mechanism_plotter:
+                    t = self.mechanism_plotter[-1].mechanism.factorizations[0].joint_angle_to_t_param(angle)
+            except Exception:
+                t = angle
+            dq = DualQuaternion([poly(t) for poly in curve])
+            pose = TransfMatrix(dq.dq2matrix())
+            for _, mesh_item, init_tr in self.attached_cad_items:
+                mesh_transform = pose * init_tr if init_tr is not None else pose
+                if hasattr(mesh_item, 'resetTransform'):
+                    mesh_item.resetTransform()
+                mesh_item.setTransform(_transf_matrix_to_qmatrix(mesh_transform))
+            self.plotter.widget.update()
 
         def on_point_selection_changed(self, index):
             """Update UI sliders when the selected control point changes."""
@@ -939,6 +1018,7 @@ if QtWidgets is not None:
                 coeffs = self.mi.interpolate_cubic_numerically(self.points,
                                                                lambda_val=self.lambda_val,
                                                                k_idx=self.motion_family_idx)
+            self.curve_coeffs = coeffs
 
             # create numpy polynomial objects
             curve = [numpy.polynomial.Polynomial(c[::-1]) for c in coeffs]
@@ -1043,7 +1123,9 @@ if QtWidgets is not None:
                      faces: numpy.ndarray,
                      color: tuple = (0.4, 0.4, 0.4, 0.2),
                      name: str | None = None,
-                     smooth: bool = False) -> object:
+                     smooth: bool = False,
+                     attach_to_tool: bool = False,
+                     initial_transform=None) -> object:
             """Add a mesh to the 3D view from vertex and face arrays.
 
             Parameters
@@ -1054,6 +1136,13 @@ if QtWidgets is not None:
                 Integer array with shape (M, 3) containing triangle indices.
             color, name, smooth
                 See :meth:`MotionDesigner.add_mesh_from_stl` for parameter meanings.
+            attach_to_tool
+                When ``True`` the mesh is registered to follow the tool-frame
+                pose on every slider tick.  The item is stored in
+                ``self.attached_cad_items`` instead of ``self.cad_items``.
+            initial_transform
+                Constant :class:`.TransfMatrix` offset relative to the tool
+                frame (used when *attach_to_tool* is ``True``).
 
             Returns
             -------
@@ -1070,9 +1159,15 @@ if QtWidgets is not None:
                                       color=color,
                                       drawEdges=False,
                                       glOptions=self.render_mode)
-            # store reference (name optional) and add to view
-            self.cad_items.append((name, mesh_item))
             self.plotter.widget.addItem(mesh_item)
+
+            if attach_to_tool:
+                self.attached_cad_items.append((name, mesh_item, initial_transform))
+                self._ensure_attached_stl_t_slider()
+                if self.attached_stl_t_slider is not None:
+                    self._on_attached_stl_t_slider_changed(self.attached_stl_t_slider.value())
+            else:
+                self.cad_items.append((name, mesh_item))
             return mesh_item
 
         def remove_mesh(self, name: str) -> bool:

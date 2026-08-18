@@ -1024,6 +1024,31 @@ else:
     CustomGLViewWidget = None
 
 
+def _transf_matrix_to_qmatrix(transf: 'TransfMatrix') -> 'QtGui.QMatrix4x4':
+    """Convert a European-convention TransfMatrix to a Qt QMatrix4x4.
+
+    European layout::
+
+        [1,   0,   0,   0 ]
+        [tx,  r11, r12, r13]
+        [ty,  r21, r22, r23]
+        [tz,  r31, r32, r33]
+
+    ``matrix[1:4, 0]`` holds the translation; ``matrix[1:4, 1:4]`` is the
+    rotation.  The resulting ``QMatrix4x4`` is in standard row-major form
+    suitable for ``GLMeshItem.setTransform()``.
+    """
+    m = transf.matrix
+    R = m[1:4, 1:4]
+    t = m[1:4, 0]
+    return QtGui.QMatrix4x4(
+        float(R[0, 0]), float(R[0, 1]), float(R[0, 2]), float(t[0]),
+        float(R[1, 0]), float(R[1, 1]), float(R[1, 2]), float(t[1]),
+        float(R[2, 0]), float(R[2, 1]), float(R[2, 2]), float(t[2]),
+        0.0,            0.0,            0.0,            1.0,
+    )
+
+
 if gl is not None:
     class FramePlotHelper:
         """
@@ -1188,6 +1213,7 @@ if QtWidgets is not None:
             self.steps = steps
             self.joint_sliders_lim = joint_sliders_lim
             self.arrows_length = arrows_length
+            self.attached_cad_items = []  # list of (GLMeshItem, TransfMatrix | None)
 
             if base is not None:
                 if isinstance(base, TransfMatrix):
@@ -1643,6 +1669,64 @@ if QtWidgets is not None:
                     1, self.joint_sliders[2 * num_of_factors + 1 + 2 * i].value() / 100.0)
             self.plot_slider_update(self.move_slider.value() / 100.0)
 
+        def add_attached_mesh(self, mesh_item, initial_transform=None):
+            """Register a mesh item to follow the tool-frame pose on each slider update.
+
+            Parameters
+            ----------
+            mesh_item : gl.GLMeshItem
+                The mesh item to animate.  It must already be added to a
+                ``GLViewWidget`` (vertices in model space, no static transform
+                baked in).
+            initial_transform : TransfMatrix, optional
+                Constant offset from the tool frame expressed as a
+                :class:`.TransfMatrix`.  The effective world transform at
+                parameter *t* is ``pose_matrix(t) * initial_transform``.
+                Pass ``None`` to attach the mesh directly at the tool origin.
+            """
+            for existing_item, _ in self.attached_cad_items:
+                if existing_item is mesh_item:
+                    return
+            self.attached_cad_items.append((mesh_item, initial_transform))
+            angle = self.move_slider.value() / 100.0
+            t = self.mechanism.factorizations[0].joint_angle_to_t_param(angle)
+            pose_matrix = self._compute_tool_pose_matrix(t)
+            if initial_transform is not None:
+                pose_matrix = pose_matrix * initial_transform
+            self._set_mesh_world_transform(mesh_item, pose_matrix)
+            self.plotter.widget.update()
+
+        def _compute_tool_pose_matrix(self, t):
+            """Return the current tool pose matrix in world coordinates."""
+            pose_dq = DualQuaternion(self.mechanism.evaluate(t))
+            pose_matrix = TransfMatrix(pose_dq.dq2matrix()) * TransfMatrix(
+                self.mechanism.tool_frame.dq2matrix())
+            if self.base is not None:
+                pose_matrix = self.base * pose_matrix
+            return pose_matrix
+
+        def _update_attached_meshes(self, pose_matrix):
+            """Apply *pose_matrix* (composed with each item's offset) to all
+            attached mesh items via ``GLMeshItem.setTransform``.
+
+            Parameters
+            ----------
+            pose_matrix : TransfMatrix
+                Current end-effector pose in world coordinates.
+            """
+            for mesh_item, init_tr in self.attached_cad_items:
+                if init_tr is not None:
+                    combined = pose_matrix * init_tr
+                else:
+                    combined = pose_matrix
+                self._set_mesh_world_transform(mesh_item, combined)
+
+        def _set_mesh_world_transform(self, mesh_item, transform):
+            """Assign an absolute world transform to a GLMeshItem."""
+            if hasattr(mesh_item, "resetTransform"):
+                mesh_item.resetTransform()
+            mesh_item.setTransform(_transf_matrix_to_qmatrix(transform))
+
         def plot_slider_update(self, angle, t_param=None):
             """
             Update the mechanism plot based on the current joint angle or t parameter.
@@ -1701,16 +1785,18 @@ if QtWidgets is not None:
                 self.tool_link.setData(pos=numpy.array(tool_triangle))
 
                 # Update tool frame (pose) arrows.
-                pose_dq = DualQuaternion(self.mechanism.evaluate(t))
-                # Compute the pose matrix by composing the mechanism’s pose and tool frame.
-                pose_matrix = TransfMatrix(pose_dq.dq2matrix()) * TransfMatrix(
-                    self.mechanism.tool_frame.dq2matrix())
-
-                if self.base is not None:
-                    # Transform the pose matrix by the base transformation.
-                    pose_matrix = self.base * pose_matrix
+                # Compute the pose matrix by composing the mechanism's pose and tool frame.
+                pose_matrix = self._compute_tool_pose_matrix(t)
 
                 self.tool_frame.setData(pose_matrix)
+
+                if self.attached_cad_items:
+                    self._update_attached_meshes(pose_matrix)
+
+            elif self.attached_cad_items:
+                # show_tool is False but meshes are attached — still need pose_matrix.
+                pose_matrix = self._compute_tool_pose_matrix(t)
+                self._update_attached_meshes(pose_matrix)
 
             self.plotter.widget.update()
 else:
