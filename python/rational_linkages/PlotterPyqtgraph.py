@@ -1249,8 +1249,12 @@ if QtWidgets is not None:
             self.save_mech_btn = QtWidgets.QPushButton("Save mechanism")
             control_layout.addWidget(self.save_mech_btn)
 
+            self.generate_cad_btn = QtWidgets.QPushButton("Generate CAD model")
+            control_layout.addWidget(self.generate_cad_btn)
+
             self.save_figure_btn = QtWidgets.QPushButton("Save figure")
             control_layout.addWidget(self.save_figure_btn)
+
 
             # --- Joint connection sliders ---
             joint_sliders_layout = QtWidgets.QHBoxLayout()
@@ -1343,6 +1347,7 @@ if QtWidgets is not None:
             self.text_box_param.returnPressed.connect(self.on_param_text_entered)
             self.save_mech_btn.clicked.connect(self.on_save_save_mech_pkl)
             self.save_figure_btn.clicked.connect(self.on_save_figure_box)
+            self.generate_cad_btn.clicked.connect(self.on_generate_cad)
             for slider in self.joint_sliders:
                 slider.valueChanged.connect(self.on_joint_slider_changed)
 
@@ -1553,6 +1558,64 @@ if QtWidgets is not None:
                 QtWidgets.QMessageBox.information(self,
                                                   "Success",
                                                   f"Figure saved as:\n{filepath}")
+
+        def on_generate_cad(self):
+            """
+            Called when the Generate CAD model button is clicked.
+            Opens a popup to pick the export method and filename, then generates on OK.
+            """
+            _CAD_METHODS = [
+                ("Single solid (STEP, single body)", "export_single_solid",  "mechanism.step"),
+                ("Solids (STEP, assembly)",          "export_solids",        "mechanism_parts.step"),
+                ("Single mesh (STL mesh)",           "export_single_mesh",   "mechanism.stl"),
+            ]
+
+            dialog = QtWidgets.QDialog(self)
+            dialog.setWindowTitle("Generate CAD model")
+            dialog.setMinimumWidth(360)
+
+            layout = QtWidgets.QVBoxLayout(dialog)
+
+            layout.addWidget(QtWidgets.QLabel("Export method:"))
+            combo = QtWidgets.QComboBox()
+            for label, _, _ in _CAD_METHODS:
+                combo.addItem(label)
+            combo.setCurrentIndex(0)
+            layout.addWidget(combo)
+
+            layout.addWidget(QtWidgets.QLabel("Filename:"))
+            line_edit = QtWidgets.QLineEdit(_CAD_METHODS[0][2])
+            layout.addWidget(line_edit)
+            layout.addWidget(QtWidgets.QLabel("Note: to adjust the dimensions of the CAD model,<br/>use the inline command as shown in the tutorial."))
+
+            def on_method_changed(index):
+                line_edit.setText(_CAD_METHODS[index][2])
+
+            combo.currentIndexChanged.connect(on_method_changed)
+
+            buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.StandardButton.Ok |
+                QtWidgets.QDialogButtonBox.StandardButton.Cancel
+            )
+            buttons.accepted.connect(dialog.accept)
+            buttons.rejected.connect(dialog.reject)
+            layout.addWidget(buttons)
+
+            if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+                idx = combo.currentIndex()
+                _, method_name, default_file = _CAD_METHODS[idx]
+                filename = line_edit.text().strip() or default_file
+
+                try:
+                    getattr(self.mechanism, method_name)(file_name=filename)
+                    filepath = os.path.abspath(filename)
+                    QtWidgets.QMessageBox.information(self,
+                                                      "Success",
+                                                      f"CAD model saved as:\n{filepath}")
+                except Exception as e:
+                    QtWidgets.QMessageBox.critical(self,
+                                                   "Error",
+                                                   f"Failed to generate CAD model:\n{e}")
 
         def on_joint_slider_changed(self, value):
             """
