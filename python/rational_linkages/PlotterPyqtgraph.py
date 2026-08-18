@@ -1249,9 +1249,8 @@ if QtWidgets is not None:
             self.save_mech_btn = QtWidgets.QPushButton("Save mechanism")
             control_layout.addWidget(self.save_mech_btn)
 
-            self.save_figure_box = QtWidgets.QLineEdit()
-            self.save_figure_box.setPlaceholderText("Save figure PNG, filename:")
-            control_layout.addWidget(self.save_figure_box)
+            self.save_figure_btn = QtWidgets.QPushButton("Save figure")
+            control_layout.addWidget(self.save_figure_btn)
 
             # --- Joint connection sliders ---
             joint_sliders_layout = QtWidgets.QHBoxLayout()
@@ -1343,7 +1342,7 @@ if QtWidgets is not None:
             self.text_box_angle.returnPressed.connect(self.on_angle_text_entered)
             self.text_box_param.returnPressed.connect(self.on_param_text_entered)
             self.save_mech_btn.clicked.connect(self.on_save_save_mech_pkl)
-            self.save_figure_box.returnPressed.connect(self.on_save_figure_box)
+            self.save_figure_btn.clicked.connect(self.on_save_figure_box)
             for slider in self.joint_sliders:
                 slider.valueChanged.connect(self.on_joint_slider_changed)
 
@@ -1509,31 +1508,51 @@ if QtWidgets is not None:
 
         def on_save_figure_box(self):
             """
-            Called when the filesave text box is submitted.
-
-            Saves the current figure in the specified format.
+            Called when the Save figure button is clicked.
+            Opens a popup to enter a filename, then saves on OK.
             """
-            filename = self.save_figure_box.text()
+            dialog = QtWidgets.QDialog(self)
+            dialog.setWindowTitle("Save figure")
+            dialog.setMinimumWidth(300)
 
-            # better quality but does not save the text overlay
-            #self.plotter.widget.readQImage().save(filename + "_old.png")
-            #self.plotter.widget.readQImage().save(filename + "_old.png", quality=100)
+            layout = QtWidgets.QVBoxLayout(dialog)
+            layout.addWidget(QtWidgets.QLabel("Enter filename (without extension):"))
 
-            image = QtGui.QImage(self.plotter.widget.size(),
-                                 QtGui.QImage.Format.Format_ARGB32_Premultiplied)
-            image.fill(QtCore.Qt.GlobalColor.transparent)
+            line_edit = QtWidgets.QLineEdit("figure")
+            line_edit.selectAll()
+            layout.addWidget(line_edit)
 
-            # Create a painter and render the widget into the image
-            painter = QtGui.QPainter(image)
-            self.plotter.widget.render(painter)
-            painter.end()
+            buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.StandardButton.Ok |
+                QtWidgets.QDialogButtonBox.StandardButton.Cancel
+            )
+            buttons.accepted.connect(dialog.accept)
+            buttons.rejected.connect(dialog.reject)
+            layout.addWidget(buttons)
 
-            # Save the image
-            image.save(filename + ".png", "PNG", 80)
+            if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+                filename = line_edit.text().strip() or "figure"
 
-            QtWidgets.QMessageBox.information(self,
-                                              "Success",
-                                              f"Figure saved as {filename}.png")
+                # better quality but does not save the text overlay
+                #self.plotter.widget.readQImage().save(filename + "_old.png")
+                #self.plotter.widget.readQImage().save(filename + "_old.png", quality=100)
+
+                image = QtGui.QImage(self.plotter.widget.size(),
+                                     QtGui.QImage.Format.Format_ARGB32_Premultiplied)
+                image.fill(QtCore.Qt.GlobalColor.transparent)
+
+                # Create a painter and render the widget into the image
+                painter = QtGui.QPainter(image)
+                self.plotter.widget.render(painter)
+                painter.end()
+
+                # Save the image
+                image.save(filename + ".png", "PNG", 80)
+
+                filepath = os.path.abspath(filename + ".png")
+                QtWidgets.QMessageBox.information(self,
+                                                  "Success",
+                                                  f"Figure saved as:\n{filepath}")
 
         def on_joint_slider_changed(self, value):
             """
