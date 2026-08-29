@@ -25,9 +25,9 @@ dependencies = [
     "biquaternion-py >= 1.2.0",
     "numpy >= 2.0",
     "sympy >= 1.10.0",
-    "PyQt6 >= 6.2.0; sys_platform != 'emscripten'",
-    "pyqtgraph < 0.14; sys_platform != 'emscripten'",
-    "PyOpenGL >= 3.0.0; sys_platform != 'emscripten'",
+    "PyQt6 >= 6.2.0",
+    "pyqtgraph < 0.14",
+    "PyOpenGL >= 3.0.0",
     "matplotlib >= 3.9.0; platform_system == 'Windows' and platform_machine == 'ARM64'", # Windows ARM has issues with PyQt6
 ]
 
@@ -101,9 +101,6 @@ archs = ["AMD64"]
 [tool.cibuildwheel.macos]
 archs = ["arm64", "x86_64"]
 environment = { MACOSX_DEPLOYMENT_TARGET = "11.0", CARGO_TERM_COLOR = "always" }
-
-[tool.cibuildwheel.pyodide]
-pyodide-version = "0.29.4"
 
 [tool.ruff]
 src = ["python"]

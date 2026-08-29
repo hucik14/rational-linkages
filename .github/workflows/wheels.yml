@@ -40,26 +40,3 @@ jobs:
           name: linux-wheels-${{ matrix.arch }}
           path: wheelhouse/*.whl
           retention-days: 5
-
-  build_pyodide_wheel:
-    name: Build Pyodide (WASM) wheel
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-
-      - name: Install Rust wasm32-unknown-emscripten target
-        run: rustup target add wasm32-unknown-emscripten
-
-      - name: Build wheel with cibuildwheel (pyodide)
-        uses: pypa/cibuildwheel@v3.4.1
-        env:
-          CIBW_PLATFORM: pyodide
-
-      - name: Upload built wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: pyodide-wheel
-          path: wheelhouse/*.whl
-          retention-days: 5
