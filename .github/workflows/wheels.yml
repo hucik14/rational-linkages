@@ -49,6 +49,9 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Install Rust wasm32-unknown-emscripten target
+        run: rustup target add wasm32-unknown-emscripten
+
       - name: Build wheel with cibuildwheel (pyodide)
         uses: pypa/cibuildwheel@v3.4.1
         env:
