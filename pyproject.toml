@@ -102,6 +102,9 @@ archs = ["AMD64"]
 archs = ["arm64", "x86_64"]
 environment = { MACOSX_DEPLOYMENT_TARGET = "11.0", CARGO_TERM_COLOR = "always" }
 
+[tool.cibuildwheel.pyodide]
+pyodide-version = "0.29.4"
+
 [tool.ruff]
 src = ["python"]
 line-length = 100
