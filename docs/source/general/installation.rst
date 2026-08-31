@@ -1,3 +1,7 @@
+.. meta::
+   :description: Install Rational Linkages Python package. Supports Python 3.10+, optional dependencies for optimization and CAD export.
+   :keywords: installation, setup, Python package, quick start
+
 .. _installation:
 
 Installation
@@ -51,4 +55,15 @@ the main README.md page of the repository:
 https://git.uibk.ac.at/geometrie-vermessung/rational-linkages#install-from-source
 
 
+Quick Start
+===========
 
+Launch Motion Designer module:
+
+.. code-block:: Python
+
+    from rational_linkages import MotionDesigner
+
+    MotionDesigner.start()
+
+And follow the :ref:`tutorials<tutorials>` for more details on the synthesis and model generation.

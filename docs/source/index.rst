@@ -1,5 +1,6 @@
-.. Rational Linkages documentation master file, created by
-   sphinx-quickstart on Fri Sep  8 13:45:57 2023.
+.. meta::
+   :description: Python package for synthesizing collision-free 3D-printable mechanisms to perform a desired task. Design linkages for robotics and rapid prototyping from via-points or poses.
+   :keywords: mechanism synthesis, linkage design, 3D printing, robotics, Python package
 
 .. include:: refs-weblinks.rst
 

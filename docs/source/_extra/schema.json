@@ -1,0 +1,22 @@
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Rational Linkages",
+  "description": "Design collision-free 3D-printable mechanisms from motion specifications. Synthesis and analysis of spatial linkages for robotics and rapid prototyping.",
+  "url": "https://rational-linkages.readthedocs.io",
+  "author": {
+    "@type": "Person",
+    "name": "Daniel Huczala",
+    "affiliation": "Seoul National University"
+  },
+  "applicationCategory": "EngineeringApplication",
+  "operatingSystem": "Windows, macOS, Linux",
+  "programmingLanguage": "Python",
+  "codeRepository": "https://github.com/hucik14/rational-linkages",
+  "downloadUrl": "https://pypi.org/project/rational-linkages/",
+  "runtimePlatform": "Python 3.10+",
+  "license": "GNU General Public License v3.0 or later",
+  "version": "3.0.1",
+  "datePublished": "2024-01-01",
+  "keywords": "mechanism synthesis, linkage design, 3D printing, robotics"
+}
