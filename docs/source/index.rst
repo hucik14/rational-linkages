@@ -57,19 +57,19 @@ Rational Linkages |image-logo|
 .. image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/hucik14/rational-linkages/HEAD?labpath=docs%2Fsource%2Ftutorials%2Fsynthesis_bennett.ipynb
 
-Welcome to the Rational Linkages package documentation, which serves as a reference for
-the provided tools. This package is a collection of functions for the synthesis,
-analysis, design, and rapid prototyping of the single-loop rational linkages,
-allowing one to
-create 3D-printable collision-free mechanisms synthesised for a given task
-(set of poses), as in the images below.
+ **Synthesize collision-free 3D-printable mechanisms for desired motions.**
+
+This Python package automates the design of planar and spatial single-loop
+linkages for given set of poses or points. The features allow one for the interactive synthesis,
+analysis, design, and rapid prototyping of the single-loop rational linkages, including generation of CAD files
+which the later design can be built-on. See examples of some prototypes on the images bellow.
 
 |image1| |image2| |image3| |image4|
 
-The package is developed at the Unit of Geometry and Surveying,
+The package has been developed at the Unit of Geometry and Surveying,
 University of Innsbruck, Austria. The source code is available
 as `Gitlab repository`_ hosted by UIBK. The *installation
-instructions* can be found in the :ref:`installation manual<installation>`.
+instructions* and *quick start* tutorial can be found in the :ref:`installation manual<installation>`.
 STL files of some mechanisms may be found as `models on Printables.com`_.
 
 Since the self-hosted repository (Gitlab, University of Innsbruck) does not allow external users to create issues,
