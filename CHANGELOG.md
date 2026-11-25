@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.1.0 (2026-11-25)
+
+### added (4 changes)
+
+- [video with features on docs index](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/f9551fb0)
+- [PointHomogeneous.py can be scaled by a factor](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/88368d30)
+- [generate CAD from GUI](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/ce87170e)
+- [add sample_points method to evaluate and sample points on the curve](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/d97dafa0)
+
+
+### changed (2 changes)
+
+- [refactor save PNG figure functionality to use a button and dialog for filename input](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/8389c891)
+- [refactor save mechanism functionality to use a button and dialog for filename input](https://git.uibk.ac.at/geometrie-vermessung/rational-linkages/-/commit/5a6a7338)
+
 
 ## 3.0.1 (2026-06-10)
 

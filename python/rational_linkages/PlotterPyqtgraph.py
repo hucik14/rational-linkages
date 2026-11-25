@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy
 
@@ -1245,13 +1246,15 @@ if QtWidgets is not None:
             self.text_box_param.setPlaceholderText("Set parameter t [-]:")
             control_layout.addWidget(self.text_box_param)
 
-            self.save_mech_pkl = QtWidgets.QLineEdit()
-            self.save_mech_pkl.setPlaceholderText("Save mechanism PKL, filename:")
-            control_layout.addWidget(self.save_mech_pkl)
+            self.save_mech_btn = QtWidgets.QPushButton("Save mechanism")
+            control_layout.addWidget(self.save_mech_btn)
 
-            self.save_figure_box = QtWidgets.QLineEdit()
-            self.save_figure_box.setPlaceholderText("Save figure PNG, filename:")
-            control_layout.addWidget(self.save_figure_box)
+            self.generate_cad_btn = QtWidgets.QPushButton("Generate CAD model")
+            control_layout.addWidget(self.generate_cad_btn)
+
+            self.save_figure_btn = QtWidgets.QPushButton("Save figure")
+            control_layout.addWidget(self.save_figure_btn)
+
 
             # --- Joint connection sliders ---
             joint_sliders_layout = QtWidgets.QHBoxLayout()
@@ -1342,8 +1345,9 @@ if QtWidgets is not None:
             self.move_slider.valueChanged.connect(self.on_move_slider_changed)
             self.text_box_angle.returnPressed.connect(self.on_angle_text_entered)
             self.text_box_param.returnPressed.connect(self.on_param_text_entered)
-            self.save_mech_pkl.returnPressed.connect(self.on_save_save_mech_pkl)
-            self.save_figure_box.returnPressed.connect(self.on_save_figure_box)
+            self.save_mech_btn.clicked.connect(self.on_save_save_mech_pkl)
+            self.save_figure_btn.clicked.connect(self.on_save_figure_box)
+            self.generate_cad_btn.clicked.connect(self.on_generate_cad)
             for slider in self.joint_sliders:
                 slider.valueChanged.connect(self.on_joint_slider_changed)
 
@@ -1476,42 +1480,142 @@ if QtWidgets is not None:
 
         def on_save_save_mech_pkl(self):
             """
-            Called when the save text box is submitted.
+            Called when the Save mechanism button is clicked.
+            Opens a popup to enter a filename, then saves on OK.
             """
-            filename = self.save_mech_pkl.text()
-            self.mechanism.save(filename=filename)
+            dialog = QtWidgets.QDialog(self)
+            dialog.setWindowTitle("Save mechanism")
+            dialog.setMinimumWidth(300)
 
-            QtWidgets.QMessageBox.information(self,
-                                              "Success",
-                                              f"Mechanism saved as {filename}.pkl")
+            layout = QtWidgets.QVBoxLayout(dialog)
+            layout.addWidget(QtWidgets.QLabel("Enter filename (without extension):"))
+
+            line_edit = QtWidgets.QLineEdit("mechanism")
+            line_edit.selectAll()
+            layout.addWidget(line_edit)
+
+            buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.StandardButton.Ok |
+                QtWidgets.QDialogButtonBox.StandardButton.Cancel
+            )
+            buttons.accepted.connect(dialog.accept)
+            buttons.rejected.connect(dialog.reject)
+            layout.addWidget(buttons)
+
+            if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+                filename = line_edit.text().strip() or "mechanism"
+                self.mechanism.save(filename=filename)
+                pkl_name = filename if filename.endswith(".pkl") else filename + ".pkl"
+                filepath = os.path.abspath(pkl_name)
+                QtWidgets.QMessageBox.information(self,
+                                                  "Success",
+                                                  f"Mechanism saved as:\n{filepath}")
 
         def on_save_figure_box(self):
             """
-            Called when the filesave text box is submitted.
-
-            Saves the current figure in the specified format.
+            Called when the Save figure button is clicked.
+            Opens a popup to enter a filename, then saves on OK.
             """
-            filename = self.save_figure_box.text()
+            dialog = QtWidgets.QDialog(self)
+            dialog.setWindowTitle("Save figure")
+            dialog.setMinimumWidth(300)
 
-            # better quality but does not save the text overlay
-            #self.plotter.widget.readQImage().save(filename + "_old.png")
-            #self.plotter.widget.readQImage().save(filename + "_old.png", quality=100)
+            layout = QtWidgets.QVBoxLayout(dialog)
+            layout.addWidget(QtWidgets.QLabel("Enter filename (without extension):"))
 
-            image = QtGui.QImage(self.plotter.widget.size(),
-                                 QtGui.QImage.Format.Format_ARGB32_Premultiplied)
-            image.fill(QtCore.Qt.GlobalColor.transparent)
+            line_edit = QtWidgets.QLineEdit("figure")
+            line_edit.selectAll()
+            layout.addWidget(line_edit)
 
-            # Create a painter and render the widget into the image
-            painter = QtGui.QPainter(image)
-            self.plotter.widget.render(painter)
-            painter.end()
+            buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.StandardButton.Ok |
+                QtWidgets.QDialogButtonBox.StandardButton.Cancel
+            )
+            buttons.accepted.connect(dialog.accept)
+            buttons.rejected.connect(dialog.reject)
+            layout.addWidget(buttons)
 
-            # Save the image
-            image.save(filename + ".png", "PNG", 80)
+            if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+                filename = line_edit.text().strip() or "figure"
 
-            QtWidgets.QMessageBox.information(self,
-                                              "Success",
-                                              f"Figure saved as {filename}.png")
+                # better quality but does not save the text overlay
+                #self.plotter.widget.readQImage().save(filename + "_old.png")
+                #self.plotter.widget.readQImage().save(filename + "_old.png", quality=100)
+
+                image = QtGui.QImage(self.plotter.widget.size(),
+                                     QtGui.QImage.Format.Format_ARGB32_Premultiplied)
+                image.fill(QtCore.Qt.GlobalColor.transparent)
+
+                # Create a painter and render the widget into the image
+                painter = QtGui.QPainter(image)
+                self.plotter.widget.render(painter)
+                painter.end()
+
+                # Save the image
+                image.save(filename + ".png", "PNG", 80)
+
+                filepath = os.path.abspath(filename + ".png")
+                QtWidgets.QMessageBox.information(self,
+                                                  "Success",
+                                                  f"Figure saved as:\n{filepath}")
+
+        def on_generate_cad(self):
+            """
+            Called when the Generate CAD model button is clicked.
+            Opens a popup to pick the export method and filename, then generates on OK.
+            """
+            _CAD_METHODS = [
+                ("Single solid (STEP, single body)", "export_single_solid",  "mechanism.step"),
+                ("Solids (STEP, assembly)",          "export_solids",        "mechanism_parts.step"),
+                ("Single mesh (STL mesh)",           "export_single_mesh",   "mechanism.stl"),
+            ]
+
+            dialog = QtWidgets.QDialog(self)
+            dialog.setWindowTitle("Generate CAD model")
+            dialog.setMinimumWidth(360)
+
+            layout = QtWidgets.QVBoxLayout(dialog)
+
+            layout.addWidget(QtWidgets.QLabel("Export method:"))
+            combo = QtWidgets.QComboBox()
+            for label, _, _ in _CAD_METHODS:
+                combo.addItem(label)
+            combo.setCurrentIndex(0)
+            layout.addWidget(combo)
+
+            layout.addWidget(QtWidgets.QLabel("Filename:"))
+            line_edit = QtWidgets.QLineEdit(_CAD_METHODS[0][2])
+            layout.addWidget(line_edit)
+            layout.addWidget(QtWidgets.QLabel("Note: to adjust the dimensions of the CAD model,<br/>use the inline command as shown in the tutorial."))
+
+            def on_method_changed(index):
+                line_edit.setText(_CAD_METHODS[index][2])
+
+            combo.currentIndexChanged.connect(on_method_changed)
+
+            buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.StandardButton.Ok |
+                QtWidgets.QDialogButtonBox.StandardButton.Cancel
+            )
+            buttons.accepted.connect(dialog.accept)
+            buttons.rejected.connect(dialog.reject)
+            layout.addWidget(buttons)
+
+            if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+                idx = combo.currentIndex()
+                _, method_name, default_file = _CAD_METHODS[idx]
+                filename = line_edit.text().strip() or default_file
+
+                try:
+                    getattr(self.mechanism, method_name)(file_name=filename)
+                    filepath = os.path.abspath(filename)
+                    QtWidgets.QMessageBox.information(self,
+                                                      "Success",
+                                                      f"CAD model saved as:\n{filepath}")
+                except Exception as e:
+                    QtWidgets.QMessageBox.critical(self,
+                                                   "Error",
+                                                   f"Failed to generate CAD model:\n{e}")
 
         def on_joint_slider_changed(self, value):
             """

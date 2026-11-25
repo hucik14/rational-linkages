@@ -1,4 +1,5 @@
 from typing import Optional, Sequence
+from warnings import warn
 
 import numpy
 import sympy
@@ -158,6 +159,48 @@ class PointHomogeneousSymbolic(PointHomogeneous):
                     [sympy.simplify(v / w) for v in self.coordinates]
                 )
         return self._normalized
+
+    def scale(self, factor) -> "PointHomogeneousSymbolic":
+        """
+        Scale the point uniformly about the origin.
+
+        Maps the Euclidean point ``p`` to ``factor * p`` by multiplying only
+        the Euclidean part of the homogeneous coordinates, i.e.
+        ``[w, x, y, z] -> [w, factor * x, factor * y, factor * z]``.
+        Points at infinity are left fixed.
+
+        The factor should be an integer, a :class:`sympy.Rational` or a
+        symbolic expression to keep the arithmetic exact. A floating-point
+        factor is accepted, but a warning is issued.
+
+        Parameters
+        ----------
+        factor :
+            Scaling factor.
+
+        Returns
+        -------
+        PointHomogeneousSymbolic
+            The scaled point.
+
+        Warnings
+        --------
+        UserWarning
+            If ``factor`` is a floating-point number.
+        """
+        if isinstance(factor, (float, numpy.floating, sympy.Float)):
+            warn(
+                "PointHomogeneousSymbolic.scale(): floating-point factor "
+                f"{factor} breaks exact arithmetic; use an int or "
+                "sympy.Rational instead.",
+                UserWarning,
+                stacklevel=2,
+            )
+        factor = sympy.sympify(factor)
+        scaled_coordinates = [self.coordinates[0]] + [
+            factor * coordinate for coordinate in self.coordinates[1:]
+        ]
+        return self.__class__(scaled_coordinates)
 
     def point2matrix(self) -> sympy.Matrix:
         """

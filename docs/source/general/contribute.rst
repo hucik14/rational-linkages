@@ -8,7 +8,7 @@ Where to contribute
 
 - Main repository: https://git.uibk.ac.at/geometrie-vermessung/rational-linkages
 - Issue tracker (public): https://github.com/hucik14/rational-linkages/issues
-- Questions and coordination: ``daniel.huczala@snu.ac.kr``
+- Questions and coordination: ``daniel.huczala@robotics.snu.ac.kr``
 
 
 Project layout at a glance
@@ -37,13 +37,13 @@ The package supports Python ``>=3.10``. Python ``3.11`` is recommended.
 
    git clone https://git.uibk.ac.at/geometrie-vermessung/rational-linkages.git
    cd rational-linkages
-   pip install -e .[opt,dev,doc]
+   pip install -e ".[opt,dev,doc]"
 
 If you also work on CAD/export features, install the CAD extras as well:
 
 .. code-block:: bash
 
-   pip install -e .[opt,dev,doc,cad]
+   pip install -e ".[opt,dev,doc,cad]"
 
 If you modify files in ``rust/``, install Rust toolchain and build the extension:
 

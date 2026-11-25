@@ -104,3 +104,22 @@ intersphinx_mapping = {
 }
 
 html_theme = 'sphinx_rtd_theme'
+
+# -- SEO and Meta Configuration -----------------------------------------------
+# HTML meta tags for search engines and social media
+html_meta = {
+    'description': 'Design collision-free 3D-printable mechanisms from motion specifications. Synthesis and analysis of spatial linkages for robotics and rapid prototyping.',
+    'keywords': 'mechanism synthesis, linkage design, Bennett mechanism, 3D printing, robotics, kinematics, Python',
+    'og:title': 'Rational Linkages - Mechanism Synthesis for 3D Printing',
+    'og:description': 'Design and synthesize spatial and planar collision-free 3D-printable mechanisms programmatically. Perfect for robotics, mechanical design, and rapid prototyping.',
+    'og:type': 'website',
+}
+
+# Canonical URL to avoid duplicate content issues
+html_baseurl = 'https://rational-linkages.readthedocs.io/'
+
+# Language
+language = 'en'
+
+# Structured data for search engines and LLMs
+html_extra_path = ['_extra']  # create this directory
