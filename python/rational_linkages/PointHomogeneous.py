@@ -422,6 +422,31 @@ class PointHomogeneous:
         """
         return self.coordinates.copy()
 
+    def scale(self, factor: float) -> "PointHomogeneous":
+        """
+        Scale the point uniformly about the origin.
+
+        Maps the Euclidean point ``p`` to ``factor * p`` by multiplying only
+        the Euclidean part of the homogeneous coordinates, i.e.
+        ``[w, x, y, z] -> [w, factor * x, factor * y, factor * z]``.
+        Unlike ``point * factor``, which rescales all homogeneous coordinates
+        and therefore represents the same projective point, this moves the
+        point. Points at infinity are left fixed.
+
+        Parameters
+        ----------
+        factor :
+            Scaling factor.
+
+        Returns
+        -------
+        PointHomogeneous
+            The scaled point.
+        """
+        scaled_coordinates = self.coordinates.copy()
+        scaled_coordinates[1:] = scaled_coordinates[1:] * factor
+        return self.__class__(scaled_coordinates)
+
     def norm(self):
         """
         Return the norm of the point.

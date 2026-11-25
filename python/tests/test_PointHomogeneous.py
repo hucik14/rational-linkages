@@ -471,6 +471,70 @@ class TestPoint2DqArray:
 
 
 # ---------------------------------------------------------------------------
+# scale
+# ---------------------------------------------------------------------------
+
+class TestScale:
+
+    def test_normalized_point(self, p):
+        scaled_point = p.scale(2.0)
+        assert numpy.allclose(scaled_point.coordinates, [1.0, 4.0, 6.0, 8.0])
+
+    def test_homogeneous_coordinate_not_one(self):
+        # [2, 4, 6, 8] is the Euclidean point (2, 3, 4)
+        point = PointHomogeneous([2.0, 4.0, 6.0, 8.0])
+        scaled_point = point.scale(3.0)
+        assert numpy.allclose(scaled_point.normalized_euclidean(), [6.0, 9.0, 12.0])
+
+    def test_keeps_homogeneous_coordinate(self, p_scaled):
+        assert numpy.isclose(p_scaled.scale(5.0)[0], p_scaled[0])
+
+    def test_matches_scaled_euclidean_point(self, p_scaled):
+        factor = -1.5
+        expected = p_scaled.normalized_euclidean() * factor
+        assert numpy.allclose(p_scaled.scale(factor).normalized_euclidean(), expected)
+
+    def test_differs_from_mul(self, p_scaled):
+        # point * factor is the same projective point; scale moves it
+        factor = 2.0
+        assert numpy.allclose((p_scaled * factor).normalized_euclidean(),
+                              p_scaled.normalized_euclidean())
+        assert not numpy.allclose(p_scaled.scale(factor).normalized_euclidean(),
+                                  p_scaled.normalized_euclidean())
+
+    def test_factor_one_is_identity(self, p_scaled):
+        assert p_scaled.scale(1.0) == p_scaled
+
+    def test_factor_zero_gives_origin(self, p_scaled):
+        assert numpy.allclose(p_scaled.scale(0.0).normalized_euclidean(), [0.0, 0.0, 0.0])
+
+    def test_origin_is_fixed(self, origin):
+        assert origin.scale(7.0) == origin
+
+    def test_point_at_infinity_stays_at_infinity(self):
+        point_at_infinity = PointHomogeneous([0.0, 1.0, 2.0, 3.0])
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            scaled_point = point_at_infinity.scale(2.0)
+        assert scaled_point.is_at_infinity
+        assert numpy.allclose(scaled_point.coordinates, [0.0, 2.0, 4.0, 6.0])
+
+    def test_2d_point(self):
+        point_2d = PointHomogeneous([2.0, 2.0, 4.0])
+        scaled_point = point_2d.scale(3.0)
+        assert scaled_point.is_2d
+        assert numpy.allclose(scaled_point.normalized_euclidean(), [3.0, 6.0])
+
+    def test_does_not_mutate_original(self, p):
+        original_coordinates = p.coordinates.copy()
+        p.scale(10.0)
+        assert numpy.allclose(p.coordinates, original_coordinates)
+
+    def test_returns_point_homogeneous(self, p):
+        assert type(p.scale(2.0)) is PointHomogeneous
+
+
+# ---------------------------------------------------------------------------
 # linear_interpolation
 # ---------------------------------------------------------------------------
 

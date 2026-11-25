@@ -512,6 +512,64 @@ class TestPoint2DqArray:
 
 
 # ---------------------------------------------------------------------------
+# scale
+# ---------------------------------------------------------------------------
+
+class TestScale:
+
+    def test_integer_factor(self, ps_numeric):
+        # [2, 4, 6, 8] is the Euclidean point (2, 3, 4)
+        scaled_point = ps_numeric.scale(3)
+        assert list(scaled_point.coordinates) == [2, 12, 18, 24]
+        assert list(scaled_point.normalized_euclidean()) == [6, 9, 12]
+
+    def test_rational_factor_is_exact(self, ps_numeric):
+        scaled_point = ps_numeric.scale(sympy.Rational(1, 3))
+        assert list(scaled_point.normalized_euclidean()) == [
+            sympy.Rational(2, 3), 1, sympy.Rational(4, 3)]
+
+    def test_symbolic_factor(self, syms, ps):
+        w, x, y, z = syms
+        scale_factor = sympy.Symbol("s", real=True)
+        scaled_point = ps.scale(scale_factor)
+        assert list(scaled_point.coordinates) == [
+            w, scale_factor * x, scale_factor * y, scale_factor * z]
+
+    def test_integer_factor_does_not_warn(self, ps_numeric):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            ps_numeric.scale(2)
+            ps_numeric.scale(sympy.Integer(2))
+            ps_numeric.scale(sympy.Rational(1, 2))
+
+    @pytest.mark.parametrize(
+        "float_factor", [2.0, numpy.float64(2.0), sympy.Float(2.0)])
+    def test_float_factor_warns(self, ps_numeric, float_factor):
+        with pytest.warns(UserWarning, match="floating-point factor"):
+            scaled_point = ps_numeric.scale(float_factor)
+        assert [float(value) for value in scaled_point.coordinates] == [
+            2.0, 8.0, 12.0, 16.0]
+
+    def test_keeps_homogeneous_coordinate(self, syms, ps):
+        w = syms[0]
+        assert ps.scale(5).coordinates[0] == w
+
+    def test_point_at_infinity_stays_at_infinity(self):
+        set_backend("sympy")
+        point_at_infinity = PointHomogeneousSymbolic([0, 1, 2, 3])
+        scaled_point = point_at_infinity.scale(2)
+        assert scaled_point.is_at_infinity
+        assert list(scaled_point.coordinates) == [0, 2, 4, 6]
+
+    def test_does_not_mutate_original(self, ps_numeric):
+        ps_numeric.scale(10)
+        assert list(ps_numeric.coordinates) == [2, 4, 6, 8]
+
+    def test_returns_symbolic(self, ps_numeric):
+        assert isinstance(ps_numeric.scale(2), PointHomogeneousSymbolic)
+
+
+# ---------------------------------------------------------------------------
 # linear_interpolation (inherited — verify symbolic output)
 # ---------------------------------------------------------------------------
 
