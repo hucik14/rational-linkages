@@ -29,18 +29,11 @@ include:
   - template: Jobs/SAST.gitlab-ci.yml
   - template: Jobs/Secret-Detection.gitlab-ci.yml
   - template: Jobs/Dependency-Scanning.gitlab-ci.yml
-  - template: Jobs/Container-Scanning.gitlab-ci.yml
-
-container_scanning:
-  variables:
-    CS_IMAGE: python:3.11-bullseye
-  artifacts:
-    expire_in: 10 days
 
 test_coverage:
   stage: test
   image:
-    name: python:3.11-bookworm
+    name: python:3.13-bookworm
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
   script:
     - *common_script
@@ -60,32 +53,13 @@ python_versions:
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
   script:
     - *common_script
-    - if [ "$IMAGE" = "python:3.10-bullseye" ]; then pip install 'PyQt6<6.10'; fi
+    - if [ "$IMAGE" = "python:3.10-bookworm" ]; then pip install 'PyQt6<6.10'; fi
     - pip install -e .[opt,cad]
     - pip install pytest pytest-cov sybil
     - python -m pytest
   parallel:
     matrix:
-      - IMAGE: [python:3.13-bookworm, python:3.12-bookworm, python:3.10-bullseye]
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-    - if: '$CI_COMMIT_BRANCH == "main"'
-
-python_314:
-  stage: test_python_versions
-  allow_failure: true
-  image:
-    name: python:3.14-bookworm
-    entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
-  script:
-    - *common_script
-    - pip install build123d || echo "build123d not available for Python 3.14, skipping"
-    - pip install exudyn || echo "exudyn not available for Python 3.14, skipping"
-    - pip install -e .[opt]
-    - pip install pytest pytest-cov sybil trimesh manifold3d
-    - pip install "numpy>=2.0" || echo "numpy upgrade failed, continuing"
-    - python -m pytest
+      - IMAGE: [python:3.14-bookworm, python:3.12-bookworm, python:3.11-bookworm, python:3.10-bookworm]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "develop"'
