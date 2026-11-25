@@ -17,7 +17,7 @@ please follow the instructions in the `Exudyn documentation`_ or get this way:
 
 .. code-block:: bash
 
-    pip install rational_linkages[cad]
+    pip install "rational_linkages[cad]"
 
 Exudyn is lightweight, written in C++, and provides a Python interface
 for easy usage and integration. The library supports large deformations

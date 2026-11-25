@@ -90,7 +90,22 @@ Main Features:
 - search of full-cycle collision-free design of the linkages,
 - design of 3D-printable mechanisms,
 - basic control algorithms for velocity motion planning,
-- interactive motion design.
+- interactive motion design,
+- generation of skeleton model (STEP or STL).
+
+See it in this video:
+
+.. raw:: html
+
+   <div style="position: relative; width: 100%; max-width: 720px; aspect-ratio: 16 / 9; margin: 1em 0;">
+     <iframe src="https://www.youtube-nocookie.com/embed/1qOE_mHgJe0"
+             title="Rational Linkages: features overview"
+             style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0;"
+             loading="lazy"
+             allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+             referrerpolicy="strict-origin-when-cross-origin"
+             allowfullscreen></iframe>
+   </div>
 
 The results may look like this Bennett manipulator made by our collaborators from the Department of Robotics,
 VSB -- Technical University
