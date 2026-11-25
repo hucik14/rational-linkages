@@ -7,16 +7,17 @@
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 
 .common_script: &common_script
-  - apt-get update && apt-get install -y libgl1-mesa-glx libxkbcommon-x11-0 libegl1 libdbus-1-3
+  - apt-get update && apt-get install -y libgl1 libxkbcommon-x11-0 libegl1 libdbus-1-3
   - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   - source $HOME/.cargo/env
-  - cd rust
-  - cargo build --release
-  - cd ..
 
 default:
   artifacts:
     expire_in: 60 days
+
+variables:
+  # Keep downloaded wheels inside the project dir so GitLab can cache them between pipelines
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 stages:
   - test
@@ -35,6 +36,9 @@ test_coverage:
   image:
     name: python:3.13-bookworm
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
+  cache:
+    key: pip-python3.13-bookworm
+    paths: [.cache/pip]
   script:
     - *common_script
     - pip install -e .[opt,cad]
@@ -51,6 +55,9 @@ python_versions:
   image:
     name: $IMAGE
     entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
+  cache:
+    key: pip-$IMAGE
+    paths: [.cache/pip]
   script:
     - *common_script
     - if [ "$IMAGE" = "python:3.10-bookworm" ]; then pip install 'PyQt6<6.10'; fi
