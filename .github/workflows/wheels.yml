@@ -1,4 +1,4 @@
-name: Build Linux x86_64 and ARM wheels
+name: Build wheels (Linux, macOS, Windows)
 
 on:
   push:
@@ -6,37 +6,51 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_linux_wheels:
-    name: Build manylinux + musllinux wheels (${{ matrix.arch }})
-    runs-on: ubuntu-latest
+  build_wheels:
+    name: Build wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        arch: [x86_64, aarch64]
+        os:
+          - ubuntu-latest      # Linux x86_64 (manylinux + musllinux)
+          - ubuntu-24.04-arm   # Linux aarch64, native runner (no QEMU)
+          - macos-15           # macOS arm64 (Apple Silicon)
+          - macos-15-intel     # macOS x86_64 (last Intel image offered by GitHub)
+          - windows-latest     # Windows AMD64
+          - windows-11-arm     # Windows ARM64
 
     steps:
       - name: Check out source
         uses: actions/checkout@v4
 
-      # QEMU is needed to run aarch64 Docker images on the x86_64 GitHub runner
-      - name: Set up QEMU for aarch64
-        if: matrix.arch == 'aarch64'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: linux/arm64
+      # Linux builds run inside manylinux/musllinux containers and install Rust via
+      # the before-build step in pyproject.toml. macOS and Windows x64 runners ship
+      # with Rust preinstalled; make sure it is present on Windows ARM as well.
+      - name: Ensure Rust toolchain (Windows ARM64)
+        if: matrix.os == 'windows-11-arm'
+        shell: pwsh
+        run: |
+          if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
+            Invoke-WebRequest https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe -OutFile rustup-init.exe
+            .\rustup-init.exe -y --default-toolchain stable --profile minimal
+            $cargoBin = "$env:USERPROFILE\.cargo\bin"
+            $cargoBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+            $env:PATH = "$cargoBin;$env:PATH"
+          }
+          cargo --version
 
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v3.3.0
         env:
-          # CI controls which Linux arch to build in this job
-          CIBW_ARCHS_LINUX: ${{ matrix.arch }}
-          # (optional) If you ever want to override pyproject skip from CI:
-          # CIBW_SKIP: "pp* cp3*t-*"
+          # Each runner builds only its own architecture; overrides the archs
+          # lists in pyproject.toml (no cross-compilation, no emulation).
+          CIBW_ARCHS: native
 
       - name: Upload built wheels
         uses: actions/upload-artifact@v4
         with:
-          name: linux-wheels-${{ matrix.arch }}
+          name: wheels-${{ matrix.os }}
           path: wheelhouse/*.whl
           retention-days: 5
